@@ -2,7 +2,7 @@
 
 Nov 5, 2026 · @Chris Gaine
 
-> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 74). The live doc is the source of truth; re-export here as it evolves.
+> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 88). The live doc is the source of truth; re-export here as it evolves.
 
 Long Way Home is a cozy 3D farming game (working title chosen 2026-11-05; the browser prototype is still called Little Acre, v0.1). This doc tracks how its systems connect, the numbers behind them, and what to build next. The title may change before release: three space-themed games on Steam already use "A Long Way Home" or "The Long Way Home", one of them with farming, so a subtitle or different name may be needed.
 
@@ -27,9 +27,9 @@ Nine systems exist in v0.1. Each row says how it works today, what it feeds, and
 
 | System | How it works in v0.1 | Feeds into | Open question |
 | --- | --- | --- | --- |
-| Time | Day runs 6:00 am to 2:00 am at 7 game minutes per real second (about 3 real minutes per day). Pauses while a menu is open. | Lighting, sleep, crop growth | Is 3 minutes too short once there is more to do? |
+| Time | Day runs 6:00 am to 2:00 am, about 12 real minutes per day (about 1.7 game minutes per real second). Pauses while a menu is open. | Lighting, sleep, crop growth | Does a 12-minute day feel right once there is more to do? |
 | Sleep | Bed at the front door ends the day. Staying up past 2 am means passing out and waking with 50% energy. | Crop growth, shipping payout, weather roll, save | Should passing out cost gold too? |
-| Energy | 100 per day. Tilling costs 2, watering 1; planting and harvesting are free. Refills fully on sleep. | Limits tilling and watering per day | What restores energy mid-day (food)? |
+| Energy | 150 per day. Every tool swing or pour costs 2 (tilling, watering, chopping, mining); planting and harvesting are free. Refills fully on sleep. | Limits tilling and watering per day | What restores energy mid-day (food)? |
 | Farming | Till a tile, plant a seed, crop grows 1 stage per watered night, harvest when ripe. Harvested tile stays tilled. | Basket | Do untouched tilled tiles revert to grass? Do crops die at season change? |
 | Watering | Can holds 20 (40 after upgrade), 1 per tile, refills at the pond. Watered state resets each night. | Crop growth | Should upgrades water a 3-tile row at once? |
 | Weather | 22% chance of rain each new day. Rain waters every tilled tile, including newly tilled ones. | Watering, lighting | Add storms or seasonal weather odds? |
@@ -48,16 +48,16 @@ These are the values hard-coded in the v0.1 prototype. Where later sections diff
 
 | ID | Name | Grow time (days) | Seed cost (g) | Sell price (g) | Season | Regrows |
 | --- | --- | --- | --- | --- | --- | --- |
-| carrot | Carrot | 3 | 15 | 35 | Any | No |
-| potato | Potato | 5 | 30 | 75 | Any | No |
-| pumpkin | Pumpkin | 8 | 60 | 190 | Any | No |
+| carrot | Carrot | 3 | 15 | 35 | Spring | No |
+| potato | Potato | 5 | 30 | 75 | Spring | No |
+| pumpkin | Pumpkin | 8 | 60 | 190 | Fall | No |
 
 ### Tools and upgrades
 
 | ID | Name | Energy per use | Capacity | Cost (g) | Unlocks |
 | --- | --- | --- | --- | --- | --- |
 | hoe | Hoe | 2 | — | Starting tool | Tilled tile |
-| can | Watering can | 1 | 20 | Starting tool | Watered tile |
+| can | Watering can | 2 | 20 | Starting tool | Watered tile |
 | axe | Axe | 2 | — | Bought from Maggie, 50 (draft) | Wood from trees |
 | pickaxe | Pickaxe | 2 | — | Bought from Maggie, 75 (draft) | Stone from rocks |
 
@@ -88,11 +88,11 @@ Energy rule (draft): every swing or pour costs 2 energy at every level. Upgrades
 
 | Constant | Value | Used by |
 | --- | --- | --- |
-| Starting gold | 150g | New game |
-| Starting seeds | 12 carrot | New game |
-| Max energy | 100 | Energy |
+| Starting gold | 100g | New game |
+| Starting seeds | 10 carrot, 5 potato | New game |
+| Max energy | 150 | Energy |
 | Pass-out energy | 50% | Sleep |
-| Time rate | 7 game min per real sec | Time |
+| Time rate | About 1.7 game min per real sec (12 real min per day) | Time |
 | Day start / end | 6:00 am / 2:00 am | Time |
 | Rain chance | 22% per day | Weather |
 | Season length | 28 days | Calendar (display only) |
@@ -108,9 +108,9 @@ Pumpkins earn the most on every measure, about 2.4x carrots per tile per day, so
 | Potato | 45 | 9.0 | 30 |
 | Pumpkin | 130 | 16.3 | 60 |
 
-Each growing day costs 1 energy to water, so gold per energy matches gold per tile per day.
+Each growing day costs 2 energy to water, so gold per energy is half the gold per tile per day.
 
-Right now the only things holding pumpkins back are cash flow (150g starting gold buys 2 pumpkin seeds) and the 8-day wait. Ways to give the cheaper crops a role:
+Right now the only things holding pumpkins back are cash flow (100g starting gold buys 1 pumpkin seed) and the 8-day wait. Ways to give the cheaper crops a role:
 
 - Carrots regrow after harvest, so they earn without replanting.
 - Seasons: pumpkins only in Fall, so each season has its own best crop.
@@ -336,7 +336,7 @@ Answer these from playtesting. Tick a question once its answer is written into t
 ### Questions
 
 - [ ] Camera: keep the fixed overhead angle, or allow rotate and zoom?
-- [ ] Pace: does a 3-minute day feel rushed or relaxed?
+- [ ] Pace: does a 12-minute day feel rushed or relaxed?
 - [ ] Long-term goal: money targets, house upgrades, relationships, or a story?
 - [ ] Failure: should anything ever be lost (crops dying, gold on pass-out)?
 - [x] Platform: decided. Godot, Windows and Linux (including Steam Deck); iPhone dropped
