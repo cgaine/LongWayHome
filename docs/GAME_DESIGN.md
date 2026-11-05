@@ -2,7 +2,7 @@
 
 Nov 5, 2026 · @Chris Gaine
 
-> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 29). The live doc is the source of truth; re-export here as it evolves.
+> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 88). The live doc is the source of truth; re-export here as it evolves.
 
 Long Way Home is a cozy 3D farming game (working title chosen 2026-11-05; the browser prototype is still called Little Acre, v0.1). This doc tracks how its systems connect, the numbers behind them, and what to build next. The title may change before release: three space-themed games on Steam already use "A Long Way Home" or "The Long Way Home", one of them with farming, so a subtitle or different name may be needed.
 
@@ -27,16 +27,16 @@ Nine systems exist in v0.1. Each row says how it works today, what it feeds, and
 
 | System | How it works in v0.1 | Feeds into | Open question |
 | --- | --- | --- | --- |
-| Time | Day runs 6:00 am to 2:00 am at 7 game minutes per real second (about 3 real minutes per day). Pauses while a menu is open. | Lighting, sleep, crop growth | Is 3 minutes too short once there is more to do? |
+| Time | Day runs 6:00 am to 2:00 am, about 12 real minutes per day (about 1.7 game minutes per real second). Pauses while a menu is open. | Lighting, sleep, crop growth | Does a 12-minute day feel right once there is more to do? |
 | Sleep | Bed at the front door ends the day. Staying up past 2 am means passing out and waking with 50% energy. | Crop growth, shipping payout, weather roll, save | Should passing out cost gold too? |
-| Energy | 100 per day. Tilling costs 2, watering 1; planting and harvesting are free. Refills fully on sleep. | Limits tilling and watering per day | What restores energy mid-day (food)? |
+| Energy | 150 per day. Every tool swing or pour costs 2 (tilling, watering, chopping, mining); planting and harvesting are free. Refills fully on sleep. | Limits tilling and watering per day | What restores energy mid-day (food)? |
 | Farming | Till a tile, plant a seed, crop grows 1 stage per watered night, harvest when ripe. Harvested tile stays tilled. | Basket | Do untouched tilled tiles revert to grass? Do crops die at season change? |
 | Watering | Can holds 20 (40 after upgrade), 1 per tile, refills at the pond. Watered state resets each night. | Crop growth | Should upgrades water a 3-tile row at once? |
 | Weather | 22% chance of rain each new day. Rain waters every tilled tile, including newly tilled ones. | Watering, lighting | Add storms or seasonal weather odds? |
 | Inventory | Seeds per crop type, plus a basket of harvested crops. No size limit. | Shipping | Add a backpack limit to create a reason for chests? |
 | Shipping | Drop the whole basket into the bin. Items sell at their base price overnight. | Gold | Add quality tiers (normal, silver, gold) for higher prices? |
-| Shop | Seed stall sells 3 seed types and a one-time can upgrade (250g). Always open. | Seeds, can capacity | Opening hours? Seasonal stock? |
-| Gathering (planned) | Not in v0.1. Axe on trees gives wood, pickaxe on rocks gives stone. Each swing costs energy, so gathering competes with farming for the day. Materials go into the backpack. | Rebuilds, carpenter (wood to planks), backpack upgrades | Do trees regrow and rocks respawn, and how fast? Decide alongside the first rebuild costs. |
+| Shop | Prototype only: a seed stall on the farm sold 3 seed types and a can upgrade. Decided: the stall is removed; seeds and tools come from the general store in town, open from day one, so there's a reason to go into town. | Seeds, can capacity | Opening hours? Seasonal stock? |
+| Gathering (planned) | Not in v0.1. Axe on trees gives wood, pickaxe on rocks gives stone. Each swing costs energy, so gathering competes with farming for the day. Materials go into the backpack. | Rebuilds, carpenter (wood to planks), backpack upgrades | Decided: trees and rocks respawn every couple of days. |
 
 Saving happens once a night in the player's browser, so a day can be replayed by reloading before bed.
 
@@ -48,19 +48,31 @@ These are the values hard-coded in the v0.1 prototype. Where later sections diff
 
 | ID | Name | Grow time (days) | Seed cost (g) | Sell price (g) | Season | Regrows |
 | --- | --- | --- | --- | --- | --- | --- |
-| carrot | Carrot | 3 | 15 | 35 | Any | No |
-| potato | Potato | 5 | 30 | 75 | Any | No |
-| pumpkin | Pumpkin | 8 | 60 | 190 | Any | No |
+| carrot | Carrot | 3 | 15 | 35 | Spring | No |
+| potato | Potato | 5 | 30 | 75 | Spring | No |
+| pumpkin | Pumpkin | 8 | 60 | 190 | Fall | No |
 
 ### Tools and upgrades
 
 | ID | Name | Energy per use | Capacity | Cost (g) | Unlocks |
 | --- | --- | --- | --- | --- | --- |
 | hoe | Hoe | 2 | — | Starting tool | Tilled tile |
-| can to | Watering can | 1 | 20 | Starting tool | Watered tile |
-| axe | Axe | TBD | — | Bought from Maggie (price TBD) | Wood from trees |
-| pickaxe | Pickaxe | TBD | — | Bought from Maggie (price TBD) | Stone from rocks |
-| can\_large | Bigger watering can | 1 | 40 | 250 | Replaces can |
+| can | Watering can | 2 | 20 | Starting tool | Watered tile |
+| axe | Axe | 2 | — | Bought from Maggie, 50 (draft) | Wood from trees |
+| pickaxe | Pickaxe | 2 | — | Bought from Maggie, 75 (draft) | Stone from rocks |
+
+### Tool upgrade levels (draft)
+
+Each tool (hoe, watering can, axe, pickaxe) upgrades through the same levels at Mira's blacksmith. Upgrade costs to be decided.
+
+| Level | Available from | Hoe | Watering can | Axe | Pickaxe |
+| --- | --- | --- | --- | --- | --- |
+| Basic | Start / Maggie's store | 1 tile | 20 uses, 1 tile | About 5 wood per tree | About 3 stone per rock |
+| Copper | Blacksmith stage 1 | 3 tiles in a row | 40 uses | Fewer swings per tree | Fewer swings per rock |
+| Iron | Blacksmith stage 2 | 3 x 3 area | 60 uses, 3 tiles in a row | Clears stumps; more wood | Breaks mine boulders; more stone |
+| Steel | Blacksmith stage 3 | 5 x 5 area | 100 uses, 3 x 3 area | Large trees; most wood | Deepest mine rock; ship-part ore |
+
+Energy rule (draft): every swing or pour costs 2 energy at every level. Upgrades do more per action instead: the Iron can waters 3 tiles and the Steel can 9 for the same 2 energy, and the axe and pickaxe need fewer swings (trees and rocks alike: Basic 4, Copper 3, Iron 2, Steel 1). Day length draft: about 12 real minutes (6 am to 2 am), 150 energy per day (raised from 120 so the first rebuild lands around day 5–6). Watering uses one charge per tile, so a 3-tile pour uses 3 and a 3 x 3 pour uses 9; the bigger area saves time and energy, not water.
 
 ### Locations
 
@@ -69,18 +81,18 @@ These are the values hard-coded in the v0.1 prototype. Where later sections diff
 | farm | Farm plot | Till, plant, water, harvest | 12 x 9 grid |
 | door | House door | Sleep | 1.25 |
 | bin | Shipping bin | Ship basket | 1.7 |
-| stall | Seed stall | Open shop | 2.2 |
+| stall | Seed stall | Removed: replaced by the general store in town | 2.2 |
 | pond | Pond | Refill can | 3.8 from centre |
 
 ### Tuning constants
 
 | Constant | Value | Used by |
 | --- | --- | --- |
-| Starting gold | 150g | New game |
-| Starting seeds | 12 carrot | New game |
-| Max energy | 100 | Energy |
+| Starting gold | 100g | New game |
+| Starting seeds | 10 carrot, 5 potato | New game |
+| Max energy | 150 | Energy |
 | Pass-out energy | 50% | Sleep |
-| Time rate | 7 game min per real sec | Time |
+| Time rate | About 1.7 game min per real sec (12 real min per day) | Time |
 | Day start / end | 6:00 am / 2:00 am | Time |
 | Rain chance | 22% per day | Weather |
 | Season length | 28 days | Calendar (display only) |
@@ -96,9 +108,9 @@ Pumpkins earn the most on every measure, about 2.4x carrots per tile per day, so
 | Potato | 45 | 9.0 | 30 |
 | Pumpkin | 130 | 16.3 | 60 |
 
-Each growing day costs 1 energy to water, so gold per energy matches gold per tile per day.
+Each growing day costs 2 energy to water, so gold per energy is half the gold per tile per day.
 
-Right now the only things holding pumpkins back are cash flow (150g starting gold buys 2 pumpkin seeds) and the 8-day wait. Ways to give the cheaper crops a role:
+Right now the only things holding pumpkins back are cash flow (100g starting gold buys 1 pumpkin seed) and the 8-day wait. Ways to give the cheaper crops a role:
 
 - Carrots regrow after harvest, so they earn without replanting.
 - Seasons: pumpkins only in Fall, so each season has its own best crop.
@@ -108,9 +120,10 @@ Decided since: pumpkins grow only in fall (see Seasons and crops), and rebuilds 
 
 ## Long-term vision
 
-You restore an emptied town. At the start only one or two buildings and families remain. You rebuild buildings yourself with wood, stone and gold, and each rebuild brings a resident back, who unlocks new goods, tools or areas. Later buildings need materials that only earlier ones unlock, so the town and world open up over time.
+You restore Ember Bay, an emptied lakeside town. At the start only one or two buildings and families remain. You rebuild buildings yourself with wood, stone and gold, and each rebuild brings a resident back, who unlocks new goods, tools or areas. Later buildings need materials that only earlier ones unlock, so the town and world open up over time.
 
 - Starting tool: the hoe only. The axe (wood) and pickaxe (stone) are bought from Maggie's corner of the general store, before it's rebuilt, since the rebuild itself needs wood and stone
+- No seed stall on the farm: the general store is open from the start (Maggie running it in its run-down state), so the player has a reason to head into town from day one. Its rebuild stages expand it from there
 - Target platforms: Windows and Linux, including Steam Deck
 - Engine: Godot 4 (.NET build) with C#. No mobile or iPhone build planned
 - Controls: keyboard and mouse plus a controller, routed through Godot's input map so every action works on both
@@ -119,26 +132,47 @@ You restore an emptied town. At the start only one or two buildings and families
 
 A space traveller crash-lands on a planet of a humanoid species, near the emptied town. His goal is to restore his ship and return to space. Along the way he meets the townspeople, builds a life, and rebuilds the town with the same resources he gathers for the ship. The ending is left open for now.
 
+Why Ember Bay emptied: years ago a dam raised the lake. It drowned the lower town and flooded the deep levels of the mine. With the mine gone, the work dried up and families left.
+
+The flooded mine is the main progression gate. To go deeper, you shore up each flooded level (sealing or pumping it, with parts from Mira and Tom). Once a level is shored up it stays open for good; the next level down needs its own work.
+
+Shoring up a level can require any one or a combination of the following, varied per level. The mix is picked during design and then fixed, so every playthrough has the same requirements:
+
+- Materials: planks from Tom for supports, and stone to pack the walls
+- Metal parts: a pump or seal forged by Mira from ore found on the level above
+- Tool tier: a pickaxe strong enough to clear the debris
+
+Opening (draft): after the crash, he stumbles into town and meets Maggie. She is the only one who knows where he really came from, and she shows him to an abandoned farmhouse in the meadow, which becomes his farm. She acts as the tutorial: shows how to use the hoe and watering can, gives starter seeds (draft: 10 carrot, 5 potato for spring), and points him to her store for the axe and pickaxe once he has earned some gold.
+
+Start (draft): 100 gold and a cleared 6 x 6 plot; the rest of the meadow is overgrown with trees, stumps and rocks. Clearing it both expands the farm and gives the first wood and stone. Expected first week: plant Maggie's seeds and buy the axe on day 1, sell carrots on day 4 (about 400 gold), buy the pickaxe on day 5, rebuild the store to level 2 around day 5–6.
+
+Pattern: every fifth level needs a pump forged by Mira. The levels in between need debris cleared with the pickaxe and the flooding blocked with supports (planks and stone).
+
+Depth: about 60 levels to start, so 12 pump levels (every fifth level).
+
 The key ship parts lie in the mine, and each milestone deeper down gets him one step closer. The parts below are a first pass:
 
 | Mine depth | Ship part (draft) |
 | --- | --- |
-| Shallow | Power cell |
-| Middle | Navigation crystal |
-| Deep | Hull alloy |
-| Bottom | Engine core |
+| Level 15 | Power cell |
+| Level 30 | Navigation crystal |
+| Level 45 | Hull alloy |
+| Level 60 (bottom) | Engine core |
 
 Idea to explore: some parts need the town to finish them, e.g. the blacksmith forges the alloy into plating, Tom builds a launch frame.
 
 ## First building: General store
 
-The general store is the first building to restore. It grows in three stages, each costing more wood, stone and gold.
+The general store is the first building to restore. It is open from day one at level 1 (Maggie's corner) and grows through three rebuilds, each costing more wood, stone and gold.
 
 | Stage | Unlocks |
 | --- | --- |
-| 1. Reopened | Basic seeds, first backpack upgrade |
-| 2. Storeroom | More seed types, bigger backpack, chests for the farm |
-| 3. Expanded shop | Buys your crops; wider range of seeds and farm supplies |
+| 1. Maggie's corner | Open from day one: starter seeds, axe and pickaxe |
+| 2. Reopened | Basic seeds, first backpack upgrade |
+| 3. Storeroom | More seed types, bigger backpack, chests for the farm |
+| 4. Expanded shop | Buys your crops; wider range of seeds and farm supplies |
+
+Backpack (draft): slot-based; each slot holds a stack of one item, up to 99. Start with 12 slots, with the four tools taking slots (8 left for seeds, crops and materials). Maggie's upgrades: 24 slots at store level 2, 36 at level 3.
 
 ## Carpenter
 
@@ -185,18 +219,89 @@ A separate building, opened by the carpenter's partner once the carpenter family
 | Maggie | From the start | Elderly shopkeeper; keeps a corner of the general store open |
 | Clyde | From the start | Old fisherman at the dock |
 | Carpenter family | Carpenter stage 1 | Tom (carpenter), June (partner, later runs the café) and Jesse (teen who helps in the workshop) |
+| Mira | Blacksmith stage 1 | Young blacksmith; the old smith's daughter, back to reopen her father's shop |
+
+## Friendships (draft)
+
+Each resident has a five-step friendship meter, raised by talking daily, giving gifts they like and finishing their requests. Idea to keep it distinct from Stardew: show it as lanterns lit in each resident's window, one per step, so the town visibly glows brighter as friendships grow (fits the name Ember Bay).
+
+| Resident | 1 | 2 | 3 | 4 | 5 |
+| --- | --- | --- | --- | --- | --- |
+| Maggie | Small seed discount | Hints at next season's seeds | Her story: the town before the dam | Rare seed each season | Leaves you the store's old storeroom key (free chest space) |
+| Clyde | Tips on where fish bite | Better bait | His story: the flooded lower town | Rowboat to fish the deep lake | Shows you a sunken building to dive or salvage |
+| Tom | Cheaper planks | Faster rebuilds | His story: why the family left | Free farmhouse upgrade step | Builds a feature of your choice (porch, shed) |
+| June | Free snack when you visit | First café recipe | Her story | Daily energy meal discount | Signature dish that fully restores energy |
+| Jesse | Helps gather wood once a week | Tells you town rumours | Their story: stay or leave town | Helps in the mine on request | Becomes an apprentice who runs small errands |
+| Mira | Cheaper tool upgrades | Faster upgrades | Her story: what happened to her father | Notices your ship is not from here | Forges a special part that helps the ship |
+
+Every lantern step also unlocks a piece of story: something new about that resident's past or the history of Ember Bay, alongside the reward in the table.
+
+### Lantern stories (draft)
+
+One story beat per lantern. Maggie's and Clyde's final beats plant the mystery that something fell into the lake before.
+
+| Resident | 1 | 2 | 3 | 4 | 5 |
+| --- | --- | --- | --- | --- | --- |
+| Maggie | Ran the store with her late husband for forty years; knows every family that shopped there | Before the dam, the lower main street held summer dances; its rooftops are visible from the dock | The town voted for the dam on a promise of jobs; she voted yes and never forgave herself | Stayed because the store was her husband's dream | Years ago she saw a light fall into the lake, just like your crash |
+| Clyde | Knows every bite in the lake | Grew up on a farm now underwater; still fishes above it | Was in the mine when it flooded and helped get miners out; never went back underground | His wife and kids moved to the city; he stayed and lost touch | Shows you his family's sunken barn; has seen strange lights under the water |
+| Tom | Learned carpentry from his father, who built half of Ember Bay | Built the old docks in the lower town, now underwater | Moved the family to the city for steady work and hated it | Coming back was June's idea; he feared it would fail again | Asks you to help finish restoring his father's house |
+| June | Grew up in the city; fell for Ember Bay on first visit | Her café runs on her grandmother's handwritten recipes | Runs it to bring people together; she knew no one in the city | Worries Jesse will leave like everyone else | Asks you to help plan the town's first festival in years |
+| Jesse | Bored; wishes they were back in the city | Secretly good at fine woodwork, better than Tom | Explores the old mine entrance against the rules | Found a strange metal shard in the mine | Decides whether to stay or leave; your friendship nudges it |
+| Mira | Learned at her father's side, then apprenticed in the city; townsfolk still call it "her father's forge" | After the flood her father spent years forging pumps to drain the mine; none held | His hands grew too shaky to work; he lives in a city care home, and she came back to keep his forge alive | His journal describes a metal deep in the mine no forge could melt; she realizes your ship is made of it | Together you learn to forge it; she makes a ship part and keeps your secret |
+
+## Ember Festival
+
+June's fifth lantern starts the festival: she asks you to help revive the town's old late-summer celebration, where everyone floats lanterns on the lake at dusk.
+
+The first festival is a project, like a rebuild:
+
+- You: crops for June's food tables
+- Tom: stalls and a stage
+- Clyde: a fish fry, if you bring him a catch
+- Mira: forged metal lanterns
+
+After the first one it repeats every year on a fixed late-summer date. It grows with the town: each resident who moves back adds a stall or activity.
+
+## Fishing (draft)
+
+- Rod: Clyde gives you his old rod at his first lantern
+- Catching: cast, wait for a nibble, then hold to reel while keeping line tension in a safe zone; too much tension snaps the line
+- Fish vary by spot (dock, river mouth, over the sunken town), season, time of day and weather
+- Uses: sell, cook at June's café, Clyde's requests, the festival fish fry
+
+### The sunken town
+
+The lower town stays underwater for good; the lake is never lowered.
+
+- From the dock: rooftops visible underwater but out of reach
+- Clyde's 4th lantern: his rowboat, to fish over the sunken town for rare fish
+- Clyde's 5th lantern: his family's sunken barn; Mira forges a diving helmet so you can salvage relics of the old town (and possibly more of the strange metal)
+
+Relics go to a museum. A returning resident (a historian or retired teacher, name to be decided) moves back once their home is rebuilt and offers to build an Ember Bay museum. Each donated relic fills a display and unlocks a piece of the lower town's history.
 
 ## Restoration order
 
 Upgrades interleave across buildings rather than finishing one building first. Tool upgrades come early because most other progress depends on them.
 
-1. General store, stage 1
+1. General store, level 2
 2. Carpenter, stage 1
 3. Blacksmith, stage 1 (first tool upgrades)
-4. General store, stage 2
+4. General store, level 3
 5. Carpenter, stage 2 (bridge opens)
 6. Blacksmith, stage 2 (mine opens)
 7. Third stages of each, with homes rebuilt in between
+
+### First rebuild costs (draft)
+
+The first rebuild should take a few in-game days; numbers will be tuned in playtesting.
+
+| Rebuild | Wood | Stone | Gold | Target time |
+| --- | --- | --- | --- | --- |
+| General store, level 2 | 50 | 25 | 300 | 3–4 days |
+| Carpenter, stage 1 | 100 | 50 | 600 | About a week |
+| Blacksmith, stage 1 | 80 | 100 | 900 | About a week and a half |
+
+Gathering (draft): trees along the forest path and farm edges give about 5 wood each; rocks in the meadow and along the riverbank give about 3 stone each. Each swing costs energy, and both respawn every couple of days. The axe (50g) and pickaxe (75g) are cheap so the first harvest or two pays for them.
 
 ## World layout
 
@@ -231,7 +336,7 @@ Answer these from playtesting. Tick a question once its answer is written into t
 ### Questions
 
 - [ ] Camera: keep the fixed overhead angle, or allow rotate and zoom?
-- [ ] Pace: does a 3-minute day feel rushed or relaxed?
+- [ ] Pace: does a 12-minute day feel rushed or relaxed?
 - [ ] Long-term goal: money targets, house upgrades, relationships, or a story?
 - [ ] Failure: should anything ever be lost (crops dying, gold on pass-out)?
 - [x] Platform: decided. Godot, Windows and Linux (including Steam Deck); iPhone dropped
