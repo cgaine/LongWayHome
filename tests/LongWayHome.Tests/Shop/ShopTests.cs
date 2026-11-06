@@ -7,7 +7,10 @@ using GameState = LongWayHome.Domain.Games.Game;
 
 namespace LongWayHome.Tests.Shop;
 
-/// <summary>The seeds shop (#45): BR-L1, BR-L2, BR-P2, BR-P5, BR-P7, and GameSession.Buy's events.</summary>
+/// <summary>
+/// The seeds shop (#45) and the Watering can upgrade (#46): BR-L1, BR-L2, BR-P2, BR-P5, BR-P7, BR-W1, BR-W3, BR-W4, and
+/// GameSession.Buy's events.
+/// </summary>
 public class ShopTests
 {
     private static GameDate SeasonDay(Season season) => new(1, season, 1);
@@ -33,7 +36,12 @@ public class ShopTests
     {
         var game = TestGames.WithGold(100, TestGames.FirstDay);
 
-        Assert.Equal(["seed_emberroot", "seed_dusktuber"], OfferIds(game));
+        // #46 appends the Can upgrade after the seeds; this test is about the seeds.
+        var seedOffers = ShopService.Offers(game, TestGames.Shipped)
+            .Where(listing => listing.Kind == ShopItemKind.Seed)
+            .Select(listing => listing.Id);
+
+        Assert.Equal(["seed_emberroot", "seed_dusktuber"], seedOffers);
     }
 
     [Theory]
@@ -44,7 +52,12 @@ public class ShopTests
     {
         var game = TestGames.WithGold(100, SeasonDay(season));
 
-        Assert.Equal(expected, OfferIds(game));
+        // #46 appends the Can upgrade after the seeds; this test is about the seeds.
+        var seedOffers = ShopService.Offers(game, TestGames.Shipped)
+            .Where(listing => listing.Kind == ShopItemKind.Seed)
+            .Select(listing => listing.Id);
+
+        Assert.Equal(expected, seedOffers);
     }
 
     [Fact]
@@ -53,7 +66,10 @@ public class ShopTests
         var game = TestGames.WithGold(100, TestGames.FirstDay);
         var data = TestGames.ShippedWithout(CropTypeId.Emberroot);
 
-        var offers = ShopService.Offers(game, data).Select(listing => listing.Id);
+        // #46 appends the Can upgrade after the seeds; this test is about the seeds.
+        var offers = ShopService.Offers(game, data)
+            .Where(listing => listing.Kind == ShopItemKind.Seed)
+            .Select(listing => listing.Id);
 
         Assert.Equal(["seed_dusktuber"], offers);
     }
@@ -63,14 +79,17 @@ public class ShopTests
     [InlineData(Season.Summer)]
     [InlineData(Season.Fall)]
     [InlineData(Season.Winter)]
-    public void BR_L1_the_can_upgrade_is_never_offered_by_the_seeds_shop(Season season)
+    public void BR_L1_the_can_upgrade_is_offered_in_every_season_last_while_not_upgraded(Season season)
     {
         var game = TestGames.WithGold(1000, SeasonDay(season));
 
         var offers = ShopService.Offers(game, TestGames.Shipped);
 
-        Assert.All(offers, listing => Assert.Equal(ShopItemKind.Seed, listing.Kind));
-        Assert.DoesNotContain(offers, listing => listing.Id == "can_upgrade");
+        Assert.NotEmpty(offers);
+        Assert.Equal("can_upgrade", offers[^1].Id);
+        Assert.Equal(ShopItemKind.CanUpgrade, offers[^1].Kind);
+        Assert.Single(offers, listing => listing.Kind == ShopItemKind.CanUpgrade);
+        Assert.All(offers.SkipLast(1), listing => Assert.Equal(ShopItemKind.Seed, listing.Kind));
     }
 
     [Fact]
@@ -164,7 +183,6 @@ public class ShopTests
     [Theory]
     [InlineData("seed_moonmelon")]
     [InlineData("seed_sunbell")]
-    [InlineData("can_upgrade")]
     [InlineData("no_such_listing")]
     public void AC6_BR_L1_buying_a_listing_not_offered_this_season_is_not_offered_and_changes_nothing(string listingId)
     {
@@ -321,5 +339,340 @@ public class ShopTests
         var session = new GameSession(TestGames.WithGold(100, SeasonDay(season)), TestGames.Shipped);
 
         Assert.Equal(ShopService.Offers(session.Game, session.Data), session.ShopOffers());
+    }
+
+    // ---- #46: the Watering can upgrade ----
+
+    private const string CanUpgrade = "can_upgrade";
+
+    private static int UpgradePrice => TestGames.Shipped.ShopListings.Single(listing => listing.Id == CanUpgrade).Price.Value;
+
+    private static int UpgradedCapacity => TestGames.Shipped.Tuning.CanUpgradedCapacity;
+
+    private static (int Capacity, int Charges, bool Upgraded) CanState(GameState game) =>
+        (game.Player.WateringCan.Capacity, game.Player.WateringCan.Charges, game.Player.WateringCan.Upgraded);
+
+    /// <summary>A can already upgraded to the shipped upgraded capacity, holding the given charges.</summary>
+    private static WateringCan UpgradedCan(int charges) => new(UpgradedCapacity, charges, true);
+
+    [Fact]
+    public void Shipped_data_prices_the_can_upgrade_at_200_and_upgrades_to_40()
+    {
+        Assert.Equal(200, UpgradePrice);
+        Assert.Equal(40, UpgradedCapacity);
+    }
+
+    [Fact]
+    public void AC1_spring_offers_emberroot_dusktuber_then_the_can_upgrade()
+    {
+        var game = NewGameFactory.Create(TestGames.Shipped, TestGames.Now);
+
+        Assert.Equal(["seed_emberroot", "seed_dusktuber", CanUpgrade], OfferIds(game));
+    }
+
+    [Fact]
+    public void AC1_winter_offers_the_can_upgrade_alone()
+    {
+        var game = TestGames.WithGold(1000, SeasonDay(Season.Winter));
+
+        Assert.Equal([CanUpgrade], OfferIds(game));
+    }
+
+    [Theory]
+    [InlineData(Season.Spring)]
+    [InlineData(Season.Summer)]
+    [InlineData(Season.Fall)]
+    [InlineData(Season.Winter)]
+    public void BR_L1_seed_offers_are_unchanged_and_come_before_the_can_upgrade(Season season)
+    {
+        var game = TestGames.WithGold(1000, SeasonDay(season));
+        var seeds = TestGames.Shipped.ShopListings
+            .Where(listing => listing.Kind == ShopItemKind.Seed
+                && TestGames.Shipped.CropTypes[listing.CropTypeId!.Value].Season == season)
+            .Select(listing => listing.Id);
+
+        Assert.Equal([.. seeds, CanUpgrade], OfferIds(game));
+    }
+
+    [Fact]
+    public void BR_L1_the_can_upgrade_is_not_offered_once_upgraded()
+    {
+        var game = TestGames.WithGold(1000, TestGames.FirstDay, can: UpgradedCan(40));
+
+        Assert.Equal(["seed_emberroot", "seed_dusktuber"], OfferIds(game));
+    }
+
+    [Fact]
+    public void AC2_BR_W4_buying_the_upgrade_with_200_gold_leaves_0_gold_and_a_full_40_charge_upgraded_can()
+    {
+        var game = TestGames.WithGold(200);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(0), game.Player.Gold);
+        Assert.Equal((40, 40, true), CanState(game));
+    }
+
+    [Fact]
+    public void AC3_BR_W4_buying_the_upgrade_with_the_can_at_5_of_20_leaves_it_at_40_of_40()
+    {
+        var game = TestGames.WithGold(500, can: new WateringCan(20, 5, false));
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal((40, 40, true), CanState(game));
+    }
+
+    [Fact]
+    public void AC4_after_buying_the_upgrade_it_is_no_longer_offered_and_buying_again_changes_nothing()
+    {
+        var game = TestGames.WithGold(1000);
+        ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+        game.Player.WateringCan.TryUseCharge();
+        var before = (Snapshot(game), CanState(game));
+
+        var offers = OfferIds(game);
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.DoesNotContain(CanUpgrade, offers);
+        Assert.Equal(ActionResult.Rejected(Rejection.NotOffered), result);
+        Assert.Equal(before, (Snapshot(game), CanState(game)));
+        Assert.Equal(new Gold(1000 - UpgradePrice), game.Player.Gold);
+    }
+
+    [Fact]
+    public void AC4_BR_W4_buying_the_upgrade_for_an_already_upgraded_can_is_not_offered_and_changes_nothing()
+    {
+        var game = TestGames.WithGold(1000, can: UpgradedCan(12));
+        var before = (Snapshot(game), CanState(game));
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotOffered), result);
+        Assert.Equal(before, (Snapshot(game), CanState(game)));
+    }
+
+    [Fact]
+    public void AC5_BR_L2_buying_the_upgrade_with_199_gold_is_not_enough_gold_and_changes_nothing()
+    {
+        var game = TestGames.WithGold(199, can: new WateringCan(20, 5, false));
+        var before = (Snapshot(game), CanState(game));
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotEnoughGold), result);
+        Assert.Equal(before, (Snapshot(game), CanState(game)));
+        Assert.Equal((20, 5, false), CanState(game));
+    }
+
+    [Fact]
+    public void BR_L2_buying_the_upgrade_takes_the_listing_price_and_upgrades_in_the_same_call()
+    {
+        var game = TestGames.WithGold(UpgradePrice + 37);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(37), game.Player.Gold);
+        Assert.Equal((UpgradedCapacity, UpgradedCapacity, true), CanState(game));
+    }
+
+    [Fact]
+    public void BR_L2_buying_the_upgrade_adds_nothing_to_the_inventory()
+    {
+        var game = TestGames.WithGold(1000);
+        var inventory = TestGames.FullSnapshot(game).Inventory;
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(inventory, TestGames.FullSnapshot(game).Inventory);
+    }
+
+    [Fact]
+    public void BR_P5_buying_the_upgrade_with_0_gold_is_refused_and_gold_stays_at_0()
+    {
+        var game = TestGames.WithGold(0);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotEnoughGold), result);
+        Assert.Equal(new Gold(0), game.Player.Gold);
+        Assert.False(game.Player.WateringCan.Upgraded);
+    }
+
+    [Fact]
+    public void BR_P5_buying_the_upgrade_with_exactly_its_price_leaves_0_gold()
+    {
+        var game = TestGames.WithGold(UpgradePrice);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(0), game.Player.Gold);
+        Assert.True(game.Player.WateringCan.Upgraded);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Buying_the_upgrade_in_a_quantity_other_than_1_throws_and_changes_nothing(int quantity)
+    {
+        var game = TestGames.WithGold(1000);
+        var before = (Snapshot(game), CanState(game));
+
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => ShopService.Buy(game, TestGames.Shipped, CanUpgrade, quantity));
+        Assert.Equal(before, (Snapshot(game), CanState(game)));
+    }
+
+    [Fact]
+    public void AC6_BR_W1_an_upgraded_can_waters_40_dry_tilled_tiles_and_the_41st_is_can_empty()
+    {
+        var session = new GameSession(TestGames.WithGold(1000), TestGames.Shipped);
+        var positions = session.Game.FarmPlot.Tiles.Select(tile => tile.Position).Take(41).ToList();
+        positions.ForEach(position => session.Game.FarmPlot[position].Till());
+        Assert.Equal(ActionResult.Ok, session.Buy(CanUpgrade));
+
+        var results = positions.Select(session.Water).ToList();
+
+        Assert.All(results.Take(40), result => Assert.Equal(ActionResult.Ok, result));
+        Assert.Equal(ActionResult.Rejected(Rejection.CanEmpty), results[40]);
+        Assert.Equal(0, session.Game.Player.WateringCan.Charges);
+        Assert.True(session.Game.Player.Energy >= TestGames.Shipped.Tuning.ToolEnergyCost);
+    }
+
+    [Fact]
+    public void AC6_BR_W3_refilling_an_upgraded_can_at_the_pond_sets_charges_to_40()
+    {
+        var session = new GameSession(TestGames.WithGold(1000), TestGames.Shipped);
+        var positions = session.Game.FarmPlot.Tiles.Select(tile => tile.Position).Take(41).ToList();
+        positions.ForEach(position => session.Game.FarmPlot[position].Till());
+        session.Buy(CanUpgrade);
+        positions.ForEach(position => session.Water(position));
+        var energy = session.Game.Player.Energy;
+
+        var result = session.RefillCan();
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal((40, 40, true), CanState(session.Game));
+        Assert.Equal(energy, session.Game.Player.Energy);
+    }
+
+    [Fact]
+    public void AC8_BR_P2_buying_the_upgrade_changes_no_energy()
+    {
+        var game = TestGames.WithGold(1000);
+        var energy = game.Player.Energy;
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(energy, game.Player.Energy);
+    }
+
+    [Fact]
+    public void BR_P2_buying_the_upgrade_with_0_energy_still_succeeds()
+    {
+        var game = TestGames.WithGold(1000);
+        Assert.True(game.Player.TrySpendEnergy(game.Player.Energy));
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(0, game.Player.Energy);
+        Assert.True(game.Player.WateringCan.Upgraded);
+    }
+
+    [Fact]
+    public void Session_buy_of_the_upgrade_raises_player_and_inventory_changed()
+    {
+        var session = new GameSession(TestGames.WithGold(1000), TestGames.Shipped);
+        var events = RecordEvents(session);
+
+        var result = session.Buy(CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(["InventoryChanged", "PlayerChanged"], events.Order());
+        Assert.Equal((40, 40, true), CanState(session.Game));
+    }
+
+    [Fact]
+    public void Session_buy_of_the_upgrade_raises_nothing_when_rejected()
+    {
+        var session = new GameSession(TestGames.WithGold(199), TestGames.Shipped);
+        var events = RecordEvents(session);
+
+        var result = session.Buy(CanUpgrade);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotEnoughGold), result);
+        Assert.Empty(events);
+    }
+
+    [Fact]
+    public void Session_shop_offers_drop_the_upgrade_once_bought()
+    {
+        var session = new GameSession(TestGames.WithGold(1000), TestGames.Shipped);
+        Assert.Contains(session.ShopOffers(), listing => listing.Id == CanUpgrade);
+
+        session.Buy(CanUpgrade);
+
+        Assert.DoesNotContain(session.ShopOffers(), listing => listing.Id == CanUpgrade);
+    }
+
+    [Fact]
+    public void Buying_seeds_is_unchanged_while_the_upgrade_is_offered()
+    {
+        var game = TestGames.WithGold(100);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot");
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(85), game.Player.Gold);
+        Assert.Equal(11, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal((20, 20, false), CanState(game));
+    }
+
+    [Fact]
+    public void BR_L1_the_can_upgrade_comes_after_the_seeds_even_when_listed_first_in_the_data()
+    {
+        var game = TestGames.WithGold(100, TestGames.FirstDay);
+        var listings = TestGames.Shipped.ShopListings;
+        var data = TestGames.Shipped with
+        {
+            ShopListings = listings.Where(listing => listing.Kind == ShopItemKind.CanUpgrade)
+                .Concat(listings.Where(listing => listing.Kind != ShopItemKind.CanUpgrade))
+                .ToList(),
+        };
+
+        var offers = ShopService.Offers(game, data).Select(listing => listing.Id);
+
+        Assert.Equal(["seed_emberroot", "seed_dusktuber", CanUpgrade], offers);
+    }
+
+    [Fact]
+    public void BR_W4_buying_the_upgrade_takes_its_capacity_from_tuning()
+    {
+        var game = TestGames.WithGold(1000);
+        var data = TestGames.Shipped with
+        {
+            Tuning = TestGames.Shipped.Tuning with { CanUpgradedCapacity = 55 },
+        };
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, data, CanUpgrade));
+        Assert.Equal((55, 55, true), CanState(game));
+    }
+
+    [Fact]
+    public void BR_L2_an_upgrade_that_cannot_raise_the_capacity_throws_before_taking_gold()
+    {
+        var game = TestGames.WithGold(1000, can: new WateringCan(40, 10, false));
+        var before = (Snapshot(game), CanState(game));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => ShopService.Buy(game, TestGames.Shipped, CanUpgrade));
+        Assert.Equal(before, (Snapshot(game), CanState(game)));
     }
 }

@@ -84,7 +84,7 @@ The items the Shop can offer. Read-only during play.
 | `id` | string | Key, e.g. `seed_emberroot`, `can_upgrade`. |
 | `kind` | ShopItemKind | `seed` or `can_upgrade`. |
 | `cropTypeId` | CropTypeId? | FK -> CropType.id. Required when `kind = seed`, otherwise empty. |
-| `price` | Gold | For seeds, equals the CropType's `seedCost` (copied so the Shop has one price column). Can upgrade: price to be set in tuning. |
+| `price` | Gold | For seeds, equals the CropType's `seedCost` (copied so the Shop has one price column). Can upgrade: 200, set in `shop.json` (the upgraded capacity, 40, is in tuning). |
 
 ### Game (aggregate root)
 
