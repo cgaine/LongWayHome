@@ -241,4 +241,15 @@ public sealed class GameStarterTests : IDisposable
             GameStarter.StartNew(TestGames.Shipped, store, 1, new FixedRandom(99), new FixedTimeProvider(StartTime)));
         Assert.Equal(1, store.Saves);
     }
+
+    [Fact]
+    public void Start_and_load_refuse_a_null_store()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            GameStarter.StartNew(TestGames.Shipped, null!, 1, new FixedRandom(99), new FixedTimeProvider(StartTime)));
+        Assert.Throws<ArgumentNullException>(() =>
+            GameStarter.StartNew(TestGames.Shipped, Store(), 1, new FixedRandom(99), null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            GameStarter.Load(TestGames.Shipped, null!, 1, new FixedRandom(99), new FixedTimeProvider(StartTime)));
+    }
 }

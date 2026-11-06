@@ -61,4 +61,19 @@ public class SaveSlotTextTests
     {
         Assert.Equal("The game could not be saved.", SaveSlotText.SaveFailed);
     }
+
+    [Fact]
+    public void AC2_a_saved_slot_missing_its_date_or_gold_reads_as_unreadable()
+    {
+        Assert.Equal("Slot 2 — Unreadable save", SaveSlotText.Row(new SaveSlotInfo(2, SaveSlotState.Saved, null, 340, SavedAt)));
+        Assert.Equal(
+            "Slot 2 — Unreadable save",
+            SaveSlotText.Row(new SaveSlotInfo(2, SaveSlotState.Saved, new GameDate(1, Season.Spring, 5), null, SavedAt)));
+    }
+
+    [Fact]
+    public void Row_refuses_a_null_slot()
+    {
+        Assert.Throws<ArgumentNullException>(() => SaveSlotText.Row(null!));
+    }
 }

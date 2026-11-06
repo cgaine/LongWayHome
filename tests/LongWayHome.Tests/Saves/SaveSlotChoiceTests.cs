@@ -90,4 +90,20 @@ public class SaveSlotChoiceTests
     {
         Assert.Equal(expected, SaveSlotChoice.CanLoad(InState(1, state)));
     }
+
+    [Fact]
+    public void AC3_a_saved_at_tie_goes_to_the_lower_slot_whatever_the_list_order()
+    {
+        IReadOnlyList<SaveSlotInfo> slots = [Saved(3, Later), Saved(2, Later), Empty(1)];
+
+        Assert.Equal(2, SaveSlotChoice.ContinueSlot(slots));
+    }
+
+    [Fact]
+    public void Choices_refuse_null_arguments()
+    {
+        Assert.Throws<ArgumentNullException>(() => SaveSlotChoice.ContinueSlot(null!));
+        Assert.Throws<ArgumentNullException>(() => SaveSlotChoice.CanLoad(null!));
+        Assert.Throws<ArgumentNullException>(() => SaveSlotChoice.NeedsOverwriteConfirmation(null!));
+    }
 }
