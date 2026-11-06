@@ -24,15 +24,22 @@ public partial class InteractionPoint : Node3D
 
     public bool IsPlayerInRange { get; private set; }
 
+    private Node3D? _player;
+
     public override void _PhysicsProcess(double delta)
     {
-        if (GetTree().GetFirstNodeInGroup(PlayerController.Group) is not Node3D player)
+        if (_player is null || !IsInstanceValid(_player) || !_player.IsInsideTree())
         {
-            return;
+            _player = GetTree().GetFirstNodeInGroup(PlayerController.Group) as Node3D;
         }
 
-        var offset = player.GlobalPosition - GlobalPosition;
-        var inRange = new Vector2(offset.X, offset.Z).Length() <= Range;
+        var inRange = false;
+        if (_player is not null)
+        {
+            var offset = _player.GlobalPosition - GlobalPosition;
+            inRange = new Vector2(offset.X, offset.Z).Length() <= Range;
+        }
+
         if (inRange == IsPlayerInRange)
         {
             return;

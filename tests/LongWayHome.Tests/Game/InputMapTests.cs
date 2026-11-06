@@ -51,7 +51,21 @@ public class InputMapTests
         }
     }
 
-    private sealed record InputAction(double Deadzone, IReadOnlyList<string> EventTypes);
+    [Theory]
+    [InlineData("move_up", 1, "-1.0", 11)]
+    [InlineData("move_down", 1, "1.0", 12)]
+    [InlineData("move_left", 0, "-1.0", 13)]
+    [InlineData("move_right", 0, "1.0", 14)]
+    public void Move_action_uses_the_matching_left_stick_direction_and_d_pad_button(string action, int axis, string axisValue, int dpadButton)
+    {
+        Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+        var body = Actions[action].Body;
+
+        Assert.Contains($"\"axis\":{axis},\"axis_value\":{axisValue},", body);
+        Assert.Matches($@"InputEventJoypadButton,[^)]*""button_index"":{dpadButton},", body);
+    }
+
+    private sealed record InputAction(double Deadzone, IReadOnlyList<string> EventTypes, string Body);
 
     private static Dictionary<string, InputAction> ReadInputMap()
     {
@@ -75,7 +89,8 @@ public class InputMapTests
 
             actions[entry.Groups["name"].Value] = new InputAction(
                 deadzone.Success ? double.Parse(deadzone.Groups["value"].Value, CultureInfo.InvariantCulture) : double.NaN,
-                types);
+                types,
+                body);
         }
 
         return actions;

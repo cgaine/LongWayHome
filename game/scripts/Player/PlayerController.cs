@@ -30,7 +30,15 @@ public partial class PlayerController : CharacterBody3D
         AddToGroup(Group);
         _model = GetNode<Node3D>("Model");
 
-        var tuning = GetNode<GameRoot>("/root/GameRoot").Data.Tuning;
+        var data = GetNode<GameRoot>("/root/GameRoot").Data;
+        if (data is null)
+        {
+            // GameRoot has already reported the data errors and is quitting.
+            SetPhysicsProcess(false);
+            return;
+        }
+
+        var tuning = data.Tuning;
         _walkSpeed = (float)tuning.WalkSpeedTilesPerSecond;
         _runSpeed = (float)tuning.RunSpeedTilesPerSecond;
     }
