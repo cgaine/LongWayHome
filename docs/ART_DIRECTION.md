@@ -263,6 +263,33 @@ A stone chimney sits on the back half of the roof in both states.
 
 **For the town:** every rebuilt building is grown the same way, and the grown look is how restoration shows: a building that comes back to life sprouts new leaves.
 
+### 7.2 The farm plot and meadow ground (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and meadow page)
+
+**The meadow.** Mostly familiar, Earth-like meadow green (`#7FA65A`) so the farm feels like home, with patches that shift toward teal in shade (`#3F7A6C`). Scattered through it are small native plants that give the second look: curled teal fronds, violet puffballs on stems, and stalks of small amber beads. Grass tufts, rocks (lilac-grey stone `#9A95A2`), stumps and saplings fill the overgrown parts the farmer clears to expand the farm (design doc: "the rest of the meadow is overgrown with trees, stumps and rocks"). Mountains sit on the horizon.
+
+**The plot reads apart from the wild meadow:**
+
+- A mown margin of lighter, shorter grass (`#8CB862`) around the plot.
+- A low edging of rounded lilac-grey stones along all four sides. It's low enough not to block movement or the camera.
+- A dirt path (`#B8946C`, with stepping stones) from the farmhouse door to the plot.
+- The refill pond sits beside the plot, with turquoise shallows and a deeper blue centre, and a coilwillow behind it.
+
+**Tile states (pillar 4).** Each tile is a 1 x 1 m slab with a little visible thickness at the front and side, so the grid reads without drawn lines:
+
+| State | Look |
+| --- | --- |
+| Grass (untilled) | Meadow green with a few grass tufts and an occasional native plant |
+| Tilled | Warm brown soil `#8A5A3C` with furrows |
+| Watered | Dark soil `#4A3226` with a wet sheen; clearly darker than tilled at every stage and at night |
+
+**Target marker.** The tile the Use button will act on gets a soft cream highlight (`#FFF6E0`) with ember-orange corner brackets (`#E9773A`). It looks the same on every tile type, and it replaces the prototype's faint grid outline as the main "what will happen" cue.
+
+**Seasons (grass):** spring fresh green `#8CB862`, summer meadow green `#7FA65A`, fall golden `#A8A458`, winter snow `#E4ECF0` with grass tips showing. Tilled and watered soil look the same all year.
+
+**Night:** tiles darken with the rest of the scene, but tilled, watered and the target marker all stay distinct.
+
 ## 8. Style and technical direction (draft)
 
 - **Style:** stylised low-poly with flat or softly stepped shading, simple shapes, and colour doing most of the work. No realistic textures. This matches what the prototype already uses (REQ-12 "low-poly"), so the upgrade is a better version of the same direction, not a change.
