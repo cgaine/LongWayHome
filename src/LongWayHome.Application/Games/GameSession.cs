@@ -9,6 +9,12 @@ namespace LongWayHome.Application.Games;
 /// <summary>Holds the current Game and the game data, and runs the Player's actions as commands.</summary>
 public sealed class GameSession
 {
+    /// <summary>How close to a whole game minute the carried remainder must be to count as reaching it.</summary>
+    private const double ClockEpsilonMinutes = 1e-9;
+
+    /// <summary>The game minutes of play not yet added to the clock, always under one (BR-G2).</summary>
+    private double _clockRemainderMinutes;
+
     public GameSession(Game game, GameData data)
     {
         ArgumentNullException.ThrowIfNull(game);
@@ -28,16 +34,54 @@ public sealed class GameSession
     public event Action? InventoryChanged;
 
     /// <summary>Raised after <see cref="AdvanceClock"/> moves the clock by at least one minute.</summary>
-#pragma warning disable CS0067 // Red stub: raised once AdvanceClock is implemented.
     public event Action? ClockChanged;
-#pragma warning restore CS0067
 
     public Game Game { get; }
 
     public GameData Data { get; }
 
-    /// <summary>Advances the clock by real seconds of play (BR-G2). Raises ClockChanged when it moves.</summary>
-    public void AdvanceClock(double realSeconds) => throw new NotImplementedException();
+    /// <summary>
+    /// Advances the clock by real seconds of play (BR-G2) at (DayEndMinutes − DayStartMinutes) / DayLengthRealSeconds
+    /// game minutes per second, from <see cref="GameData.Tuning"/>. The part of a minute left over is kept, so short
+    /// frames add up. Never passes DayEndMinutes. Raises ClockChanged when the clock moves by at least one minute.
+    /// </summary>
+    public void AdvanceClock(double realSeconds)
+    {
+        // Written so NaN is refused too.
+        if (!(realSeconds >= 0))
+        {
+            throw new ArgumentOutOfRangeException(nameof(realSeconds), realSeconds, "Real seconds must be 0 or more.");
+        }
+
+        var tuning = Data.Tuning;
+        var minutesLeft = tuning.DayEndMinutes - Game.ClockMinutes;
+        if (minutesLeft <= 0)
+        {
+            // BR-G2: the clock has stopped at the day end, so nothing is carried over.
+            _clockRemainderMinutes = 0;
+            return;
+        }
+
+        // Multiply before dividing so a whole number of real seconds gives an exact number of game minutes.
+        _clockRemainderMinutes +=
+            realSeconds * (tuning.DayEndMinutes - tuning.DayStartMinutes) / tuning.DayLengthRealSeconds;
+
+        // The epsilon absorbs the rounding error of many small frames (43 200 × 1/60 s must reach a whole day).
+        var wholeMinutes = Math.Floor(_clockRemainderMinutes + ClockEpsilonMinutes);
+        if (wholeMinutes < 1)
+        {
+            return;
+        }
+
+        _clockRemainderMinutes = Math.Max(0, _clockRemainderMinutes - wholeMinutes);
+        Game.AdvanceClock((int)Math.Min(wholeMinutes, minutesLeft), tuning.DayEndMinutes);
+        if (Game.ClockMinutes >= tuning.DayEndMinutes)
+        {
+            _clockRemainderMinutes = 0;
+        }
+
+        ClockChanged?.Invoke();
+    }
 
     /// <summary>The held-item cycle: Hoe, Watering can, then one entry per Seed stack in CropTypeId order.</summary>
     public IReadOnlyList<HeldItem> HeldItems()

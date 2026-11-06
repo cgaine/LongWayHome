@@ -52,8 +52,17 @@ public sealed class Game
 
     public FarmPlot FarmPlot { get; }
 
-    /// <summary>Adds game minutes to the clock, never past the day end (BR-G2).</summary>
-    public void AdvanceClock(int minutes, int dayEndMinutes) => throw new NotImplementedException();
+    /// <summary>Adds game minutes to the clock, never past the day end (BR-G2). Negative minutes throw.</summary>
+    public void AdvanceClock(int minutes, int dayEndMinutes)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(minutes);
+
+        // BR-G2: the clock stops at the day end. Long arithmetic so a huge step cannot overflow past it.
+        if (ClockMinutes < dayEndMinutes)
+        {
+            ClockMinutes = (int)Math.Min((long)ClockMinutes + minutes, dayEndMinutes);
+        }
+    }
 
     /// <summary>Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then TooTired (BR-T2, BR-P2).</summary>
     public Rejection? TillRejection(GridPosition position, int toolEnergyCost)

@@ -19,4 +19,17 @@ public class ClockTextTests
 
         Assert.Equal(expected, text);
     }
+
+    [Theory]
+    [InlineData(0, "12:00 am")]
+    [InlineData(59, "12:50 am")]
+    [InlineData(719, "11:50 am")]
+    [InlineData(720, "12:00 pm")]
+    [InlineData(1265, "9:00 pm")]
+    [InlineData(366, "6:00 am")]
+    [InlineData(370, "6:10 am")]
+    public void Clock_text_covers_midnight_noon_and_the_10_minute_steps(int clockMinutes, string expected)
+    {
+        Assert.Equal(expected, ClockText.For(clockMinutes));
+    }
 }

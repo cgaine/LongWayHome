@@ -52,6 +52,22 @@ theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 22
 text = "Hoe"
 
+[node name="ClockLabel" type="Label" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -216.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 48.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 22
+text = "6:00 am"
+horizontal_alignment = 2
+
 [node name="RefillHint" type="Label" parent="."]
 visible = false
 anchors_preset = 7

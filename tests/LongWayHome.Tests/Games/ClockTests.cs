@@ -147,4 +147,92 @@ public class ClockTests
 
         Assert.Throws<ArgumentOutOfRangeException>(() => game.AdvanceClock(-1, DayEnd));
     }
+
+    [Fact]
+    public void BR_G2_a_long_frame_of_5_seconds_advances_8_minutes()
+    {
+        var session = TestGames.NewSession();
+
+        session.AdvanceClock(5);
+
+        Assert.Equal(368, session.Game.ClockMinutes);
+    }
+
+    [Fact]
+    public void BR_G2_the_part_minute_left_after_a_move_is_carried_to_the_next_call()
+    {
+        var session = TestGames.NewSession();
+
+        session.AdvanceClock(0.9); // 1.5 game minutes: 1 now, 0.5 carried.
+        Assert.Equal(361, session.Game.ClockMinutes);
+
+        session.AdvanceClock(0.3); // 0.5 more: the carried 0.5 makes a whole minute.
+        Assert.Equal(362, session.Game.ClockMinutes);
+    }
+
+    [Fact]
+    public void BR_G2_reaching_the_day_end_raises_clock_changed_once()
+    {
+        var session = TestGames.NewSession();
+        var raised = 0;
+        session.ClockChanged += () => raised++;
+
+        session.AdvanceClock(10_000);
+
+        Assert.Equal(1560, session.Game.ClockMinutes);
+        Assert.Equal(1, raised);
+    }
+
+    [Fact]
+    public void BR_G2_an_infinite_step_stops_at_the_day_end()
+    {
+        var session = TestGames.NewSession();
+
+        session.AdvanceClock(double.PositiveInfinity);
+
+        Assert.Equal(1560, session.Game.ClockMinutes);
+    }
+
+    [Fact]
+    public void AdvanceClock_NaN_seconds_throws()
+    {
+        var session = TestGames.NewSession();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => session.AdvanceClock(double.NaN));
+        Assert.Equal(360, session.Game.ClockMinutes);
+    }
+
+    [Fact]
+    public void BR_G2_the_rate_comes_from_the_tuning()
+    {
+        var tuning = TestGames.Shipped.Tuning with { DayLengthRealSeconds = 1200 };
+        var session = new GameSession(
+            TestGames.WithEnergy(150),
+            TestGames.Shipped with { Tuning = tuning });
+
+        session.AdvanceClock(60); // 1200 minutes over 1200 s: 1 game minute per second.
+
+        Assert.Equal(420, session.Game.ClockMinutes);
+    }
+
+    [Fact]
+    public void Game_AdvanceClock_zero_minutes_changes_nothing()
+    {
+        var game = TestGames.WithEnergy(150);
+
+        game.AdvanceClock(0, DayEnd);
+
+        Assert.Equal(360, game.ClockMinutes);
+    }
+
+    [Fact]
+    public void Game_AdvanceClock_the_largest_step_does_not_overflow_past_day_end()
+    {
+        var game = TestGames.WithEnergy(150);
+        game.AdvanceClock(1000, DayEnd);
+
+        game.AdvanceClock(int.MaxValue, DayEnd);
+
+        Assert.Equal(1560, game.ClockMinutes);
+    }
 }
