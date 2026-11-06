@@ -297,9 +297,48 @@ public sealed class Game
     /// <summary>
     /// Moves every Crop stack into the Shipping Bin (BR-S1); NothingToShip when there is none. Costs no energy (BR-P2).
     /// </summary>
-    public ActionResult ShipAll() => throw new NotImplementedException();
+    public ActionResult ShipAll()
+    {
+        // BR-S1: only Crops ship; with none held nothing changes.
+        var crops = Player.Inventory.Stacks.Where(stack => stack.Kind == ItemKind.Crop).ToList();
+        if (crops.Count == 0)
+        {
+            return ActionResult.Rejected(Rejection.NothingToShip);
+        }
 
-    /// <summary>The Night's payout (BR-S2): gold rises by quantity × sellPrice of every bin item, then the bin empties.</summary>
-    public int PayOutShippingBin(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
-        throw new NotImplementedException();
+        // BR-S1: each stack goes into the bin before it leaves the inventory, so a failing Add loses no Crop.
+        // BR-P2: shipping spends no energy; gold only changes in the Night (BR-S2).
+        foreach (var stack in crops)
+        {
+            ShippingBin.Add(stack.CropTypeId, stack.Quantity);
+            Player.Inventory.Remove(ItemKind.Crop, stack.CropTypeId, stack.Quantity);
+        }
+
+        return ActionResult.Ok;
+    }
+
+    /// <summary>
+    /// The Night's payout (BR-S2): gold rises by quantity × sellPrice of every bin item, then the bin empties. An item
+    /// whose Crop type has no data row pays 0 and is still removed. Returns the amount paid. An overflowing total
+    /// throws and changes nothing (BR-P5).
+    /// </summary>
+    public int PayOutShippingBin(IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
+        ArgumentNullException.ThrowIfNull(cropTypes);
+
+        // BR-S2: each Crop type is looked up by key; a missing row pays 0.
+        var total = 0;
+        foreach (var item in ShippingBin.Items)
+        {
+            if (cropTypes.TryGetValue(item.CropTypeId, out var cropType))
+            {
+                total = checked(total + (item.Quantity * cropType.SellPrice.Value));
+            }
+        }
+
+        // The gold is earned before the bin empties, so a failing EarnGold leaves the bin to pay another Night.
+        Player.EarnGold(total);
+        ShippingBin.Empty();
+        return total;
+    }
 }

@@ -301,6 +301,57 @@ public class ShippingTests
     }
 
     [Fact]
+    public void Shipping_bin_add_past_int_max_throws_overflow_and_changes_nothing()
+    {
+        var bin = new ShippingBin();
+        bin.Add(CropTypeId.Emberroot, int.MaxValue);
+
+        Assert.Throws<OverflowException>(() => bin.Add(CropTypeId.Emberroot, 1));
+        Assert.Equal([new ShippedItem(CropTypeId.Emberroot, int.MaxValue)], bin.Items);
+    }
+
+    [Fact]
+    public void BR_S1_ship_all_that_overflows_the_bin_throws_and_loses_no_crop()
+    {
+        var inventory = new Inventory();
+        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 1);
+        var game = TestGames.WithShippingBin(150, inventory, (CropTypeId.Emberroot, int.MaxValue));
+
+        Assert.Throws<OverflowException>(() => game.ShipAll());
+        Assert.Equal(1, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Emberroot));
+        Assert.Equal([new ShippedItem(CropTypeId.Emberroot, int.MaxValue)], game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void BR_P5_pay_out_that_overflows_gold_throws_and_leaves_gold_and_bin_unchanged()
+    {
+        var game = TestGames.WithShippingBin(150, new Inventory(), (CropTypeId.Moonmelon, int.MaxValue / 190));
+
+        Assert.Throws<OverflowException>(() => game.PayOutShippingBin(TestGames.CanonicalCrops));
+        Assert.Equal(new Gold(100), game.Player.Gold);
+        Assert.Equal([new ShippedItem(CropTypeId.Moonmelon, int.MaxValue / 190)], game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void BR_P5_pay_out_whose_line_total_overflows_throws_and_leaves_gold_and_bin_unchanged()
+    {
+        var game = TestGames.WithShippingBin(150, new Inventory(), (CropTypeId.Moonmelon, int.MaxValue));
+
+        Assert.Throws<OverflowException>(() => game.PayOutShippingBin(TestGames.CanonicalCrops));
+        Assert.Equal(new Gold(100), game.Player.Gold);
+        Assert.Equal([new ShippedItem(CropTypeId.Moonmelon, int.MaxValue)], game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void Pay_out_with_null_crop_types_throws_and_leaves_the_bin()
+    {
+        var game = TestGames.WithShippingBin(150, new Inventory(), (CropTypeId.Emberroot, 2));
+
+        Assert.Throws<ArgumentNullException>(() => game.PayOutShippingBin(null!));
+        Assert.Equal([new ShippedItem(CropTypeId.Emberroot, 2)], game.ShippingBin.Items);
+    }
+
+    [Fact]
     public void A_game_constructed_without_a_bin_has_an_empty_bin()
     {
         var game = TestGames.WithEnergy(150);

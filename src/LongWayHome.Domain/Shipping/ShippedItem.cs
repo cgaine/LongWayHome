@@ -7,5 +7,9 @@ public sealed record ShippedItem(CropTypeId CropTypeId, int Quantity)
 {
     public int Quantity { get; } = Validate(Quantity);
 
-    private static int Validate(int quantity) => throw new NotImplementedException();
+    private static int Validate(int quantity)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(quantity, 1);
+        return quantity;
+    }
 }

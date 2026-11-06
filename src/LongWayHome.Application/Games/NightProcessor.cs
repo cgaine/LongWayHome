@@ -46,7 +46,8 @@ public static class NightProcessor
         // BR-T4: growth reads the watered flags, so it runs before the watering reset clears them.
         game.GrowPlantings(data.CropTypes);
 
-        // BR-S2: shipping payout goes here (epic #11).
+        // BR-S2: the shipping payout, after growth and before the date step.
+        game.PayOutShippingBin(data.CropTypes);
 
         // BR-G1: the date moves on one day. After growth, which never reads the Season, so a Planting keeps growing
         // across a season change (BR-T5).
