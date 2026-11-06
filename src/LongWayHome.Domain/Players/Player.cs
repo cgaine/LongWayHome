@@ -65,4 +65,7 @@ public sealed class Player
         Energy -= amount;
         return true;
     }
+
+    /// <summary>Adds gold: a negative amount throws, and the sum is checked (BR-P5).</summary>
+    public void EarnGold(int amount) => throw new NotImplementedException();
 }

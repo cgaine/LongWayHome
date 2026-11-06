@@ -4,6 +4,7 @@ using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Shipping;
 using LongWayHome.Infrastructure.Data;
 using GameState = LongWayHome.Domain.Games.Game;
 
@@ -41,6 +42,37 @@ internal static class TestGames
                 new WateringCan(20),
                 inventory ?? new Inventory()),
             new FarmPlot());
+
+    /// <summary>
+    /// A Game on a fresh plot (Year 1, Spring, Day 1) with 100 gold, the given energy and inventory, and a Shipping
+    /// Bin holding the given items, passed through the Game constructor.
+    /// </summary>
+    public static GameState WithShippingBin(int energy, Inventory? inventory, params (CropTypeId CropTypeId, int Quantity)[] items) =>
+        OnDateWithShippingBin(FirstDay, energy, inventory, [], items);
+
+    /// <summary>As <see cref="WithShippingBin"/>, on the given date, grass except for the given Tiles.</summary>
+    public static GameState OnDateWithShippingBin(
+        GameDate date, int energy, Inventory? inventory, Tile[] tiles, params (CropTypeId CropTypeId, int Quantity)[] items)
+    {
+        var plot = OnDate(date, energy, new WateringCan(20), inventory ?? new Inventory(), tiles);
+        var bin = new ShippingBin();
+        foreach (var (cropTypeId, quantity) in items)
+        {
+            bin.Add(cropTypeId, quantity);
+        }
+
+        return new GameState(
+            plot.Id,
+            plot.Date,
+            plot.ClockMinutes,
+            plot.Weather,
+            plot.LastDayEnd,
+            plot.CreatedAt,
+            plot.SavedAt,
+            plot.Player,
+            plot.FarmPlot,
+            bin);
+    }
 
     public static GameSession NewSession() => new(NewGameFactory.Create(Shipped, Now), Shipped);
 

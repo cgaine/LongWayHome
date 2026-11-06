@@ -280,6 +280,9 @@ public sealed class GameSession
         return result;
     }
 
+    /// <summary>Ships every Crop at the Shipping Bin (BR-S1). Raises InventoryChanged on success.</summary>
+    public ActionResult ShipAll() => throw new NotImplementedException();
+
     /// <summary>The HUD label for a held item: "Hoe", "Watering can", or "Emberroot seeds × 9".</summary>
     public string HeldLabel(HeldItem held)
     {

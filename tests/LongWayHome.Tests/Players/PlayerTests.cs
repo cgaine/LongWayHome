@@ -116,6 +116,44 @@ public class PlayerTests
         Assert.Empty(player.Tools);
     }
 
+    [Fact]
+    public void BR_P5_earning_negative_gold_throws_and_leaves_gold_unchanged()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => player.EarnGold(-1));
+        Assert.Equal(new Gold(100), player.Gold);
+    }
+
+    [Fact]
+    public void BR_P5_earning_gold_past_int_max_throws_overflow_and_leaves_gold_unchanged()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        Assert.Throws<OverflowException>(() => player.EarnGold(int.MaxValue));
+        Assert.Equal(new Gold(100), player.Gold);
+    }
+
+    [Fact]
+    public void Earning_0_gold_leaves_gold_unchanged()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        player.EarnGold(0);
+
+        Assert.Equal(new Gold(100), player.Gold);
+    }
+
+    [Fact]
+    public void Earning_50_gold_adds_50()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        player.EarnGold(50);
+
+        Assert.Equal(new Gold(150), player.Gold);
+    }
+
     private static Player CreatePlayer(int energy) =>
         new(
             new Gold(100),

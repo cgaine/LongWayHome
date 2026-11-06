@@ -1,6 +1,7 @@
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Shipping;
 
 namespace LongWayHome.Domain.Games;
 
@@ -18,7 +19,8 @@ public sealed class Game
         DateTimeOffset createdAt,
         DateTimeOffset savedAt,
         Player player,
-        FarmPlot farmPlot)
+        FarmPlot farmPlot,
+        ShippingBin? shippingBin = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -32,6 +34,7 @@ public sealed class Game
         SavedAt = savedAt;
         Player = player;
         FarmPlot = farmPlot;
+        ShippingBin = shippingBin ?? new ShippingBin();
     }
 
     public Guid Id { get; }
@@ -53,6 +56,9 @@ public sealed class Game
     public Player Player { get; }
 
     public FarmPlot FarmPlot { get; }
+
+    /// <summary>The crops shipped today, paid for in the Night (BR-S1, BR-S2).</summary>
+    public ShippingBin ShippingBin { get; }
 
     /// <summary>Adds game minutes to the clock, never past the day end (BR-G2). Negative minutes throw.</summary>
     public void AdvanceClock(int minutes, int dayEndMinutes)
@@ -287,4 +293,13 @@ public sealed class Game
         Player.Inventory.Add(ItemKind.Crop, cropType.Id, 1);
         return FarmPlot[position].Harvest(cropType);
     }
+
+    /// <summary>
+    /// Moves every Crop stack into the Shipping Bin (BR-S1); NothingToShip when there is none. Costs no energy (BR-P2).
+    /// </summary>
+    public ActionResult ShipAll() => throw new NotImplementedException();
+
+    /// <summary>The Night's payout (BR-S2): gold rises by quantity × sellPrice of every bin item, then the bin empties.</summary>
+    public int PayOutShippingBin(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
 }
