@@ -241,9 +241,10 @@ public sealed class GameSession
     /// </summary>
     public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
     {
+        // A Crop type with no data row always has a rejection (OutOfSeason at the latest), so it is never planted.
         var result = Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
             ? Game.Plant(position, cropType)
-            : ActionResult.Rejected(Game.PlantRejection(position, cropTypeId, season: null) ?? Rejection.OutOfSeason);
+            : ActionResult.Rejected(PlantRejection(position, cropTypeId)!.Value);
         if (result.IsOk)
         {
             TileChanged?.Invoke(position);

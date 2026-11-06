@@ -28,11 +28,9 @@ public readonly record struct GameDate(int Year, Season Season, int Day)
             return new GameDate(Year, Season, Day + 1);
         }
 
-        // After the last Season of the Year (the last value of Season) comes the first Season of the next Year.
-        var seasons = Enum.GetValues<Season>();
-        var next = Array.IndexOf(seasons, Season) + 1;
-        return next < seasons.Length
-            ? new GameDate(Year, seasons[next], 1)
-            : new GameDate(Year + 1, seasons[0], 1);
+        // Seasons are declared in calendar order; after Winter comes Spring of the next Year.
+        return Season == Season.Winter
+            ? new GameDate(Year + 1, Season.Spring, 1)
+            : new GameDate(Year, Season + 1, 1);
     }
 }
