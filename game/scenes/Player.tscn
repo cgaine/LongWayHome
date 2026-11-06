@@ -1,7 +1,10 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/Player/PlayerController.cs" id="1_player"]
 [ext_resource type="Script" path="res://scripts/Player/FollowCamera.cs" id="2_camera"]
+[ext_resource type="Script" path="res://scripts/Player/ToolTargeting.cs" id="3_targeting"]
+[ext_resource type="Script" path="res://scripts/Player/HeldItemSelection.cs" id="4_selection"]
+[ext_resource type="Script" path="res://scripts/Player/ToolUse.cs" id="5_tooluse"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -46,3 +49,12 @@ mesh = SubResource("BoxMesh_nose")
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 9, 9)
 current = true
 script = ExtResource("2_camera")
+
+[node name="ToolTargeting" type="Node3D" parent="."]
+script = ExtResource("3_targeting")
+
+[node name="HeldItemSelection" type="Node" parent="."]
+script = ExtResource("4_selection")
+
+[node name="ToolUse" type="Node" parent="."]
+script = ExtResource("5_tooluse")

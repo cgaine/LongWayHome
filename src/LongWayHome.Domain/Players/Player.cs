@@ -30,11 +30,26 @@ public sealed class Player
 
     public Gold Gold { get; }
 
-    public int Energy { get; }
+    public int Energy { get; private set; }
 
     public IReadOnlySet<ToolId> Tools { get; }
 
     public WateringCan WateringCan { get; }
 
     public Inventory Inventory { get; }
+
+    /// <summary>Spends energy; returns false and changes nothing when less than the amount is held (BR-P1, BR-P2).</summary>
+    public bool TrySpendEnergy(int amount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+
+        // BR-P1, BR-P2: an action is refused rather than taking Energy below 0.
+        if (Energy < amount)
+        {
+            return false;
+        }
+
+        Energy -= amount;
+        return true;
+    }
 }

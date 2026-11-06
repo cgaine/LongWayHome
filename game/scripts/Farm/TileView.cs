@@ -21,7 +21,7 @@ public partial class TileView : Node3D
 
     private static readonly Color GrassColor = new(0.45f, 0.62f, 0.3f);
 
-    private static readonly Color TilledColor = new(0.4f, 0.28f, 0.17f);
+    private static readonly Color TilledColor = new(0.45f, 0.3f, 0.18f);
 
     private static readonly Color OutlineColor = new(0.18f, 0.28f, 0.1f, 0.45f);
 
