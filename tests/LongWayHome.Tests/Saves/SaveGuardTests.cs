@@ -213,6 +213,18 @@ public sealed class SaveGuardTests : IDisposable
         Assert.Equal(0, failures);
     }
 
+    [Fact]
+    public void A_session_without_a_store_leaves_saved_at_as_it_was()
+    {
+        var game = SaveGames.Plain();
+        var savedAt = game.SavedAt;
+        var session = new GameSession(game, TestGames.Shipped, new FixedRandom(99));
+
+        session.Sleep();
+
+        Assert.Equal(savedAt, game.SavedAt);
+    }
+
     [Theory]
     [MemberData(nameof(NightSaveTests.StoreFailures), MemberType = typeof(NightSaveTests))]
     public void A_failed_save_leaves_saved_at_as_it_was(Exception failure)

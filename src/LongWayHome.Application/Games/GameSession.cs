@@ -417,10 +417,16 @@ public sealed class GameSession
 
     /// <summary>
     /// The Night's save step (BR-G5): marks the Game saved now and writes it to the session's slot. Returns the reason
-    /// when the store fails, or null when it saved. A failed save puts SavedAt back.
+    /// when the store fails, or null when it saved (or there is no store). A failed save puts SavedAt back.
     /// </summary>
     private string? Save(Game game)
     {
+        // The sessions built without a save store save nowhere, so they leave SavedAt as it was.
+        if (ReferenceEquals(_store, NoSaveStore.Instance))
+        {
+            return null;
+        }
+
         var previousSavedAt = game.SavedAt;
         game.MarkSaved(_time.GetUtcNow());
         try
