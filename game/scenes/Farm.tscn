@@ -1,4 +1,7 @@
-[gd_scene format=3]
+[gd_scene load_steps=31 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -15,12 +18,96 @@ sky = SubResource("Sky_farm")
 ambient_light_source = 3
 tonemap_mode = 2
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+[sub_resource type="StandardMaterial3D" id="Mat_grass"]
 albedo_color = Color(0.36, 0.55, 0.25, 1)
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-material = SubResource("StandardMaterial3D_ground")
+[sub_resource type="PlaneMesh" id="PlaneMesh_grass"]
+material = SubResource("Mat_grass")
+size = Vector2(32, 26)
+
+[sub_resource type="StandardMaterial3D" id="Mat_plot"]
+albedo_color = Color(0.45, 0.62, 0.3, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_plot"]
+material = SubResource("Mat_plot")
 size = Vector2(12, 9)
+
+[sub_resource type="StandardMaterial3D" id="Mat_plot_border"]
+albedo_color = Color(0.42, 0.32, 0.2, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_plot_border"]
+material = SubResource("Mat_plot_border")
+size = Vector2(12.4, 9.4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall"]
+albedo_color = Color(0.86, 0.8, 0.68, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_house"]
+material = SubResource("Mat_wall")
+size = Vector3(6, 3, 4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_roof"]
+albedo_color = Color(0.6, 0.22, 0.18, 1)
+
+[sub_resource type="PrismMesh" id="PrismMesh_roof"]
+material = SubResource("Mat_roof")
+size = Vector3(6.6, 1.4, 4.6)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.48, 0.32, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_door"]
+material = SubResource("Mat_wood")
+size = Vector3(1, 2, 0.1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_house"]
+size = Vector3(6, 3, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bin"]
+material = SubResource("Mat_wood")
+size = Vector3(1.2, 0.8, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape_bin"]
+size = Vector3(1.2, 0.8, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="Mat_stall"]
+albedo_color = Color(0.3, 0.45, 0.7, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_counter"]
+material = SubResource("Mat_wood")
+size = Vector3(2, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_post"]
+material = SubResource("Mat_wood")
+size = Vector3(0.15, 2.2, 0.15)
+
+[sub_resource type="BoxMesh" id="BoxMesh_awning"]
+material = SubResource("Mat_stall")
+size = Vector3(2.4, 0.15, 1.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape_shop"]
+size = Vector3(2, 2.4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_water"]
+albedo_color = Color(0.2, 0.45, 0.8, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pond"]
+material = SubResource("Mat_water")
+top_radius = 2.5
+bottom_radius = 2.5
+height = 0.05
+radial_segments = 16
+rings = 1
+
+[sub_resource type="CylinderShape3D" id="CylinderShape_pond"]
+radius = 2.5
+height = 1.0
+
+[sub_resource type="BoxShape3D" id="BoxShape_wall_ew"]
+size = Vector3(1, 3, 28)
+
+[sub_resource type="BoxShape3D" id="BoxShape_wall_ns"]
+size = Vector3(34, 3, 1)
 
 [node name="Farm" type="Node3D"]
 
@@ -31,9 +118,120 @@ environment = SubResource("Environment_farm")
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
 shadow_enabled = true
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 9, 9)
-current = true
-
 [node name="Ground" type="MeshInstance3D" parent="."]
-mesh = SubResource("PlaneMesh_ground")
+mesh = SubResource("PlaneMesh_grass")
+
+[node name="FarmPlotBorder" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, 0)
+mesh = SubResource("PlaneMesh_plot_border")
+
+[node name="FarmPlotArea" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("PlaneMesh_plot")
+
+[node name="House" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -9)
+
+[node name="Walls" type="MeshInstance3D" parent="House"]
+mesh = SubResource("BoxMesh_house")
+
+[node name="Roof" type="MeshInstance3D" parent="House"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+mesh = SubResource("PrismMesh_roof")
+
+[node name="Door" type="MeshInstance3D" parent="House"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 2.05)
+mesh = SubResource("BoxMesh_door")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="House"]
+shape = SubResource("BoxShape_house")
+
+[node name="ShippingBin" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.4, -6)
+
+[node name="Mesh" type="MeshInstance3D" parent="ShippingBin"]
+mesh = SubResource("BoxMesh_bin")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ShippingBin"]
+shape = SubResource("BoxShape_bin")
+
+[node name="ShopStall" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 0)
+
+[node name="Counter" type="MeshInstance3D" parent="ShopStall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("BoxMesh_counter")
+
+[node name="PostLeft" type="MeshInstance3D" parent="ShopStall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.1, -0.4)
+mesh = SubResource("BoxMesh_post")
+
+[node name="PostRight" type="MeshInstance3D" parent="ShopStall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.1, -0.4)
+mesh = SubResource("BoxMesh_post")
+
+[node name="Awning" type="MeshInstance3D" parent="ShopStall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+mesh = SubResource("BoxMesh_awning")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ShopStall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("BoxShape_shop")
+
+[node name="Pond" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+
+[node name="Water" type="MeshInstance3D" parent="Pond"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+mesh = SubResource("CylinderMesh_pond")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pond"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CylinderShape_pond")
+
+[node name="Boundary" type="StaticBody3D" parent="."]
+
+[node name="East" type="CollisionShape3D" parent="Boundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 1.5, 0)
+shape = SubResource("BoxShape_wall_ew")
+
+[node name="West" type="CollisionShape3D" parent="Boundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.5, 1.5, 0)
+shape = SubResource("BoxShape_wall_ew")
+
+[node name="North" type="CollisionShape3D" parent="Boundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -13.5)
+shape = SubResource("BoxShape_wall_ns")
+
+[node name="South" type="CollisionShape3D" parent="Boundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 13.5)
+shape = SubResource("BoxShape_wall_ns")
+
+[node name="InteractionPoints" type="Node3D" parent="."]
+
+[node name="DoorPoint" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
+script = ExtResource("2_point")
+PointId = "door"
+Range = 1.25
+
+[node name="BinPoint" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -6)
+script = ExtResource("2_point")
+PointId = "bin"
+Range = 1.7
+
+[node name="ShopPoint" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 0)
+script = ExtResource("2_point")
+PointId = "shop"
+Range = 2.2
+
+[node name="PondPoint" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+script = ExtResource("2_point")
+PointId = "pond"
+Range = 3.8
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.8)

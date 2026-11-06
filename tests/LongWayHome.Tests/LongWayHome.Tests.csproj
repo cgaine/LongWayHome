@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <None Include="..\..\game\data\*.json" Link="data\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\project.godot" Link="game\project.godot" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
