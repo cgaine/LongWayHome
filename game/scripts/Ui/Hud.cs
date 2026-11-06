@@ -130,7 +130,9 @@ public partial class Hud : CanvasLayer
 
         if (DisplayProfile.ShowFps(OS.GetCmdlineUserArgs()))
         {
-            AddChild(new FpsCounter());
+            var fpsCounter = new FpsCounter();
+            AddChild(fpsCounter);
+            fpsCounter.PlaceUnder(_dateLabel);
         }
 
         _session = GetNode<GameRoot>("/root/GameRoot").Session;

@@ -19,9 +19,10 @@ public partial class FpsCounter : Label
 
     private const double SampleIntervalSeconds = 0.5;
 
-    private const int CounterFontSize = 22;
-
     private const int OutlineSize = 4;
+
+    /// <summary>The gap, in pixels, between the label above and the counter.</summary>
+    private const float GapAbove = 2;
 
     private readonly FpsWindow _window = new();
 
@@ -33,19 +34,27 @@ public partial class FpsCounter : Label
         ProcessMode = ProcessModeEnum.Always;
         MouseFilter = MouseFilterEnum.Ignore;
         HorizontalAlignment = HorizontalAlignment.Right;
-
-        // Top right, directly under the HUD's DateLabel (offsets -216, 84, -16, 116).
-        AnchorLeft = 1;
-        AnchorRight = 1;
-        OffsetLeft = -216;
-        OffsetTop = 118;
-        OffsetRight = -16;
-        OffsetBottom = 150;
         GrowHorizontal = GrowDirection.Begin;
 
-        AddThemeFontSizeOverride("font_size", CounterFontSize);
+        // The font size is the project theme's default (22 px, game/ui/Theme.tres), as on the HUD labels.
         AddThemeConstantOverride("outline_size", OutlineSize);
         AddThemeColorOverride("font_outline_color", Colors.Black);
+    }
+
+    /// <summary>
+    /// Places the counter directly under <paramref name="above"/> (the HUD's DateLabel), with the same anchors, width
+    /// and height, so it follows the label if the HUD layout changes.
+    /// </summary>
+    public void PlaceUnder(Control above)
+    {
+        AnchorLeft = above.AnchorLeft;
+        AnchorRight = above.AnchorRight;
+        AnchorTop = above.AnchorTop;
+        AnchorBottom = above.AnchorBottom;
+        OffsetLeft = above.OffsetLeft;
+        OffsetRight = above.OffsetRight;
+        OffsetTop = above.OffsetBottom + GapAbove;
+        OffsetBottom = OffsetTop + (above.OffsetBottom - above.OffsetTop);
     }
 
     public override void _Process(double delta)
