@@ -145,17 +145,17 @@ Three species, each with a familiar silhouette. They share a family look: violet
 | Species | Looks like | Alien detail | Where | At night |
 | --- | --- | --- | --- | --- |
 | Spirepine | A pine | Drooping tiers like layered skirts with violet undersides, a curled tip, lilac cones | Forest path and mountains, near the mine | Cones glow lilac |
-| Lanternwood | An oak | A twisted trunk that splits in two, a puffy canopy, amber seed pods hanging like lanterns | Meadow and forest path; most of the meadow you clear. Its timber is what the town's buildings grow from | Pods glow amber |
+| Twinbough | An oak | A twisted trunk that splits in two, and a puffy canopy (decided: no hanging pods or lanterns; renamed from the draft "Lanternwood") | Meadow and forest path; most of the meadow you clear. Its timber is what the town's buildings grow from | Sap glows amber in the bark |
 | Coilwillow | A willow | Silvery-teal hanging strands that end in little coils | Riverbank and lakeshore | Strand tips glow cyan |
 
 **Seasons** (the design doc's backlog has seasons changing the look of the map):
 
 | Season | Look |
 | --- | --- |
-| Spring | Lighter canopies with pink-violet blossom; small lanternwood pods |
+| Spring | Lighter canopies with pink-violet blossom |
 | Summer | Full blue-green canopies |
-| Fall | Lanternwood turns magenta, coilwillow gold, spirepine stays green with violet cones; lanternwood pods swell; fallen leaves on the ground |
-| Winter | Snow on the tiers and canopies; lanternwood drops its leaves but keeps its glowing pods; frosted coilwillow strands |
+| Fall | Twinbough turns magenta, coilwillow gold, spirepine stays green with violet cones; fallen leaves on the ground |
+| Winter | Snow on the outer tips of the spirepine's lower tiers (decided: on the outside, where the branches reach out) and a cap on its top tier; twinbough drops its leaves, with snow on its bare branches; frosted coilwillow strands |
 
 **Chopping and regrowth** (matches the axe levels and respawn rule in the design doc):
 
@@ -166,7 +166,7 @@ Three species, each with a familiar silhouette. They share a family look: violet
 | Old giant | About 1.3 times bigger; needs the steel axe and gives the most wood |
 | Stump | Cut face with growth rings that glow with sap, a dribble of sap, wood chips around it and a new shoot already sprouting. The iron axe clears it |
 
-**Night:** each species has its own glow (lilac cones, amber pods, cyan tips), so the forest path is lit and readable after dark and stumps show their glowing sap rings.
+**Night:** each species has its own glow (lilac cones, amber sap, cyan tips), so the forest path is lit and readable after dark and stumps show their glowing sap rings.
 
 ## 6. Creatures and people (draft)
 
