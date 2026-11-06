@@ -11,7 +11,9 @@ namespace LongWayHome.Game.Ui;
 /// The fade between two Days, over everything else. On <see cref="GameSession.DayEnded"/> it shows a full-screen
 /// black panel with a centred "You slept." or "You passed out…", then fades it out over about a second. Purely
 /// cosmetic: the Night has already run by the time the fade starts. Always processes, so pausing mid-fade cannot
-/// leave the black screen stuck over the pause menu. Holds no rules.
+/// leave the black screen stuck over the pause menu. While showing it swallows <c>interact</c> and <c>use_tool</c>
+/// presses, so a press while waking in the door's range cannot sleep again (or refill, or use a tool). It is the last
+/// child of the Farm scene, so its <c>_UnhandledInput</c> runs before those actions'. Holds no rules.
 /// </summary>
 public partial class NightTransition : CanvasLayer
 {
@@ -48,6 +50,14 @@ public partial class NightTransition : CanvasLayer
         if (_session is not null)
         {
             _session.DayEnded -= OnDayEnded;
+        }
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (_panel.Visible && (@event.IsActionPressed("interact") || @event.IsActionPressed("use_tool")))
+        {
+            GetViewport().SetInputAsHandled();
         }
     }
 
