@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- MeadowLayout's generator with a supplied placement test, used to test the skip-after-200-attempts path. -->
+    <InternalsVisibleTo Include="LongWayHome.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\LongWayHome.Domain\LongWayHome.Domain.csproj" />
   </ItemGroup>
 

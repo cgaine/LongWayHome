@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://art/farm/MeadowView.cs" id="1_view"]
+
+[node name="Meadow" type="Node3D"]
+script = ExtResource("1_view")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+
+[node name="ShadePatches" type="MeshInstance3D" parent="."]
+
+[node name="MownMargin" type="MeshInstance3D" parent="."]
+
+[node name="Path" type="MeshInstance3D" parent="."]
+
+[node name="PathStones" type="MultiMeshInstance3D" parent="."]
+
+[node name="Edging" type="MultiMeshInstance3D" parent="."]
+
+[node name="TuftBlades" type="MultiMeshInstance3D" parent="."]
+
+[node name="FrondFrond" type="MultiMeshInstance3D" parent="."]
+
+[node name="FrondCurl" type="MultiMeshInstance3D" parent="."]
+
+[node name="PuffballStem" type="MultiMeshInstance3D" parent="."]
+
+[node name="PuffballHead" type="MultiMeshInstance3D" parent="."]
+
+[node name="BeadStalkStalk" type="MultiMeshInstance3D" parent="."]
+
+[node name="BeadStalkBeads" type="MultiMeshInstance3D" parent="."]
+
+[node name="RockRock" type="MultiMeshInstance3D" parent="."]
+
+[node name="StumpBark" type="MultiMeshInstance3D" parent="."]
+
+[node name="StumpTop" type="MultiMeshInstance3D" parent="."]
+
+[node name="SaplingStem" type="MultiMeshInstance3D" parent="."]
+
+[node name="SaplingCrown" type="MultiMeshInstance3D" parent="."]
