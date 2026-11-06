@@ -52,5 +52,22 @@ public sealed class Game
     public FarmPlot FarmPlot { get; }
 
     /// <summary>Tills a Tile: AlreadyTilled, then TooTired, else tills and spends the energy (BR-T2, BR-P2).</summary>
-    public ActionResult Till(GridPosition position, int toolEnergyCost) => throw new NotImplementedException();
+    public ActionResult Till(GridPosition position, int toolEnergyCost)
+    {
+        var tile = FarmPlot[position];
+
+        // BR-T2
+        if (tile.State != TileState.Grass)
+        {
+            return ActionResult.Rejected(Rejection.AlreadyTilled);
+        }
+
+        // BR-P2: a rejected till spends nothing.
+        if (!Player.TrySpendEnergy(toolEnergyCost))
+        {
+            return ActionResult.Rejected(Rejection.TooTired);
+        }
+
+        return tile.Till();
+    }
 }

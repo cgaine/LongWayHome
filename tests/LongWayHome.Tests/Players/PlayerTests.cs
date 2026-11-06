@@ -73,6 +73,15 @@ public class PlayerTests
     }
 
     [Fact]
+    public void BR_P1_spending_a_negative_amount_is_refused_so_energy_cannot_rise_above_150()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => player.TrySpendEnergy(-1));
+        Assert.Equal(150, player.Energy);
+    }
+
+    [Fact]
     public void Player_rejects_null_tools_can_or_inventory()
     {
         var tools = new HashSet<ToolId> { ToolId.Hoe };

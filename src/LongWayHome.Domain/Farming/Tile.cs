@@ -19,5 +19,15 @@ public sealed class Tile
     public bool Watered { get; }
 
     /// <summary>Tills a grass Tile (BR-T2); a Tile that is not grass returns AlreadyTilled. Never reverts (BR-T8).</summary>
-    public ActionResult Till() => throw new NotImplementedException();
+    public ActionResult Till()
+    {
+        // BR-T2: only grass can be tilled. BR-T8: nothing sets a tilled Tile back to grass.
+        if (State != TileState.Grass)
+        {
+            return ActionResult.Rejected(Rejection.AlreadyTilled);
+        }
+
+        State = TileState.Tilled;
+        return ActionResult.Ok;
+    }
 }

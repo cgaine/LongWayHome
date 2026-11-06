@@ -1,8 +1,9 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
 [ext_resource type="Script" path="res://scripts/Farm/FarmPlotView.cs" id="3_plotview"]
+[ext_resource type="PackedScene" path="res://ui/Hud.tscn" id="4_hud"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -239,3 +240,5 @@ Range = 3.8
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.8)
+
+[node name="Hud" parent="." instance=ExtResource("4_hud")]

@@ -39,5 +39,17 @@ public sealed class Player
     public Inventory Inventory { get; }
 
     /// <summary>Spends energy; returns false and changes nothing when less than the amount is held (BR-P1, BR-P2).</summary>
-    public bool TrySpendEnergy(int amount) => throw new NotImplementedException();
+    public bool TrySpendEnergy(int amount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+
+        // BR-P1, BR-P2: an action is refused rather than taking Energy below 0.
+        if (Energy < amount)
+        {
+            return false;
+        }
+
+        Energy -= amount;
+        return true;
+    }
 }

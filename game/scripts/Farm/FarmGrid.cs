@@ -21,9 +21,13 @@ public static class FarmGrid
         new(position.X - HalfWidth + 0.5f, 0f, position.Y - HalfHeight + 0.5f);
 
     /// <summary>The tile under <paramref name="world"/> (height ignored); <c>false</c> when it is off the plot.</summary>
-    public static bool TryToGrid(Vector3 world, out GridPosition position) =>
-        GridPosition.TryCreate(
-            Mathf.FloorToInt(world.X + HalfWidth),
-            Mathf.FloorToInt(world.Z + HalfHeight),
-            out position);
+    public static bool TryToGrid(Vector3 world, out GridPosition position)
+    {
+        var cell = CellAt(world);
+        return GridPosition.TryCreate(cell.X, cell.Y, out position);
+    }
+
+    /// <summary>The grid cell under <paramref name="world"/> (height ignored), without checking it is on the plot.</summary>
+    public static Vector2I CellAt(Vector3 world) =>
+        new(Mathf.FloorToInt(world.X + HalfWidth), Mathf.FloorToInt(world.Z + HalfHeight));
 }
