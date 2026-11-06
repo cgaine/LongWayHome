@@ -119,7 +119,7 @@ game/
 ```
 
 - **Node scripts hold no rules.** They read state from `GameSession`, send commands to it, and react to its events.
-- **Input:** every action is a Godot Input Map action bound to both keyboard and mouse and a controller: `move_*`, `run`, `use_tool`, `interact`, `tool_next`, `tool_prev`, `open_menu`, `pause`. Nothing reads raw keys or buttons (REQ-13). The UI follows the last-used device for prompts, for every action.
+- **Input:** every action is a Godot Input Map action bound to both keyboard and mouse and a controller: `move_*`, `run`, `use_tool`, `interact`, `tool_next`, `tool_prev`, `open_menu`, `pause`, and the camera's `camera_rotate_left`, `camera_rotate_right`, `camera_zoom_in`, `camera_zoom_out` (Z/C/R/V and the right stick; REQ-52). Nothing reads raw keys or buttons (REQ-13). The UI follows the last-used device for prompts, for every action.
 - **Readable at a glance (REQ-12):** each growth stage has its own model; watered soil is visibly darker; `UsePrompt` names the action Use will perform on the targeted Tile, or why it can't.
 - **Pausing (BR-G2):** opening any menu pauses the scene tree, and `GameSession.AdvanceClock` is only called from an unpaused node.
 - **Renderer:** Forward+ by default. The Steam Deck target is a steady 30 fps at 1280 × 800 (REQ-14); if it's missed, the fallback is the Mobile renderer with a lower resolution scale, and the frame rate is capped at 30 on Deck to save battery.
