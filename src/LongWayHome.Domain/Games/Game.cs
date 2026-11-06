@@ -132,9 +132,9 @@ public sealed class Game
             return ActionResult.Rejected(rejection);
         }
 
-        // BR-T6: the Planting goes and one Crop of its type is added; BR-P7 merges it into one stack.
-        var result = FarmPlot[position].Harvest(cropType);
+        // BR-T6: one Crop of its type is added and the Planting goes; BR-P7 merges it into one stack. The Crop is added
+        // first so a failing Add leaves the Planting in place.
         Player.Inventory.Add(ItemKind.Crop, cropType.Id, 1);
-        return result;
+        return FarmPlot[position].Harvest(cropType);
     }
 }

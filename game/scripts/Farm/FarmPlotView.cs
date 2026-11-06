@@ -38,7 +38,7 @@ public partial class FarmPlotView : Node3D
                 Position = FarmGrid.ToWorld(tile.Position),
             };
             AddChild(view);
-            view.Refresh(tile, _session.Data.CropTypes);
+            view.Refresh(tile, _session.PlantingStatusAt(tile.Position));
             _views[tile.Position] = view;
         }
 
@@ -57,7 +57,7 @@ public partial class FarmPlotView : Node3D
     {
         if (_views.TryGetValue(position, out var view))
         {
-            view.Refresh(_session!.Game.FarmPlot[position], _session.Data.CropTypes);
+            view.Refresh(_session!.Game.FarmPlot[position], _session.PlantingStatusAt(position));
         }
     }
 }

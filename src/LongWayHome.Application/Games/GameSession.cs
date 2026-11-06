@@ -55,7 +55,7 @@ public sealed class GameSession
         }
 
         // BR-T6: harvesting needs no tool, so a Ripe Planting is harvested whatever is held.
-        if (IsRipe(Game.FarmPlot[position]))
+        if (PlantingStatusAt(position) == PlantingStatus.Ripe)
         {
             return new UsePreview(UseActionKind.Harvest, null);
         }
@@ -158,11 +158,16 @@ public sealed class GameSession
             : held.DisplayLabel;
     }
 
-    /// <summary>Whether a Tile holds a Ripe Planting. A Crop type with no data row is never Ripe.</summary>
-    private bool IsRipe(Tile tile) =>
-        tile.Planting is { } planting
-        && Data.CropTypes.TryGetValue(planting.CropTypeId, out var cropType)
-        && planting.StatusFor(cropType) == PlantingStatus.Ripe;
+    /// <summary>
+    /// The status of the Planting on a Tile, or null when it has none. A Planting whose Crop type has no data row is
+    /// Growing, never Ripe.
+    /// </summary>
+    public PlantingStatus? PlantingStatusAt(GridPosition position) =>
+        Game.FarmPlot[position].Planting is not { } planting
+            ? null
+            : Data.CropTypes.TryGetValue(planting.CropTypeId, out var cropType)
+                ? planting.StatusFor(cropType)
+                : PlantingStatus.Growing;
 
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
 }

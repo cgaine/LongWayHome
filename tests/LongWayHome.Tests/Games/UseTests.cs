@@ -650,6 +650,36 @@ public class UseTests
     }
 
     [Fact]
+    public void Planting_status_at_a_tile_is_null_Growing_or_Ripe_and_Growing_when_its_crop_has_no_data()
+    {
+        var growingAt = new GridPosition(0, 0);
+        var ripeAt = new GridPosition(1, 0);
+        var emptyAt = new GridPosition(2, 0);
+        var noDataAt = new GridPosition(3, 0);
+        var data = TestGames.Shipped with
+        {
+            CropTypes = TestGames.Shipped.CropTypes
+                .Where(pair => pair.Key != CropTypeId.Moonmelon)
+                .ToDictionary(pair => pair.Key, pair => pair.Value),
+        };
+        var session = new GameSession(
+            TestGames.WithTiles(
+                150,
+                null,
+                TestGames.TilledWith(growingAt, TestGames.PlantingOf(CropTypeId.Emberroot, 2)),
+                TestGames.TilledWith(ripeAt, TestGames.Ripe(CropTypeId.Dusktuber)),
+                TestGames.TilledWith(emptyAt, null),
+                TestGames.TilledWith(noDataAt, TestGames.PlantingOf(CropTypeId.Moonmelon, 8))),
+            data);
+
+        Assert.Equal(PlantingStatus.Growing, session.PlantingStatusAt(growingAt));
+        Assert.Equal(PlantingStatus.Ripe, session.PlantingStatusAt(ripeAt));
+        Assert.Null(session.PlantingStatusAt(emptyAt));
+        Assert.Null(session.PlantingStatusAt(Target));
+        Assert.Equal(PlantingStatus.Growing, session.PlantingStatusAt(noDataAt));
+    }
+
+    [Fact]
     public void Preview_with_no_target_is_NoTarget_even_with_seeds_held()
     {
         var session = TestGames.NewSession();

@@ -1,8 +1,6 @@
 #nullable enable
 
-using System.Collections.Generic;
 using Godot;
-using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 
 namespace LongWayHome.Game.Farm;
@@ -45,19 +43,14 @@ public partial class TileView : Node3D
     public override void _Ready() => EnsureBuilt();
 
     /// <summary>
-    /// Redraws this view from <paramref name="tile"/>'s state and Planting. The Planting's status comes from its
-    /// Crop type in <paramref name="cropTypes"/>; one with no data is drawn as Growing.
+    /// Redraws this view from <paramref name="tile"/>'s state and its Planting's <paramref name="status"/> (null when
+    /// the Tile has no Planting), as decided by <c>GameSession.PlantingStatusAt</c>.
     /// </summary>
-    public void Refresh(Tile tile, IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    public void Refresh(Tile tile, PlantingStatus? status)
     {
         EnsureBuilt();
         _surfaceMaterial.AlbedoColor = tile.State == TileState.Tilled ? TilledColor : GrassColor;
 
-        var status = tile.Planting is { } planting
-            ? cropTypes.TryGetValue(planting.CropTypeId, out var cropType)
-                ? planting.StatusFor(cropType)
-                : PlantingStatus.Growing
-            : (PlantingStatus?)null;
         _sprout.Visible = status == PlantingStatus.Growing;
         _ripePlant.Visible = status == PlantingStatus.Ripe;
     }
