@@ -38,7 +38,7 @@ public sealed class Game
 
     public GameDate Date { get; }
 
-    public int ClockMinutes { get; }
+    public int ClockMinutes { get; private set; }
 
     public Weather Weather { get; }
 
@@ -51,6 +51,9 @@ public sealed class Game
     public Player Player { get; }
 
     public FarmPlot FarmPlot { get; }
+
+    /// <summary>Adds game minutes to the clock, never past the day end (BR-G2).</summary>
+    public void AdvanceClock(int minutes, int dayEndMinutes) => throw new NotImplementedException();
 
     /// <summary>Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then TooTired (BR-T2, BR-P2).</summary>
     public Rejection? TillRejection(GridPosition position, int toolEnergyCost)

@@ -27,9 +27,17 @@ public sealed class GameSession
     /// <summary>Raised after a successful action changes the inventory.</summary>
     public event Action? InventoryChanged;
 
+    /// <summary>Raised after <see cref="AdvanceClock"/> moves the clock by at least one minute.</summary>
+#pragma warning disable CS0067 // Red stub: raised once AdvanceClock is implemented.
+    public event Action? ClockChanged;
+#pragma warning restore CS0067
+
     public Game Game { get; }
 
     public GameData Data { get; }
+
+    /// <summary>Advances the clock by real seconds of play (BR-G2). Raises ClockChanged when it moves.</summary>
+    public void AdvanceClock(double realSeconds) => throw new NotImplementedException();
 
     /// <summary>The held-item cycle: Hoe, Watering can, then one entry per Seed stack in CropTypeId order.</summary>
     public IReadOnlyList<HeldItem> HeldItems()
