@@ -24,14 +24,20 @@ public readonly record struct CameraView(float YawDegrees, float Zoom)
     /// <summary>The camera's distance from the farmer at zoom 1.</summary>
     public const float FarthestDistance = 18.5f;
 
-    /// <summary>How far the camera looks down from horizontal. Fixed for now.</summary>
-    public const float PitchDegrees = 45f;
+    /// <summary>How far the camera looks down from horizontal at zoom 0: lower, nearer the horizon.</summary>
+    public const float NearestPitchDegrees = 30f;
+
+    /// <summary>How far the camera looks down from horizontal at zoom 1: steep, but never fully top-down.</summary>
+    public const float FarthestPitchDegrees = 60f;
 
     /// <summary>Looking north from halfway between the limits: the view the game has always had.</summary>
     public static CameraView Default { get; } = new(0f, 0.5f);
 
     /// <summary>The camera's distance from the point it follows, from 7 at zoom 0 to 18.5 at zoom 1.</summary>
     public float Distance => NearestDistance + (FarthestDistance - NearestDistance) * Zoom;
+
+    /// <summary>Red stub (#69): still fixed.</summary>
+    public float PitchDegrees => 45f;
 
     /// <summary>The camera's position relative to the point it follows, so that it looks along the yaw.</summary>
     public (float X, float Y, float Z) Offset

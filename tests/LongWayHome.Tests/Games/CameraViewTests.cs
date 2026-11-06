@@ -2,12 +2,12 @@ using LongWayHome.Application.Games;
 
 namespace LongWayHome.Tests.Games;
 
-/// <summary>The camera's turn and zoom around the farmer: <see cref="CameraView"/> (issue #68, REQ-52).</summary>
+/// <summary>The camera's turn, zoom and tilt around the farmer: <see cref="CameraView"/> (issues #68 and #69, REQ-52).</summary>
 public class CameraViewTests
 {
     private const float Tolerance = 0.01f;
 
-    private static float H(CameraView view) => view.Distance * MathF.Cos(CameraView.PitchDegrees * MathF.PI / 180f);
+    private static float H(CameraView view) => view.Distance * MathF.Cos(view.PitchDegrees * MathF.PI / 180f);
 
     [Fact]
     public void AC4_default_view_is_yaw_0_zoom_half_and_sits_where_the_camera_does_today()
@@ -30,7 +30,8 @@ public class CameraViewTests
         Assert.Equal(0.6f, CameraView.ZoomPerSecond);
         Assert.Equal(7f, CameraView.NearestDistance);
         Assert.Equal(18.5f, CameraView.FarthestDistance);
-        Assert.Equal(45f, CameraView.PitchDegrees);
+        Assert.Equal(30f, CameraView.NearestPitchDegrees);
+        Assert.Equal(60f, CameraView.FarthestPitchDegrees);
     }
 
     [Theory]
@@ -150,5 +151,58 @@ public class CameraViewTests
     {
         // Input.GetAxis gives 0 when both are held; zero input must leave the view alone.
         Assert.Equal(CameraView.Default, CameraView.Default.Turned(0f, 2f));
+    }
+
+    // Issue #69: the tilt follows the zoom.
+
+    [Theory]
+    [InlineData(0f, 30f)]
+    [InlineData(0.25f, 37.5f)]
+    [InlineData(0.5f, 45f)]
+    [InlineData(1f, 60f)]
+    public void AC1_pitch_runs_from_30_at_nearest_to_60_at_farthest(float zoom, float expected)
+    {
+        Assert.Equal(expected, new CameraView(0f, zoom).PitchDegrees, Tolerance);
+    }
+
+    [Fact]
+    public void AC1_pitch_rises_steadily_with_zoom_and_stays_between_30_and_60()
+    {
+        var previous = float.NegativeInfinity;
+        for (var step = 0; step <= 100; step++)
+        {
+            var pitch = new CameraView(0f, step / 100f).PitchDegrees;
+            Assert.InRange(pitch, 30f, 60f);
+            Assert.True(pitch > previous, $"pitch {pitch} at zoom {step / 100f} did not rise");
+            previous = pitch;
+        }
+    }
+
+    [Fact]
+    public void AC2_default_pitch_is_45_so_the_starting_view_is_unchanged()
+    {
+        Assert.Equal(45f, CameraView.Default.PitchDegrees, Tolerance);
+    }
+
+    [Theory]
+    [InlineData(1f, 16.02f, 9.25f)]
+    [InlineData(0f, 3.5f, 6.06f)]
+    public void AC3_offset_tilts_with_zoom_at_yaw_0(float zoom, float expectedY, float expectedZ)
+    {
+        var (x, y, z) = new CameraView(0f, zoom).Offset;
+
+        Assert.Equal(0f, x, 0.05f);
+        Assert.Equal(expectedY, y, 0.05f);
+        Assert.Equal(expectedZ, z, 0.05f);
+    }
+
+    [Fact]
+    public void AC4_tilt_applies_at_yaw_90()
+    {
+        var (x, y, z) = new CameraView(90f, 1f).Offset;
+
+        Assert.Equal(-9.25f, x, 0.05f);
+        Assert.Equal(16.02f, y, 0.05f);
+        Assert.Equal(0f, z, 0.05f);
     }
 }
