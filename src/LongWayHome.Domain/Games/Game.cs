@@ -306,7 +306,13 @@ public sealed class Game
             return ActionResult.Rejected(Rejection.NothingToShip);
         }
 
-        // BR-S1: each stack goes into the bin before it leaves the inventory, so a failing Add loses no Crop.
+        // BR-S1: every merged quantity is checked before anything moves, so an overflowing stack ships nothing.
+        var inBin = ShippingBin.Items.ToDictionary(item => item.CropTypeId, item => item.Quantity);
+        foreach (var stack in crops)
+        {
+            _ = checked(inBin.GetValueOrDefault(stack.CropTypeId) + stack.Quantity);
+        }
+
         // BR-P2: shipping spends no energy; gold only changes in the Night (BR-S2).
         foreach (var stack in crops)
         {
@@ -324,6 +330,21 @@ public sealed class Game
     /// </summary>
     public int PayOutShippingBin(IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
     {
+        var total = ShippingPayout(cropTypes);
+
+        // The gold is earned before the bin empties, so a failing EarnGold leaves the bin to pay another Night.
+        Player.EarnGold(total);
+        ShippingBin.Empty();
+        return total;
+    }
+
+    /// <summary>
+    /// What the Night's payout would pay (BR-S2), changing nothing: Σ quantity × sellPrice over the bin's items, where
+    /// an item with no data row pays 0. Throws on overflow, or when the Player's gold plus the total would overflow
+    /// (BR-P5), so the Night can check it before any step changes the Game.
+    /// </summary>
+    public int ShippingPayout(IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
         ArgumentNullException.ThrowIfNull(cropTypes);
 
         // BR-S2: each Crop type is looked up by key; a missing row pays 0.
@@ -336,9 +357,8 @@ public sealed class Game
             }
         }
 
-        // The gold is earned before the bin empties, so a failing EarnGold leaves the bin to pay another Night.
-        Player.EarnGold(total);
-        ShippingBin.Empty();
+        // BR-P5: the gold the payout would leave must fit too.
+        _ = checked(Player.Gold.Value + total);
         return total;
     }
 }

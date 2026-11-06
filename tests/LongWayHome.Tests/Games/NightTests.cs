@@ -5,6 +5,7 @@ using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Shipping;
 using GameState = LongWayHome.Domain.Games.Game;
 
 namespace LongWayHome.Tests.Games;
@@ -287,6 +288,24 @@ public class NightTests
         new(
             TestGames.WithShippingBin(energy, null, (CropTypeId.Emberroot, 9), (CropTypeId.Dusktuber, 2)),
             TestGames.Shipped);
+
+    [Fact]
+    public void BR_P5_a_night_whose_payout_overflows_gold_throws_before_any_step_changes_the_game()
+    {
+        var game = TestGames.OnDateWithShippingBin(
+            TestGames.FirstDay,
+            150,
+            null,
+            [TestGames.TilledWith(Spot, TestGames.PlantingOf(CropTypeId.Dusktuber, 1), watered: true)],
+            (CropTypeId.Moonmelon, int.MaxValue / 190));
+
+        Assert.Throws<OverflowException>(() => Night(game));
+
+        Assert.Equal(TestGames.PlantingOf(CropTypeId.Dusktuber, 1), game.FarmPlot[Spot].Planting);
+        Assert.Equal(TestGames.FirstDay, game.Date);
+        Assert.Equal(new Gold(100), game.Player.Gold);
+        Assert.Equal([new ShippedItem(CropTypeId.Moonmelon, int.MaxValue / 190)], game.ShippingBin.Items);
+    }
 
     [Fact]
     public void AC5_sleeping_pays_465_for_emberroot_9_and_dusktuber_2_and_empties_the_bin()

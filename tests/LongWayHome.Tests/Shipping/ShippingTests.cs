@@ -323,6 +323,20 @@ public class ShippingTests
     }
 
     [Fact]
+    public void BR_S1_ship_all_whose_second_stack_overflows_the_bin_ships_nothing()
+    {
+        var inventory = new Inventory();
+        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 3);
+        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 1);
+        var game = TestGames.WithShippingBin(150, inventory, (CropTypeId.Dusktuber, int.MaxValue));
+
+        Assert.Throws<OverflowException>(() => game.ShipAll());
+        Assert.Equal(3, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Emberroot));
+        Assert.Equal(1, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Dusktuber));
+        Assert.Equal([new ShippedItem(CropTypeId.Dusktuber, int.MaxValue)], game.ShippingBin.Items);
+    }
+
+    [Fact]
     public void BR_P5_pay_out_that_overflows_gold_throws_and_leaves_gold_and_bin_unchanged()
     {
         var game = TestGames.WithShippingBin(150, new Inventory(), (CropTypeId.Moonmelon, int.MaxValue / 190));
