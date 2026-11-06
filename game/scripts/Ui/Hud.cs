@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using LongWayHome.Application.Games;
@@ -84,6 +85,8 @@ public partial class Hud : CanvasLayer
     private StyleBoxFlat _slotStyle = null!;
 
     private StyleBoxFlat _selectedSlotStyle = null!;
+
+    private IReadOnlyList<HotbarSlot> _hotbarSlots = [];
 
     private Label _refillHint = null!;
 
@@ -285,13 +288,21 @@ public partial class Hud : CanvasLayer
 
     private void RefreshHotbar(HeldItem held)
     {
+        // Refresh runs on every energy and can change; rebuild the slot nodes only when the slots themselves change.
+        var slots = _session!.Hotbar(held);
+        if (slots.SequenceEqual(_hotbarSlots))
+        {
+            return;
+        }
+
+        _hotbarSlots = slots;
         foreach (var child in _hotbar.GetChildren())
         {
             _hotbar.RemoveChild(child);
             child.QueueFree();
         }
 
-        foreach (var slot in _session!.Hotbar(held))
+        foreach (var slot in slots)
         {
             var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
             panel.AddThemeStyleboxOverride("panel", slot.Selected ? _selectedSlotStyle : _slotStyle);
