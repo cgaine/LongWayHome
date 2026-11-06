@@ -41,6 +41,7 @@ game/                                # the Godot project
   data/                              # reference data JSON (crops, shop, tuning)
   scenes/                            # .tscn scenes
   scripts/                           # C# node scripts, by area
+  art/                               # new art (shaders, the art sandbox), apart from gameplay scenes
   ui/                                # HUD and menus
   assets/                            # models, textures, audio
 tests/
@@ -115,6 +116,15 @@ game/
     Ui/UsePrompt.cs           # shows what Use will do (REQ-12)
     Ui/ShopMenu.cs
     Ui/SaveSlotsMenu.cs
+  art/                        # new art, apart from gameplay scenes and scripts (ART_DIRECTION §8)
+    sandbox/
+      ArtSandbox.tscn         # palette, tile and shape samples under the four light presets (#75)
+      ArtSandbox.cs
+      SandboxCamera.cs        # orbits the scene centre with CameraView, as the follow camera
+      SandboxLook.cs          # preset and style switching, the on-screen label (pure C#, unit-tested)
+      SandboxPalette.cs       # the ART_DIRECTION colours, role + hex (pure C#, unit-tested)
+    shaders/
+      low_poly.gdshader       # flat and stepped low-poly shading
   data/ crops.json  shop.json  tuning.json
 ```
 
@@ -122,6 +132,7 @@ game/
 - **Input:** every action is a Godot Input Map action bound to both keyboard and mouse and a controller: `move_*`, `run`, `use_tool`, `interact`, `tool_next`, `tool_prev`, `open_menu`, `pause`, and the camera's `camera_rotate_left`, `camera_rotate_right`, `camera_zoom_in`, `camera_zoom_out` (Z/C/R/V and the right stick; REQ-52). Nothing reads raw keys or buttons (REQ-13). The UI follows the last-used device for prompts, for every action.
 - **Readable at a glance (REQ-12):** each growth stage has its own model; watered soil is visibly darker; `UsePrompt` names the action Use will perform on the targeted Tile, or why it can't.
 - **Pausing (BR-G2):** opening any menu pauses the scene tree, and `GameSession.AdvanceClock` is only called from an unpaused node.
+- **Art sandbox:** starting with the user argument `--art-sandbox` (`godot --path game -- --art-sandbox` from source, `<exported binary> -- --art-sandbox` on the Deck; combinable with `--show-fps`) makes the title screen open `art/sandbox/ArtSandbox.tscn` instead of the save slots, once per run. It is where shading and colour are judged on the Deck before art reaches the farm, and `pause` returns to the title screen. Nothing in `scenes/` or `scripts/` other than `SaveSlotsMenu` references `art/`.
 - **Renderer:** Forward+ by default. The Steam Deck target is a steady 30 fps at 1280 × 800 (REQ-14); if it's missed, the fallback is the Mobile renderer with a lower resolution scale, and the frame rate is capped at 30 on Deck to save battery.
 
 ## 4. Key patterns

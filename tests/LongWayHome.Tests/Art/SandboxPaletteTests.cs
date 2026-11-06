@@ -36,4 +36,12 @@ public class SandboxPaletteTests
         Assert.NotEmpty(hexes);
         Assert.Equal(hexes.Count, hexes.Distinct(StringComparer.OrdinalIgnoreCase).Count());
     }
+
+    [Fact]
+    public void AC3_hexes_are_uppercase_six_digit_colours()
+    {
+        Assert.All(
+            SandboxPalette.Swatches,
+            swatch => Assert.Matches("^#[0-9A-F]{6}$", swatch.Hex));
+    }
 }

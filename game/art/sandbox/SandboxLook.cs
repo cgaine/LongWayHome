@@ -17,17 +17,33 @@ public readonly record struct SandboxLook(LightPreset Preset, StyleMode Mode, bo
     public static SandboxLook Default { get; } = new(LightPreset.Morning, StyleMode.Both, false);
 
     /// <summary>The next preset, Morning → Day → Dusk → Night → Morning.</summary>
-    public SandboxLook NextPreset() => throw new NotImplementedException();
+    public SandboxLook NextPreset() => this with { Preset = Step(Preset, 1) };
 
     /// <summary>The previous preset, wrapping from Morning to Night.</summary>
-    public SandboxLook PreviousPreset() => throw new NotImplementedException();
+    public SandboxLook PreviousPreset() => this with { Preset = Step(Preset, -1) };
 
     /// <summary>The same look with the flat and stepped sides swapped.</summary>
-    public SandboxLook Swapped() => throw new NotImplementedException();
+    public SandboxLook Swapped() => this with { SidesSwapped = !SidesSwapped };
 
     /// <summary>The next style mode, Both → Flat only → Stepped only → Both.</summary>
-    public SandboxLook NextMode() => throw new NotImplementedException();
+    public SandboxLook NextMode() => this with { Mode = Step(Mode, 1) };
 
     /// <summary>The on-screen label, "&lt;Preset&gt; · &lt;mode&gt;", e.g. "Dusk · Flat only".</summary>
-    public string Label => throw new NotImplementedException();
+    public string Label => $"{Preset} · {ModeName(Mode)}";
+
+    private static string ModeName(StyleMode mode) => mode switch
+    {
+        StyleMode.FlatOnly => "Flat only",
+        StyleMode.SteppedOnly => "Stepped only",
+        _ => "Both",
+    };
+
+    /// <summary>The enum value <paramref name="by"/> places on from <paramref name="value"/>, wrapping at both ends.</summary>
+    private static T Step<T>(T value, int by)
+        where T : struct, Enum
+    {
+        var values = Enum.GetValues<T>();
+        var index = Array.IndexOf(values, value);
+        return values[((index + by) % values.Length + values.Length) % values.Length];
+    }
 }

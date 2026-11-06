@@ -22,5 +22,5 @@ public static class DisplayProfile
     public const string ArtSandboxArg = "--art-sandbox";
 
     /// <summary>True when the user command-line arguments include <c>--art-sandbox</c>.</summary>
-    public static bool OpensArtSandbox(IReadOnlyList<string> userArgs) => throw new NotImplementedException();
+    public static bool OpensArtSandbox(IReadOnlyList<string> userArgs) => userArgs.Contains(ArtSandboxArg);
 }
