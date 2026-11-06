@@ -53,7 +53,7 @@ Every hook below comes from `GAME_DESIGN.md`. The art should build on these befo
 | Native foliage | Blue-green | `#3E8F82` | Trees and wild plants: the first "not quite Earth" colour you notice. |
 | Leaf undersides and new growth | Dusty violet | `#7A68A8` | Shows when leaves sway in the wind; a second-look detail. |
 | Dry tilled soil | Warm brown | `#8A5A3C` | |
-| Watered soil | Dark brown | `#3E2A20` | Must stay clearly darker than dry soil (pillar 4). |
+| Watered soil | Dark brown | `#4A3226` | Must stay clearly darker than dry soil (pillar 4). |
 | Wood (buildings, fences) | Native mauve timber | `#9C7E8C` | Living wood with a wavy grain; warm, but clearly not Earth wood. Trunks `#6B5A78`. |
 | Stone | Grey with a lilac cast | `#8F8A96` | |
 | Lake, deep | Blue-teal | `#2D6A86` | |

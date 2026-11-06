@@ -117,16 +117,22 @@ game/
     Ui/ShopMenu.cs
     Ui/SaveSlotsMenu.cs
   art/                        # new art, apart from gameplay scenes and scripts (ART_DIRECTION §8)
+    ArtMaterials.cs           # Shared palette material; Apply(node, role) colours a code-built shape (#76)
+    materials/
+      palette.tres            # the one shared ShaderMaterial: low_poly.gdshader on palette.png
+    palette/
+      palette.png             # 64 x 64 swatch texture, written from ArtPalette (Application/Art/ArtPalette.cs)
     sandbox/
       ArtSandbox.tscn         # palette, tile and shape samples under the four light presets (#75)
       ArtSandbox.cs
       SandboxCamera.cs        # orbits the scene centre with CameraView, as the follow camera
       SandboxLook.cs          # preset and style switching, the on-screen label (pure C#, unit-tested)
-      SandboxPalette.cs       # the ART_DIRECTION colours, role + hex (pure C#, unit-tested)
     shaders/
-      low_poly.gdshader       # flat and stepped low-poly shading
+      low_poly.gdshader       # flat and stepped low-poly shading, colour sampled from the palette
   data/ crops.json  shop.json  tuning.json
 ```
+
+- **One shared palette material (#76, ART_DIRECTION §8):** every new model takes its colour from `art/materials/palette.tres`. Shapes built in code call `ArtMaterials.Apply(node, role)`, which sets the material and the node's `swatch` instance parameter to the role's UV centre; imported models are UV-mapped onto `art/palette/palette.png`. The swatch list is `ArtPalette` in `LongWayHome.Application/Art/` (pure C#, unit-tested), and it is **append-only**, so UVs already mapped stay valid; a test checks the committed PNG matches it (`UPDATE_PALETTE=1` regenerates it). The shading style is switched project-wide by the global shader uniform `art_stepped_shading` (`[shader_globals]` in `project.godot`), not per material.
 
 - **Node scripts hold no rules.** They read state from `GameSession`, send commands to it, and react to its events.
 - **Input:** every action is a Godot Input Map action bound to both keyboard and mouse and a controller: `move_*`, `run`, `use_tool`, `interact`, `tool_next`, `tool_prev`, `open_menu`, `pause`, and the camera's `camera_rotate_left`, `camera_rotate_right`, `camera_zoom_in`, `camera_zoom_out` (Z/C/R/V and the right stick; REQ-52). Nothing reads raw keys or buttons (REQ-13). The UI follows the last-used device for prompts, for every action.
