@@ -13,7 +13,10 @@
 // only the art sandbox uses it, to show both styles side by side.
 // Both styles take every light's colour, energy and shadow (LIGHT_COLOR, ATTENUATION), and the environment's ambient
 // light still applies (light() only replaces the per-light part), so they react to the sandbox's light presets.
-// Matte: no specular.
+// Matte unless wet (#78): the `wet` instance uniform (0 dry, the default, to 1 soaked) lowers ROUGHNESS and raises
+// SPECULAR, and since light() replaces Godot's own lighting it also adds a Blinn-Phong sheen to SPECULAR_LIGHT, scaled
+// by `wet`. At wet = 0 the sheen term is zero, so every other mesh looks exactly as before. Only watered tile slabs and
+// furrows set it (TileView).
 shader_type spatial;
 
 global uniform bool art_stepped_shading;
@@ -24,17 +27,26 @@ uniform int steps = 3;
 
 instance uniform vec2 swatch = vec2(-1.0);
 instance uniform int style_override = -1;
+instance uniform float wet = 0.0;
 
-// Instance uniforms can't be read in light(), so the style is worked out once per vertex and passed on.
+// How tight and how bright the wet sheen is (#78): a soft glint where the sun reflects, kept faint so watered soil
+// stays darker than dry soil even facing the sun. The lower ROUGHNESS also gives wet soil a glossy sky reflection.
+const float WET_SHININESS = 64.0;
+const float WET_SHEEN = 0.06;
+
+// Instance uniforms can't be read in light(), so the style and wetness are worked out once per vertex and passed on.
 varying flat int v_stepped;
+varying flat float v_wet;
 
 void vertex() {
 	v_stepped = style_override < 0 ? (art_stepped_shading ? 1 : 0) : style_override;
+	v_wet = wet;
 }
 
 void fragment() {
 	ALBEDO = texture(palette, swatch.x >= 0.0 ? swatch : UV).rgb * tint.rgb;
-	ROUGHNESS = 1.0;
+	ROUGHNESS = mix(1.0, 0.25, wet);
+	SPECULAR = mix(0.5, 0.7, wet);
 	METALLIC = 0.0;
 	if (v_stepped == 0) {
 		// VERTEX is in view space here. The face normal's sign depends on the derivatives' screen orientation,
@@ -53,4 +65,10 @@ void light() {
 	}
 	// LIGHT_COLOR already includes the light's energy and a factor of PI, hence the division (Godot 4 docs).
 	DIFFUSE_LIGHT += lit * LIGHT_COLOR / PI;
+	if (v_wet > 0.0) {
+		// The wet sheen: Blinn-Phong, only where the surface faces the light.
+		vec3 half_vector = normalize(LIGHT + VIEW);
+		float sheen = pow(max(dot(NORMAL, half_vector), 0.0), WET_SHININESS) * step(0.0, dot(NORMAL, LIGHT));
+		SPECULAR_LIGHT += v_wet * WET_SHEEN * sheen * ATTENUATION * LIGHT_COLOR / PI;
+	}
 }

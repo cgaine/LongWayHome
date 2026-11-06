@@ -87,6 +87,10 @@ public static class ArtPalette
         return ((column * SwatchSize + half) / ImageSize, (row * SwatchSize + half) / ImageSize);
     }
 
+    /// <summary>The <c>#RRGGBB</c> hex of <paramref name="role"/>'s swatch, e.g. <c>"#E9773A"</c> for <c>ember</c>.</summary>
+    /// <exception cref="ArgumentException">No swatch has that role.</exception>
+    public static string Hex(string role) => Swatches[IndexOf(role)].Hex;
+
     /// <summary>
     /// The palette image as a PNG: 64 x 64 RGBA8, filter type 0 on every row, one zlib-compressed IDAT chunk.
     /// The same bytes every call.
