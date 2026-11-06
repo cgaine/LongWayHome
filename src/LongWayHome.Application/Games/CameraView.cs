@@ -1,7 +1,7 @@
 namespace LongWayHome.Application.Games;
 
 /// <summary>
-/// The camera's turn and zoom around the farmer (REQ-52). Pure maths: the Godot camera reads its input actions,
+/// The camera's turn, zoom and zoom-linked tilt around the farmer (REQ-52). Pure maths: the Godot camera reads its input actions,
 /// updates this value each physics frame and places itself at <see cref="Offset"/> from the point it follows.
 /// Holds no rules and is not saved.
 /// </summary>
@@ -36,8 +36,11 @@ public readonly record struct CameraView(float YawDegrees, float Zoom)
     /// <summary>The camera's distance from the point it follows, from 7 at zoom 0 to 18.5 at zoom 1.</summary>
     public float Distance => NearestDistance + (FarthestDistance - NearestDistance) * Zoom;
 
-    /// <summary>Red stub (#69): still fixed.</summary>
-    public float PitchDegrees => 45f;
+    /// <summary>
+    /// How far the camera looks down from horizontal at the farmer, rising linearly with zoom from 30° (nearest) to
+    /// 60° (farthest); 45° at the default zoom. Instant with zoom, so pitch and distance always correspond.
+    /// </summary>
+    public float PitchDegrees => NearestPitchDegrees + (FarthestPitchDegrees - NearestPitchDegrees) * Zoom;
 
     /// <summary>The camera's position relative to the point it follows, so that it looks along the yaw.</summary>
     public (float X, float Y, float Z) Offset
