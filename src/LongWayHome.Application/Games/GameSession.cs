@@ -30,7 +30,7 @@ public sealed class GameSession
 
     /// <summary>
     /// A session whose Nights never roll rain: its random source always returns 99, the highest roll (BR-G4). For tests
-    /// and other callers that need dry, predictable Nights; the game uses the three-argument constructor.
+    /// and other callers that need dry, predictable Nights; the game uses the six-argument constructor.
     /// </summary>
     public GameSession(Game game, GameData data)
         : this(game, data, NeverRainSource.Instance)
@@ -417,10 +417,11 @@ public sealed class GameSession
 
     /// <summary>
     /// The Night's save step (BR-G5): marks the Game saved now and writes it to the session's slot. Returns the reason
-    /// when the store fails, or null when it saved.
+    /// when the store fails, or null when it saved. A failed save puts SavedAt back.
     /// </summary>
     private string? Save(Game game)
     {
+        var previousSavedAt = game.SavedAt;
         game.MarkSaved(_time.GetUtcNow());
         try
         {
@@ -429,10 +430,12 @@ public sealed class GameSession
         }
         catch (SaveStoreException exception)
         {
+            game.MarkSaved(previousSavedAt);
             return exception.Reason;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
+            game.MarkSaved(previousSavedAt);
             return exception.Message;
         }
     }
