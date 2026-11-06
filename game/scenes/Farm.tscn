@@ -250,7 +250,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.8)
 [node name="Hud" parent="." instance=ExtResource("4_hud")]
 
 [node name="DayClock" type="Node" parent="."]
-process_mode = 1
 script = ExtResource("6_dayclock")
 
 [node name="PauseMenu" parent="." instance=ExtResource("7_pausemenu")]

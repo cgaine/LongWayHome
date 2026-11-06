@@ -55,7 +55,8 @@ public partial class PauseMenu : CanvasLayer
             return;
         }
 
-        var paused = !GetTree().Paused;
+        // Toggle on the menu's own state so the overlay and the pause it owns never disagree.
+        var paused = !_panel.Visible;
         GetTree().Paused = paused;
         RefreshResumeLabel();
         _panel.Visible = paused;
