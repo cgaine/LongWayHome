@@ -15,17 +15,7 @@ public sealed record HeldItem(ToolId? Tool, CropTypeId? Seed)
     {
         (ToolId.Hoe, null) => "Hoe",
         (ToolId.WateringCan, null) => "Watering can",
-        (null, { } seed) => $"{CropLabel(seed)} seeds",
+        (null, { } seed) => $"{CropLabels.For(seed)} seeds",
         _ => throw new InvalidOperationException("A held item is exactly one tool or one seed type."),
-    };
-
-    private static string CropLabel(CropTypeId seed) => seed switch
-    {
-        CropTypeId.Emberroot => "Emberroot",
-        CropTypeId.Dusktuber => "Dusktuber",
-        CropTypeId.Moonmelon => "Moonmelon",
-        CropTypeId.Sunbell => "Sunbell",
-        CropTypeId.Starcorn => "Starcorn",
-        _ => throw new ArgumentOutOfRangeException(nameof(seed), seed, "Unknown Crop type."),
     };
 }

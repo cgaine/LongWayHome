@@ -202,5 +202,16 @@ public sealed class GameSession
                 ? planting.StatusFor(cropType)
                 : PlantingStatus.Growing;
 
+    /// <summary>
+    /// The <see cref="GrowthStage"/> the Planting on a Tile is drawn as, or null when it has none. A Planting whose
+    /// Crop type has no data row is Seed at 0 days and Sprout after, never Ripe (as in <see cref="PlantingStatusAt"/>).
+    /// </summary>
+    public GrowthStage? GrowthStageAt(GridPosition position) =>
+        Game.FarmPlot[position].Planting is not { } planting
+            ? null
+            : Data.CropTypes.TryGetValue(planting.CropTypeId, out var cropType)
+                ? GrowthStages.For(planting, cropType)
+                : planting.DaysGrown == 0 ? GrowthStage.Seed : GrowthStage.Sprout;
+
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
 }
