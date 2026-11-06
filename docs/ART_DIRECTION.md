@@ -368,6 +368,26 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 
 **Night:** tiles darken with the rest of the scene, but tilled, watered and the target marker all stay distinct.
 
+### 7.3 Town buildings (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings page)
+
+**Grown, like the farmhouse.** Every town building uses the farmhouse's language (section 7.1): living violet trunk posts, leaf roofs, mauve timber, arched windows and an ember-orange door. Buildings are told apart by silhouette and props, so each one reads from across the square and from any camera angle.
+
+**Restoration is visible.** Before a rebuild, a building looks like the run-down farmhouse: wilted leaves, gaps in the roof, boarded windows and weeds. Each rebuild stage makes it more alive: fresh leaves first, then new growth and extensions grown onto the side. This follows "a building that comes back to life sprouts new leaves" (section 7.1).
+
+| Building | Who | Identity | Stages (design doc) |
+| --- | --- | --- | --- |
+| General store | Maggie | Leaf awning over a big round-topped shop window, produce crates, round sprout sign | 1. Maggie's corner: one fixed corner (a lit window, a small awning, a few crates) on an otherwise wilted building. 2. Reopened: the whole building alive. 3. Storeroom: a grown storeroom on the side with sacks. 4. Expanded shop: a second awning, more crates and string lights |
+| Carpenter | Tom and the Hollis family | Big braced double doors, plank stacks, saw sign; the family lives upstairs | 0. Empty. 1. Reopened. 2. Workshop: a side shed with a workbench and sap barrels that glow amber (sealed planks). 3. Builder: timber frames for new homes and stacks of sealed planks |
+| Blacksmith | Mira | The heaviest building: a stone lower storey, an open forge arch that glows orange, anvil, quench trough, hammer sign, big stone chimney | 0. Empty: a cold, dark forge. 1. Reopened: the forge glows again. 2. Forge: a smelting furnace on the side, more smoke. 3. Master smith: a teal weathervane and finished metal parts on display |
+| Café | June | A round window, leaf parasols over outdoor tables, a chalkboard, a mug sign and string lights | Empty, then open (stages still to be decided in the design doc) |
+| Homes | Returning households | The farmhouse design | Empty, then rebuilt |
+
+**At night.** Amber windows and string lights are the town's warm light (section 2). The forge glows orange, sap barrels glow amber and the leaf tips glow cyan. Homes show **friendship lanterns** in the window, one per friendship step, as the design doc proposes, so the town visibly gets brighter as friendships grow.
+
+**Still to design:** the ranch house, the museum, the dock houses for Clyde's family, the bridge, and the town square (paving, well, lamp posts).
+
 ## 8. Style and technical direction (draft)
 
 - **Style:** stylised low-poly with flat or softly stepped shading, simple shapes, and colour doing most of the work. No realistic textures. This matches what the prototype already uses (REQ-12 "low-poly"), so the upgrade is a better version of the same direction, not a change.
