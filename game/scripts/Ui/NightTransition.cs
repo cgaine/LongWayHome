@@ -10,7 +10,8 @@ namespace LongWayHome.Game.Ui;
 /// <summary>
 /// The fade between two Days, over everything else. On <see cref="GameSession.DayEnded"/> it shows a full-screen
 /// black panel with a centred "You slept." or "You passed out…", then fades it out over about a second. Purely
-/// cosmetic: the Night has already run by the time the fade starts. Holds no rules.
+/// cosmetic: the Night has already run by the time the fade starts. Always processes, so pausing mid-fade cannot
+/// leave the black screen stuck over the pause menu. Holds no rules.
 /// </summary>
 public partial class NightTransition : CanvasLayer
 {
@@ -30,6 +31,7 @@ public partial class NightTransition : CanvasLayer
 
     public override void _Ready()
     {
+        ProcessMode = ProcessModeEnum.Always;
         _panel = GetNode<Control>("Panel");
         _message = GetNode<Label>("Panel/Message");
         _panel.Visible = false;

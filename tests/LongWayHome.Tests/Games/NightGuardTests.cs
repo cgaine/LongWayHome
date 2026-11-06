@@ -91,6 +91,24 @@ public class NightGuardTests
         Assert.Equal(10, game.Player.Energy);
     }
 
+    [Theory]
+    [InlineData(DayEndReason.Slept)]
+    [InlineData(DayEndReason.PassedOut)]
+    public void BR_P1_night_with_a_wake_energy_outside_0_to_150_throws_before_any_step_runs(DayEndReason reason)
+    {
+        var tuning = TestGames.Shipped.Tuning with { MaxEnergy = 200, PassOutEnergy = -1 };
+        var data = TestGames.Shipped with { Tuning = tuning };
+        var game = TestGames.WithTiles(
+            10, null, TestGames.TilledWith(Spot, TestGames.PlantingOf(CropTypeId.Emberroot, 1), watered: true));
+        var before = TestGames.FullSnapshot(game);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => NightProcessor.Run(game, data, reason));
+
+        Assert.Equal(before, TestGames.FullSnapshot(game));
+        Assert.True(game.FarmPlot[Spot].Watered);
+        Assert.Null(game.LastDayEnd);
+    }
+
     [Fact]
     public void BR_G3_advancing_a_clock_already_at_02_00_passes_out()
     {
