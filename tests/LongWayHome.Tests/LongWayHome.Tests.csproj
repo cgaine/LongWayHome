@@ -21,6 +21,9 @@
   <ItemGroup>
     <None Include="..\..\game\data\*.json" Link="data\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\game\project.godot" Link="game\project.godot" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\**\*.tscn" Exclude="..\..\game\.godot\**" Link="game\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\**\*.tres" Exclude="..\..\game\.godot\**" Link="game\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\scripts\**\*.cs" Link="game\scripts\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\smoke-checklist.md" Link="docs\smoke-checklist.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\requirements\technical-blueprint.md" Link="docs\requirements\technical-blueprint.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

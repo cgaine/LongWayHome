@@ -28,7 +28,8 @@ namespace LongWayHome.Game.Ui;
 /// their glyph, and the change-item hint's, follows <see cref="LastInputDevice"/>. Top right, the clock as
 /// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>, with the Day's weather as
 /// <see cref="WeatherText"/> ("Clear", "Rain") under it and the date as <see cref="DateText"/> ("Spring 1, Year 1")
-/// under that. Everything is redrawn on
+/// under that, and, only when the game is started with <c>--show-fps</c>, the <see cref="FpsCounter"/> under the date.
+/// Everything is redrawn on
 /// <see cref="GameSession.NightCompleted"/>. Holds no rules.
 /// </summary>
 public partial class Hud : CanvasLayer
@@ -126,6 +127,13 @@ public partial class Hud : CanvasLayer
         _weatherLabel = GetNode<Label>("WeatherLabel");
         _dateLabel = GetNode<Label>("DateLabel");
         _energyBar.MaxValue = PlayerState.MaxEnergy;
+
+        if (DisplayProfile.ShowFps(OS.GetCmdlineUserArgs()))
+        {
+            var fpsCounter = new FpsCounter();
+            AddChild(fpsCounter);
+            fpsCounter.PlaceUnder(_dateLabel);
+        }
 
         _session = GetNode<GameRoot>("/root/GameRoot").Session;
         if (_session is null)
