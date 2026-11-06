@@ -473,7 +473,7 @@ public class WeatherTests
 
         game.Till(Spot, ToolCost);
         game.Water(Spot, ToolCost);
-        game.Plant(Spot, CropTypeId.Emberroot);
+        game.Plant(Spot, TestGames.Crop(CropTypeId.Emberroot));
         game.Harvest(Other, TestGames.Crop(CropTypeId.Emberroot));
         game.RefillCan();
         game.AdvanceClock(600, TestGames.Shipped.Tuning.DayEndMinutes - 1);

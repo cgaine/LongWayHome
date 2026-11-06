@@ -161,6 +161,37 @@ public class UsePromptTextTests
     }
 
     [Fact]
+    public void AC8_moonmelon_seeds_held_in_spring_over_empty_tilled_soil_prompt_Out_of_season_plant_in_Fall()
+    {
+        var inventory = new Inventory();
+        inventory.Add(ItemKind.Seed, CropTypeId.Moonmelon, 2);
+        var session = new GameSession(
+            TestGames.OnDate(new GameDate(1, Season.Spring, 5), inventory, TestGames.TilledWith(Target, null)),
+            TestGames.Shipped);
+        var held = HeldItem.SeedOf(CropTypeId.Moonmelon);
+
+        var preview = session.PreviewUse(Target, held);
+        var prompt = UsePromptText.For(preview, held, null, session.Data.CropTypes);
+
+        Assert.Equal(new UsePreview(null, Rejection.OutOfSeason), preview);
+        AssertPrompt("Out of season — plant in Fall", false, prompt);
+    }
+
+    [Theory]
+    [InlineData(CropTypeId.Emberroot, "Out of season — plant in Spring")]
+    [InlineData(CropTypeId.Sunbell, "Out of season — plant in Summer")]
+    public void AC8_out_of_season_prompt_names_the_held_seeds_season(CropTypeId seed, string expected)
+    {
+        var prompt = UsePromptText.For(
+            new UsePreview(null, Rejection.OutOfSeason),
+            HeldItem.SeedOf(seed),
+            null,
+            TestGames.CanonicalCrops);
+
+        AssertPrompt(expected, false, prompt);
+    }
+
+    [Fact]
     public void Unknown_rejection_shows_no_prompt()
     {
         var prompt = UsePromptText.For(

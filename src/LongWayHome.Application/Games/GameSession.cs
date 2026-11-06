@@ -155,7 +155,7 @@ public sealed class GameSession
         if (held.Seed is { } seed)
         {
             // BR-T3: the domain decides, so the preview and Game.Plant cannot drift apart.
-            return Game.PlantRejection(position, seed) is { } rejection
+            return Game.PlantRejection(position, CropTypeFor(seed)) is { } rejection
                 ? Rejected(rejection)
                 : new UsePreview(UseActionKind.Plant, null);
         }
@@ -237,7 +237,7 @@ public sealed class GameSession
     /// <summary>Plants one Seed of a Crop type (BR-T3). Raises InventoryChanged and TileChanged on success.</summary>
     public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
     {
-        var result = Game.Plant(position, cropTypeId);
+        var result = Game.Plant(position, CropTypeFor(cropTypeId));
         if (result.IsOk)
         {
             TileChanged?.Invoke(position);
@@ -306,6 +306,13 @@ public sealed class GameSession
                 : planting.DaysGrown == 0 ? GrowthStage.Seed : GrowthStage.Sprout;
 
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
+
+    // TODO(#38, red-phase compile shim): replace with the real lookup — a seed with no data row is OutOfSeason. The
+    // stand-in row only keeps the pre-#38 behaviour so the existing tests still pass while the new ones are red.
+    private CropType CropTypeFor(CropTypeId cropTypeId) =>
+        Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
+            ? cropType
+            : new CropType(cropTypeId, CropLabels.For(cropTypeId), 1, new Gold(1), new Gold(1), Game.Date.Season, false);
 
     /// <summary>
     /// Ends the Day (BR-G3): raises DayEnded, runs the Night, then raises NightCompleted. The part-minute carried by

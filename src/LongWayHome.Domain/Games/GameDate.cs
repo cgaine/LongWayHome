@@ -19,4 +19,7 @@ public readonly record struct GameDate(int Year, Season Season, int Day)
     public int Day { get; } = Day is >= 1 and <= DaysPerSeason
         ? Day
         : throw new ArgumentOutOfRangeException(nameof(Day), Day, $"Day must be between 1 and {DaysPerSeason} (BR-G1).");
+
+    /// <summary>The next day in the calendar (BR-G1).</summary>
+    public GameDate Next() => throw new NotImplementedException();
 }

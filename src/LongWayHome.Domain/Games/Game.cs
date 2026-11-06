@@ -91,6 +91,9 @@ public sealed class Game
         }
     }
 
+    /// <summary>The Night's date step (BR-G1): moves the Game to the next day.</summary>
+    public void AdvanceDate() => throw new NotImplementedException();
+
     /// <summary>Sets the Day's weather; only the Night calls this (BR-G4).</summary>
     public void SetWeather(Weather weather) => Weather = weather;
 
@@ -203,8 +206,11 @@ public sealed class Game
     }
 
     /// <summary>Why planting would be refused, or null: NotTilled, then TileOccupied, then NoSeed (BR-T3).</summary>
-    public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId)
+    public Rejection? PlantRejection(GridPosition position, CropType cropType)
     {
+        ArgumentNullException.ThrowIfNull(cropType);
+        var cropTypeId = cropType.Id;
+
         // BR-T3
         var tile = FarmPlot[position];
         if (tile.State != TileState.Tilled)
@@ -221,9 +227,11 @@ public sealed class Game
     }
 
     /// <summary>Plants one Seed on a Tile (BR-T3). Costs no energy (BR-P2).</summary>
-    public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
+    public ActionResult Plant(GridPosition position, CropType cropType)
     {
-        if (PlantRejection(position, cropTypeId) is { } rejection)
+        ArgumentNullException.ThrowIfNull(cropType);
+        var cropTypeId = cropType.Id;
+        if (PlantRejection(position, cropType) is { } rejection)
         {
             return ActionResult.Rejected(rejection);
         }

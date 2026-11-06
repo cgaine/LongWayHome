@@ -150,7 +150,7 @@ public class HarvestingTests
 
         game.Harvest(Target, Emberroot);
         var till = game.Till(Target, 2);
-        var replant = game.Plant(Target, CropTypeId.Emberroot);
+        var replant = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
 
         Assert.Equal(TileState.Tilled, game.FarmPlot[Target].State);
         Assert.Equal(ActionResult.Rejected(Rejection.AlreadyTilled), till);
