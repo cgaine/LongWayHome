@@ -12,4 +12,6 @@ public enum Rejection
     NoSeed,
     NoPlanting,
     NotRipe,
+    AlreadyWatered,
+    CanEmpty,
 }

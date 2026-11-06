@@ -13,13 +13,19 @@ public sealed class Tile
         Watered = false;
     }
 
-    /// <summary>Restores a Tile; a Planting is allowed only on a tilled Tile.</summary>
+    /// <summary>Restores a Tile; a Planting and the watered flag are allowed only on a tilled Tile.</summary>
     public Tile(GridPosition position, TileState state, bool watered, Planting? planting)
     {
         // BR-T3: a Planting only ever sits on tilled soil.
         if (planting is not null && state != TileState.Tilled)
         {
             throw new ArgumentException("A Planting can only be on a tilled Tile.", nameof(planting));
+        }
+
+        // BR-T9: only tilled soil can be watered.
+        if (watered && state != TileState.Tilled)
+        {
+            throw new ArgumentException("Only a tilled Tile can be watered.", nameof(watered));
         }
 
         Position = position;
@@ -32,7 +38,7 @@ public sealed class Tile
 
     public TileState State { get; private set; }
 
-    public bool Watered { get; }
+    public bool Watered { get; private set; }
 
     /// <summary>The Planting on this Tile, if any; at most one, and only on a tilled Tile.</summary>
     public Planting? Planting { get; private set; }
@@ -48,6 +54,18 @@ public sealed class Tile
 
         State = TileState.Tilled;
         return ActionResult.Ok;
+    }
+
+    /// <summary>Waters a tilled, unwatered Tile (BR-T9); the Game checks first.</summary>
+    public void Water()
+    {
+        // BR-T9: only tilled soil can be watered; the Game refuses the other cases as results first.
+        if (State != TileState.Tilled || Watered)
+        {
+            throw new InvalidOperationException("Only a tilled Tile that is not already watered can be watered.");
+        }
+
+        Watered = true;
     }
 
     /// <summary>Puts a Planting on the Tile: NotTilled, then TileOccupied (BR-T3).</summary>

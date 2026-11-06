@@ -7,7 +7,7 @@ script = ExtResource("1_hud")
 
 [node name="Panel" type="MarginContainer" parent="."]
 offset_right = 320.0
-offset_bottom = 120.0
+offset_bottom = 156.0
 mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
@@ -35,6 +35,14 @@ theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 22
 text = "Energy 150 / 150"
 
+[node name="CanLabel" type="Label" parent="Panel/Rows"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 22
+text = "Can 20 / 20"
+
 [node name="HeldLabel" type="Label" parent="Panel/Rows"]
 layout_mode = 2
 mouse_filter = 2
@@ -42,3 +50,24 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 22
 text = "Hoe"
+
+[node name="RefillHint" type="Label" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -80.0
+offset_right = 160.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 24
+text = "Refill can"
+horizontal_alignment = 1
+vertical_alignment = 1

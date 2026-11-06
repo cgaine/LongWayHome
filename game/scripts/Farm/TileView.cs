@@ -7,7 +7,7 @@ namespace LongWayHome.Game.Farm;
 
 /// <summary>
 /// Draws one Tile of the Farm plot: a 1 x 1 quad level with the ground and a faint outline, so the 12 x 9 grid is
-/// visible, and any Planting on it (a sprout while Growing, a taller plant while Ripe). <see cref="Refresh"/> redraws
+/// visible, darker soil when watered, and any Planting on it (a sprout while Growing, a taller plant while Ripe). <see cref="Refresh"/> redraws
 /// it from the Tile's state. Holds no rules.
 /// </summary>
 public partial class TileView : Node3D
@@ -23,6 +23,9 @@ public partial class TileView : Node3D
     private static readonly Color GrassColor = new(0.45f, 0.62f, 0.3f);
 
     private static readonly Color TilledColor = new(0.45f, 0.3f, 0.18f);
+
+    /// <summary>Watered tilled soil: clearly darker than dry soil, so the watered state is visible (REQ-12).</summary>
+    private static readonly Color WateredColor = new(0.25f, 0.16f, 0.1f);
 
     private static readonly Color OutlineColor = new(0.18f, 0.28f, 0.1f, 0.45f);
 
@@ -49,7 +52,9 @@ public partial class TileView : Node3D
     public void Refresh(Tile tile, PlantingStatus? status)
     {
         EnsureBuilt();
-        _surfaceMaterial.AlbedoColor = tile.State == TileState.Tilled ? TilledColor : GrassColor;
+        _surfaceMaterial.AlbedoColor = tile.State != TileState.Tilled
+            ? GrassColor
+            : tile.Watered ? WateredColor : TilledColor;
 
         _sprout.Visible = status == PlantingStatus.Growing;
         _ripePlant.Visible = status == PlantingStatus.Ripe;

@@ -78,6 +78,55 @@ public sealed class Game
         return FarmPlot[position].Till();
     }
 
+    /// <summary>Why watering would be refused, or null: NotTilled, AlreadyWatered, CanEmpty, then TooTired (BR-T9, BR-W2, BR-P2).</summary>
+    public Rejection? WaterRejection(GridPosition position, int toolEnergyCost)
+    {
+        // BR-T9
+        var tile = FarmPlot[position];
+        if (tile.State != TileState.Tilled)
+        {
+            return Rejection.NotTilled;
+        }
+
+        if (tile.Watered)
+        {
+            return Rejection.AlreadyWatered;
+        }
+
+        // BR-W2
+        if (Player.WateringCan.Charges == 0)
+        {
+            return Rejection.CanEmpty;
+        }
+
+        // BR-P2
+        return Player.Energy < toolEnergyCost ? Rejection.TooTired : null;
+    }
+
+    /// <summary>Waters a Tile, using one charge and the tool energy cost (BR-T9, BR-W2, BR-P2).</summary>
+    public ActionResult Water(GridPosition position, int toolEnergyCost)
+    {
+        // BR-T9, BR-W2, BR-P2: a rejected watering uses no charge and spends nothing.
+        if (WaterRejection(position, toolEnergyCost) is { } rejection)
+        {
+            return ActionResult.Rejected(rejection);
+        }
+
+        // All three steps are known to succeed now: the Tile is tilled and dry, the can has a charge, energy suffices.
+        FarmPlot[position].Water();
+        Player.WateringCan.TryUseCharge();
+        Player.TrySpendEnergy(toolEnergyCost);
+        return ActionResult.Ok;
+    }
+
+    /// <summary>Fills the can to capacity at no energy cost (BR-W3).</summary>
+    public ActionResult RefillCan()
+    {
+        // BR-W3: always allowed, even when full; BR-P2: refilling costs no energy.
+        Player.WateringCan.Refill();
+        return ActionResult.Ok;
+    }
+
     /// <summary>Why planting would be refused, or null: NotTilled, then TileOccupied, then NoSeed (BR-T3).</summary>
     public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId)
     {
