@@ -16,20 +16,28 @@ public sealed class GameSession
     /// <summary>The game minutes of play not yet added to the clock, always under one (BR-G2).</summary>
     private double _clockRemainderMinutes;
 
-    public GameSession(Game game, GameData data)
-    {
-        ArgumentNullException.ThrowIfNull(game);
-        ArgumentNullException.ThrowIfNull(data);
+    /// <summary>The source of each Night's weather roll (BR-G4).</summary>
+    private readonly IRandomSource _random;
 
-        Game = game;
-        Data = data;
+    /// <summary>
+    /// A session whose Nights never roll rain: its random source always returns 99, the highest roll (BR-G4). For tests
+    /// and other callers that need dry, predictable Nights; the game uses the three-argument constructor.
+    /// </summary>
+    public GameSession(Game game, GameData data)
+        : this(game, data, NeverRainSource.Instance)
+    {
     }
 
     /// <summary>A session whose Nights roll the weather from the given random source (BR-G4).</summary>
     public GameSession(Game game, GameData data, IRandomSource random)
-        : this(game, data)
     {
+        ArgumentNullException.ThrowIfNull(game);
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(random);
+
+        Game = game;
+        Data = data;
+        _random = random;
     }
 
     /// <summary>Raised after a successful action changes a Tile.</summary>
@@ -307,7 +315,7 @@ public sealed class GameSession
     {
         _clockRemainderMinutes = 0;
         DayEnded?.Invoke(reason);
-        NightProcessor.Run(Game, Data, reason);
+        NightProcessor.Run(Game, Data, reason, _random);
         NightCompleted?.Invoke();
     }
 }

@@ -40,7 +40,8 @@ public sealed class Game
 
     public int ClockMinutes { get; private set; }
 
-    public Weather Weather { get; }
+    /// <summary>The Day's weather, rolled in the Night before it and unchanged during the Day (BR-G4).</summary>
+    public Weather Weather { get; private set; }
 
     public DayEndReason? LastDayEnd { get; private set; }
 
@@ -91,10 +92,16 @@ public sealed class Game
     }
 
     /// <summary>Sets the Day's weather; only the Night calls this (BR-G4).</summary>
-    public void SetWeather(Weather weather) => throw new NotImplementedException();
+    public void SetWeather(Weather weather) => Weather = weather;
 
     /// <summary>The Night's rain step (BR-T7): every tilled Tile is watered; grass stays dry.</summary>
-    public void WaterAllTilledTiles() => throw new NotImplementedException();
+    public void WaterAllTilledTiles()
+    {
+        foreach (var tile in FarmPlot.Tiles)
+        {
+            tile.Soak();
+        }
+    }
 
     /// <summary>
     /// Starts the next Day: records why the last one ended, sets energy (BR-P1, BR-P3) and the clock. Energy outside
@@ -121,7 +128,10 @@ public sealed class Game
         return Player.Energy < toolEnergyCost ? Rejection.TooTired : null;
     }
 
-    /// <summary>Tills a Tile: AlreadyTilled, then TooTired, else tills and spends the energy (BR-T2, BR-P2).</summary>
+    /// <summary>
+    /// Tills a Tile: AlreadyTilled, then TooTired, else tills and spends the energy (BR-T2, BR-P2). On a rain Day the
+    /// new tilled Tile is watered at once (BR-T7).
+    /// </summary>
     public ActionResult Till(GridPosition position, int toolEnergyCost)
     {
         // BR-P2: a rejected till spends nothing.
@@ -131,7 +141,16 @@ public sealed class Game
         }
 
         Player.TrySpendEnergy(toolEnergyCost);
-        return FarmPlot[position].Till();
+        var tile = FarmPlot[position];
+        var result = tile.Till();
+
+        // BR-T7: on a rain Day every tilled Tile is watered, including Tiles tilled during that Day.
+        if (result.IsOk && Weather == Weather.Rain)
+        {
+            tile.Soak();
+        }
+
+        return result;
     }
 
     /// <summary>Why watering would be refused, or null: NotTilled, AlreadyWatered, CanEmpty, then TooTired (BR-T9, BR-W2, BR-P2).</summary>

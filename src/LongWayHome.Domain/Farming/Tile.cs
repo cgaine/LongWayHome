@@ -69,7 +69,14 @@ public sealed class Tile
     }
 
     /// <summary>Rain (BR-T7): waters a tilled Tile without a precondition; grass is unchanged.</summary>
-    public void Soak() => throw new NotImplementedException();
+    public void Soak()
+    {
+        // BR-T9: only tilled soil holds water; an already watered Tile simply stays watered.
+        if (State == TileState.Tilled)
+        {
+            Watered = true;
+        }
+    }
 
     /// <summary>Clears the watered flag (BR-T7 reset).</summary>
     public void Dry() => Watered = false;

@@ -6,13 +6,15 @@ using Godot;
 using LongWayHome.Application.Data;
 using LongWayHome.Application.Games;
 using LongWayHome.Infrastructure.Data;
+using LongWayHome.Infrastructure.Random;
 
 namespace LongWayHome.Game.Core;
 
 /// <summary>
 /// The composition root, registered as an autoload. Loads the reference data when the game starts and
 /// quits with exit code 1 if it is missing or invalid: a game with broken data must not start. With the data
-/// loaded it starts a new Game and holds it in <see cref="Session"/> (there is no title screen yet).
+/// loaded it starts a new Game and holds it in <see cref="Session"/> (there is no title screen yet), with a
+/// <see cref="SystemRandomSource"/> for each Night's weather roll.
 /// Holds no rules.
 /// </summary>
 public partial class GameRoot : Node
@@ -56,7 +58,7 @@ public partial class GameRoot : Node
 
         GD.Print($"Loaded {Data.CropTypes.Count} crop types, {Data.ShopListings.Count} shop listings and tuning");
 
-        Session = new GameSession(NewGameFactory.Create(Data, DateTimeOffset.UtcNow), Data);
+        Session = new GameSession(NewGameFactory.Create(Data, DateTimeOffset.UtcNow), Data, new SystemRandomSource());
     }
 
     private static string? ReadFile(string fileName, List<string> errors)

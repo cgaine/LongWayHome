@@ -5,5 +5,11 @@ namespace LongWayHome.Application.Games;
 /// <summary>The HUD display label for a <see cref="Weather"/>.</summary>
 public static class WeatherText
 {
-    public static string For(Weather weather) => throw new NotImplementedException();
+    /// <summary>"Clear" or "Rain", the display labels in canonical-values.md.</summary>
+    public static string For(Weather weather) => weather switch
+    {
+        Weather.Clear => "Clear",
+        Weather.Rain => "Rain",
+        _ => throw new ArgumentOutOfRangeException(nameof(weather), weather, "Unknown weather."),
+    };
 }
