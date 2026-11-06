@@ -25,6 +25,9 @@ public static class ArtPalette
     public const int SwatchSize = 8;
     public const int ImageSize = 64;
 
+    /// <summary>How many swatches the texture holds: one 8 x 8 block per cell of the 8 x 8 grid.</summary>
+    public const int Capacity = (ImageSize / SwatchSize) * Columns;
+
     /// <summary>Every swatch, in texture order. Append-only.</summary>
     public static IReadOnlyList<ArtSwatch> Swatches { get; } =
     [
@@ -90,6 +93,12 @@ public static class ArtPalette
     /// </summary>
     public static byte[] EncodePng()
     {
+        if (Swatches.Count > Capacity)
+        {
+            throw new InvalidOperationException(
+                $"The palette has {Swatches.Count} swatches but the {ImageSize} x {ImageSize} texture holds {Capacity}.");
+        }
+
         const int stride = ImageSize * 4;
         var raw = new byte[ImageSize * (stride + 1)];
         for (var i = 0; i < Swatches.Count; i++)

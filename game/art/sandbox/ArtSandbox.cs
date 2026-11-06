@@ -113,6 +113,9 @@ public partial class ArtSandbox : Node3D
 
     private bool _leaving;
 
+    /// <summary>The project's <c>art_stepped_shading</c>, read once in <see cref="_Ready"/>.</summary>
+    private bool _projectStepped;
+
     /// <summary>Which sample set a mesh belongs to.</summary>
     private enum Side
     {
@@ -128,6 +131,7 @@ public partial class ArtSandbox : Node3D
 
     public override void _Ready()
     {
+        _projectStepped = ProjectStepped();
         BuildEnvironment();
         BuildGround();
         BuildPalette();
@@ -144,7 +148,7 @@ public partial class ArtSandbox : Node3D
     public override void _ExitTree()
     {
         // Flat only and Stepped only override the project-wide style; don't let that leak into the next scene.
-        RenderingServer.GlobalShaderParameterSet(SteppedGlobal, ProjectStepped());
+        RenderingServer.GlobalShaderParameterSet(SteppedGlobal, _projectStepped);
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -212,7 +216,7 @@ public partial class ArtSandbox : Node3D
         {
             // The left set flat and the right stepped unless swapped, through per-mesh overrides. The global stays at
             // the project value, which the palette cubes, tiles and ground follow.
-            RenderingServer.GlobalShaderParameterSet(SteppedGlobal, ProjectStepped());
+            RenderingServer.GlobalShaderParameterSet(SteppedGlobal, _projectStepped);
             foreach (var (node, side) in _samples)
             {
                 var stepped = side == Side.Left ? leftStepped : rightStepped;

@@ -41,6 +41,12 @@ public class ArtPaletteLayoutTests
     }
 
     [Fact]
+    public void Every_swatch_fits_in_the_texture()
+    {
+        Assert.InRange(ArtPalette.Swatches.Count, 1, ArtPalette.Capacity);
+    }
+
+    [Fact]
     public void Encode_png_gives_the_same_bytes_every_call()
     {
         Assert.Equal(ArtPalette.EncodePng(), ArtPalette.EncodePng());
