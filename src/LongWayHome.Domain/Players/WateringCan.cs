@@ -47,4 +47,6 @@ public sealed class WateringCan
 
     /// <summary>Fills the can to capacity (BR-W3).</summary>
     public void Refill() => Charges = Capacity;
+
+    public void Upgrade(int upgradedCapacity) => throw new NotImplementedException();
 }

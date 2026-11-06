@@ -148,4 +148,99 @@ public class WateringCanTests
         Assert.Equal(40, can.Charges);
         Assert.True(can.Upgraded);
     }
+
+    // ---- #46: the Can upgrade ----
+
+    [Fact]
+    public void BR_W4_upgrade_sets_capacity_to_40_and_fills_the_can()
+    {
+        var can = new WateringCan(20);
+
+        can.Upgrade(40);
+
+        Assert.Equal(40, can.Capacity);
+        Assert.Equal(40, can.Charges);
+        Assert.True(can.Upgraded);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(5)]
+    [InlineData(19)]
+    public void BR_W4_upgrade_fills_a_part_empty_can_to_the_new_capacity(int charges)
+    {
+        var can = new WateringCan(20, charges, false);
+
+        can.Upgrade(40);
+
+        Assert.Equal(40, can.Capacity);
+        Assert.Equal(40, can.Charges);
+        Assert.True(can.Upgraded);
+    }
+
+    [Fact]
+    public void AC7_upgrading_an_already_upgraded_can_throws_and_changes_nothing()
+    {
+        var can = new WateringCan(20);
+        can.Upgrade(40);
+        can.TryUseCharge();
+
+        Assert.Throws<InvalidOperationException>(() => can.Upgrade(80));
+        Assert.Equal(40, can.Capacity);
+        Assert.Equal(39, can.Charges);
+        Assert.True(can.Upgraded);
+    }
+
+    [Fact]
+    public void AC7_upgrading_a_restored_upgraded_can_throws()
+    {
+        var can = new WateringCan(40, 40, true);
+
+        Assert.Throws<InvalidOperationException>(() => can.Upgrade(80));
+        Assert.Equal(40, can.Capacity);
+    }
+
+    [Theory]
+    [InlineData(20)]
+    [InlineData(19)]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void AC7_upgrading_to_a_capacity_not_above_the_current_one_throws_and_changes_nothing(int upgradedCapacity)
+    {
+        var can = new WateringCan(20, 7, false);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => can.Upgrade(upgradedCapacity));
+        Assert.Equal(20, can.Capacity);
+        Assert.Equal(7, can.Charges);
+        Assert.False(can.Upgraded);
+    }
+
+    [Fact]
+    public void BR_W1_charges_stay_within_0_and_the_upgraded_capacity()
+    {
+        var can = new WateringCan(20, 3, false);
+
+        can.Upgrade(40);
+        var uses = Enumerable.Range(0, 41).Count(_ => can.TryUseCharge());
+        var emptyCharges = can.Charges;
+        can.Refill();
+        can.Refill();
+
+        Assert.Equal(40, uses);
+        Assert.Equal(0, emptyCharges);
+        Assert.Equal(40, can.Charges);
+        Assert.InRange(can.Charges, 0, can.Capacity);
+    }
+
+    [Fact]
+    public void BR_W3_refill_after_the_upgrade_fills_to_the_upgraded_capacity()
+    {
+        var can = new WateringCan(20);
+        can.Upgrade(40);
+        Enumerable.Range(0, 30).ToList().ForEach(_ => can.TryUseCharge());
+
+        can.Refill();
+
+        Assert.Equal(40, can.Charges);
+    }
 }

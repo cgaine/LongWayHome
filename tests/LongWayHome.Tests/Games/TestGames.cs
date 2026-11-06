@@ -45,9 +45,10 @@ internal static class TestGames
 
     /// <summary>
     /// A Game on a fresh plot at 150 energy whose Player has the given gold, on the given date (Spring 1 by default),
-    /// holding the given inventory (the starting seeds by default).
+    /// holding the given inventory (the starting seeds by default) and the given Watering can (a full 20-charge can by
+    /// default).
     /// </summary>
-    public static GameState WithGold(int gold, GameDate? date = null, Inventory? inventory = null) =>
+    public static GameState WithGold(int gold, GameDate? date = null, Inventory? inventory = null, WateringCan? can = null) =>
         new(
             Guid.NewGuid(),
             date ?? FirstDay,
@@ -60,7 +61,7 @@ internal static class TestGames
                 new Gold(gold),
                 Player.MaxEnergy,
                 new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
-                new WateringCan(20),
+                can ?? new WateringCan(20),
                 inventory ?? StartingSeeds()),
             new FarmPlot());
 

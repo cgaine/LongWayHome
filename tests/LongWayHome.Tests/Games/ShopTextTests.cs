@@ -1,6 +1,7 @@
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Games;
+using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Tests.Games;
 
@@ -49,9 +50,27 @@ public class ShopTextTests
     }
 
     [Fact]
-    public void Row_of_a_listing_with_no_crop_type_throws()
+    public void Row_of_a_seed_listing_with_no_crop_type_throws()
     {
-        Assert.Throws<ArgumentException>(() => ShopText.Row(Listing("can_upgrade"), TestGames.Shipped));
+        var listing = new ShopListing("seed_nothing", ShopItemKind.Seed, null, new Gold(10));
+
+        Assert.Throws<ArgumentException>(() => ShopText.Row(listing, TestGames.Shipped));
+    }
+
+    // ---- #46: the Watering can upgrade ----
+
+    [Fact]
+    public void AC8_row_of_the_can_upgrade_is_watering_can_upgrade_200g()
+    {
+        Assert.Equal("Watering can upgrade — 200g", ShopText.Row(Listing("can_upgrade"), TestGames.Shipped));
+    }
+
+    [Fact]
+    public void AC8_row_of_the_can_upgrade_uses_the_listing_price()
+    {
+        var listing = Listing("can_upgrade") with { Price = new Gold(350) };
+
+        Assert.Equal("Watering can upgrade — 350g", ShopText.Row(listing, TestGames.Shipped));
     }
 
     [Fact]
