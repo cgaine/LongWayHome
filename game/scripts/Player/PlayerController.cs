@@ -96,5 +96,10 @@ public partial class PlayerController : CharacterBody3D
             Facing = new Vector2I(facing.X, facing.Y);
             _model.Rotation = _model.Rotation with { Y = Mathf.Atan2(world.X, world.Z) };
         }
+        else
+        {
+            // Standing still, the farmer turns straight to face the targeted tile (issue #71).
+            _model.Rotation = _model.Rotation with { Y = FacingDirection.Yaw(Facing.X, Facing.Y) };
+        }
     }
 }

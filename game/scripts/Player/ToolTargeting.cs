@@ -13,7 +13,8 @@ namespace LongWayHome.Game.Player;
 /// </summary>
 public partial class ToolTargeting : Node3D
 {
-    /// <summary>Height of the cursor, above the tile surface and its outline so it is never hidden.</summary>
+    /// <summary>Height of the cursor, just above the tile surface. The material skips the depth test, so nothing hides
+    /// it.</summary>
     private const float CursorHeight = 0.03f;
 
     private static readonly Color CursorColor = new(1f, 0.95f, 0.45f);
@@ -67,6 +68,10 @@ public partial class ToolTargeting : Node3D
         {
             AlbedoColor = CursorColor,
             ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+
+            // Drawn over everything, so the farmer, crops and scenery never hide the outline (issue #71).
+            NoDepthTest = true,
+            RenderPriority = 1,
         };
 
         const float half = 0.5f;

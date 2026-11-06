@@ -80,4 +80,15 @@ public class FacingDirectionTests
         // facing must be east, never the zero vector.
         Assert.Equal(East, FacingDirection.Snap(5e-6f, 0f, South));
     }
+
+    [Theory]
+    [InlineData(0, 1, 0f)]
+    [InlineData(1, 0, MathF.PI / 2f)]
+    [InlineData(0, -1, MathF.PI)]
+    [InlineData(-1, 0, -MathF.PI / 2f)]
+    public void AC3_yaw_of_each_cardinal_facing(int x, int y, float expected)
+    {
+        // South is 0, matching how the model is turned while moving (issue #71).
+        Assert.Equal(expected, FacingDirection.Yaw(x, y), 1e-5f);
+    }
 }
