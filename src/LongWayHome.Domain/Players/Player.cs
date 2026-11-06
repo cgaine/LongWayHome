@@ -38,6 +38,9 @@ public sealed class Player
 
     public Inventory Inventory { get; }
 
+    /// <summary>Starts a new Day with the given energy (BR-P1, BR-P3).</summary>
+    public void StartDay(int energy) => throw new NotImplementedException();
+
     /// <summary>Spends energy; returns false and changes nothing when less than the amount is held (BR-P1, BR-P2).</summary>
     public bool TrySpendEnergy(int amount)
     {

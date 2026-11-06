@@ -42,7 +42,7 @@ public sealed class Game
 
     public Weather Weather { get; }
 
-    public DayEndReason? LastDayEnd { get; }
+    public DayEndReason? LastDayEnd { get; private set; }
 
     public DateTimeOffset CreatedAt { get; }
 
@@ -63,6 +63,17 @@ public sealed class Game
             ClockMinutes = (int)Math.Min((long)ClockMinutes + minutes, dayEndMinutes);
         }
     }
+
+    /// <summary>The Night's growth step (BR-T4).</summary>
+    public void GrowPlantings(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
+
+    /// <summary>The Night's watering reset (BR-T7).</summary>
+    public void DryAllTiles() => throw new NotImplementedException();
+
+    /// <summary>Starts the next Day: records why the last one ended, sets energy and the clock (BR-P3).</summary>
+    public void StartNextDay(DayEndReason reason, int energy, int dayStartMinutes) =>
+        throw new NotImplementedException();
 
     /// <summary>Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then TooTired (BR-T2, BR-P2).</summary>
     public Rejection? TillRejection(GridPosition position, int toolEnergyCost)

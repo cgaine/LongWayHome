@@ -1,33 +1,54 @@
 using LongWayHome.Application.Games;
+using LongWayHome.Domain.Games;
 
 namespace LongWayHome.Tests.Games;
 
 /// <summary>The day clock (BR-G2): <see cref="GameSession.AdvanceClock"/> and the Game root's clamp.</summary>
 public class ClockTests
 {
+    private const int DayStart = 360;
     private const int DayEnd = 1560;
 
+    /// <summary>Counts DayEnded raises; the day at 02:00 now ends in a pass-out (BR-G3, #36).</summary>
+    private static Func<int> CountDayEnds(GameSession session)
+    {
+        var count = 0;
+        session.DayEnded += _ => count++;
+        return () => count;
+    }
+
+    private static void AssertPassedOut(GameSession session)
+    {
+        Assert.Equal(DayStart, session.Game.ClockMinutes);
+        Assert.Equal(DayEndReason.PassedOut, session.Game.LastDayEnd);
+        Assert.Equal(TestGames.Shipped.Tuning.PassOutEnergy, session.Game.Player.Energy);
+    }
+
     [Fact]
-    public void BR_G2_a_full_day_of_720_real_seconds_ends_at_02_00()
+    public void BR_G2_a_full_day_of_720_real_seconds_ends_at_02_00_in_one_pass_out()
     {
         var session = TestGames.NewSession();
+        var dayEnds = CountDayEnds(session);
 
         for (var i = 0; i < 720; i++)
         {
             session.AdvanceClock(1.0);
         }
 
-        Assert.Equal(1560, session.Game.ClockMinutes);
+        Assert.Equal(1, dayEnds());
+        AssertPassedOut(session);
     }
 
     [Fact]
-    public void AC1_advancing_720_real_seconds_reaches_02_00()
+    public void AC1_advancing_720_real_seconds_reaches_02_00_and_passes_out()
     {
         var session = TestGames.NewSession();
+        var dayEnds = CountDayEnds(session);
 
         session.AdvanceClock(720);
 
-        Assert.Equal(1560, session.Game.ClockMinutes);
+        Assert.Equal(1, dayEnds());
+        AssertPassedOut(session);
     }
 
     [Fact]
@@ -41,16 +62,19 @@ public class ClockTests
     }
 
     [Fact]
-    public void AC3_43200_frames_of_one_sixtieth_second_end_at_exactly_02_00()
+    public void AC3_43200_frames_of_one_sixtieth_second_end_at_exactly_02_00_in_one_pass_out()
     {
         var session = TestGames.NewSession();
+        var dayEnds = CountDayEnds(session);
 
         for (var i = 0; i < 43_200; i++)
         {
             session.AdvanceClock(1.0 / 60);
         }
 
-        Assert.Equal(1560, session.Game.ClockMinutes);
+        // Exactly one Day ends: not short of 02:00 (no pass-out) and not into a second Day.
+        Assert.Equal(1, dayEnds());
+        AssertPassedOut(session);
     }
 
     [Fact]
@@ -66,18 +90,20 @@ public class ClockTests
     }
 
     [Fact]
-    public void AC4_the_clock_stops_at_the_day_end_and_raises_nothing_after()
+    public void AC4_the_day_end_passes_out_and_the_next_call_runs_the_new_days_clock()
     {
         var session = TestGames.NewSession();
         session.AdvanceClock(10_000);
-        Assert.Equal(1560, session.Game.ClockMinutes);
+        AssertPassedOut(session);
+        var dayEnds = CountDayEnds(session);
         var raised = 0;
         session.ClockChanged += () => raised++;
 
-        session.AdvanceClock(1);
+        session.AdvanceClock(1); // 1 real second is 1.67 game minutes of the new Day.
 
-        Assert.Equal(1560, session.Game.ClockMinutes);
-        Assert.Equal(0, raised);
+        Assert.Equal(DayStart + 1, session.Game.ClockMinutes);
+        Assert.Equal(1, raised);
+        Assert.Equal(0, dayEnds());
     }
 
     [Fact]
@@ -171,26 +197,31 @@ public class ClockTests
     }
 
     [Fact]
-    public void BR_G2_reaching_the_day_end_raises_clock_changed_once()
+    public void BR_G2_reaching_the_day_end_raises_night_completed_once_instead_of_clock_changed()
     {
         var session = TestGames.NewSession();
         var raised = 0;
+        var nights = 0;
         session.ClockChanged += () => raised++;
+        session.NightCompleted += () => nights++;
 
         session.AdvanceClock(10_000);
 
-        Assert.Equal(1560, session.Game.ClockMinutes);
-        Assert.Equal(1, raised);
+        AssertPassedOut(session);
+        Assert.Equal(0, raised);
+        Assert.Equal(1, nights);
     }
 
     [Fact]
-    public void BR_G2_an_infinite_step_stops_at_the_day_end()
+    public void BR_G2_an_infinite_step_ends_the_day_in_one_pass_out()
     {
         var session = TestGames.NewSession();
+        var dayEnds = CountDayEnds(session);
 
         session.AdvanceClock(double.PositiveInfinity);
 
-        Assert.Equal(1560, session.Game.ClockMinutes);
+        Assert.Equal(1, dayEnds());
+        AssertPassedOut(session);
     }
 
     [Fact]

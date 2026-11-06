@@ -36,6 +36,14 @@ public sealed class GameSession
     /// <summary>Raised after <see cref="AdvanceClock"/> moves the clock by at least one minute.</summary>
     public event Action? ClockChanged;
 
+#pragma warning disable CS0067 // Red stub for #36: raised once Sleep and the pass-out are implemented.
+    /// <summary>Raised when a Day ends, with the reason, before the Night runs.</summary>
+    public event Action<DayEndReason>? DayEnded;
+
+    /// <summary>Raised after the Night has run.</summary>
+    public event Action? NightCompleted;
+#pragma warning restore CS0067
+
     public Game Game { get; }
 
     public GameData Data { get; }
@@ -82,6 +90,9 @@ public sealed class GameSession
 
         ClockChanged?.Invoke();
     }
+
+    /// <summary>Ends the Day by sleeping at the house door (BR-G3).</summary>
+    public ActionResult Sleep() => throw new NotImplementedException();
 
     /// <summary>The held-item cycle: Hoe, Watering can, then one entry per Seed stack in CropTypeId order.</summary>
     public IReadOnlyList<HeldItem> HeldItems()

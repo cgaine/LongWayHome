@@ -68,6 +68,12 @@ public sealed class Tile
         Watered = true;
     }
 
+    /// <summary>Clears the watered flag (BR-T7 reset).</summary>
+    public void Dry() => throw new NotImplementedException();
+
+    /// <summary>Grows a Growing Planting on a watered Tile by one day (BR-T4, BR-T5).</summary>
+    public void GrowOvernight(CropType cropType) => throw new NotImplementedException();
+
     /// <summary>Puts a Planting on the Tile: NotTilled, then TileOccupied (BR-T3).</summary>
     public ActionResult Plant(Planting planting)
     {
