@@ -17,10 +17,7 @@ public static class ShopService
         // BR-L1: a seed listing whose Crop type has no data row has no Season, so it is never offered. The Can
         // upgrade is offered by the Watering can upgrade feature, not here.
         return data.ShopListings
-            .Where(listing => listing.Kind == ShopItemKind.Seed
-                && listing.CropTypeId is { } cropTypeId
-                && data.CropTypes.TryGetValue(cropTypeId, out var cropType)
-                && cropType.Season == game.Date.Season)
+            .Where(listing => IsOffered(listing, game, data))
             .ToList()
             .AsReadOnly();
     }
@@ -37,8 +34,8 @@ public static class ShopService
         ArgumentOutOfRangeException.ThrowIfLessThan(quantity, 1);
 
         // BR-L1: only what is offered today can be bought.
-        if (Offers(game, data).FirstOrDefault(listing => listing.Id == listingId) is not
-            { CropTypeId: { } cropTypeId } offered)
+        if (data.ShopListings.FirstOrDefault(listing => listing.Id == listingId) is not
+            { CropTypeId: { } cropTypeId } offered || !IsOffered(offered, game, data))
         {
             return ActionResult.Rejected(Rejection.NotOffered);
         }
@@ -58,4 +55,10 @@ public static class ShopService
         player.Inventory.Add(ItemKind.Seed, cropTypeId, quantity);
         return ActionResult.Ok;
     }
+
+    private static bool IsOffered(ShopListing listing, Game game, GameData data) =>
+        listing.Kind == ShopItemKind.Seed
+        && listing.CropTypeId is { } cropTypeId
+        && data.CropTypes.TryGetValue(cropTypeId, out var cropType)
+        && cropType.Season == game.Date.Season;
 }
