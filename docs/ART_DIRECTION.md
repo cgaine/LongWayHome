@@ -123,7 +123,7 @@ Each stage is taller or wider than the last, so stage reads from size as well as
 
 ## 5. Plants, trees and glowing plants (draft)
 
-- **Trees:** shaped like pines and broadleaf trees, with a twist: blue-green canopies, slightly spiralled violet trunks (the same timber the town's buildings grow from), and violet undersides that show in the wind.
+- **Trees:** three native species shaped like trees you know. See section 5.1.
 - **Grass and wild plants:** mostly familiar, with a few patches of native plants: curled fronds, round puffballs, tall bead-like stalks.
 - **Glowing plants** (from the Glowing plants starter set): dull and easy to miss by day, unmistakable at night.
 
@@ -135,6 +135,38 @@ Each stage is taller or wider than the last, so stage reads from size as well as
 | Frostlantern | Frosty bulb on a stalk | Cool blue lantern shape |
 | Snowwick | Thin white candle-like stem | A single bright flame-shaped tip; rare, so it should look special |
 | Glimmercap | Small mushroom cluster | Speckled cyan caps; common, so cheap to draw and place in numbers |
+
+### 5.1 Native trees (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Trees page)
+
+Three species, each with a familiar silhouette. They share a family look: violet spiral trunks (the same mauve timber Ember Bay grows its buildings from, section 7.1), blue-green canopies with violet undersides, and amber sap that shows as glowing seams in the bark. The sap is the one the design doc uses for sealed mine planks ("glows and hardens waterproof"), so it's visible on every tree and stump.
+
+| Species | Looks like | Alien detail | Where | At night |
+| --- | --- | --- | --- | --- |
+| Spirepine | A pine | Drooping tiers like layered skirts with violet undersides, a curled tip, lilac cones | Forest path and mountains, near the mine | Cones glow lilac |
+| Lanternwood | An oak | A twisted trunk that splits in two, a puffy canopy, amber seed pods hanging like lanterns | Meadow and forest path; most of the meadow you clear. Its timber is what the town's buildings grow from | Pods glow amber |
+| Coilwillow | A willow | Silvery-teal hanging strands that end in little coils | Riverbank and lakeshore | Strand tips glow cyan |
+
+**Seasons** (the design doc's backlog has seasons changing the look of the map):
+
+| Season | Look |
+| --- | --- |
+| Spring | Lighter canopies with pink-violet blossom; small lanternwood pods |
+| Summer | Full blue-green canopies |
+| Fall | Lanternwood turns magenta, coilwillow gold, spirepine stays green with violet cones; lanternwood pods swell; fallen leaves on the ground |
+| Winter | Snow on the tiers and canopies; lanternwood drops its leaves but keeps its glowing pods; frosted coilwillow strands |
+
+**Chopping and regrowth** (matches the axe levels and respawn rule in the design doc):
+
+| State | Look |
+| --- | --- |
+| Sapling | A small version of the tree: what regrows every couple of days after a chop |
+| Full tree | About 5 wood with the basic axe |
+| Old giant | About 1.3 times bigger; needs the steel axe and gives the most wood |
+| Stump | Cut face with growth rings that glow with sap, a dribble of sap, wood chips around it and a new shoot already sprouting. The iron axe clears it |
+
+**Night:** each species has its own glow (lilac cones, amber pods, cyan tips), so the forest path is lit and readable after dark and stumps show their glowing sap rings.
 
 ## 6. Creatures and people (draft)
 
