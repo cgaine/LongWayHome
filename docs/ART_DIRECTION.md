@@ -124,7 +124,43 @@ Growth stages (seed, sprout, young, ripe) keep the readable stage shapes already
 - **Mossback:** a slow, gentle grazer with real moss and little plants growing on its back.
 - **Woolhorn:** a shaggy goat-like animal with spiral horns (the same spiral as coilsquash and the trunks: spirals are a family trait of the planet's life).
 - **Townsfolk:** human proportions and warm, readable faces. Proposed small differences (choose one or two): slightly longer pointed ears, a faint pattern of freckle-like marks across the cheeks, or eyes that catch the light at night. Nothing that makes them hard to read as friendly.
-- **The traveller:** the only one on the planet with the ship's colours (blue-silver accents on the jacket or tools), so they stand out a little from the town at first. Later idea: those accents fade as Ember Bay becomes home.
+- **The farmer:** a human from Earth. See section 6.1.
+
+### 6.1 The farmer (draft)
+
+Concept sheet: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf
+
+**Who:** a spacer from Earth, not a farmer by trade. He crash-lands near Ember Bay and learns to farm from Maggie. He is the only Earth human on the planet.
+
+**The plain human.** The townsfolk are humanoid with small differences; the farmer is the ordinary one they are measured against: round ears, plain eyes, Earth proportions. His look stays grounded so theirs can be the one that differs.
+
+**Day-one outfit (ship gear):**
+
+| Item | Look | Colour |
+| --- | --- | --- |
+| Flight coverall | One-piece, zip front, navy collar, belt and sleeve bands | Pale blue-silver `#C9D6E8`, shade `#A3B3CB`, navy `#34405E` |
+| Flight boots | Heavy, slightly oversized | Charcoal `#3B3F4A` |
+| Mission cap | Worn, with an Earth patch on the front | Navy `#34405E`, patch `#3D7FC4` with green |
+| Earth patch | Small blue-and-green planet on the chest | `#3D7FC4`, `#5BAF6A` |
+| Wrist unit | The only ship tech that still works; could show the time in the world, matching the HUD clock | Pale blue screen `#9FD3FF` |
+
+The coverall uses the ship's blue-silver from section 2, so he starts out looking like he belongs to the ship, not the town.
+
+**His look changes over time.** As Ember Bay becomes home, the town's warm colours replace the ship's cool ones:
+
+1. **Day one:** coverall, boots, mission cap.
+2. **Settling in:** a gift from the town, an ember-orange knitted scarf (draft: from Maggie).
+3. **At home:** a local work shirt in honey, teal overalls with the Earth patch sewn onto the bib, a woven sun hat with an ember band. He keeps the flight boots and the wrist unit.
+
+Draft trigger for each step: a story beat (e.g. a lantern story or a rebuild), not a menu choice. If the game later gets a wardrobe, these become the first three outfits.
+
+**Readability (pillar 4):**
+
+- From the overhead camera, the cap's brim (later the hat's brim) shows which way he faces. It replaces the prototype's "nose" block.
+- The tool in hand is always visible, so the next action reads at a glance.
+- Size and collision stay as they are now (capsule 1.6 m tall, radius 0.35) so the art upgrade doesn't change gameplay.
+
+**Build notes:** about 4 heads tall (a little chunky for a cozy read). Low-poly, flat facets with a lit side and a shade side, one material using a palette texture. Rigged to Godot's humanoid skeleton profile so shared animations can be retargeted. First animations needed: idle, walk, hoe swing, watering, plant, harvest, carry, sleep and pass out.
 
 ## 7. Places
 
@@ -151,6 +187,8 @@ Growth stages (seed, sprout, young, ripe) keep the readable stage shapes already
 - [ ] How alien overall? This draft sets it at "familiar at first, different on a second look". Should any area go further (e.g. the forest)?
 - [ ] Moon names: Hearth and Wisp, or something else?
 - [ ] Which small differences for the townsfolk (ears, cheek marks, eyes)?
+- [ ] The farmer: a fixed character, or can players choose skin tone, hair and so on? The design doc calls him "he"; a character creator would change that.
+- [ ] The farmer: does his outfit change with the story (section 6.1), or stay the same?
 - [ ] Flat shading (sharp facets) or soft stepped shading (smoother, more painterly)?
 - [ ] Camera: the art should be checked from the camera the game ends up using (the design doc still has "fixed overhead or rotate and zoom" open).
 
