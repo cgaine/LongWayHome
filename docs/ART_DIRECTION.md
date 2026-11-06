@@ -182,9 +182,7 @@ The planet's signature. They're picked by hand and only at night (design doc), s
 
 ## 6. Creatures and people (draft)
 
-- **Puffhen:** a round, fluffy bird, almost a ball with legs. Its eggs glow faintly.
-- **Mossback:** a slow, gentle grazer with real moss and little plants growing on its back.
-- **Woolhorn:** a shaggy goat-like animal with spiral horns (the same spiral as coilsquash and the trunks: spirals are a family trait of the planet's life).
+- **Farm animals:** puffhen, mossback and woolhorn. See section 6.3.
 - **Townsfolk:** see section 6.2.
 - **The farmer:** a human from Earth. See section 6.1.
 
@@ -269,6 +267,30 @@ At night, every resident's marks and hair glow in their own colour, so people ca
 Each resident's palette is distinct in hue and value from the others and from the farmer's blue-silver, so they're told apart from the overhead camera.
 
 **Still to design:** the rancher family, the retired schoolteacher, and Clyde's three grown kids (design doc, Returning households).
+
+### 6.3 Farm animals (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm animals page)
+
+Three native creatures in familiar farm roles (design doc, Ranch and animals). Round, soft shapes and gentle faces keep them cozy; the second look is in their bodies and their night glow. They use the same low-poly shading and soft outline as the characters.
+
+| Animal | Familiar read | Look | Product | At night |
+| --- | --- | --- | --- | --- |
+| Puffhen (coop) | A hen | Almost a ball with legs: round, fluffy cream body `#F2E2C8` with scalloped fluff, an orange beak and legs, and a violet spiral curl on its head | Speckled eggs that glow amber `#FFB04A` in the dark | Its curl glows amber |
+| Mossback (barn) | A cow | A slow, gentle grey-blue grazer `#8C98A8`, head low to graze, droopy ears. Its back is a small garden: moss `#7FA65A`, teal patches, small plants, violet flowers and a tiny mushroom | Pale mint milk `#DCF0E4` in a jar | The moss on its back glows cyan `#6FF2E0` |
+| Woolhorn (barn) | A goat | A shaggy lavender-cream wool cloud `#E8E0EC` on thin dark legs, a darker face with a wool beard, spiral horns (the planet's spiral motif) and amber eyes with a bar-shaped pupil | Wool | The wool tips shimmer lilac `#D8C2FF` |
+
+**Young animals** (bought from the ranchers) are the same design at about 60 % size.
+
+**Mood reads at a glance (pillar 4):**
+
+| Mood | Cue |
+| --- | --- |
+| Happy (fed and content) | A small heart in the animal's own glow colour above its head. Happy animals give better products (design doc): a happy puffhen's egg glows brighter |
+| Hungry (not fed today) | A thought bubble with a leaf |
+| Asleep (night) | Eyes closed, its night glow showing |
+
+**Still to design:** the coop and barn (grown, like the farmhouse, section 7.1), feed troughs, and products as inventory icons.
 
 ## 7. Places
 
