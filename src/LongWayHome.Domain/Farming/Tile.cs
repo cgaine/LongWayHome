@@ -1,9 +1,14 @@
 namespace LongWayHome.Domain.Farming;
 
-/// <summary>One Tile of the Farm plot. Starts as <see cref="TileState.Grass"/> and not watered.</summary>
+/// <summary>One Tile of the Farm plot (BR-T1). Starts as <see cref="TileState.Grass"/> and not watered.</summary>
 public sealed class Tile
 {
-    public Tile(GridPosition position) => throw new NotImplementedException();
+    public Tile(GridPosition position)
+    {
+        Position = position;
+        State = TileState.Grass;
+        Watered = false;
+    }
 
     public GridPosition Position { get; }
 

@@ -116,6 +116,31 @@ public class InventoryTests
             Contents(inventory));
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-2)]
+    public void BR_P7_remove_with_quantity_zero_or_less_throws_and_changes_nothing(int quantity)
+    {
+        var inventory = new Inventory();
+        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 4);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => inventory.Remove(ItemKind.Seed, CropTypeId.Emberroot, quantity));
+        Assert.Equal([(ItemKind.Seed, CropTypeId.Emberroot, 4)], Contents(inventory));
+    }
+
+    [Fact]
+    public void BR_P7_stacks_snapshot_is_not_changed_by_later_adds()
+    {
+        var inventory = new Inventory();
+        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 1);
+        var snapshot = inventory.Stacks;
+
+        inventory.Add(ItemKind.Seed, CropTypeId.Dusktuber, 1);
+
+        Assert.Single(snapshot);
+        Assert.Equal(2, inventory.Stacks.Count);
+    }
+
     private static IEnumerable<(ItemKind, CropTypeId, int)> Contents(Inventory inventory) =>
         inventory.Stacks.Select(stack => (stack.Kind, stack.CropTypeId, stack.Quantity));
 }

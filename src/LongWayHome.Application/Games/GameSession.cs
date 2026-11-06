@@ -3,12 +3,19 @@ using LongWayHome.Domain.Games;
 
 namespace LongWayHome.Application.Games;
 
-/// <summary>Holds the current Game and the game data.</summary>
+/// <summary>Holds the current Game and the game data. Player actions are added as commands by later features.</summary>
 public sealed class GameSession
 {
-    public GameSession(Game game, GameData data) => throw new NotImplementedException();
+    public GameSession(Game game, GameData data)
+    {
+        ArgumentNullException.ThrowIfNull(game);
+        ArgumentNullException.ThrowIfNull(data);
 
-    public Game Game { get; } = null!;
+        Game = game;
+        Data = data;
+    }
 
-    public GameData Data { get; } = null!;
+    public Game Game { get; }
+
+    public GameData Data { get; }
 }

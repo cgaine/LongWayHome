@@ -26,6 +26,47 @@ public class PlayerTests
         Assert.Equal(energy, player.Energy);
     }
 
+    [Fact]
+    public void BR_P1_player_max_energy_is_150()
+    {
+        Assert.Equal(150, Player.MaxEnergy);
+    }
+
+    [Fact]
+    public void Player_rejects_null_tools_can_or_inventory()
+    {
+        var tools = new HashSet<ToolId> { ToolId.Hoe };
+
+        Assert.Throws<ArgumentNullException>(() => new Player(new Gold(0), 0, null!, new WateringCan(20), new Inventory()));
+        Assert.Throws<ArgumentNullException>(() => new Player(new Gold(0), 0, tools, null!, new Inventory()));
+        Assert.Throws<ArgumentNullException>(() => new Player(new Gold(0), 0, tools, new WateringCan(20), null!));
+    }
+
+    [Fact]
+    public void Player_tools_are_a_copy_of_the_set_passed_in()
+    {
+        var tools = new HashSet<ToolId> { ToolId.Hoe };
+        var player = new Player(new Gold(0), 0, tools, new WateringCan(20), new Inventory());
+
+        tools.Add(ToolId.WateringCan);
+
+        Assert.True(player.Tools.SetEquals([ToolId.Hoe]));
+    }
+
+    [Fact]
+    public void Player_exposes_the_values_it_was_created_with()
+    {
+        var can = new WateringCan(20);
+        var inventory = new Inventory();
+
+        var player = new Player(new Gold(42), 10, new HashSet<ToolId>(), can, inventory);
+
+        Assert.Equal(new Gold(42), player.Gold);
+        Assert.Same(can, player.WateringCan);
+        Assert.Same(inventory, player.Inventory);
+        Assert.Empty(player.Tools);
+    }
+
     private static Player CreatePlayer(int energy) =>
         new(
             new Gold(100),

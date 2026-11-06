@@ -3,7 +3,9 @@ using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Domain.Games;
 
-/// <summary>The Game aggregate root: one save's whole state.</summary>
+/// <summary>
+/// The Game aggregate root: one save's whole state — calendar (BR-G1), clock, weather, the Player and the Farm plot.
+/// </summary>
 public sealed class Game
 {
     public Game(
@@ -15,7 +17,21 @@ public sealed class Game
         DateTimeOffset createdAt,
         DateTimeOffset savedAt,
         Player player,
-        FarmPlot farmPlot) => throw new NotImplementedException();
+        FarmPlot farmPlot)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(farmPlot);
+
+        Id = id;
+        Date = date;
+        ClockMinutes = clockMinutes;
+        Weather = weather;
+        LastDayEnd = lastDayEnd;
+        CreatedAt = createdAt;
+        SavedAt = savedAt;
+        Player = player;
+        FarmPlot = farmPlot;
+    }
 
     public Guid Id { get; }
 
@@ -31,7 +47,7 @@ public sealed class Game
 
     public DateTimeOffset SavedAt { get; }
 
-    public Player Player { get; } = null!;
+    public Player Player { get; }
 
-    public FarmPlot FarmPlot { get; } = null!;
+    public FarmPlot FarmPlot { get; }
 }
