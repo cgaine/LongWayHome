@@ -6,5 +6,5 @@ namespace LongWayHome.Application.Games;
 public static class DateText
 {
     /// <summary>"&lt;Season label&gt; &lt;day&gt;, Year &lt;year&gt;", e.g. "Spring 1, Year 1".</summary>
-    public static string For(GameDate date) => throw new NotImplementedException();
+    public static string For(GameDate date) => $"{SeasonLabels.For(date.Season)} {date.Day}, Year {date.Year}";
 }

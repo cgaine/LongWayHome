@@ -155,7 +155,7 @@ public sealed class GameSession
         if (held.Seed is { } seed)
         {
             // BR-T3: the domain decides, so the preview and Game.Plant cannot drift apart.
-            return Game.PlantRejection(position, CropTypeFor(seed)) is { } rejection
+            return PlantRejection(position, seed) is { } rejection
                 ? Rejected(rejection)
                 : new UsePreview(UseActionKind.Plant, null);
         }
@@ -234,10 +234,16 @@ public sealed class GameSession
         return result;
     }
 
-    /// <summary>Plants one Seed of a Crop type (BR-T3). Raises InventoryChanged and TileChanged on success.</summary>
+    /// <summary>
+    /// Plants one Seed of a Crop type (BR-T3, BR-C1), looking up its Crop type in <see cref="GameData.CropTypes"/>.
+    /// Raises InventoryChanged and TileChanged on success. A Seed whose Crop type has no data row is never planted:
+    /// it is refused as OutOfSeason once the other checks pass.
+    /// </summary>
     public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
     {
-        var result = Game.Plant(position, CropTypeFor(cropTypeId));
+        var result = Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
+            ? Game.Plant(position, cropType)
+            : ActionResult.Rejected(Game.PlantRejection(position, cropTypeId, season: null) ?? Rejection.OutOfSeason);
         if (result.IsOk)
         {
             TileChanged?.Invoke(position);
@@ -307,12 +313,11 @@ public sealed class GameSession
 
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
 
-    // TODO(#38, red-phase compile shim): replace with the real lookup — a seed with no data row is OutOfSeason. The
-    // stand-in row only keeps the pre-#38 behaviour so the existing tests still pass while the new ones are red.
-    private CropType CropTypeFor(CropTypeId cropTypeId) =>
+    // BR-T3, BR-C1: the domain decides, for both the preview and Plant. A Crop type with no data row has no Season.
+    private Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId) =>
         Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
-            ? cropType
-            : new CropType(cropTypeId, CropLabels.For(cropTypeId), 1, new Gold(1), new Gold(1), Game.Date.Season, false);
+            ? Game.PlantRejection(position, cropType)
+            : Game.PlantRejection(position, cropTypeId, season: null);
 
     /// <summary>
     /// Ends the Day (BR-G3): raises DayEnded, runs the Night, then raises NightCompleted. The part-minute carried by

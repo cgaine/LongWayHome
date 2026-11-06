@@ -36,7 +36,8 @@ public sealed class Game
 
     public Guid Id { get; }
 
-    public GameDate Date { get; }
+    /// <summary>Today's date; only the Night moves it on (BR-G1).</summary>
+    public GameDate Date { get; private set; }
 
     public int ClockMinutes { get; private set; }
 
@@ -92,7 +93,7 @@ public sealed class Game
     }
 
     /// <summary>The Night's date step (BR-G1): moves the Game to the next day.</summary>
-    public void AdvanceDate() => throw new NotImplementedException();
+    public void AdvanceDate() => Date = Date.Next();
 
     /// <summary>Sets the Day's weather; only the Night calls this (BR-G4).</summary>
     public void SetWeather(Weather weather) => Weather = weather;
@@ -205,12 +206,23 @@ public sealed class Game
         return ActionResult.Ok;
     }
 
-    /// <summary>Why planting would be refused, or null: NotTilled, then TileOccupied, then NoSeed (BR-T3).</summary>
+    /// <summary>
+    /// Why planting would be refused, or null: NotTilled, then TileOccupied, then NoSeed, then OutOfSeason when the
+    /// Crop type's Season is not today's (BR-T3, BR-C1).
+    /// </summary>
     public Rejection? PlantRejection(GridPosition position, CropType cropType)
     {
         ArgumentNullException.ThrowIfNull(cropType);
-        var cropTypeId = cropType.Id;
+        return PlantRejection(position, cropType.Id, cropType.Season);
+    }
 
+    /// <summary>
+    /// Why planting a Seed would be refused, or null, in the order of
+    /// <see cref="PlantRejection(GridPosition, CropType)"/>. A null <paramref name="season"/> is a Crop type with no
+    /// data row: it has no Season to be planted in, so a plant that passes the other checks is OutOfSeason.
+    /// </summary>
+    public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId, Season? season)
+    {
         // BR-T3
         var tile = FarmPlot[position];
         if (tile.State != TileState.Tilled)
@@ -223,7 +235,13 @@ public sealed class Game
             return Rejection.TileOccupied;
         }
 
-        return Player.Inventory.Quantity(ItemKind.Seed, cropTypeId) < 1 ? Rejection.NoSeed : null;
+        if (Player.Inventory.Quantity(ItemKind.Seed, cropTypeId) < 1)
+        {
+            return Rejection.NoSeed;
+        }
+
+        // BR-T3, BR-C1: a Seed plants only in its Crop type's Season.
+        return season == Date.Season ? null : Rejection.OutOfSeason;
     }
 
     /// <summary>Plants one Seed on a Tile (BR-T3). Costs no energy (BR-P2).</summary>

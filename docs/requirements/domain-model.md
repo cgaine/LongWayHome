@@ -73,7 +73,7 @@ Loaded from the crop data table; read-only during play. The same for every Game.
 | `season` | Season | The only Season the Seed can be planted or bought in. spring / spring / fall / summer / summer. |
 | `regrows` | bool | `false` for every Phase 1 crop. Kept for later crops. |
 
-Sunbell and starcorn (summer; draft numbers, tuned in playtesting) *(planned, REQ-42)*.
+Sunbell and starcorn (summer; draft numbers, tuned in playtesting).
 
 ### ShopListing (reference data)
 

@@ -3,6 +3,8 @@
     { "id": "seed_emberroot", "kind": "seed", "cropTypeId": "emberroot", "price": 15 },
     { "id": "seed_dusktuber", "kind": "seed", "cropTypeId": "dusktuber", "price": 30 },
     { "id": "seed_moonmelon", "kind": "seed", "cropTypeId": "moonmelon", "price": 60 },
+    { "id": "seed_sunbell",   "kind": "seed", "cropTypeId": "sunbell",   "price": 20 },
+    { "id": "seed_starcorn",  "kind": "seed", "cropTypeId": "starcorn",  "price": 45 },
     { "id": "can_upgrade",    "kind": "can_upgrade", "cropTypeId": null, "price": 200 }
   ]
 }

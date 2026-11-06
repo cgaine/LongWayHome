@@ -192,6 +192,18 @@ public class UsePromptTextTests
     }
 
     [Fact]
+    public void Out_of_season_prompt_for_a_seed_with_no_data_row_names_no_season()
+    {
+        var prompt = UsePromptText.For(
+            new UsePreview(null, Rejection.OutOfSeason),
+            HeldItem.SeedOf(CropTypeId.Moonmelon),
+            null,
+            TestGames.ShippedWithout(CropTypeId.Moonmelon).CropTypes);
+
+        AssertPrompt("Out of season", false, prompt);
+    }
+
+    [Fact]
     public void Unknown_rejection_shows_no_prompt()
     {
         var prompt = UsePromptText.For(
@@ -210,7 +222,7 @@ public class UsePromptTextTests
             new UsePreview(UseActionKind.Plant, null),
             HeldItem.SeedOf(CropTypeId.Sunbell),
             null,
-            TestGames.Shipped.CropTypes);
+            TestGames.ShippedWithout(CropTypeId.Sunbell).CropTypes);
 
         AssertPrompt("Plant Sunbell", true, prompt);
     }
@@ -222,7 +234,7 @@ public class UsePromptTextTests
             new UsePreview(UseActionKind.Harvest, null),
             Hoe,
             TestGames.PlantingOf(CropTypeId.Starcorn, 4),
-            TestGames.Shipped.CropTypes);
+            TestGames.ShippedWithout(CropTypeId.Starcorn).CropTypes);
 
         AssertPrompt("Harvest Starcorn", true, prompt);
     }

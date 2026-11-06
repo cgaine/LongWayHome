@@ -2,6 +2,8 @@
   "cropTypes": [
     { "id": "emberroot", "name": "Emberroot", "growDays": 3, "seedCost": 15, "sellPrice": 35,  "season": "spring", "regrows": false },
     { "id": "dusktuber", "name": "Dusktuber", "growDays": 5, "seedCost": 30, "sellPrice": 75,  "season": "spring", "regrows": false },
-    { "id": "moonmelon", "name": "Moonmelon", "growDays": 8, "seedCost": 60, "sellPrice": 190, "season": "fall",   "regrows": false }
+    { "id": "moonmelon", "name": "Moonmelon", "growDays": 8, "seedCost": 60, "sellPrice": 190, "season": "fall",   "regrows": false },
+    { "id": "sunbell",   "name": "Sunbell",   "growDays": 4, "seedCost": 20, "sellPrice": 50,  "season": "summer", "regrows": false },
+    { "id": "starcorn",  "name": "Starcorn",  "growDays": 7, "seedCost": 45, "sellPrice": 130, "season": "summer", "regrows": false }
   ]
 }

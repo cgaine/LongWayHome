@@ -103,5 +103,5 @@ Key of `CropType`; referenced by Planting, InventoryStack, ShippedItem and ShopL
 | `emberroot` | Emberroot | `spring` | 3 | 15 | 35 | `carrot` |  |
 | `dusktuber` | Dusktuber | `spring` | 5 | 30 | 75 | `potato` |  |
 | `moonmelon` | Moonmelon | `fall` | 8 | 60 | 190 | `pumpkin` |  |
-| `sunbell` | Sunbell | `summer` | 4 | 20 | 50 | `tomato` | *(planned, REQ-42)* |
-| `starcorn` | Starcorn | `summer` | 7 | 45 | 130 | `corn` | *(planned, REQ-42)* |
+| `sunbell` | Sunbell | `summer` | 4 | 20 | 50 | `tomato` |  |
+| `starcorn` | Starcorn | `summer` | 7 | 45 | 130 | `corn` |  |

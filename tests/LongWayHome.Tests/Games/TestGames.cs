@@ -16,6 +16,14 @@ internal static class TestGames
 
     public static readonly GameData Shipped = LoadShippedData();
 
+    /// <summary>The shipped data without one Crop type's row, for the paths a Crop type with no data row takes.</summary>
+    public static GameData ShippedWithout(CropTypeId cropTypeId) => Shipped with
+    {
+        CropTypes = Shipped.CropTypes
+            .Where(pair => pair.Key != cropTypeId)
+            .ToDictionary(pair => pair.Key, pair => pair.Value),
+    };
+
     /// <summary>A Game on a fresh plot whose Player has the given energy and inventory.</summary>
     public static GameState WithEnergy(int energy, Inventory? inventory = null) =>
         new(

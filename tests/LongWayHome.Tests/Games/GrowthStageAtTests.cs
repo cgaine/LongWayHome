@@ -39,7 +39,9 @@ public class GrowthStageAtTests
     public void Stage_of_a_crop_with_no_data_row_is_Seed_then_Sprout_and_never_Ripe(int daysGrown, GrowthStage expected)
     {
         var at = new GridPosition(0, 0);
-        var session = TestGames.SessionWithTiles(TestGames.TilledWith(at, TestGames.PlantingOf(CropTypeId.Sunbell, daysGrown)));
+        var session = new GameSession(
+            TestGames.WithTiles(150, null, TestGames.TilledWith(at, TestGames.PlantingOf(CropTypeId.Sunbell, daysGrown))),
+            TestGames.ShippedWithout(CropTypeId.Sunbell));
 
         Assert.Equal(expected, session.GrowthStageAt(at));
         Assert.Equal(PlantingStatus.Growing, session.PlantingStatusAt(at));
