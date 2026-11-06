@@ -26,6 +26,25 @@ public partial class InteractionPoint : Node3D
 
     private Node3D? _player;
 
+    /// <summary>The first point under <paramref name="node"/> (depth first) with the given id, or null.</summary>
+    public static InteractionPoint? Find(Node node, string pointId)
+    {
+        if (node is InteractionPoint point && point.PointId == pointId)
+        {
+            return point;
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            if (Find(child, pointId) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         if (_player is null || !IsInstanceValid(_player) || !_player.IsInsideTree())
