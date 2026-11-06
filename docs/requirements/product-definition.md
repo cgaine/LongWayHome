@@ -26,9 +26,9 @@ For players who enjoy relaxing farming and life games, Long Way Home offers a ge
 
 | Phase | Name | Promise | Requirements |
 | --- | --- | --- | --- |
-| Phase 1 (MVP) | Godot rebuild | The v0.1 farm loop plays the same on Windows, Linux and Steam Deck, with keyboard and mouse or a controller | REQ-1, REQ-2, REQ-3, REQ-4, REQ-5, REQ-6, REQ-7, REQ-8, REQ-9, REQ-10, REQ-11, REQ-12, REQ-13, REQ-14 |
+| Phase 1 (MVP) | Godot rebuild | The v0.1 farm loop plays the same on Windows, Linux and Steam Deck, with keyboard and mouse or a controller | REQ-1, REQ-2, REQ-3, REQ-4, REQ-5, REQ-6, REQ-7, REQ-8, REQ-9, REQ-10, REQ-11, REQ-12, REQ-13, REQ-14, REQ-42 |
 | Phase 2 | Rebuilding Ember Bay | The player gathers materials and rebuilds the first town buildings, which unlock tools and the early mine | REQ-15, REQ-16, REQ-17, REQ-18, REQ-19, REQ-20, REQ-21, REQ-22, REQ-23, REQ-24 |
-| Phase 3 | Life in town | Residents return and become friends; food, fishing, festivals and seasons give each day variety | REQ-25, REQ-26, REQ-27, REQ-28, REQ-29, REQ-30, REQ-31, REQ-32 |
+| Phase 3 | Life in town | Residents return and become friends; food, fishing, festivals and seasons give each day variety | REQ-43, REQ-26, REQ-27, REQ-28, REQ-29, REQ-30, REQ-31, REQ-32 |
 | Phase 4 | The way home | The player reaches the bottom of the mine, restores the wider world and repairs the ship; story complete and released on Steam | REQ-33, REQ-34, REQ-35, REQ-36, REQ-37, REQ-38, REQ-39, REQ-40 |
 
 ## 4. Out of Scope
@@ -112,7 +112,13 @@ The **Player** farms through 28-day seasons with native crops: emberroot (3 days
   - Seeds can't be planted outside their season.
   - A crop planted late in its season can still be harvested after the season changes.
 - **Out of scope**: outdoor crops in winter.
-- **Open**: Summer has no crop in Phase 1. Add sunbell and starcorn now (numbers to be decided), or accept an empty summer until REQ-25?
+
+#### REQ-42 — Summer crops *(capability)*
+The **Player** can buy and plant sunbell (4 days) and starcorn (7 days) in summer, so every season but winter has crops in Phase 1.
+- **Acceptance**:
+  - In summer the shop offers sunbell and starcorn seeds, and they can be planted only in summer.
+  - Both ripen after their grow days and ship for their sell price.
+- **Out of scope**: coilsquash (REQ-43).
 
 #### REQ-11 — Nightly save *(capability)*
 The **Player**'s game saves once each night and resumes from that morning when reloaded.
@@ -180,11 +186,10 @@ The **Player** sees the Hollis family (Tom, June and Jesse) move in when the car
 
 ### Phase 3 — Life in town
 
-#### REQ-25 — More native crops *(capability)*
-The **Player** can buy and grow sunbell and starcorn in summer and coilsquash in fall as the general store expands.
+#### REQ-43 — Coilsquash *(capability)* *(supersedes REQ-25, 2026-11-06)*
+The **Player** can buy and grow coilsquash in fall once the general store expands. Sunbell and starcorn moved to Phase 1 (REQ-42).
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: winter outdoor crops.
-- **Open**: May move to Phase 1, depending on the REQ-10 question.
 
 #### REQ-26 — Friendships and lanterns *(capability)*
 The **Player** raises a five-step friendship with each resident by talking daily, giving gifts they like and finishing their requests. Each step lights a lantern in that resident's window and unlocks a reward and a piece of their story.
@@ -269,9 +274,8 @@ The **Player** can do every action with keyboard and mouse, and every action wit
 
 #### REQ-14 — Runs on PC and Steam Deck *(nfr)*
 The **Player** can play on Windows, Linux and Steam Deck.
-- **Acceptance**: a full in-game day plays without crashing on each of Windows, Linux and Steam Deck, and all text is readable on the Steam Deck screen.
+- **Acceptance**: a full in-game day plays without crashing on each of Windows, Linux and Steam Deck; on Steam Deck it holds a steady 30 fps at 1280 x 800 (no drops below 30 during a normal day), and all text is readable on the Deck screen.
 - **Out of scope**: macOS, mobile and consoles.
-- **Open**: Target frame rate on Steam Deck.
 
 ## 7. Business Constraints
 

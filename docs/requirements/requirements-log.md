@@ -621,3 +621,43 @@ and roadmap issues.
 - **Deferred**: —
 - **Roadmap**: —
 - **Supersedes**: —
+### REQ-42 — Summer crops
+- **Date**: 2026-11-06
+- **Source**: Phase 1 readiness, answer to the REQ-10 open question
+- **Kind**: capability
+- **Statement**: The Player can buy and plant sunbell (4 days) and starcorn (7 days) in summer, so every season but winter has crops in Phase 1. Draft numbers: sunbell seed 20, sell 50; starcorn seed 45, sell 130; tuned in playtesting. Out of scope: coilsquash (REQ-43).
+- **Acceptance**: in summer the shop offers sunbell and starcorn seeds, and they can be planted only in summer; both ripen after their grow days and ship for their sell price.
+- **Verdict**: new
+- **Phase**: Phase 1
+- **Documents**: product-definition (5 Functional Requirements, Phase 1; 3 Phases); domain-model (`CropType` rows sunbell, starcorn; `CropTypeId` values); canonical-values (`CropTypeId`, `Season`)
+- **Rule changes**: none
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 1 epic (see Phase 1 readiness)
+- **Supersedes**: REQ-25 (sunbell and starcorn part)
+
+### REQ-43 — Coilsquash
+- **Date**: 2026-11-06
+- **Source**: Phase 1 readiness; remainder of REQ-25 after REQ-42
+- **Kind**: capability
+- **Statement**: The Player can buy and grow coilsquash in fall once the general store expands. Out of scope: winter outdoor crops.
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: planned
+- **Phase**: Phase 3
+- **Documents**: product-definition (5 Functional Requirements, Phase 3, replaces the REQ-25 entry; 3 Phases)
+- **Rule changes**: none
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 3 entry on #2
+- **Supersedes**: REQ-25 (coilsquash part)
+
+### Phase 1 readiness — 2026-11-06
+- **Source**: requirements-intake phase readiness, started from epic-planning for Phase 1
+- **REQs in the phase**: REQ-1, REQ-2, REQ-3, REQ-4, REQ-5, REQ-6, REQ-7, REQ-8, REQ-9, REQ-10, REQ-11, REQ-12, REQ-13, REQ-14, REQ-42 (new)
+- **Settled**:
+  - REQ-10: open question settled. Summer gets sunbell and starcorn in Phase 1 (REQ-42, superseding that part of REQ-25; coilsquash continues as REQ-43 in Phase 3).
+  - REQ-14: open question settled. Steam Deck holds a steady 30 fps at 1280 x 800; added to its acceptance.
+  - REQ-1 to REQ-9, REQ-11 to REQ-13: no change; described by domain-model.md (BR-G1–G5, BR-P1–P7, BR-W1–W4, BR-T1–T9, BR-C1–C2, BR-S1–S2, BR-L1–L2) and technical-blueprint.md.
+- **Documents**: product-definition (REQ-42 added, REQ-25 entry replaced by REQ-43, REQ-14 acceptance); domain-model (`CropType` sunbell, starcorn); canonical-values (`CropTypeId`, `Season`); technical-blueprint (Deck 30 fps target and cap)
+- **Rule changes**: none
+- **Ready**: all REQs in Phase 1. Handed to epic-planning.

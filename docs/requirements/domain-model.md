@@ -51,7 +51,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `ItemKind` | `seed`, `crop` | InventoryStack |
 | `ToolId` | `hoe`, `watering_can` | Player tools |
 | `ShopItemKind` | `seed`, `can_upgrade` | ShopListing |
-| `CropTypeId` | `emberroot`, `dusktuber`, `moonmelon` | CropType, Planting, InventoryStack, ShippedItem, ShopListing |
+| `CropTypeId` | `emberroot`, `dusktuber`, `moonmelon`, `sunbell`, `starcorn` | CropType, Planting, InventoryStack, ShippedItem, ShopListing |
 | `GridPosition` | `{ x: 0–11, y: 0–8 }` | Tile |
 | `GameDate` | `{ year: int ≥ 1, season: Season, day: 1–28 }` | Game |
 | `ClockMinutes` | integer, 360 (06:00) to 1560 (02:00 next morning) | Game |
@@ -67,11 +67,13 @@ Loaded from the crop data table; read-only during play. The same for every Game.
 |-----------|------|-------|
 | `id` | CropTypeId | Key. Stable across saves and the prototype name mapping (carrot → emberroot, potato → dusktuber, pumpkin → moonmelon). |
 | `name` | string | Display name, e.g. "Emberroot". |
-| `growDays` | int | Watered Nights needed to become Ripe. emberroot 3, dusktuber 5, moonmelon 8. |
-| `seedCost` | Gold | Shop price of one Seed. 15 / 30 / 60. |
-| `sellPrice` | Gold | Shipping Bin price of one Crop. 35 / 75 / 190. |
-| `season` | Season | The only Season the Seed can be planted or bought in. spring / spring / fall. |
+| `growDays` | int | Watered Nights needed to become Ripe. emberroot 3, dusktuber 5, moonmelon 8, sunbell 4, starcorn 7. |
+| `seedCost` | Gold | Shop price of one Seed. 15 / 30 / 60 / 20 / 45. |
+| `sellPrice` | Gold | Shipping Bin price of one Crop. 35 / 75 / 190 / 50 / 130. |
+| `season` | Season | The only Season the Seed can be planted or bought in. spring / spring / fall / summer / summer. |
 | `regrows` | bool | `false` for every Phase 1 crop. Kept for later crops. |
+
+Sunbell and starcorn (summer; draft numbers, tuned in playtesting) *(planned, REQ-42)*.
 
 ### ShopListing (reference data)
 
