@@ -18,7 +18,8 @@ The rule sets how far each kind of thing can go:
 
 | How far from Earth | What it covers | Why |
 | --- | --- | --- |
-| **Mostly familiar** | Buildings, tools, furniture, fences, boats, roads, the residents' clothes | These carry the cozy cabin-country feel. They are built by people, so they can look like home. |
+| **Mostly familiar** | Tools, furniture, boats, roads, the residents' clothes | These carry the cozy cabin-country feel. They are made by people, so they can look like home. |
+| **Familiar shapes, alien materials** | Buildings and fences | Decided: buildings are "grown, not built" (section 7.1). They keep cabin shapes and doors you recognise, but are made from living native timber and leaves. |
 | **Clearly alien, still readable** | Plants, crops, animals, the sky, the light at night | This is where the planet shows itself. Each thing keeps an Earth shape you can recognise, so it stays readable. |
 | **Really foreign** | The crashed ship, the strange metal from the deep mine, the lights in the deep levels | These things don't belong to Ember Bay either, so they should look out of place on this planet too. |
 
@@ -43,7 +44,7 @@ Every hook below comes from `GAME_DESIGN.md`. The art should build on these befo
 
 ## 2. Colour (draft)
 
-**Idea:** warm town, cool planet. The town, wood, lanterns and people lean warm (ember orange, honey wood). The planet's living things lean a little cool and strange: foliage shifted toward teal, shadows toward violet, glows in cyan and soft violet. Earth-like greens and browns are still most of the screen, so the shift is felt rather than shouted.
+**Idea:** warm town, cool planet. The town, lanterns and people lean warm (ember orange, amber light), and the town's native timber is a warm mauve. The planet's living things lean a little cool and strange: foliage shifted toward teal, shadows toward violet, glows in cyan and soft violet. Earth-like greens and browns are still most of the screen, so the shift is felt rather than shouted.
 
 | Role | Colour | Hex | Notes |
 | --- | --- | --- | --- |
@@ -53,7 +54,7 @@ Every hook below comes from `GAME_DESIGN.md`. The art should build on these befo
 | Leaf undersides and new growth | Dusty violet | `#7A68A8` | Shows when leaves sway in the wind; a second-look detail. |
 | Dry tilled soil | Warm brown | `#8A5A3C` | |
 | Watered soil | Dark brown | `#3E2A20` | Must stay clearly darker than dry soil (pillar 4). |
-| Wood (buildings, fences) | Honey wood | `#A8774C` | Warm and familiar. |
+| Wood (buildings, fences) | Native mauve timber | `#9C7E8C` | Living wood with a wavy grain; warm, but clearly not Earth wood. Trunks `#6B5A78`. |
 | Stone | Grey with a lilac cast | `#8F8A96` | |
 | Lake, deep | Blue-teal | `#2D6A86` | |
 | Lake, shallow | Turquoise | `#5FB3AA` | Lets the sunken rooftops show through near the dock. |
@@ -105,7 +106,7 @@ Growth stages (seed, sprout, young, ripe) keep the readable stage shapes already
 
 ## 5. Plants, trees and glowing plants (draft)
 
-- **Trees:** shaped like pines and broadleaf trees, with a twist: blue-green canopies, slightly spiralled trunks, and violet undersides that show in the wind.
+- **Trees:** shaped like pines and broadleaf trees, with a twist: blue-green canopies, slightly spiralled violet trunks (the same timber the town's buildings grow from), and violet undersides that show in the wind.
 - **Grass and wild plants:** mostly familiar, with a few patches of native plants: curled fronds, round puffballs, tall bead-like stalks.
 - **Glowing plants** (from the Glowing plants starter set): dull and easy to miss by day, unmistakable at night.
 
@@ -176,37 +177,34 @@ Decided: the outfit changes with the story. Draft trigger for each step: a story
 | Mountains and mine | Gets stranger the deeper you go | Upper levels: timber and lantern light. Deep levels: violet glows, then the ship-metal colour |
 | Crash site | Out of place | Smooth, pale, iridescent hull against the organic forest; each installed part lights a section |
 
-### 7.1 The farmhouse (draft)
+### 7.1 The farmhouse: grown, not built
 
-Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse page)
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse page, "A little more alien" board)
 
-**What it is:** an old Ember Bay cabin in the meadow, left empty when families moved away. Maggie shows the farmer to it on day one, and it becomes his first home on the planet.
+**Decided direction: "Grown, not built".** Four directions were compared: the Earth-style cabin, grown, a toadstool-cap roof and a lake-shell roof. Grown was chosen. Ember Bay's people don't just cut timber; they grow their buildings, coaxing living native trees into posts and roofs. It sets the look for the whole town, not just the farmhouse.
 
-**Mostly familiar.** The town built it, so it reads as a mountain cabin: horizontal honey-wood planks, a stone base, corner posts, a steep gabled roof for snow, shutters and a stone chimney. The gable end faces the farm plot, with the door in the middle.
+**What it is:** an old Ember Bay home in the meadow, left empty when families moved away. Maggie shows the farmer to it on day one, and it becomes his first home on the planet.
 
-**The second look:**
+**Familiar shape, alien material.** It still reads as a cabin from across the farm: a gabled roof, a door in the middle facing the plot, two windows and a stone base. Up close, it's grown:
 
-- The roof is overlapping rounded slate scales in blue-grey teal, a local stone, instead of Earth shingles.
-- Spiral carvings on the door and shutters: the planet's spiral motif (section 6) carried into the town's craft.
-- A round attic window in the gable.
-- Native moss on the eaves (Dawnmoss) that glows cyan at night.
+- **Living corner posts:** twisted violet trunks that are still alive, branching at the top into small blue-green leaf clusters with violet undersides.
+- **Leaf roof:** giant overlapping teal leaves in rows instead of shingles, with a fringe of leaf tips hanging over the eaves and the gable edges, and a new frond sprouting from the ridge.
+- **Mauve timber walls:** planks of native wood with a wavy grain.
+- **Arched windows and door,** and a leaf-shaped attic window in the gable.
+- **Ember-orange door with a spiral carving:** the town's warm accent and the planet's spiral motif.
 
-**A piece of the ship.** His first repair is to patch the hole in the roof with a hull panel from the crash: pale blue-silver, riveted, with a navy stripe. It stays when the house is restored, so a little of the ship is always part of his home.
+**At night:** the leaf tips along the eaves and on the posts glow cyan, and the windows glow warm amber with light spilling onto the ground: the town's warm light against the planet's cool glow (section 2).
 
-**Run-down to restored:**
+**Carried over from the cabin draft, to redraw in the grown style:**
 
-| State | Look |
-| --- | --- |
-| Run-down (day one) | Weathered grey wood, a hole in the roof, one window boarded up and one cracked, a crooked door, a missing plank, extra moss and weeds |
-| Restored | Fresh honey wood, ember-orange door and shutters, the hull-panel patch, a flower box with native plants (teal fronds, violet puffballs), chimney smoke |
+- **A piece of the ship:** his first repair is to patch a gap in the roof with a hull panel from the crash (pale blue-silver, riveted). It stays when the house is restored.
+- **Run-down to restored:** on day one the house is overgrown and dull: wilted brown leaves, gaps in the roof, a boarded window, weeds, and posts with no new growth. Restored, it's fresh and green, with new shoots on the posts, a flower box and chimney smoke. Being alive means the house can visibly recover as the farmer looks after it.
 
-Draft: the step from run-down to restored is a story or rebuild beat (for example the carpenter fixes it up). The design doc still has "house upgrades" as an open long-term question.
+**Palette:** mauve timber `#9C7E8C` (side `#7E6474`, grain `#6E5664`, trim `#5A4458`), living trunks `#6B5A78`, leaf roof `#3E8F82` (rows `#2F7266`, tips `#4FA294`, far side `#2F6B60`), ember door `#E9773A`, stone `#8F8A96`, window glow `#FFB04A`, leaf-tip glow `#6FF2E0`.
 
-**At night:** warm amber windows with light spilling onto the ground, a lantern by the door, and cyan moss on the eaves: the town's warm light against the planet's cool glow (section 2).
+**Fits the game:** the same 6 x 4 m footprint and 3 m walls as now, with the door on the side facing the plot, so the collision box and the sleep door point don't move. The roof is a little taller than the prototype's, and the posts and leaf fringe stick out by a few centimetres, which doesn't affect collision. The front step stays within about 0.3 m of the wall, clear of the shipping bin.
 
-**Palette:** honey wood `#C08A5A`, wood shade `#9E6E44`, trim `#6E4A2E`, ember door and shutters `#E9773A`, slate roof `#6F9299` (shade `#4E6B71`), stone `#8F8A96`, hull patch `#C9D6E8`, window glow `#FFB04A`, moss glow `#6FF2E0`. Run-down wood `#9C8670`.
-
-**Fits the game:** the same 6 x 4 m footprint and 3 m walls as now, with the door on the side facing the plot, so the collision box and the sleep door point don't move. The roof may be a little taller than the prototype's, which doesn't affect collision. The front step stays within about 0.3 m of the wall, clear of the shipping bin.
+**For the town:** every rebuilt building is grown the same way, and the grown look is how restoration shows: a building that comes back to life sprouts new leaves.
 
 ## 8. Style and technical direction (draft)
 
@@ -218,7 +216,7 @@ Draft: the step from run-down to restored is a story or rebuild beat (for exampl
 
 ## 9. Open questions
 
-- [ ] How alien overall? This draft sets it at "familiar at first, different on a second look". Should any area go further (e.g. the forest)?
+- [x] How alien overall? Decided: a little further than the first draft for buildings, which are "grown, not built" (section 7.1). The rest keeps "familiar at first, different on a second look".
 - [ ] Moon names: Hearth and Wisp, or something else?
 - [ ] Which small differences for the townsfolk (ears, cheek marks, eyes)?
 - [x] The farmer: fixed character for now; customisation is a future enhancement
