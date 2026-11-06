@@ -4,4 +4,6 @@ namespace LongWayHome.Application.Games;
 public enum UseActionKind
 {
     Till,
+    Plant,
+    Harvest,
 }

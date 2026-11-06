@@ -23,6 +23,33 @@ public sealed class FarmPlot
         }
     }
 
+    /// <summary>Restores a Farm plot from exactly one Tile per grid position (BR-T1).</summary>
+    public FarmPlot(IEnumerable<Tile> tiles)
+    {
+        ArgumentNullException.ThrowIfNull(tiles);
+
+        // BR-T1: every position of the plot exactly once. GridPosition already keeps each one inside the plot.
+        _tiles = new Tile[Width * Height];
+        var count = 0;
+        foreach (var tile in tiles)
+        {
+            ArgumentNullException.ThrowIfNull(tile, nameof(tiles));
+            var (x, y) = (tile.Position.X, tile.Position.Y);
+            if (_tiles[IndexOf(x, y)] is not null)
+            {
+                throw new ArgumentException($"More than one Tile at ({x}, {y}).", nameof(tiles));
+            }
+
+            _tiles[IndexOf(x, y)] = tile;
+            count++;
+        }
+
+        if (count != _tiles.Length)
+        {
+            throw new ArgumentException($"A Farm plot needs exactly {_tiles.Length} Tiles, got {count}.", nameof(tiles));
+        }
+    }
+
     /// <summary>All Tiles in row-major order (Y then X).</summary>
     public IReadOnlyList<Tile> Tiles => Array.AsReadOnly(_tiles);
 
