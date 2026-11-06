@@ -179,7 +179,7 @@ Decided: the outfit changes with the story. Draft trigger for each step: a story
 
 ### 7.1 The farmhouse: grown, not built
 
-Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse page, "A little more alien" board)
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse page: the run-down, restored and night board, and the "A little more alien" board)
 
 **Decided direction: "Grown, not built".** Four directions were compared: the Earth-style cabin, grown, a toadstool-cap roof and a lake-shell roof. Grown was chosen. Ember Bay's people don't just cut timber; they grow their buildings, coaxing living native trees into posts and roofs. It sets the look for the whole town, not just the farmhouse.
 
@@ -195,12 +195,18 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse pa
 
 **At night:** the leaf tips along the eaves and on the posts glow cyan, and the windows glow warm amber with light spilling onto the ground: the town's warm light against the planet's cool glow (section 2).
 
-**Carried over from the cabin draft, to redraw in the grown style:**
+**A piece of the ship.** His first repair is to patch the worst gap in the leaf roof with a hull panel from the crash: pale blue-silver, riveted, with a navy stripe. It stays when the house is restored, and new leaves grow up around its edges, so a little of the ship is always part of his home.
 
-- **A piece of the ship:** his first repair is to patch a gap in the roof with a hull panel from the crash (pale blue-silver, riveted). It stays when the house is restored.
-- **Run-down to restored:** on day one the house is overgrown and dull: wilted brown leaves, gaps in the roof, a boarded window, weeds, and posts with no new growth. Restored, it's fresh and green, with new shoots on the posts, a flower box and chimney smoke. Being alive means the house can visibly recover as the farmer looks after it.
+**Run-down to restored.** The house is alive, so restoring it means helping it grow back:
 
-**Palette:** mauve timber `#9C7E8C` (side `#7E6474`, grain `#6E5664`, trim `#5A4458`), living trunks `#6B5A78`, leaf roof `#3E8F82` (rows `#2F7266`, tips `#4FA294`, far side `#2F6B60`), ember door `#E9773A`, stone `#8F8A96`, window glow `#FFB04A`, leaf-tip glow `#6FF2E0`.
+| State | Look |
+| --- | --- |
+| Run-down (day one) | Wilted olive-brown leaf roof with thinning rows and several gaps; drooping, dry leaf tips; bare grey trunks with dead twigs instead of leaf clusters; greyed walls with missing planks; one window boarded up and one cracked; the faded door left ajar; weeds and a creeper at the base; fallen leaves on the ground. No glow at night. |
+| Restored | Green leaf roof in full rows, with the hull-panel patch; fresh teal leaf tips; living violet trunks with leaf clusters and new shoots; mauve walls; arched windows with clean glass; the ember-orange door with its spiral carving; a flower box of native plants; a lantern by the door; a stone chimney with smoke. |
+
+A stone chimney sits on the back half of the roof in both states.
+
+**Palette:** mauve timber `#9C7E8C` (side `#7E6474`, grain `#6E5664`, trim `#5A4458`), living trunks `#6B5A78`, run-down: wilted roof `#8A7A4A`, dry tips `#9A7E44`, grey trunks `#6E6670`, greyed walls `#8A7C80`; leaf roof `#3E8F82` (rows `#2F7266`, tips `#4FA294`, far side `#2F6B60`), ember door `#E9773A`, stone `#8F8A96`, window glow `#FFB04A`, leaf-tip glow `#6FF2E0`.
 
 **Fits the game:** the same 6 x 4 m footprint and 3 m walls as now, with the door on the side facing the plot, so the collision box and the sleep door point don't move. The roof is a little taller than the prototype's, and the posts and leaf fringe stick out by a few centimetres, which doesn't affect collision. The front step stays within about 0.3 m of the wall, clear of the shipping bin.
 
