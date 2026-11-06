@@ -35,6 +35,14 @@ public class InputGlyphsTests
         { "pause", InputDeviceKind.Controller, "(Start)" },
         { "ui_cancel", InputDeviceKind.KeyboardMouse, "[Esc]" },
         { "ui_cancel", InputDeviceKind.Controller, "(B)" },
+        { "camera_rotate_left", InputDeviceKind.KeyboardMouse, "[Z]" },
+        { "camera_rotate_left", InputDeviceKind.Controller, "(R stick)" },
+        { "camera_rotate_right", InputDeviceKind.KeyboardMouse, "[C]" },
+        { "camera_rotate_right", InputDeviceKind.Controller, "(R stick)" },
+        { "camera_zoom_in", InputDeviceKind.KeyboardMouse, "[R]" },
+        { "camera_zoom_in", InputDeviceKind.Controller, "(R stick)" },
+        { "camera_zoom_out", InputDeviceKind.KeyboardMouse, "[V]" },
+        { "camera_zoom_out", InputDeviceKind.Controller, "(R stick)" },
     };
 
     [Fact]
