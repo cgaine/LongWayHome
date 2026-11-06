@@ -100,8 +100,8 @@ Each crop: a familiar silhouette, one alien detail, and its own colour so it rea
 | Emberroot (in game) | Carrot | Feathery fronds over an orange shoulder that shows above the soil; "warm to the touch", with a glowing core and a heat shimmer on cool mornings | Ember orange `#E9773A` | The core glows warm orange |
 | Dusktuber (in game) | Beet | A deep purple bulb half out of the soil, speckled like a night sky; its leaves curl into small violet spirals at the tips | Dusk purple `#4A2A66` | The speckles light up like stars |
 | Moonmelon (in game) | Pumpkin | A pale blue-white ribbed gourd on a trailing vine | Moon blue-white `#C9DCF5` | Glows softly; the biggest night glow on the farm |
-| Sunbell (planned) | Pepper plant | Yellow fruit hangs like bells, each with a clapper, and rings in the wind | Sun yellow `#F2C230` | No glow; you hear it |
-| Starcorn (planned) | Corn | A tall stalk with a golden cob whose kernels glitter like tiny stars | Gold `#E8B830` with white sparkles | The kernels sparkle |
+| Sunbell (planned) | Raspberry bush | Sun-coloured berries that hang upside down, point first, with a green star of sepals on top; gold at the top shading to orange at the tip. Decided: they don't ring | Sun gold `#F7C531` to orange `#E9821A` | No glow |
+| Starcorn (planned) | Corn | A tall stalk with a big golden cob (decided: bigger than the first draft) whose kernels glitter like tiny stars | Gold `#E8B830` with white sparkles | The kernels sparkle |
 | Coilsquash (planned) | Squash | Green with a cream band that spirals around it, and a curling tail | Green `#6FA050`, cream `#F0E6C0` | No glow |
 
 **Silhouettes:** ripe crops differ in shape as well as colour, so they read from the camera even in poor light: low and round (dusktuber, moonmelon, coilsquash), a frond tuft (emberroot), a bush (sunbell) and tall (starcorn).
@@ -112,7 +112,7 @@ Each crop: a familiar silhouette, one alien detail, and its own colour so it rea
 | --- | --- |
 | Seed | A small soil mound with a seed on top in the crop's colour |
 | Sprout | Two seed leaves on a short stem, with a bud in the crop's colour |
-| Young | Crop-specific foliage at about half height: emberroot fronds, dusktuber's curled rosette, moonmelon's vine with a pale bud, a sunbell bush with a green bell, a short starcorn stalk, coilsquash's tendrils |
+| Young | Crop-specific foliage at about half height: emberroot fronds, dusktuber's curled rosette, moonmelon's vine with a pale bud, a sunbell bush with a small green berry, a short starcorn stalk, coilsquash's tendrils |
 | Ripe | The full crop, as in the table above |
 
 Each stage is taller or wider than the last, so stage reads from size as well as shape.
