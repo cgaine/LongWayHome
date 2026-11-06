@@ -325,6 +325,7 @@ public class JsonGameDataSourceTests
     {
         { "startingGold", -1, "tuning.json: startingGold must be at least 0 (BR-P5), was -1" },
         { "maxEnergy", 0, "tuning.json: maxEnergy must be above 0, was 0" },
+        { "maxEnergy", 151, "tuning.json: maxEnergy must be at most 150 (BR-P1), was 151" },
         { "passOutEnergy", 0, "tuning.json: passOutEnergy must be above 0, was 0" },
         { "passOutEnergy", 151, "tuning.json: passOutEnergy must be at most maxEnergy (150), was 151" },
         { "toolEnergyCost", 0, "tuning.json: toolEnergyCost must be above 0, was 0" },

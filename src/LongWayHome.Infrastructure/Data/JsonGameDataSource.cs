@@ -270,6 +270,7 @@ public sealed class JsonGameDataSource : IGameDataSource
 
         Check(tuning.StartingGold >= 0, "startingGold", "at least 0 (BR-P5)", tuning.StartingGold);
         Check(tuning.MaxEnergy > 0, "maxEnergy", "above 0", tuning.MaxEnergy);
+        Check(tuning.MaxEnergy <= Player.MaxEnergy, "maxEnergy", $"at most {Player.MaxEnergy} (BR-P1)", tuning.MaxEnergy);
         Check(tuning.PassOutEnergy > 0, "passOutEnergy", "above 0", tuning.PassOutEnergy);
         Check(tuning.PassOutEnergy <= tuning.MaxEnergy, "passOutEnergy", $"at most maxEnergy ({tuning.MaxEnergy})", tuning.PassOutEnergy);
         Check(tuning.ToolEnergyCost > 0, "toolEnergyCost", "above 0", tuning.ToolEnergyCost);

@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace LongWayHome.Domain.Players;
 
 /// <summary>The Player. Energy is always between 0 and 150 (BR-P1); gold is never negative (BR-P5, via <see cref="Gold"/>).</summary>
@@ -21,7 +23,7 @@ public sealed class Player
 
         Gold = gold;
         Energy = energy;
-        Tools = new HashSet<ToolId>(tools);
+        Tools = tools.ToFrozenSet();
         WateringCan = wateringCan;
         Inventory = inventory;
     }
