@@ -11,7 +11,7 @@ Stored in `Game.date.season` and `CropType.season`.
 | Code Value | Display Label | Notes |
 |------------|---------------|-------|
 | `spring` | Spring | First Season of each Year. Emberroot, dusktuber. |
-| `summer` | Summer | No Phase 1 crops (open question on REQ-10). |
+| `summer` | Summer | Sunbell, starcorn. |
 | `fall` | Fall | Moonmelon. |
 | `winter` | Winter | No outdoor crops. |
 
@@ -98,8 +98,10 @@ Stored in `ShopListing.kind`.
 
 Key of `CropType`; referenced by Planting, InventoryStack, ShippedItem and ShopListing.
 
-| Code Value | Display Label | Season | Grow days | Seed cost | Sell price | Prototype ID |
-|------------|---------------|--------|-----------|-----------|------------|--------------|
-| `emberroot` | Emberroot | `spring` | 3 | 15 | 35 | `carrot` |
-| `dusktuber` | Dusktuber | `spring` | 5 | 30 | 75 | `potato` |
-| `moonmelon` | Moonmelon | `fall` | 8 | 60 | 190 | `pumpkin` |
+| Code Value | Display Label | Season | Grow days | Seed cost | Sell price | Prototype ID | Notes |
+|------------|---------------|--------|-----------|-----------|------------|--------------|-------|
+| `emberroot` | Emberroot | `spring` | 3 | 15 | 35 | `carrot` |  |
+| `dusktuber` | Dusktuber | `spring` | 5 | 30 | 75 | `potato` |  |
+| `moonmelon` | Moonmelon | `fall` | 8 | 60 | 190 | `pumpkin` |  |
+| `sunbell` | Sunbell | `summer` | 4 | 20 | 50 | `tomato` | *(planned, REQ-42)* |
+| `starcorn` | Starcorn | `summer` | 7 | 45 | 130 | `corn` | *(planned, REQ-42)* |
