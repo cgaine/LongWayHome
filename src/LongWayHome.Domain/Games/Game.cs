@@ -64,16 +64,43 @@ public sealed class Game
         }
     }
 
-    /// <summary>The Night's growth step (BR-T4).</summary>
-    public void GrowPlantings(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
-        throw new NotImplementedException();
+    /// <summary>
+    /// The Night's growth step (BR-T4): each Planting grows on its Tile by its Crop type's data. A Planting whose Crop
+    /// type has no data row is left unchanged (BR-T5: never removed).
+    /// </summary>
+    public void GrowPlantings(IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
+        ArgumentNullException.ThrowIfNull(cropTypes);
 
-    /// <summary>The Night's watering reset (BR-T7).</summary>
-    public void DryAllTiles() => throw new NotImplementedException();
+        foreach (var tile in FarmPlot.Tiles)
+        {
+            if (tile.Planting is { } planting && cropTypes.TryGetValue(planting.CropTypeId, out var cropType))
+            {
+                tile.GrowOvernight(cropType);
+            }
+        }
+    }
 
-    /// <summary>Starts the next Day: records why the last one ended, sets energy and the clock (BR-P3).</summary>
-    public void StartNextDay(DayEndReason reason, int energy, int dayStartMinutes) =>
-        throw new NotImplementedException();
+    /// <summary>The Night's watering reset (BR-T7): every Tile is dry. Tile states are untouched (BR-T8).</summary>
+    public void DryAllTiles()
+    {
+        foreach (var tile in FarmPlot.Tiles)
+        {
+            tile.Dry();
+        }
+    }
+
+    /// <summary>
+    /// Starts the next Day: records why the last one ended, sets energy (BR-P1, BR-P3) and the clock. Energy outside
+    /// 0–150 throws and changes nothing.
+    /// </summary>
+    public void StartNextDay(DayEndReason reason, int energy, int dayStartMinutes)
+    {
+        // BR-P1: set energy first so an out-of-range value leaves the Game unchanged.
+        Player.StartDay(energy);
+        LastDayEnd = reason;
+        ClockMinutes = dayStartMinutes;
+    }
 
     /// <summary>Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then TooTired (BR-T2, BR-P2).</summary>
     public Rejection? TillRejection(GridPosition position, int toolEnergyCost)

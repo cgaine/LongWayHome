@@ -36,13 +36,11 @@ public sealed class GameSession
     /// <summary>Raised after <see cref="AdvanceClock"/> moves the clock by at least one minute.</summary>
     public event Action? ClockChanged;
 
-#pragma warning disable CS0067 // Red stub for #36: raised once Sleep and the pass-out are implemented.
     /// <summary>Raised when a Day ends, with the reason, before the Night runs.</summary>
     public event Action<DayEndReason>? DayEnded;
 
-    /// <summary>Raised after the Night has run.</summary>
+    /// <summary>Raised after the Night has run. The Night raises no TileChanged or ClockChanged; redraw on this.</summary>
     public event Action? NightCompleted;
-#pragma warning restore CS0067
 
     public Game Game { get; }
 
@@ -51,7 +49,9 @@ public sealed class GameSession
     /// <summary>
     /// Advances the clock by real seconds of play (BR-G2) at (DayEndMinutes − DayStartMinutes) / DayLengthRealSeconds
     /// game minutes per second, from <see cref="GameData.Tuning"/>. The part of a minute left over is kept, so short
-    /// frames add up. Never passes DayEndMinutes. Raises ClockChanged when the clock moves by at least one minute.
+    /// frames add up. Raises ClockChanged when the clock moves by at least one minute. When the clock reaches
+    /// DayEndMinutes the Player passes out (BR-G3): the Day ends as PassedOut, the rest of the call's time is
+    /// discarded and ClockChanged is not raised.
     /// </summary>
     public void AdvanceClock(double realSeconds)
     {
@@ -63,36 +63,49 @@ public sealed class GameSession
 
         var tuning = Data.Tuning;
         var minutesLeft = tuning.DayEndMinutes - Game.ClockMinutes;
-        if (minutesLeft <= 0)
+        if (minutesLeft > 0)
         {
-            // BR-G2: the clock has stopped at the day end, so nothing is carried over.
-            _clockRemainderMinutes = 0;
-            return;
+            // Multiply before dividing so a whole number of real seconds gives an exact number of game minutes.
+            _clockRemainderMinutes +=
+                realSeconds * (tuning.DayEndMinutes - tuning.DayStartMinutes) / tuning.DayLengthRealSeconds;
+
+            // The epsilon absorbs the rounding error of many small frames (43 200 × 1/60 s must reach a whole day).
+            var wholeMinutes = Math.Floor(_clockRemainderMinutes + ClockEpsilonMinutes);
+            if (wholeMinutes < 1)
+            {
+                return;
+            }
+
+            if (wholeMinutes < minutesLeft)
+            {
+                _clockRemainderMinutes = Math.Max(0, _clockRemainderMinutes - wholeMinutes);
+                Game.AdvanceClock((int)wholeMinutes, tuning.DayEndMinutes);
+                ClockChanged?.Invoke();
+                return;
+            }
+
+            Game.AdvanceClock(minutesLeft, tuning.DayEndMinutes);
         }
 
-        // Multiply before dividing so a whole number of real seconds gives an exact number of game minutes.
-        _clockRemainderMinutes +=
-            realSeconds * (tuning.DayEndMinutes - tuning.DayStartMinutes) / tuning.DayLengthRealSeconds;
-
-        // The epsilon absorbs the rounding error of many small frames (43 200 × 1/60 s must reach a whole day).
-        var wholeMinutes = Math.Floor(_clockRemainderMinutes + ClockEpsilonMinutes);
-        if (wholeMinutes < 1)
-        {
-            return;
-        }
-
-        _clockRemainderMinutes = Math.Max(0, _clockRemainderMinutes - wholeMinutes);
-        Game.AdvanceClock((int)Math.Min(wholeMinutes, minutesLeft), tuning.DayEndMinutes);
-        if (Game.ClockMinutes >= tuning.DayEndMinutes)
-        {
-            _clockRemainderMinutes = 0;
-        }
-
-        ClockChanged?.Invoke();
+        // BR-G3: the clock has reached 02:00, so the Player passes out.
+        EndDay(DayEndReason.PassedOut);
     }
 
-    /// <summary>Ends the Day by sleeping at the house door (BR-G3).</summary>
-    public ActionResult Sleep() => throw new NotImplementedException();
+    /// <summary>
+    /// Ends the Day by sleeping at the house door (BR-G3). At or after DayEndMinutes it is TooLate and changes
+    /// nothing; otherwise the Night runs and the Player wakes at the start of the next Day.
+    /// </summary>
+    public ActionResult Sleep()
+    {
+        // BR-G3: a Day ends exactly once; once the clock is at 02:00 it ends by passing out, not by sleep.
+        if (Game.ClockMinutes >= Data.Tuning.DayEndMinutes)
+        {
+            return ActionResult.Rejected(Rejection.TooLate);
+        }
+
+        EndDay(DayEndReason.Slept);
+        return ActionResult.Ok;
+    }
 
     /// <summary>The held-item cycle: Hoe, Watering can, then one entry per Seed stack in CropTypeId order.</summary>
     public IReadOnlyList<HeldItem> HeldItems()
@@ -277,4 +290,16 @@ public sealed class GameSession
                 : planting.DaysGrown == 0 ? GrowthStage.Seed : GrowthStage.Sprout;
 
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
+
+    /// <summary>
+    /// Ends the Day (BR-G3): raises DayEnded, runs the Night, then raises NightCompleted. The part-minute carried by
+    /// the clock is dropped so the next Day starts at exactly DayStartMinutes.
+    /// </summary>
+    private void EndDay(DayEndReason reason)
+    {
+        _clockRemainderMinutes = 0;
+        DayEnded?.Invoke(reason);
+        NightProcessor.Run(Game, Data, reason);
+        NightCompleted?.Invoke();
+    }
 }
