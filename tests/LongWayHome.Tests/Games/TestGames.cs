@@ -44,6 +44,27 @@ internal static class TestGames
             new FarmPlot());
 
     /// <summary>
+    /// A Game on a fresh plot at 150 energy whose Player has the given gold, on the given date (Spring 1 by default),
+    /// holding the given inventory (the starting seeds by default).
+    /// </summary>
+    public static GameState WithGold(int gold, GameDate? date = null, Inventory? inventory = null) =>
+        new(
+            Guid.NewGuid(),
+            date ?? FirstDay,
+            360,
+            Weather.Clear,
+            null,
+            Now,
+            Now,
+            new Player(
+                new Gold(gold),
+                Player.MaxEnergy,
+                new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
+                new WateringCan(20),
+                inventory ?? StartingSeeds()),
+            new FarmPlot());
+
+    /// <summary>
     /// A Game on a fresh plot (Year 1, Spring, Day 1) with 100 gold, the given energy and inventory, and a Shipping
     /// Bin holding the given items, passed through the Game constructor.
     /// </summary>

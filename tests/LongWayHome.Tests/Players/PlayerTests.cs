@@ -154,6 +154,48 @@ public class PlayerTests
         Assert.Equal(new Gold(150), player.Gold);
     }
 
+    [Fact]
+    public void BR_P5_spending_negative_gold_throws_and_leaves_gold_unchanged()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => player.TrySpendGold(-1));
+        Assert.Equal(new Gold(100), player.Gold);
+    }
+
+    [Fact]
+    public void BR_L2_spending_more_gold_than_held_fails_and_changes_nothing()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        var spent = player.TrySpendGold(101);
+
+        Assert.False(spent);
+        Assert.Equal(new Gold(100), player.Gold);
+    }
+
+    [Fact]
+    public void BR_L2_spending_gold_held_subtracts_the_amount()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        var spent = player.TrySpendGold(15);
+
+        Assert.True(spent);
+        Assert.Equal(new Gold(85), player.Gold);
+    }
+
+    [Fact]
+    public void BR_P5_spending_exactly_the_gold_held_leaves_0()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        var spent = player.TrySpendGold(100);
+
+        Assert.True(spent);
+        Assert.Equal(new Gold(0), player.Gold);
+    }
+
     private static Player CreatePlayer(int energy) =>
         new(
             new Gold(100),
