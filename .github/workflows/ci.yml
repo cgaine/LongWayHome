@@ -68,7 +68,8 @@ jobs:
     name: export
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # THROWAWAY (#15 AC5): widened so the export runs on this PR.
+    if: true
     steps:
       - uses: actions/checkout@v4
 
@@ -126,7 +127,7 @@ jobs:
           set -uo pipefail
           missing=0
           for f in build/windows/LongWayHome.exe build/windows/LongWayHome.pck \
-                   build/linux/LongWayHome.x86_64 build/linux/LongWayHome.pck; do
+                   build/linux/LongWayHome.x86_64 build/linux/LongWayHomeMisspelt.pck; do
             if [ ! -s "$f" ]; then
               echo "::error::Missing or empty export output: $f"
               missing=1
