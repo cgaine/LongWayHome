@@ -51,23 +51,29 @@ public sealed class Game
 
     public FarmPlot FarmPlot { get; }
 
+    /// <summary>Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then TooTired (BR-T2, BR-P2).</summary>
+    public Rejection? TillRejection(GridPosition position, int toolEnergyCost)
+    {
+        // BR-T2
+        if (FarmPlot[position].State != TileState.Grass)
+        {
+            return Rejection.AlreadyTilled;
+        }
+
+        // BR-P2
+        return Player.Energy < toolEnergyCost ? Rejection.TooTired : null;
+    }
+
     /// <summary>Tills a Tile: AlreadyTilled, then TooTired, else tills and spends the energy (BR-T2, BR-P2).</summary>
     public ActionResult Till(GridPosition position, int toolEnergyCost)
     {
-        var tile = FarmPlot[position];
-
-        // BR-T2
-        if (tile.State != TileState.Grass)
-        {
-            return ActionResult.Rejected(Rejection.AlreadyTilled);
-        }
-
         // BR-P2: a rejected till spends nothing.
-        if (!Player.TrySpendEnergy(toolEnergyCost))
+        if (TillRejection(position, toolEnergyCost) is { } rejection)
         {
-            return ActionResult.Rejected(Rejection.TooTired);
+            return ActionResult.Rejected(rejection);
         }
 
-        return tile.Till();
+        Player.TrySpendEnergy(toolEnergyCost);
+        return FarmPlot[position].Till();
     }
 }

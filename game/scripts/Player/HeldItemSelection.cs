@@ -27,7 +27,20 @@ public partial class HeldItemSelection : Node
     public event Action? SelectionChanged;
 
     /// <summary>The held item; the hoe when the last selected item has left the list.</summary>
-    public HeldItem Held => _session is not null && _session.HeldItems().Contains(_held) ? _held : Hoe;
+    public HeldItem Held
+    {
+        get
+        {
+            // Once the held item leaves the list the hoe is held for good, so a seed type bought again later is not
+            // silently re-selected.
+            if (_session is null || !_session.HeldItems().Contains(_held))
+            {
+                _held = Hoe;
+            }
+
+            return _held;
+        }
+    }
 
     public override void _Ready()
     {

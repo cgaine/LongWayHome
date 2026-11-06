@@ -52,15 +52,10 @@ public sealed class GameSession
 
         if (held.Tool == ToolId.Hoe)
         {
-            // BR-T2, then BR-P2: the same order as Game.Till.
-            if (Game.FarmPlot[position].State != TileState.Grass)
+            // BR-T2, then BR-P2: the domain decides, so the preview and Game.Till cannot drift apart.
+            if (Game.TillRejection(position, Data.Tuning.ToolEnergyCost) is { } rejection)
             {
-                return Rejected(Rejection.AlreadyTilled);
-            }
-
-            if (Game.Player.Energy < Data.Tuning.ToolEnergyCost)
-            {
-                return Rejected(Rejection.TooTired);
+                return Rejected(rejection);
             }
 
             return new UsePreview(UseActionKind.Till, null);
