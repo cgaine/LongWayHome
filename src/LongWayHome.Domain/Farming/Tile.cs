@@ -32,7 +32,7 @@ public sealed class Tile
 
     public TileState State { get; private set; }
 
-    public bool Watered { get; }
+    public bool Watered { get; private set; }
 
     /// <summary>The Planting on this Tile, if any; at most one, and only on a tilled Tile.</summary>
     public Planting? Planting { get; private set; }
@@ -51,7 +51,16 @@ public sealed class Tile
     }
 
     /// <summary>Waters a tilled, unwatered Tile (BR-T9); the Game checks first.</summary>
-    public void Water() => throw new NotImplementedException();
+    public void Water()
+    {
+        // BR-T9: only tilled soil can be watered; the Game refuses the other cases as results first.
+        if (State != TileState.Tilled || Watered)
+        {
+            throw new InvalidOperationException("Only a tilled Tile that is not already watered can be watered.");
+        }
+
+        Watered = true;
+    }
 
     /// <summary>Puts a Planting on the Tile: NotTilled, then TileOccupied (BR-T3).</summary>
     public ActionResult Plant(Planting planting)

@@ -249,6 +249,25 @@ public class WateringTests
     }
 
     [Fact]
+    public void BR_T9_tile_water_on_grass_throws_and_leaves_it_dry()
+    {
+        var tile = new Tile(Target);
+
+        Assert.Throws<InvalidOperationException>(tile.Water);
+        Assert.False(tile.Watered);
+        Assert.Equal(TileState.Grass, tile.State);
+    }
+
+    [Fact]
+    public void BR_T9_tile_water_on_an_already_watered_tile_throws()
+    {
+        var tile = new Tile(Target, TileState.Tilled, true, null);
+
+        Assert.Throws<InvalidOperationException>(tile.Water);
+        Assert.True(tile.Watered);
+    }
+
+    [Fact]
     public void BR_T9_watering_one_tile_leaves_every_other_tile_dry()
     {
         var game = TestGames.WithTiles(150, null, TestGames.TilledWith(Target, null), TestGames.TilledWith(new(0, 0), null));

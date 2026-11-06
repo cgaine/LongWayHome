@@ -28,13 +28,23 @@ public sealed class WateringCan
 
     public int Capacity { get; }
 
-    public int Charges { get; }
+    public int Charges { get; private set; }
 
     public bool Upgraded { get; }
 
     /// <summary>Uses one charge (BR-W2); false and no change when the can is empty.</summary>
-    public bool TryUseCharge() => throw new NotImplementedException();
+    public bool TryUseCharge()
+    {
+        // BR-W2, BR-W1: an empty can is refused, so Charges never goes below 0.
+        if (Charges == 0)
+        {
+            return false;
+        }
+
+        Charges--;
+        return true;
+    }
 
     /// <summary>Fills the can to capacity (BR-W3).</summary>
-    public void Refill() => throw new NotImplementedException();
+    public void Refill() => Charges = Capacity;
 }

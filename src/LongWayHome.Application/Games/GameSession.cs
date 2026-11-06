@@ -79,7 +79,14 @@ public sealed class GameSession
             return new UsePreview(UseActionKind.Till, null);
         }
 
-        // The can gets its action in the watering feature.
+        if (held.Tool == ToolId.WateringCan)
+        {
+            // BR-T9, BR-W2, then BR-P2: the domain decides, so the preview and Game.Water cannot drift apart.
+            return Game.WaterRejection(position, Data.Tuning.ToolEnergyCost) is { } rejection
+                ? Rejected(rejection)
+                : new UsePreview(UseActionKind.Water, null);
+        }
+
         return Rejected(Rejection.NothingToDo);
     }
 
@@ -90,6 +97,7 @@ public sealed class GameSession
         return preview.Action switch
         {
             UseActionKind.Till => Till(target!.Value),
+            UseActionKind.Water => Water(target!.Value),
             UseActionKind.Plant => Plant(target!.Value, held.Seed!.Value),
             UseActionKind.Harvest => Harvest(target!.Value),
             _ => ActionResult.Rejected(preview.Rejection!.Value),
@@ -110,10 +118,29 @@ public sealed class GameSession
     }
 
     /// <summary>Waters a Tile (BR-T9, BR-W2, BR-P2). Raises TileChanged and PlayerChanged on success.</summary>
-    public ActionResult Water(GridPosition position) => throw new NotImplementedException();
+    public ActionResult Water(GridPosition position)
+    {
+        var result = Game.Water(position, Data.Tuning.ToolEnergyCost);
+        if (result.IsOk)
+        {
+            TileChanged?.Invoke(position);
+            PlayerChanged?.Invoke();
+        }
+
+        return result;
+    }
 
     /// <summary>Refills the can at the Pond (BR-W3). Raises PlayerChanged.</summary>
-    public ActionResult RefillCan() => throw new NotImplementedException();
+    public ActionResult RefillCan()
+    {
+        var result = Game.RefillCan();
+        if (result.IsOk)
+        {
+            PlayerChanged?.Invoke();
+        }
+
+        return result;
+    }
 
     /// <summary>Plants one Seed of a Crop type (BR-T3). Raises InventoryChanged and TileChanged on success.</summary>
     public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
