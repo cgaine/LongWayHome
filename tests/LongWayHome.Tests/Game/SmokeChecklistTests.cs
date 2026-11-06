@@ -5,7 +5,7 @@ namespace LongWayHome.Tests.Game;
 /// <summary>
 /// Reads the real <c>docs/smoke-checklist.md</c> and <c>docs/requirements/technical-blueprint.md</c>, linked into the
 /// test output by the test project, and checks the manual smoke checklist covers a full Day on each scheme (REQ-13,
-/// issue #54 AC8).
+/// issue #54 AC8), including the camera turn and zoom on each pass (issue #71 AC6).
 /// </summary>
 public class SmokeChecklistTests
 {
@@ -22,6 +22,7 @@ public class SmokeChecklistTests
         ["shop"], ["buy"], ["seed"], ["close"],
         ["pause"], ["resume"],
         ["sleep"], ["door"], ["night"], ["morning"],
+        ["camera"], ["turn"], ["zoom"],
     ];
 
     private static readonly string[] PassNames = ["controller", "keyboard", "steam deck"];
@@ -52,6 +53,38 @@ public class SmokeChecklistTests
             Assert.True(
                 alternatives.Any(keyword => section.Value.Body.Contains(keyword, StringComparison.OrdinalIgnoreCase)),
                 $"The {pass} pass never mentions '{string.Join("' or '", alternatives)}'");
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(Passes))]
+    public void AC6_each_pass_lists_camera_turn_and_zoom(string pass)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var body = section.Value.Body;
+
+        foreach (var keyword in new[] { "camera", "turn", "zoom" })
+        {
+            Assert.True(body.Contains(keyword, StringComparison.OrdinalIgnoreCase), $"The {pass} pass never mentions '{keyword}'");
+        }
+
+        string[] buttons = pass switch
+        {
+            "controller" => ["(R stick)"],
+            "keyboard" => ["[Z]", "[C]", "[R]", "[V]"],
+            _ => [],
+        };
+        if (buttons.Length == 0)
+        {
+            return;
+        }
+
+        var buttonsLine = ReadButtonsLine(body);
+        Assert.True(buttonsLine is not null, $"The {pass} pass has no 'Buttons:' line");
+        foreach (var button in buttons)
+        {
+            Assert.True(buttonsLine.Contains(button, StringComparison.Ordinal), $"The {pass} pass's Buttons: line never mentions {button}");
         }
     }
 
@@ -90,6 +123,14 @@ public class SmokeChecklistTests
         }
 
         return null;
+    }
+
+    /// <summary>The pass's <c>Buttons:</c> paragraph, which wraps over several source lines up to the next blank
+    /// line.</summary>
+    private static string? ReadButtonsLine(string body)
+    {
+        var match = Regex.Match(body, @"^Buttons:.*?(?=^\s*$|\z)", RegexOptions.Multiline | RegexOptions.Singleline);
+        return match.Success ? match.Value : null;
     }
 
     private static List<(string Heading, string Body)> ReadSections(string markdown)

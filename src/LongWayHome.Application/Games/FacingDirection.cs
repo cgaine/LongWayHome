@@ -31,4 +31,10 @@ public static class FacingDirection
 
         return absX > absY ? horizontal : vertical;
     }
+
+    /// <summary>
+    /// The model's Y rotation, in radians, for a cardinal facing (<paramref name="x"/> east, <paramref name="y"/>
+    /// south): <c>Atan2(x, y)</c>, so south is 0, east π/2, north π and west −π/2 (issue #71).
+    /// </summary>
+    public static float Yaw(int x, int y) => throw new NotImplementedException();
 }
