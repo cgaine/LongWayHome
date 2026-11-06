@@ -4,5 +4,5 @@ namespace LongWayHome.Application.Games;
 public static class GoldText
 {
     /// <summary>"Gold " and the gold held, as is (BR-P5).</summary>
-    public static string For(int gold) => throw new NotImplementedException();
+    public static string For(int gold) => $"Gold {gold}";
 }

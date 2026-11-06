@@ -111,4 +111,12 @@ public class HotbarTests
         Assert.Equal(HeldItem.Of(ToolId.Hoe), selected.Item);
         Assert.Same(slots[0], selected);
     }
+
+    [Fact]
+    public void Null_held_item_throws()
+    {
+        var session = TestGames.NewSession();
+
+        Assert.Throws<ArgumentNullException>(() => session.Hotbar(null!));
+    }
 }

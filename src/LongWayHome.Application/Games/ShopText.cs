@@ -38,7 +38,7 @@ public static class ShopText
     }
 
     /// <summary>"Gold 100".</summary>
-    public static string Gold(int gold) => $"Gold {gold}";
+    public static string Gold(int gold) => GoldText.For(gold);
 
     /// <summary>"Not enough gold" or "Not sold this season".</summary>
     public static string Rejection(Domain.Games.Rejection rejection) => rejection switch

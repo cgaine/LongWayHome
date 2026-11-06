@@ -74,4 +74,15 @@ public class HudTextTests
 
         Assert.Equal("Crops: Starcorn × 1", text);
     }
+
+    [Fact]
+    public void Shop_gold_text_is_the_hud_gold_text() =>
+        Assert.Equal(GoldText.For(250), ShopText.Gold(250));
+
+    [Fact]
+    public void Crops_text_rejects_null_arguments()
+    {
+        Assert.Throws<ArgumentNullException>(() => CropsText.For(null!, TestGames.Shipped.CropTypes));
+        Assert.Throws<ArgumentNullException>(() => CropsText.For([], null!));
+    }
 }
