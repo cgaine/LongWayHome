@@ -152,7 +152,9 @@ The coverall uses the ship's blue-silver from section 2, so he starts out lookin
 2. **Settling in:** a gift from the town, an ember-orange knitted scarf (draft: from Maggie).
 3. **At home:** a local work shirt in honey, teal overalls with the Earth patch sewn onto the bib, a woven sun hat with an ember band. He keeps the flight boots and the wrist unit.
 
-Draft trigger for each step: a story beat (e.g. a lantern story or a rebuild), not a menu choice. If the game later gets a wardrobe, these become the first three outfits.
+Decided: the outfit changes with the story. Draft trigger for each step: a story beat (e.g. a lantern story or a rebuild), not a menu choice. If the game later gets a wardrobe, these become the first three outfits.
+
+**Fixed character.** Decided: in this version the farmer is a fixed character with no customisation. A character creator (skin tone, hair, outfit) is a possible future enhancement, not in scope now.
 
 **Readability (pillar 4):**
 
@@ -160,7 +162,7 @@ Draft trigger for each step: a story beat (e.g. a lantern story or a rebuild), n
 - The tool in hand is always visible, so the next action reads at a glance.
 - Size and collision stay as they are now (capsule 1.6 m tall, radius 0.35) so the art upgrade doesn't change gameplay.
 
-**Build notes:** about 4 heads tall (a little chunky for a cozy read). Low-poly, flat facets with a lit side and a shade side, one material using a palette texture. Rigged to Godot's humanoid skeleton profile so shared animations can be retargeted. First animations needed: idle, walk, hoe swing, watering, plant, harvest, carry, sleep and pass out.
+**Build notes:** chunky: about 3 heads tall, with a big head, wide body, short legs and oversized boots and hands, for a cozy read and so the face and the tool read from the overhead camera (decided: chunkier than the first 4-head draft). Low-poly, flat facets with a lit side and a shade side, one material using a palette texture. Rigged to Godot's humanoid skeleton profile so shared animations can be retargeted. First animations needed: idle, walk, hoe swing, watering, plant, harvest, carry, sleep and pass out.
 
 ## 7. Places
 
@@ -187,8 +189,9 @@ Draft trigger for each step: a story beat (e.g. a lantern story or a rebuild), n
 - [ ] How alien overall? This draft sets it at "familiar at first, different on a second look". Should any area go further (e.g. the forest)?
 - [ ] Moon names: Hearth and Wisp, or something else?
 - [ ] Which small differences for the townsfolk (ears, cheek marks, eyes)?
-- [ ] The farmer: a fixed character, or can players choose skin tone, hair and so on? The design doc calls him "he"; a character creator would change that.
-- [ ] The farmer: does his outfit change with the story (section 6.1), or stay the same?
+- [x] The farmer: fixed character for now; customisation is a future enhancement
+- [x] The farmer: his outfit changes with the story
+- [x] The farmer: chunky proportions, about 3 heads tall
 - [ ] Flat shading (sharp facets) or soft stepped shading (smoother, more painterly)?
 - [ ] Camera: the art should be checked from the camera the game ends up using (the design doc still has "fixed overhead or rotate and zoom" open).
 
