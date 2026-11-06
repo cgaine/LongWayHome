@@ -16,8 +16,8 @@ namespace LongWayHome.Game.Ui;
 /// "Can &lt;charges&gt; / &lt;capacity&gt;" and the held item's label (with the seed count when a seed is held).
 /// Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
 /// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Bottom
-/// centre, a "Refill can" hint shows while the Player is in range of the pond's <see cref="InteractionPoint"/>.
-/// Holds no rules.
+/// centre, above the <see cref="UsePrompt"/>, a "&lt;interact glyph&gt; Refill can" hint shows while the Player is in
+/// range of the pond's <see cref="InteractionPoint"/>; its glyph follows <see cref="LastInputDevice"/>. Holds no rules.
 /// </summary>
 public partial class Hud : CanvasLayer
 {
@@ -28,6 +28,8 @@ public partial class Hud : CanvasLayer
     private HeldItemSelection? _selection;
 
     private InteractionPoint? _pond;
+
+    private LastInputDevice? _device;
 
     private ProgressBar _energyBar = null!;
 
@@ -67,6 +69,14 @@ public partial class Hud : CanvasLayer
             _selection.SelectionChanged += Refresh;
         }
 
+        _device = GetNodeOrNull<LastInputDevice>(LastInputDevice.Path);
+        if (_device is not null)
+        {
+            _device.DeviceChanged += RefreshRefillHint;
+        }
+
+        RefreshRefillHint();
+
         _pond = FindPoint(GetTree().Root, PondPointId);
         if (_pond is not null)
         {
@@ -89,6 +99,11 @@ public partial class Hud : CanvasLayer
         if (_selection is not null)
         {
             _selection.SelectionChanged -= Refresh;
+        }
+
+        if (_device is not null && IsInstanceValid(_device))
+        {
+            _device.DeviceChanged -= RefreshRefillHint;
         }
 
         if (_pond is not null && IsInstanceValid(_pond))
@@ -119,6 +134,12 @@ public partial class Hud : CanvasLayer
     private void ShowRefillHint() => _refillHint.Visible = true;
 
     private void HideRefillHint() => _refillHint.Visible = false;
+
+    private void RefreshRefillHint()
+    {
+        var glyph = LastInputDevice.GlyphFor("interact", _device);
+        _refillHint.Text = $"{glyph} Refill can";
+    }
 
     private void Refresh()
     {
