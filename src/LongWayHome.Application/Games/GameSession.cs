@@ -24,10 +24,8 @@ public sealed class GameSession
     /// <summary>Raised after a successful action changes the Player (energy, can or tools).</summary>
     public event Action? PlayerChanged;
 
-#pragma warning disable CS0067 // Raised once Plant and Harvest are implemented.
     /// <summary>Raised after a successful action changes the inventory.</summary>
     public event Action? InventoryChanged;
-#pragma warning restore CS0067
 
     public Game Game { get; }
 
@@ -56,6 +54,20 @@ public sealed class GameSession
             return Rejected(Rejection.NoTarget);
         }
 
+        // BR-T6: harvesting needs no tool, so a Ripe Planting is harvested whatever is held.
+        if (IsRipe(Game.FarmPlot[position]))
+        {
+            return new UsePreview(UseActionKind.Harvest, null);
+        }
+
+        if (held.Seed is { } seed)
+        {
+            // BR-T3: the domain decides, so the preview and Game.Plant cannot drift apart.
+            return Game.PlantRejection(position, seed) is { } rejection
+                ? Rejected(rejection)
+                : new UsePreview(UseActionKind.Plant, null);
+        }
+
         if (held.Tool == ToolId.Hoe)
         {
             // BR-T2, then BR-P2: the domain decides, so the preview and Game.Till cannot drift apart.
@@ -67,7 +79,7 @@ public sealed class GameSession
             return new UsePreview(UseActionKind.Till, null);
         }
 
-        // The can and seeds get their actions in later features.
+        // The can gets its action in the watering feature.
         return Rejected(Rejection.NothingToDo);
     }
 
@@ -78,6 +90,8 @@ public sealed class GameSession
         return preview.Action switch
         {
             UseActionKind.Till => Till(target!.Value),
+            UseActionKind.Plant => Plant(target!.Value, held.Seed!.Value),
+            UseActionKind.Harvest => Harvest(target!.Value),
             _ => ActionResult.Rejected(preview.Rejection!.Value),
         };
     }
@@ -96,13 +110,59 @@ public sealed class GameSession
     }
 
     /// <summary>Plants one Seed of a Crop type (BR-T3). Raises InventoryChanged and TileChanged on success.</summary>
-    public ActionResult Plant(GridPosition position, CropTypeId cropTypeId) => throw new NotImplementedException();
+    public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
+    {
+        var result = Game.Plant(position, cropTypeId);
+        if (result.IsOk)
+        {
+            TileChanged?.Invoke(position);
+            InventoryChanged?.Invoke();
+        }
 
-    /// <summary>Harvests the ripe Planting on a Tile (BR-T6). Raises InventoryChanged and TileChanged on success.</summary>
-    public ActionResult Harvest(GridPosition position) => throw new NotImplementedException();
+        return result;
+    }
+
+    /// <summary>
+    /// Harvests the ripe Planting on a Tile (BR-T6), looking up its Crop type in <see cref="GameData.CropTypes"/>.
+    /// Raises InventoryChanged and TileChanged on success. A Planting whose Crop type has no data is NotRipe.
+    /// </summary>
+    public ActionResult Harvest(GridPosition position)
+    {
+        if (Game.FarmPlot[position].Planting is not { } planting)
+        {
+            return ActionResult.Rejected(Rejection.NoPlanting);
+        }
+
+        if (!Data.CropTypes.TryGetValue(planting.CropTypeId, out var cropType))
+        {
+            return ActionResult.Rejected(Rejection.NotRipe);
+        }
+
+        var result = Game.Harvest(position, cropType);
+        if (result.IsOk)
+        {
+            TileChanged?.Invoke(position);
+            InventoryChanged?.Invoke();
+        }
+
+        return result;
+    }
 
     /// <summary>The HUD label for a held item: "Hoe", "Watering can", or "Emberroot seeds × 9".</summary>
-    public string HeldLabel(HeldItem held) => throw new NotImplementedException();
+    public string HeldLabel(HeldItem held)
+    {
+        ArgumentNullException.ThrowIfNull(held);
+
+        return held.Seed is { } seed
+            ? $"{held.DisplayLabel} × {Game.Player.Inventory.Quantity(ItemKind.Seed, seed)}"
+            : held.DisplayLabel;
+    }
+
+    /// <summary>Whether a Tile holds a Ripe Planting. A Crop type with no data row is never Ripe.</summary>
+    private bool IsRipe(Tile tile) =>
+        tile.Planting is { } planting
+        && Data.CropTypes.TryGetValue(planting.CropTypeId, out var cropType)
+        && planting.StatusFor(cropType) == PlantingStatus.Ripe;
 
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
 }

@@ -79,16 +79,62 @@ public sealed class Game
     }
 
     /// <summary>Why planting would be refused, or null: NotTilled, then TileOccupied, then NoSeed (BR-T3).</summary>
-    public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId) =>
-        throw new NotImplementedException();
+    public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId)
+    {
+        // BR-T3
+        var tile = FarmPlot[position];
+        if (tile.State != TileState.Tilled)
+        {
+            return Rejection.NotTilled;
+        }
+
+        if (tile.Planting is not null)
+        {
+            return Rejection.TileOccupied;
+        }
+
+        return Player.Inventory.Quantity(ItemKind.Seed, cropTypeId) < 1 ? Rejection.NoSeed : null;
+    }
 
     /// <summary>Plants one Seed on a Tile (BR-T3). Costs no energy (BR-P2).</summary>
-    public ActionResult Plant(GridPosition position, CropTypeId cropTypeId) => throw new NotImplementedException();
+    public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
+    {
+        if (PlantRejection(position, cropTypeId) is { } rejection)
+        {
+            return ActionResult.Rejected(rejection);
+        }
+
+        // Both steps are known to succeed now: the Tile is tilled and empty, and the seed is held.
+        // BR-P7: Remove drops the stack when it reaches 0.
+        Player.Inventory.Remove(ItemKind.Seed, cropTypeId, 1);
+        return FarmPlot[position].Plant(new Planting(cropTypeId, Date, 0));
+    }
 
     /// <summary>Why harvesting would be refused, or null: NoPlanting, then NotRipe (BR-T6).</summary>
-    public Rejection? HarvestRejection(GridPosition position, CropType cropType) =>
-        throw new NotImplementedException();
+    public Rejection? HarvestRejection(GridPosition position, CropType cropType)
+    {
+        ArgumentNullException.ThrowIfNull(cropType);
+
+        // BR-T6
+        if (FarmPlot[position].Planting is not { } planting)
+        {
+            return Rejection.NoPlanting;
+        }
+
+        return planting.StatusFor(cropType) == PlantingStatus.Ripe ? null : Rejection.NotRipe;
+    }
 
     /// <summary>Harvests a ripe Planting into one Crop (BR-T6). Costs no energy (BR-P2).</summary>
-    public ActionResult Harvest(GridPosition position, CropType cropType) => throw new NotImplementedException();
+    public ActionResult Harvest(GridPosition position, CropType cropType)
+    {
+        if (HarvestRejection(position, cropType) is { } rejection)
+        {
+            return ActionResult.Rejected(rejection);
+        }
+
+        // BR-T6: the Planting goes and one Crop of its type is added; BR-P7 merges it into one stack.
+        var result = FarmPlot[position].Harvest(cropType);
+        Player.Inventory.Add(ItemKind.Crop, cropType.Id, 1);
+        return result;
+    }
 }

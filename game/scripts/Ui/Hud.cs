@@ -11,8 +11,9 @@ using LongWayHome.Game.Player;
 namespace LongWayHome.Game.Ui;
 
 /// <summary>
-/// The heads-up display, top-left: the energy bar with "Energy &lt;n&gt; / 150" and, below it, the held item's label.
-/// Redraws when the session raises <see cref="GameSession.PlayerChanged"/> and when the Player's
+/// The heads-up display, top-left: the energy bar with "Energy &lt;n&gt; / 150" and, below it, the held item's label
+/// (with the seed count when a seed is held). Redraws when the session raises <see cref="GameSession.PlayerChanged"/>
+/// or <see cref="GameSession.InventoryChanged"/> and when the Player's
 /// <see cref="HeldItemSelection"/> changes. Holds no rules.
 /// </summary>
 public partial class Hud : CanvasLayer
@@ -47,6 +48,7 @@ public partial class Hud : CanvasLayer
             .FirstOrDefault();
 
         _session.PlayerChanged += Refresh;
+        _session.InventoryChanged += Refresh;
         if (_selection is not null)
         {
             _selection.SelectionChanged += Refresh;
@@ -60,6 +62,7 @@ public partial class Hud : CanvasLayer
         if (_session is not null)
         {
             _session.PlayerChanged -= Refresh;
+            _session.InventoryChanged -= Refresh;
         }
 
         if (_selection is not null)
@@ -73,6 +76,6 @@ public partial class Hud : CanvasLayer
         var energy = _session!.Game.Player.Energy;
         _energyBar.Value = energy;
         _energyLabel.Text = $"Energy {energy} / {PlayerState.MaxEnergy}";
-        _heldLabel.Text = (_selection?.Held ?? HeldItem.Of(ToolId.Hoe)).DisplayLabel;
+        _heldLabel.Text = _session.HeldLabel(_selection?.Held ?? HeldItem.Of(ToolId.Hoe));
     }
 }

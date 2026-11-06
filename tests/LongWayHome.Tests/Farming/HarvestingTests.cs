@@ -199,4 +199,37 @@ public class HarvestingTests
 
         Assert.Equal([new InventoryStack(ItemKind.Crop, CropTypeId.Emberroot, 2)], game.Player.Inventory.Stacks);
     }
+
+    [Fact]
+    public void Tile_harvest_with_a_different_crop_type_throws_and_keeps_the_planting()
+    {
+        var ripe = TestGames.Ripe(CropTypeId.Emberroot);
+        var tile = TestGames.TilledWith(Target, ripe);
+
+        Assert.Throws<ArgumentException>(() => tile.Harvest(TestGames.Crop(CropTypeId.Dusktuber)));
+        Assert.Equal(ripe, tile.Planting);
+    }
+
+    [Fact]
+    public void Game_harvest_with_a_different_crop_type_throws_and_changes_nothing()
+    {
+        var game = TestGames.WithTiles(150, null, TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));
+        var before = TestGames.FullSnapshot(game);
+
+        Assert.Throws<ArgumentException>(() => game.Harvest(Target, TestGames.Crop(CropTypeId.Dusktuber)));
+        Assert.Equal(before, TestGames.FullSnapshot(game));
+    }
+
+    [Fact]
+    public void A_planting_past_its_grow_days_is_not_ripe_and_is_not_harvested()
+    {
+        // AC8: Ripe exactly when DaysGrown == growDays.
+        var game = TestGames.WithTiles(
+            150,
+            null,
+            TestGames.TilledWith(Target, TestGames.PlantingOf(CropTypeId.Emberroot, Emberroot.GrowDays + 1)));
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotRipe), game.Harvest(Target, Emberroot));
+        Assert.NotNull(game.FarmPlot[Target].Planting);
+    }
 }

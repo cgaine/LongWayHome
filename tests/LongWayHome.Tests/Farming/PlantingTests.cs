@@ -304,4 +304,25 @@ public class PlantingTests
         Assert.Equal(game.Date, game.FarmPlot[Target].Planting?.PlantedOn);
         Assert.Equal(0, game.FarmPlot[Target].Planting?.DaysGrown);
     }
+
+    [Fact]
+    public void Restored_farm_plot_rejects_null_tiles()
+    {
+        var tiles = new FarmPlot().Tiles.Select(tile => new Tile(tile.Position)).ToList();
+        tiles[0] = null!;
+
+        Assert.Throws<ArgumentNullException>(() => new FarmPlot(tiles));
+        Assert.Throws<ArgumentNullException>(() => new FarmPlot(null!));
+    }
+
+    [Fact]
+    public void Planting_with_days_grown_set_keeps_it_and_compares_by_value()
+    {
+        var planting = TestGames.PlantingOf(CropTypeId.Dusktuber, 4);
+
+        Assert.Equal(4, planting.DaysGrown);
+        Assert.Equal(new Planting(CropTypeId.Dusktuber, TestGames.FirstDay, 4), planting);
+        Assert.NotEqual(planting with { DaysGrown = 5 }, planting);
+        Assert.Throws<ArgumentOutOfRangeException>(() => planting with { DaysGrown = -1 });
+    }
 }

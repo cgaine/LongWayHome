@@ -243,10 +243,11 @@ public class UseTests
     }
 
     [Theory]
-    [InlineData(ToolId.WateringCan, null)]
-    [InlineData(null, CropTypeId.Emberroot)]
-    [InlineData(null, CropTypeId.Dusktuber)]
-    public void Use_with_an_item_other_than_the_hoe_is_NothingToDo_and_changes_nothing(ToolId? tool, CropTypeId? seed)
+    [InlineData(ToolId.WateringCan, null, Rejection.NothingToDo)]
+    [InlineData(null, CropTypeId.Emberroot, Rejection.NotTilled)]
+    [InlineData(null, CropTypeId.Dusktuber, Rejection.NotTilled)]
+    public void Use_on_grass_with_an_item_other_than_the_hoe_is_rejected_and_changes_nothing(
+        ToolId? tool, CropTypeId? seed, Rejection expected)
     {
         var held = new HeldItem(tool, seed);
         var session = TestGames.NewSession();
@@ -258,8 +259,8 @@ public class UseTests
         var preview = session.PreviewUse(Target, held);
         var result = session.Use(Target, held);
 
-        Assert.Equal(new UsePreview(null, Rejection.NothingToDo), preview);
-        Assert.Equal(ActionResult.Rejected(Rejection.NothingToDo), result);
+        Assert.Equal(new UsePreview(null, expected), preview);
+        Assert.Equal(ActionResult.Rejected(expected), result);
         Assert.Equal(before, TestGames.Snapshot(session.Game));
         Assert.Equal(0, events);
     }
@@ -607,6 +608,94 @@ public class UseTests
 
         Assert.Equal(ActionResult.Ok, harvest);
         Assert.Null(session.Game.FarmPlot[Target].Planting);
+    }
+
+    [Fact]
+    public void Harvest_command_on_a_tile_with_no_planting_is_NoPlanting_and_raises_nothing()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, null));
+        var events = 0;
+        session.TileChanged += _ => events++;
+        session.InventoryChanged += () => events++;
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NoPlanting), session.Harvest(Target));
+        Assert.Equal(ActionResult.Rejected(Rejection.NoPlanting), session.Harvest(new GridPosition(0, 0)));
+        Assert.Equal(0, events);
+    }
+
+    [Fact]
+    public void A_planting_whose_crop_type_has_no_data_is_never_ripe_for_preview_use_or_harvest()
+    {
+        var ripe = TestGames.Ripe(CropTypeId.Emberroot);
+        var data = TestGames.Shipped with
+        {
+            CropTypes = TestGames.Shipped.CropTypes
+                .Where(pair => pair.Key != CropTypeId.Emberroot)
+                .ToDictionary(pair => pair.Key, pair => pair.Value),
+        };
+        var session = new GameSession(TestGames.WithTiles(150, null, TestGames.TilledWith(Target, ripe)), data);
+        var events = 0;
+        session.TileChanged += _ => events++;
+        session.InventoryChanged += () => events++;
+        session.PlayerChanged += () => events++;
+        var before = TestGames.FullSnapshot(session.Game);
+
+        Assert.Equal(new UsePreview(null, Rejection.AlreadyTilled), session.PreviewUse(Target, Hoe));
+        Assert.Equal(new UsePreview(null, Rejection.NothingToDo), session.PreviewUse(Target, Can));
+        Assert.Equal(new UsePreview(null, Rejection.TileOccupied), session.PreviewUse(Target, EmberrootSeeds));
+        Assert.Equal(ActionResult.Rejected(Rejection.TileOccupied), session.Use(Target, EmberrootSeeds));
+        Assert.Equal(ActionResult.Rejected(Rejection.NotRipe), session.Harvest(Target));
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+        Assert.Equal(0, events);
+    }
+
+    [Fact]
+    public void Preview_with_no_target_is_NoTarget_even_with_seeds_held()
+    {
+        var session = TestGames.NewSession();
+
+        Assert.Equal(new UsePreview(null, Rejection.NoTarget), session.PreviewUse(null, EmberrootSeeds));
+        Assert.Equal(ActionResult.Rejected(Rejection.NoTarget), session.Use(null, EmberrootSeeds));
+    }
+
+    [Fact]
+    public void Held_label_for_a_seed_type_with_no_stack_shows_0()
+    {
+        var session = TestGames.NewSession();
+
+        Assert.Equal("Moonmelon seeds × 0", session.HeldLabel(HeldItem.SeedOf(CropTypeId.Moonmelon)));
+    }
+
+    [Fact]
+    public void Held_label_counts_seeds_only_not_crops_of_the_same_type()
+    {
+        var inventory = new Inventory();
+        inventory.Add(ItemKind.Seed, CropTypeId.Dusktuber, 3);
+        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 7);
+        var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
+
+        Assert.Equal("Dusktuber seeds × 3", session.HeldLabel(HeldItem.SeedOf(CropTypeId.Dusktuber)));
+    }
+
+    [Fact]
+    public void Held_label_rejects_a_null_item()
+    {
+        Assert.Throws<ArgumentNullException>(() => TestGames.NewSession().HeldLabel(null!));
+    }
+
+    [Fact]
+    public void Harvest_raises_no_PlayerChanged_because_it_costs_no_energy()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));
+        var playerChanges = 0;
+        session.PlayerChanged += () => playerChanges++;
+
+        session.Use(Target, Hoe);
+        session.Use(new GridPosition(0, 0), Hoe);
+        session.Use(new GridPosition(0, 0), EmberrootSeeds);
+
+        Assert.Equal(1, playerChanges);
+        Assert.Equal(148, session.Game.Player.Energy);
     }
 
     private static GameData WithToolEnergyCost(int cost) =>
