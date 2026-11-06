@@ -57,4 +57,40 @@ public class DisplayProfileTests
     {
         Assert.False(DisplayProfile.ShowFps(args));
     }
+
+    // Art sandbox launch flag (#75).
+
+    public static TheoryData<string[]> ArgsWithArtSandbox => new()
+    {
+        new[] { "--art-sandbox" },
+        new[] { "--show-fps", "--art-sandbox" },
+    };
+
+    public static TheoryData<string[]> ArgsWithoutArtSandbox => new()
+    {
+        Array.Empty<string>(),
+        new[] { "--show-fps" },
+        new[] { "--art" },
+    };
+
+    [Theory]
+    [MemberData(nameof(ArgsWithArtSandbox))]
+    public void AC1_OpensArtSandbox_is_true_when_the_user_args_contain_art_sandbox(string[] args)
+    {
+        Assert.True(DisplayProfile.OpensArtSandbox(args));
+    }
+
+    [Theory]
+    [MemberData(nameof(ArgsWithoutArtSandbox))]
+    public void AC1_OpensArtSandbox_is_false_without_the_art_sandbox_arg(string[] args)
+    {
+        Assert.False(DisplayProfile.OpensArtSandbox(args));
+    }
+
+    [Fact]
+    public void AC1_ShowFps_is_unchanged_by_art_sandbox()
+    {
+        Assert.False(DisplayProfile.ShowFps(new[] { "--art-sandbox" }));
+        Assert.True(DisplayProfile.ShowFps(new[] { "--art-sandbox", "--show-fps" }));
+    }
 }
