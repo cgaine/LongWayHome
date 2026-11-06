@@ -26,8 +26,9 @@ Rejected: rules in node scripts (simple at first, but only testable by running t
 ## 2. Solution structure
 
 ```
-LongWayHome.sln
+LongWayHome.sln                      # everything, including tests; what CI builds and tests
 global.json                          # pins the .NET SDK
+.github/workflows/ci.yml             # CI: build + test with coverage; exports on main
 src/
   LongWayHome.Domain/                # entities, value objects, rules. No dependencies.
   LongWayHome.Application/           # commands, Night processing, ports. → Domain
@@ -35,6 +36,8 @@ src/
 game/                                # the Godot project
   project.godot
   LongWayHome.Game.csproj            # Godot.NET.Sdk; → Application, Infrastructure, Domain
+  LongWayHome.Game.sln               # the solution the Godot editor builds and export requires; game + src
+  export_presets.cfg                 # Windows Desktop and Linux presets used by CI
   data/                              # reference data JSON (crops, shop, tuning)
   scenes/                            # .tscn scenes
   scripts/                           # C# node scripts, by area

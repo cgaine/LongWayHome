@@ -1,0 +1,43 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongWayHome.Game", "LongWayHome.Game.csproj", "{1723AB91-E5E1-4E02-B20F-9CF0B22B50F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongWayHome.Domain", "..\src\LongWayHome.Domain\LongWayHome.Domain.csproj", "{9C407817-D417-4A43-9F4E-3D7425D3017A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongWayHome.Application", "..\src\LongWayHome.Application\LongWayHome.Application.csproj", "{112F22C9-D1C7-48A1-8BC2-7536A723A6C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongWayHome.Infrastructure", "..\src\LongWayHome.Infrastructure\LongWayHome.Infrastructure.csproj", "{3CF7485E-F531-4B51-B0AF-AEF9DB9C111D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		ExportDebug|Any CPU = ExportDebug|Any CPU
+		ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1723AB91-E5E1-4E02-B20F-9CF0B22B50F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1723AB91-E5E1-4E02-B20F-9CF0B22B50F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1723AB91-E5E1-4E02-B20F-9CF0B22B50F2}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{1723AB91-E5E1-4E02-B20F-9CF0B22B50F2}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{1723AB91-E5E1-4E02-B20F-9CF0B22B50F2}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{1723AB91-E5E1-4E02-B20F-9CF0B22B50F2}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{9C407817-D417-4A43-9F4E-3D7425D3017A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C407817-D417-4A43-9F4E-3D7425D3017A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C407817-D417-4A43-9F4E-3D7425D3017A}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C407817-D417-4A43-9F4E-3D7425D3017A}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{9C407817-D417-4A43-9F4E-3D7425D3017A}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{9C407817-D417-4A43-9F4E-3D7425D3017A}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{112F22C9-D1C7-48A1-8BC2-7536A723A6C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{112F22C9-D1C7-48A1-8BC2-7536A723A6C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{112F22C9-D1C7-48A1-8BC2-7536A723A6C7}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{112F22C9-D1C7-48A1-8BC2-7536A723A6C7}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{112F22C9-D1C7-48A1-8BC2-7536A723A6C7}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{112F22C9-D1C7-48A1-8BC2-7536A723A6C7}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{3CF7485E-F531-4B51-B0AF-AEF9DB9C111D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CF7485E-F531-4B51-B0AF-AEF9DB9C111D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CF7485E-F531-4B51-B0AF-AEF9DB9C111D}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CF7485E-F531-4B51-B0AF-AEF9DB9C111D}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{3CF7485E-F531-4B51-B0AF-AEF9DB9C111D}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{3CF7485E-F531-4B51-B0AF-AEF9DB9C111D}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
