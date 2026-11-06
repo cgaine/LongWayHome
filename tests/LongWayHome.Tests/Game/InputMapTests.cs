@@ -1,0 +1,83 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
+
+namespace LongWayHome.Tests.Game;
+
+/// <summary>
+/// Reads the real <c>game/project.godot</c>, linked into the test output by the test project, and checks its
+/// Input Map: every action the game uses is bound to keyboard and mouse and to a controller (REQ-13).
+/// </summary>
+public class InputMapTests
+{
+    private static readonly IReadOnlyDictionary<string, InputAction> Actions = ReadInputMap();
+
+    public static TheoryData<string> AllActions =>
+    [
+        "move_up", "move_down", "move_left", "move_right", "run", "use_tool",
+        "interact", "tool_prev", "tool_next", "open_menu", "pause",
+    ];
+
+    private static readonly string[] MoveActionNames = ["move_up", "move_down", "move_left", "move_right"];
+
+    public static TheoryData<string> MoveActions => new(MoveActionNames);
+
+    [Theory]
+    [MemberData(nameof(AllActions))]
+    public void AC1_action_is_bound_to_keyboard_or_mouse_and_to_a_controller(string action)
+    {
+        Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+        var events = Actions[action].EventTypes;
+
+        Assert.Contains(events, type => type is "InputEventKey" or "InputEventMouseButton");
+        Assert.Contains(events, type => type is "InputEventJoypadButton" or "InputEventJoypadMotion");
+    }
+
+    [Theory]
+    [MemberData(nameof(MoveActions))]
+    public void Move_action_has_a_stick_deadzone_of_0_2(string action)
+    {
+        Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+        Assert.Equal(0.2, Actions[action].Deadzone, precision: 3);
+    }
+
+    [Fact]
+    public void Move_actions_are_bound_to_both_the_left_stick_and_the_d_pad()
+    {
+        foreach (var action in MoveActionNames)
+        {
+            Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+            Assert.Contains("InputEventJoypadMotion", Actions[action].EventTypes);
+            Assert.Contains("InputEventJoypadButton", Actions[action].EventTypes);
+        }
+    }
+
+    private sealed record InputAction(double Deadzone, IReadOnlyList<string> EventTypes);
+
+    private static Dictionary<string, InputAction> ReadInputMap()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "game", "project.godot");
+        var lines = File.ReadAllLines(path);
+
+        var section = lines
+            .SkipWhile(line => line.Trim() != "[input]")
+            .Skip(1)
+            .TakeWhile(line => !Regex.IsMatch(line, @"^\[[a-z_]+\]\s*$"));
+        var text = string.Join("\n", section);
+
+        var actions = new Dictionary<string, InputAction>();
+        foreach (Match entry in Regex.Matches(text, @"^(?<name>[A-Za-z0-9_]+)=\{(?<body>.*?)^\}", RegexOptions.Multiline | RegexOptions.Singleline))
+        {
+            var body = entry.Groups["body"].Value;
+            var deadzone = Regex.Match(body, @"""deadzone""\s*:\s*(?<value>[0-9.]+)");
+            var types = Regex.Matches(body, @"Object\((?<type>[A-Za-z0-9_]+),")
+                .Select(match => match.Groups["type"].Value)
+                .ToList();
+
+            actions[entry.Groups["name"].Value] = new InputAction(
+                deadzone.Success ? double.Parse(deadzone.Groups["value"].Value, CultureInfo.InvariantCulture) : double.NaN,
+                types);
+        }
+
+        return actions;
+    }
+}
