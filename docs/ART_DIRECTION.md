@@ -232,13 +232,27 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Townsfolk page)
 
 **Same world, same build.** The residents share the farmer's chunky proportions (about 3 heads tall), low-poly shading and soft outline, with their own heights and builds (Tom broad and tall, Maggie and Ottlie small, Jesse slight). They read as warm, friendly people first.
 
-**What makes them not quite human** (proposed; the farmer is the only Earth human, section 6.1):
+**What makes them not quite human** (the farmer is the only Earth human, section 6.1). Warm and friendly first, subtly less Earth-human on a second look:
 
 1. **Pointed ears:** a little longer than human ears, angled up and back. Chosen because it reads from the overhead camera, where facial details don't.
-2. **Glow-marks:** three freckle-like dots on each cheek, a shade darker than the skin by day, that glow soft cyan at night, like the planet's glowing plants. Residents are easy to spot across the dark square.
-3. **Hair colours Earth doesn't grow:** teal, lavender-silver and white alongside browns and auburns.
+2. **Cool undertone:** skin stays close to the human range, but the shadows of the face, neck and hands lean slightly blue or green (each resident has their own undertone, below). It reads as a little alien without being obvious; lit skin stays warm.
+3. **Cheek marks:** freckle-like marks on both cheeks, clearly darker than the skin by day, in a pattern unique to each person, like a fingerprint. At night they glow in the same colour as that person's hair glow.
+4. **Hair colours Earth doesn't grow:** teal, lavender-silver and white alongside browns and auburns.
+5. **Glowing hair, only after dark:** a few strands or the tips of the hair glow softly, in each resident's own colour, close to their hair colour. By day, hair looks normal.
 
-Skin tones stay in the human range so the differences stay small and friendly.
+At night, every resident's marks and hair glow in their own colour, so people can be told apart across the dark square.
+
+**Undertone, glow colour and marks:**
+
+| Resident | Undertone (in the shadows) | Glow colour (hair and marks) | Cheek marks |
+| --- | --- | --- | --- |
+| Maggie | Blue-lilac `#6A7AB0` | Lavender `#D8C8FF` | Two rows of stitch-like dots |
+| Clyde | Blue `#4A7A9A` | Teal shimmer `#6FF2E0`; his cap hides his hair, so the shimmer is in his beard tips and the hair at his temples | Two short waves, like ripples |
+| Tom | Green `#4A8A6A` | Warm copper `#FFB870`, in his hair and beard | Three bold dots in a triangle |
+| June | Teal-green `#3E8A7A` | Ember `#FF9A50`, on the edges of her curls | A curve of dots |
+| Jesse | Blue `#5A7AB0` | Mint `#8AFFC8`, on the spike tips and the lock over the eye | One bold dot between two small ones |
+| Mira | Teal-green `#3E7A72` | Indigo `#A89CFF`, a cool glow for very dark hair, mostly in the ponytail | Three short dashes |
+| Ottlie | Blue `#6A8AB0` | Moonlight white `#E0FFFA`, along the braid | A long trail of dots from temple to jaw, spread out with age |
 
 **The residents:**
 
@@ -344,7 +358,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 
 - [x] How alien overall? Decided: a little further than the first draft for buildings, which are "grown, not built" (section 7.1). The rest keeps "familiar at first, different on a second look".
 - [ ] Moon names: Hearth and Wisp, or something else?
-- [ ] Townsfolk differences: proposed pointed ears, glow-marks on the cheeks and non-Earth hair colours (section 6.2). Confirm or change.
+- [x] Townsfolk differences: pointed ears, a cool undertone in the shadows, cheek marks unique to each person, non-Earth hair colours, and hair and marks that glow in each person's own colour after dark (section 6.2)
 - [x] The farmer: fixed character for now; customisation is a future enhancement
 - [x] The farmer: his outfit changes with the story
 - [x] The farmer: chunky proportions, about 3 heads tall
