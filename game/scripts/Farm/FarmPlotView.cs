@@ -10,8 +10,8 @@ namespace LongWayHome.Game.Farm;
 
 /// <summary>
 /// Draws the Farm plot of the current Game: one <see cref="TileView"/> per Tile, placed at
-/// <see cref="FarmGrid.ToWorld"/>, and redraws a Tile when the session raises <see cref="GameSession.TileChanged"/>.
-/// Reads state from the <see cref="GameRoot"/> session. Holds no rules.
+/// <see cref="FarmGrid.ToWorld"/>, and redraws a Tile when the session raises <see cref="GameSession.TileChanged"/>
+/// and every Tile on <see cref="GameSession.NightCompleted"/>. Reads state from the <see cref="GameRoot"/> session. Holds no rules.
 /// </summary>
 public partial class FarmPlotView : Node3D
 {
@@ -43,6 +43,7 @@ public partial class FarmPlotView : Node3D
         }
 
         _session.TileChanged += OnTileChanged;
+        _session.NightCompleted += OnNightCompleted;
     }
 
     public override void _ExitTree()
@@ -50,6 +51,15 @@ public partial class FarmPlotView : Node3D
         if (_session is not null)
         {
             _session.TileChanged -= OnTileChanged;
+            _session.NightCompleted -= OnNightCompleted;
+        }
+    }
+
+    private void OnNightCompleted()
+    {
+        foreach (var position in _views.Keys)
+        {
+            OnTileChanged(position);
         }
     }
 

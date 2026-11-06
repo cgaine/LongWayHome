@@ -17,19 +17,24 @@ namespace LongWayHome.Game.Ui;
 /// Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
 /// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Bottom
 /// centre, above the <see cref="UsePrompt"/>, a "&lt;interact glyph&gt; Refill can" hint shows while the Player is in
-/// range of the pond's <see cref="InteractionPoint"/>; its glyph follows <see cref="LastInputDevice"/>. Top right,
-/// the clock as <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>. Holds no
-/// rules.
+/// range of the pond's <see cref="InteractionPoint"/>, and a "&lt;interact glyph&gt; Sleep" hint in the same place
+/// while in range of the house door's; their glyph follows <see cref="LastInputDevice"/>. Top right, the clock as
+/// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>. Everything is redrawn on
+/// <see cref="GameSession.NightCompleted"/>. Holds no rules.
 /// </summary>
 public partial class Hud : CanvasLayer
 {
     private const string PondPointId = "pond";
+
+    private const string DoorPointId = "door";
 
     private GameSession? _session;
 
     private HeldItemSelection? _selection;
 
     private InteractionPoint? _pond;
+
+    private InteractionPoint? _door;
 
     private LastInputDevice? _device;
 
@@ -43,6 +48,8 @@ public partial class Hud : CanvasLayer
 
     private Label _refillHint = null!;
 
+    private Label _sleepHint = null!;
+
     private Label _clockLabel = null!;
 
     public override void _Ready()
@@ -52,6 +59,7 @@ public partial class Hud : CanvasLayer
         _canLabel = GetNode<Label>("Panel/Rows/CanLabel");
         _heldLabel = GetNode<Label>("Panel/Rows/HeldLabel");
         _refillHint = GetNode<Label>("RefillHint");
+        _sleepHint = GetNode<Label>("SleepHint");
         _clockLabel = GetNode<Label>("ClockLabel");
         _energyBar.MaxValue = PlayerState.MaxEnergy;
 
@@ -70,6 +78,7 @@ public partial class Hud : CanvasLayer
         _session.PlayerChanged += Refresh;
         _session.InventoryChanged += Refresh;
         _session.ClockChanged += RefreshClock;
+        _session.NightCompleted += RefreshAll;
         if (_selection is not null)
         {
             _selection.SelectionChanged += Refresh;
@@ -78,10 +87,10 @@ public partial class Hud : CanvasLayer
         _device = GetNodeOrNull<LastInputDevice>(LastInputDevice.Path);
         if (_device is not null)
         {
-            _device.DeviceChanged += RefreshRefillHint;
+            _device.DeviceChanged += RefreshHints;
         }
 
-        RefreshRefillHint();
+        RefreshHints();
 
         _pond = FindPoint(GetTree().Root, PondPointId);
         if (_pond is not null)
@@ -89,6 +98,14 @@ public partial class Hud : CanvasLayer
             _pond.PlayerEntered += ShowRefillHint;
             _pond.PlayerExited += HideRefillHint;
             _refillHint.Visible = _pond.IsPlayerInRange;
+        }
+
+        _door = FindPoint(GetTree().Root, DoorPointId);
+        if (_door is not null)
+        {
+            _door.PlayerEntered += ShowSleepHint;
+            _door.PlayerExited += HideSleepHint;
+            _sleepHint.Visible = _door.IsPlayerInRange;
         }
 
         Refresh();
@@ -102,6 +119,7 @@ public partial class Hud : CanvasLayer
             _session.PlayerChanged -= Refresh;
             _session.InventoryChanged -= Refresh;
             _session.ClockChanged -= RefreshClock;
+            _session.NightCompleted -= RefreshAll;
         }
 
         if (_selection is not null)
@@ -111,13 +129,19 @@ public partial class Hud : CanvasLayer
 
         if (_device is not null && IsInstanceValid(_device))
         {
-            _device.DeviceChanged -= RefreshRefillHint;
+            _device.DeviceChanged -= RefreshHints;
         }
 
         if (_pond is not null && IsInstanceValid(_pond))
         {
             _pond.PlayerEntered -= ShowRefillHint;
             _pond.PlayerExited -= HideRefillHint;
+        }
+
+        if (_door is not null && IsInstanceValid(_door))
+        {
+            _door.PlayerEntered -= ShowSleepHint;
+            _door.PlayerExited -= HideSleepHint;
         }
     }
 
@@ -143,10 +167,21 @@ public partial class Hud : CanvasLayer
 
     private void HideRefillHint() => _refillHint.Visible = false;
 
-    private void RefreshRefillHint()
+    private void ShowSleepHint() => _sleepHint.Visible = true;
+
+    private void HideSleepHint() => _sleepHint.Visible = false;
+
+    private void RefreshHints()
     {
         var glyph = LastInputDevice.GlyphFor("interact", _device);
         _refillHint.Text = $"{glyph} Refill can";
+        _sleepHint.Text = $"{glyph} Sleep";
+    }
+
+    private void RefreshAll()
+    {
+        Refresh();
+        RefreshClock();
     }
 
     private void RefreshClock() => _clockLabel.Text = ClockText.For(_session!.Game.ClockMinutes);

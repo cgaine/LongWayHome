@@ -14,4 +14,5 @@ public enum Rejection
     NotRipe,
     AlreadyWatered,
     CanEmpty,
+    TooLate,
 }

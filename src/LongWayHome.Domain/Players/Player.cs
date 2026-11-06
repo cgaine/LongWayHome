@@ -38,6 +38,19 @@ public sealed class Player
 
     public Inventory Inventory { get; }
 
+    /// <summary>Starts a new Day with the given energy (BR-P1, BR-P3).</summary>
+    public void StartDay(int energy)
+    {
+        // BR-P1
+        if (energy is < 0 or > MaxEnergy)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(energy), energy, $"Energy must be between 0 and {MaxEnergy} (BR-P1).");
+        }
+
+        Energy = energy;
+    }
+
     /// <summary>Spends energy; returns false and changes nothing when less than the amount is held (BR-P1, BR-P2).</summary>
     public bool TrySpendEnergy(int amount)
     {

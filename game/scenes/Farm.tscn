@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=38 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/World/PondRefill.cs" id="5_pondrefill"]
 [ext_resource type="Script" path="res://scripts/Core/DayClock.cs" id="6_dayclock"]
 [ext_resource type="PackedScene" path="res://ui/PauseMenu.tscn" id="7_pausemenu"]
+[ext_resource type="Script" path="res://scripts/World/DoorSleep.cs" id="8_doorsleep"]
+[ext_resource type="PackedScene" path="res://ui/NightTransition.tscn" id="9_nighttransition"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -223,6 +225,9 @@ script = ExtResource("2_point")
 PointId = "door"
 Range = 1.25
 
+[node name="DoorSleep" type="Node" parent="InteractionPoints/DoorPoint"]
+script = ExtResource("8_doorsleep")
+
 [node name="BinPoint" type="Node3D" parent="InteractionPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -6)
 script = ExtResource("2_point")
@@ -253,3 +258,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.8)
 script = ExtResource("6_dayclock")
 
 [node name="PauseMenu" parent="." instance=ExtResource("7_pausemenu")]
+
+[node name="NightTransition" parent="." instance=ExtResource("9_nighttransition")]

@@ -2,13 +2,16 @@
 
 using System;
 using Godot;
+using LongWayHome.Application.Games;
 using LongWayHome.Game.Core;
 
 namespace LongWayHome.Game.Player;
 
 /// <summary>
 /// Moves the Player on the ground plane from the <c>move_*</c> and <c>run</c> Input Map actions, at the walk and
-/// run speeds from the tuning data, and tracks which way the Player faces. Holds no rules.
+/// run speeds from the tuning data, and tracks which way the Player faces. On
+/// <see cref="GameSession.NightCompleted"/> it returns to where the scene placed it, in front of the house door, at
+/// rest. Holds no rules.
 /// </summary>
 public partial class PlayerController : CharacterBody3D
 {
@@ -18,6 +21,8 @@ public partial class PlayerController : CharacterBody3D
     private Node3D _model = null!;
     private float _walkSpeed;
     private float _runSpeed;
+    private GameSession? _session;
+    private Vector3 _startPosition;
 
     /// <summary>
     /// The last non-zero move direction snapped to north (0,-1), south (0,1), west (-1,0) or east (1,0), where
@@ -29,8 +34,10 @@ public partial class PlayerController : CharacterBody3D
     {
         AddToGroup(Group);
         _model = GetNode<Node3D>("Model");
+        _startPosition = GlobalPosition;
 
-        var data = GetNode<GameRoot>("/root/GameRoot").Data;
+        var root = GetNode<GameRoot>("/root/GameRoot");
+        var data = root.Data;
         if (data is null)
         {
             // GameRoot has already reported the data errors and is quitting.
@@ -41,6 +48,27 @@ public partial class PlayerController : CharacterBody3D
         var tuning = data.Tuning;
         _walkSpeed = (float)tuning.WalkSpeedTilesPerSecond;
         _runSpeed = (float)tuning.RunSpeedTilesPerSecond;
+
+        _session = root.Session;
+        if (_session is not null)
+        {
+            _session.NightCompleted += ReturnToStart;
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        if (_session is not null)
+        {
+            _session.NightCompleted -= ReturnToStart;
+        }
+    }
+
+    /// <summary>Puts the Player back where the scene placed it, in front of the house door, with no velocity.</summary>
+    public void ReturnToStart()
+    {
+        GlobalPosition = _startPosition;
+        Velocity = Vector3.Zero;
     }
 
     public override void _PhysicsProcess(double delta)

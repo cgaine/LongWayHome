@@ -68,6 +68,32 @@ public sealed class Tile
         Watered = true;
     }
 
+    /// <summary>Clears the watered flag (BR-T7 reset).</summary>
+    public void Dry() => Watered = false;
+
+    /// <summary>
+    /// Grows a Growing Planting on a watered Tile by one day (BR-T4); otherwise changes nothing. Never takes a Planting
+    /// past its Crop type's growDays and never removes it (BR-T5). A Crop type that is not the Planting's throws.
+    /// </summary>
+    public void GrowOvernight(CropType cropType)
+    {
+        ArgumentNullException.ThrowIfNull(cropType);
+
+        if (Planting is null)
+        {
+            return;
+        }
+
+        // BR-T4: only a Growing Planting on a watered Tile grows. StatusFor also refuses another Crop type's data.
+        // The day count check keeps a Planting restored past growDays from growing further.
+        if (!Watered || Planting.StatusFor(cropType) != PlantingStatus.Growing || Planting.DaysGrown >= cropType.GrowDays)
+        {
+            return;
+        }
+
+        Planting = Planting with { DaysGrown = Planting.DaysGrown + 1 };
+    }
+
     /// <summary>Puts a Planting on the Tile: NotTilled, then TileOccupied (BR-T3).</summary>
     public ActionResult Plant(Planting planting)
     {
