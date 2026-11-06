@@ -70,7 +70,7 @@ requested on issue #71's pull request.
 - [ ] Once a Deck control is pressed, no mouse cursor shows in the middle of the screen.
 - [ ] Title screen: start a new game, or load a saved game, with the D-pad and `(A)`.
 - [ ] Walk with the left stick, and run by holding `(B)`.
-- [ ] Turn the camera all the way round and zoom it to the nearest and farthest limits with the right stick; the prompts keep showing controller glyphs. With the camera turned, push the left stick forward: the farmer walks away from the camera.
+- [ ] Turn the camera all the way round and zoom it to the nearest and farthest limits with the right stick; the prompts keep showing controller glyphs. With the camera turned, push the left stick forward: the farmer walks away from the camera. Stop: the farmer faces the outlined tile, and the outline is visible even behind the farmer when zoomed in.
 - [ ] Cycle the held item with L1 and R1; the hotbar hint reads `(LB) (RB) Change item`.
 - [ ] Till a Tile, plant a seed and water it, each with `(A)`; every prompt shows a controller glyph.
 - [ ] Refill the can at the pond with `(X)`.
