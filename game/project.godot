@@ -139,3 +139,10 @@ camera_zoom_out={
 [dotnet]
 
 project/assembly_name="LongWayHome.Game"
+
+[shader_globals]
+
+art_stepped_shading={
+"type": "bool",
+"value": false
+}

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Godot;
+using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Game.Ui;
 
@@ -9,17 +10,22 @@ namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// The art sandbox (#75), the script of <c>res://art/sandbox/ArtSandbox.tscn</c>, opened from the title screen with
-/// the <c>--art-sandbox</c> launch flag. Builds, on a 16 x 16 m ground slab:
+/// the <c>--art-sandbox</c> launch flag. Builds, on a 16 x 16 m ground slab (the <c>wall-grey</c> swatch, the
+/// palette's closest neutral):
 /// <list type="bullet">
-/// <item>the palette rows at the back: one 0.8 m cube per <see cref="SandboxPalette"/> swatch (12 to a row, 1.2 m
-/// apart), each with a billboard label giving its role and hex;</item>
-/// <item>the three 1 x 1 m tile slabs at the front: grass, tilled and watered;</item>
+/// <item>the palette rows at the back: one 0.8 m cube per <see cref="ArtPalette"/> swatch, in texture order (11 to a
+/// row, 1.2 m apart), each with a billboard label giving its role and hex;</item>
+/// <item>the three 1 x 1 m tile slabs at the front: <c>grass-lit</c>, <c>soil-tilled</c> and
+/// <c>soil-watered</c>;</item>
 /// <item>the four sample shapes (low-poly sphere, 6-sided trunk, house, cone tree), once on the left and once on the
 /// right, with a label over each set naming the style it shows.</item>
 /// </list>
-/// Every mesh uses <c>low_poly.gdshader</c>. The left set is flat and the right set stepped unless
-/// <see cref="SandboxLook.SidesSwapped"/>; Flat only or Stepped only sets every mesh to that style. In Both mode
-/// the palette cubes, tile slabs and ground stay flat, so the colours read without bands.
+/// Every mesh takes its colour from the shared palette material through <see cref="ArtMaterials.Apply"/> (#76).
+/// Flat only or Stepped only sets the global shader uniform <c>art_stepped_shading</c>, so every mesh shows that
+/// style just as the project-wide switch would. Both keeps the global at its project value and gives the sample
+/// meshes a <c>style_override</c> instance parameter: the left set flat and the right set stepped unless
+/// <see cref="SandboxLook.SidesSwapped"/>. The palette cubes, tile slabs and ground never get an override, so they
+/// always follow the global. Leaving the sandbox restores the global to the project value.
 /// Controls, all Input Map actions (REQ-13): <c>tool_next</c>/<c>tool_prev</c> step through the light presets,
 /// <c>use_tool</c> swaps the sides, <c>interact</c> steps the style mode, <c>pause</c> returns to the title screen,
 /// and <see cref="SandboxCamera"/> turns and zooms on the <c>camera_*</c> actions. The top-left label shows
@@ -28,7 +34,9 @@ namespace LongWayHome.Game.Art;
 /// </summary>
 public partial class ArtSandbox : Node3D
 {
-    private const string ShaderPath = "res://art/shaders/low_poly.gdshader";
+    private const string SteppedGlobal = "art_stepped_shading";
+
+    private const string StyleOverride = "style_override";
 
     private const string TitleScene = "res://scenes/Main.tscn";
 
@@ -38,12 +46,18 @@ public partial class ArtSandbox : Node3D
 
     private const float CubeSpacing = 1.2f;
 
-    private const int CubesPerRow = 12;
+    private const int CubesPerRow = 11;
 
     /// <summary>The z of the back palette row; each further row is <see cref="PaletteRowSpacing"/> in front.</summary>
-    private const float PaletteBackRowZ = -7.6f;
+    private const float PaletteBackRowZ = -7.4f;
 
-    private const float PaletteRowSpacing = 3.2f;
+    private const float PaletteRowSpacing = 1.9f;
+
+    /// <summary>The z of the two sample-shape sets, clear of the front palette row's labels.</summary>
+    private const float ShapesZ = 1.2f;
+
+    /// <summary>The z of the tile slabs, in front of the sample shapes.</summary>
+    private const float TilesZ = 4.5f;
 
     /// <summary>
     /// The light presets, ART_DIRECTION §3 and the issue's table. A reviewer may tune these values; nothing else
@@ -76,9 +90,8 @@ public partial class ArtSandbox : Node3D
     /// <summary>Wisp, the small blue-white moon: from the east-south-east, lower, so its shadow falls west.</summary>
     private static readonly MoonSettings Wisp = new("Wisp", new Color("#CFE2FF"), 0.2f, Elevation: 30f, Azimuth: 290f);
 
-    private readonly List<(ShaderMaterial Material, Side Side)> _samples = new();
-
-    private Shader _shader = null!;
+    /// <summary>The sample-shape meshes, which get a <c>style_override</c> in Both mode.</summary>
+    private readonly List<(GeometryInstance3D Node, Side Side)> _samples = new();
 
     private SandboxLook _look = SandboxLook.Default;
 
@@ -100,12 +113,11 @@ public partial class ArtSandbox : Node3D
 
     private bool _leaving;
 
-    /// <summary>Which set a material belongs to: the left or right sample set, or neither (palette, tiles, ground).</summary>
+    /// <summary>Which sample set a mesh belongs to.</summary>
     private enum Side
     {
         Left,
         Right,
-        Neutral,
     }
 
     /// <summary>The camera, public so a probe can read its view.</summary>
@@ -116,8 +128,6 @@ public partial class ArtSandbox : Node3D
 
     public override void _Ready()
     {
-        _shader = GD.Load<Shader>(ShaderPath);
-
         BuildEnvironment();
         BuildGround();
         BuildPalette();
@@ -129,6 +139,12 @@ public partial class ArtSandbox : Node3D
         AddChild(Camera);
 
         Apply();
+    }
+
+    public override void _ExitTree()
+    {
+        // Flat only and Stepped only override the project-wide style; don't let that leak into the next scene.
+        RenderingServer.GlobalShaderParameterSet(SteppedGlobal, ProjectStepped());
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -189,20 +205,28 @@ public partial class ArtSandbox : Node3D
     {
         ApplyLight(Presets[_look.Preset]);
 
-        // In Both mode the left set is flat and the right stepped unless swapped, and everything else stays flat.
         var leftStepped = SteppedIn(_look.Mode, inBoth: _look.SidesSwapped);
         var rightStepped = SteppedIn(_look.Mode, inBoth: !_look.SidesSwapped);
-        var neutralStepped = SteppedIn(_look.Mode, inBoth: false);
 
-        foreach (var (material, side) in _samples)
+        if (_look.Mode == StyleMode.Both)
         {
-            var stepped = side switch
+            // The left set flat and the right stepped unless swapped, through per-mesh overrides. The global stays at
+            // the project value, which the palette cubes, tiles and ground follow.
+            RenderingServer.GlobalShaderParameterSet(SteppedGlobal, ProjectStepped());
+            foreach (var (node, side) in _samples)
             {
-                Side.Left => leftStepped,
-                Side.Right => rightStepped,
-                _ => neutralStepped,
-            };
-            material.SetShaderParameter("stepped", stepped);
+                var stepped = side == Side.Left ? leftStepped : rightStepped;
+                node.SetInstanceShaderParameter(StyleOverride, stepped ? 1 : 0);
+            }
+        }
+        else
+        {
+            // Both sides show the same style here: set it project-wide and let every mesh follow it.
+            RenderingServer.GlobalShaderParameterSet(SteppedGlobal, leftStepped);
+            foreach (var (node, _) in _samples)
+            {
+                node.SetInstanceShaderParameter(StyleOverride, -1);
+            }
         }
 
         _leftStyleLabel.Text = StyleName(leftStepped);
@@ -218,6 +242,23 @@ public partial class ArtSandbox : Node3D
     };
 
     private static string StyleName(bool stepped) => stepped ? "Stepped" : "Flat";
+
+    /// <summary>
+    /// The project's <c>art_stepped_shading</c> value. Godot stores a shader global as a dictionary with
+    /// <c>"type"</c> and <c>"value"</c>; anything else counts as flat.
+    /// </summary>
+    private static bool ProjectStepped()
+    {
+        var setting = ProjectSettings.GetSetting($"shader_globals/{SteppedGlobal}");
+        if (setting.VariantType == Variant.Type.Dictionary
+            && setting.AsGodotDictionary().TryGetValue("value", out var value)
+            && value.VariantType == Variant.Type.Bool)
+        {
+            return value.AsBool();
+        }
+
+        return setting.VariantType == Variant.Type.Bool && setting.AsBool();
+    }
 
     private void ApplyLight(LightSettings settings)
     {
@@ -279,13 +320,12 @@ public partial class ArtSandbox : Node3D
 
     private void BuildGround()
     {
-        // A neutral lilac-grey, so the tiles and samples are judged against no palette colour in particular.
+        // wall-grey, the palette's closest neutral, so the tiles and samples are judged against no strong colour.
         AddMesh(
             "Ground",
             new BoxMesh { Size = new Vector3(GroundSize, 0.1f, GroundSize) },
             new Vector3(0f, -0.05f, 0f),
-            new Color("#77737D"),
-            Side.Neutral);
+            "wall-grey");
     }
 
     private void BuildPalette()
@@ -293,7 +333,7 @@ public partial class ArtSandbox : Node3D
         var palette = new Node3D { Name = "Palette" };
         AddChild(palette);
 
-        var swatches = SandboxPalette.Swatches;
+        var swatches = ArtPalette.Swatches;
         for (var i = 0; i < swatches.Count; i++)
         {
             var row = i / CubesPerRow;
@@ -309,9 +349,8 @@ public partial class ArtSandbox : Node3D
                 $"Swatch{i + 1}",
                 new BoxMesh { Size = new Vector3(CubeSize, CubeSize, CubeSize) },
                 new Vector3(x, CubeSize / 2f, z),
-                new Color(swatch.Hex),
-                Side.Neutral,
-                palette);
+                swatch.Role,
+                parent: palette);
 
             palette.AddChild(new Label3D
             {
@@ -332,16 +371,15 @@ public partial class ArtSandbox : Node3D
     {
         var tiles = new Node3D { Name = "Tiles" };
         AddChild(tiles);
-        (string Name, string Hex)[] slabs = [("Grass", "#7FA65A"), ("Tilled", "#8A5A3C"), ("Watered", "#4A3226")];
+        (string Name, string Role)[] slabs = [("Grass", "grass-lit"), ("Tilled", "soil-tilled"), ("Watered", "soil-watered")];
         for (var i = 0; i < slabs.Length; i++)
         {
             AddMesh(
                 $"{slabs[i].Name}Tile",
                 new BoxMesh { Size = new Vector3(1f, 0.05f, 1f) },
-                new Vector3((i - 1) * 1.1f, 0.025f, 4.5f),
-                new Color(slabs[i].Hex),
-                Side.Neutral,
-                tiles);
+                new Vector3((i - 1) * 1.1f, 0.025f, TilesZ),
+                slabs[i].Role,
+                parent: tiles);
         }
     }
 
@@ -354,27 +392,24 @@ public partial class ArtSandbox : Node3D
     /// <summary>One set of the four shapes, on the left (<paramref name="sign"/> -1) or right (+1) of the centre.</summary>
     private Label3D BuildShapeSet(string name, float sign, Side side)
     {
-        var set = new Node3D { Name = name, Position = new Vector3(sign * 4.2f, 0f, 0.5f) };
+        var set = new Node3D { Name = name, Position = new Vector3(sign * 4.2f, 0f, ShapesZ) };
         AddChild(set);
 
-        var stone = new Color("#8F8A96");
-        var trunk = new Color("#6B5A78");
-
         AddMesh("Sphere", new SphereMesh { Radius = 0.5f, Height = 1f, RadialSegments = 8, Rings = 4 },
-            new Vector3(-2.25f, 0.5f, 0f), stone, side, set);
+            new Vector3(-2.25f, 0.5f, 0f), "stone", side, set);
 
         AddMesh("Trunk", new CylinderMesh { TopRadius = 0.25f, BottomRadius = 0.3f, Height = 1.4f, RadialSegments = 6, Rings = 1 },
-            new Vector3(-0.75f, 0.7f, 0f), trunk, side, set);
+            new Vector3(-0.75f, 0.7f, 0f), "trunk", side, set);
 
         AddMesh("HouseWalls", new BoxMesh { Size = new Vector3(1f, 0.8f, 1f) },
-            new Vector3(0.75f, 0.4f, 0f), new Color("#9C7E8C"), side, set);
+            new Vector3(0.75f, 0.4f, 0f), "timber", side, set);
         AddMesh("HouseRoof", new PrismMesh { Size = new Vector3(1.2f, 0.55f, 1.1f) },
-            new Vector3(0.75f, 0.8f + 0.275f, 0f), new Color("#E9773A"), side, set);
+            new Vector3(0.75f, 0.8f + 0.275f, 0f), "ember", side, set);
 
         AddMesh("TreeTrunk", new CylinderMesh { TopRadius = 0.1f, BottomRadius = 0.12f, Height = 0.5f, RadialSegments = 6, Rings = 1 },
-            new Vector3(2.25f, 0.25f, 0f), trunk, side, set);
+            new Vector3(2.25f, 0.25f, 0f), "trunk", side, set);
         AddMesh("TreeFoliage", new CylinderMesh { TopRadius = 0f, BottomRadius = 0.55f, Height = 1.4f, RadialSegments = 8, Rings = 1 },
-            new Vector3(2.25f, 0.5f + 0.7f, 0f), new Color("#3E8F82"), side, set);
+            new Vector3(2.25f, 0.5f + 0.7f, 0f), "foliage", side, set);
 
         var label = new Label3D
         {
@@ -420,13 +455,19 @@ public partial class ArtSandbox : Node3D
         }
     }
 
-    private MeshInstance3D AddMesh(string name, Mesh mesh, Vector3 position, Color colour, Side side, Node? parent = null)
+    /// <summary>
+    /// Adds a mesh coloured with <paramref name="role"/>'s swatch. With a <paramref name="side"/> it is a sample mesh,
+    /// which gets a style override in Both mode; without one it always follows the global style.
+    /// </summary>
+    private MeshInstance3D AddMesh(string name, Mesh mesh, Vector3 position, string role, Side? side = null, Node? parent = null)
     {
-        var material = new ShaderMaterial { Shader = _shader };
-        material.SetShaderParameter("albedo", colour);
-        _samples.Add((material, side));
+        var instance = new MeshInstance3D { Name = name, Mesh = mesh, Position = position };
+        ArtMaterials.Apply(instance, role);
+        if (side is { } sampleSide)
+        {
+            _samples.Add((instance, sampleSide));
+        }
 
-        var instance = new MeshInstance3D { Name = name, Mesh = mesh, Position = position, MaterialOverride = material };
         (parent ?? this).AddChild(instance);
         return instance;
     }

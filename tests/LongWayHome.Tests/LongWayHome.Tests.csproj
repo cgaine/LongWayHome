@@ -33,7 +33,6 @@
   <ItemGroup>
     <!-- The art sandbox's pure C# look and palette (#75), compiled in so they can be unit-tested. -->
     <Compile Include="..\..\game\art\sandbox\SandboxLook.cs" Link="Art\Sandbox\SandboxLook.cs" />
-    <Compile Include="..\..\game\art\sandbox\SandboxPalette.cs" Link="Art\Sandbox\SandboxPalette.cs" />
   </ItemGroup>
 
   <ItemGroup>
