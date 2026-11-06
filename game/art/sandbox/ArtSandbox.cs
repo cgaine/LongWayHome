@@ -11,8 +11,8 @@ namespace LongWayHome.Game.Art;
 /// The art sandbox (#75), the script of <c>res://art/sandbox/ArtSandbox.tscn</c>, opened from the title screen with
 /// the <c>--art-sandbox</c> launch flag. Builds, on a 16 x 16 m ground slab:
 /// <list type="bullet">
-/// <item>the palette rows at the back: one 0.8 m cube per <see cref="SandboxPalette"/> swatch (12 in the first row,
-/// 11 in the second, 1.2 m apart), each with a billboard label giving its role and hex;</item>
+/// <item>the palette rows at the back: one 0.8 m cube per <see cref="SandboxPalette"/> swatch (12 to a row, 1.2 m
+/// apart), each with a billboard label giving its role and hex;</item>
 /// <item>the three 1 x 1 m tile slabs at the front: grass, tilled and watered;</item>
 /// <item>the four sample shapes (low-poly sphere, 6-sided trunk, house, cone tree), once on the left and once on the
 /// right, with a label over each set naming the style it shows.</item>
@@ -39,6 +39,11 @@ public partial class ArtSandbox : Node3D
     private const float CubeSpacing = 1.2f;
 
     private const int CubesPerRow = 12;
+
+    /// <summary>The z of the back palette row; each further row is <see cref="PaletteRowSpacing"/> in front.</summary>
+    private const float PaletteBackRowZ = -7.6f;
+
+    private const float PaletteRowSpacing = 3.2f;
 
     /// <summary>
     /// The light presets, ART_DIRECTION §3 and the issue's table. A reviewer may tune these values; nothing else
@@ -184,19 +189,10 @@ public partial class ArtSandbox : Node3D
     {
         ApplyLight(Presets[_look.Preset]);
 
-        var leftStepped = _look.Mode switch
-        {
-            StyleMode.FlatOnly => false,
-            StyleMode.SteppedOnly => true,
-            _ => _look.SidesSwapped,
-        };
-        var rightStepped = _look.Mode switch
-        {
-            StyleMode.FlatOnly => false,
-            StyleMode.SteppedOnly => true,
-            _ => !_look.SidesSwapped,
-        };
-        var neutralStepped = _look.Mode == StyleMode.SteppedOnly;
+        // In Both mode the left set is flat and the right stepped unless swapped, and everything else stays flat.
+        var leftStepped = SteppedIn(_look.Mode, inBoth: _look.SidesSwapped);
+        var rightStepped = SteppedIn(_look.Mode, inBoth: !_look.SidesSwapped);
+        var neutralStepped = SteppedIn(_look.Mode, inBoth: false);
 
         foreach (var (material, side) in _samples)
         {
@@ -213,6 +209,13 @@ public partial class ArtSandbox : Node3D
         _rightStyleLabel.Text = StyleName(rightStepped);
         _label.Text = _look.Label;
     }
+
+    private static bool SteppedIn(StyleMode mode, bool inBoth) => mode switch
+    {
+        StyleMode.FlatOnly => false,
+        StyleMode.SteppedOnly => true,
+        _ => inBoth,
+    };
 
     private static string StyleName(bool stepped) => stepped ? "Stepped" : "Flat";
 
@@ -295,11 +298,11 @@ public partial class ArtSandbox : Node3D
         {
             var row = i / CubesPerRow;
             var column = i % CubesPerRow;
-            var inRow = row == 0 ? CubesPerRow : swatches.Count - CubesPerRow;
+            var inRow = Mathf.Min(CubesPerRow, swatches.Count - row * CubesPerRow);
             var x = (column - (inRow - 1) / 2f) * CubeSpacing;
-            // The first row at the back, the second in front of it. Each label lies just in front of its cube, so from
-            // the camera's raised view it shows under the cube rather than hidden behind it.
-            var z = row == 0 ? -7.6f : -4.4f;
+            // The first row at the back, each next one in front of it. Each label lies just in front of its cube, so
+            // from the camera's raised view it shows under the cube rather than hidden behind it.
+            var z = PaletteBackRowZ + row * PaletteRowSpacing;
             var swatch = swatches[i];
 
             AddMesh(
