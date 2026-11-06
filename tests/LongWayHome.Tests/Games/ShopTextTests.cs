@@ -49,6 +49,18 @@ public class ShopTextTests
     }
 
     [Fact]
+    public void Row_of_a_listing_with_no_crop_type_throws()
+    {
+        Assert.Throws<ArgumentException>(() => ShopText.Row(Listing("can_upgrade"), TestGames.Shipped));
+    }
+
+    [Fact]
+    public void Rejection_text_of_a_non_shop_rejection_throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ShopText.Rejection(Rejection.TooTired));
+    }
+
+    [Fact]
     public void AC2_no_seeds_text_is_no_seeds_this_season()
     {
         Assert.Equal("No seeds this season", ShopText.NoSeeds);

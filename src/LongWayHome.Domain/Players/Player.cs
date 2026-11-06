@@ -76,5 +76,17 @@ public sealed class Player
     }
 
     /// <summary>Spends gold; returns false and changes nothing when less than the amount is held (BR-L2, BR-P5).</summary>
-    public bool TrySpendGold(int amount) => throw new NotImplementedException();
+    public bool TrySpendGold(int amount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+
+        // BR-L2, BR-P5: a purchase is refused rather than taking gold below 0.
+        if (Gold.Value < amount)
+        {
+            return false;
+        }
+
+        Gold = new Gold(Gold.Value - amount);
+        return true;
+    }
 }

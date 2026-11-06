@@ -293,10 +293,23 @@ public sealed class GameSession
     }
 
     /// <summary>The Shop listings offered today (BR-L1), from <see cref="ShopService.Offers"/>.</summary>
-    public IReadOnlyList<ShopListing> ShopOffers() => throw new NotImplementedException();
+    public IReadOnlyList<ShopListing> ShopOffers() => ShopService.Offers(Game, Data);
 
-    /// <summary>Buys a Shop listing (BR-L2). Raises PlayerChanged and InventoryChanged on success.</summary>
-    public ActionResult Buy(string listingId, int quantity = 1) => throw new NotImplementedException();
+    /// <summary>
+    /// Buys a Shop listing (BR-L2) through <see cref="ShopService.Buy"/>. Raises PlayerChanged and InventoryChanged on
+    /// success and nothing on a rejection.
+    /// </summary>
+    public ActionResult Buy(string listingId, int quantity = 1)
+    {
+        var result = ShopService.Buy(Game, Data, listingId, quantity);
+        if (result.IsOk)
+        {
+            PlayerChanged?.Invoke();
+            InventoryChanged?.Invoke();
+        }
+
+        return result;
+    }
 
     /// <summary>The HUD label for a held item: "Hoe", "Watering can", or "Emberroot seeds × 9".</summary>
     public string HeldLabel(HeldItem held)

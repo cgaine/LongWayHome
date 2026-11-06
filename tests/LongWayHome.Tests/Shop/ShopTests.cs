@@ -224,6 +224,18 @@ public class ShopTests
     }
 
     [Fact]
+    public void BR_L2_a_seed_stack_past_int_max_throws_overflow_and_takes_no_gold()
+    {
+        var inventory = new Inventory();
+        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, int.MaxValue);
+        var game = TestGames.WithGold(100, TestGames.FirstDay, inventory);
+        var before = Snapshot(game);
+
+        Assert.Throws<OverflowException>(() => ShopService.Buy(game, TestGames.Shipped, "seed_emberroot"));
+        Assert.Equal(before, Snapshot(game));
+    }
+
+    [Fact]
     public void BR_P2_buying_spends_no_energy()
     {
         var game = TestGames.WithGold(100);
