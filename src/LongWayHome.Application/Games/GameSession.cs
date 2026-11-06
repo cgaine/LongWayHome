@@ -136,6 +136,22 @@ public sealed class GameSession
         return items.AsReadOnly();
     }
 
+    /// <summary>
+    /// The HUD hotbar: one slot per item in <see cref="HeldItems"/>, labelled as <see cref="HeldLabel"/>, with the held
+    /// item selected (the Hoe when the held item is not in the cycle).
+    /// </summary>
+    public IReadOnlyList<HotbarSlot> Hotbar(HeldItem held)
+    {
+        ArgumentNullException.ThrowIfNull(held);
+
+        var items = HeldItems();
+        var selected = items.Contains(held) ? held : HeldItem.Of(ToolId.Hoe);
+        return items
+            .Select(item => new HotbarSlot(item, HeldLabel(item), item == selected))
+            .ToList()
+            .AsReadOnly();
+    }
+
     /// <summary>Decides what Use would do, without changing state.</summary>
     public UsePreview PreviewUse(GridPosition? target, HeldItem held)
     {
