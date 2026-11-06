@@ -1,0 +1,19 @@
+{
+  "startingGold": 100,
+  "startingSeeds": [
+    { "cropTypeId": "emberroot", "quantity": 10 },
+    { "cropTypeId": "dusktuber", "quantity": 5 }
+  ],
+  "maxEnergy": 150,
+  "passOutEnergy": 75,
+  "toolEnergyCost": 2,
+  "canCapacity": 20,
+  "canUpgradedCapacity": 40,
+  "dayStartMinutes": 360,
+  "dayEndMinutes": 1560,
+  "dayLengthRealSeconds": 720,
+  "rainChancePercent": 22,
+  "seasonLengthDays": 28,
+  "walkSpeedTilesPerSecond": 3.6,
+  "runSpeedTilesPerSecond": 5.2
+}
