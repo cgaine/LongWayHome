@@ -2,7 +2,8 @@ namespace LongWayHome.Tests.Game;
 
 /// <summary>
 /// Reads the real game files to check the art sandbox (#75) is reached only through the title menu's
-/// <c>--art-sandbox</c> flag and that gameplay scenes and scripts stay apart from <c>game/art/</c>.
+/// <c>--art-sandbox</c> flag, that gameplay scenes never reference <c>game/art/sandbox/</c>, and that gameplay scripts
+/// stay apart from <c>game/art/</c>.
 /// </summary>
 public class ArtSandboxSceneTests
 {
@@ -42,7 +43,15 @@ public class ArtSandboxSceneTests
             .ToList();
         Assert.NotEmpty(scripts);
 
-        foreach (var path in scenes.Concat(scripts))
+        // Gameplay scenes may instance art scenes and use the shared material (#77, ART_DIRECTION §8), but never the
+        // sandbox.
+        foreach (var path in scenes)
+        {
+            var text = File.ReadAllText(path);
+            Assert.False(text.Contains("res://art/sandbox/"), $"{path} references res://art/sandbox/");
+        }
+
+        foreach (var path in scripts)
         {
             var text = File.ReadAllText(path);
             Assert.False(text.Contains("res://art/"), $"{path} references res://art/");
