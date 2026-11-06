@@ -20,13 +20,21 @@ public static class NightProcessor
 
     /// <summary>
     /// Runs the Night steps on a Game whose Day ended for the given reason, rolling the next Day's weather once from
-    /// the random source (BR-G4).
+    /// the random source (BR-G4). Saves nowhere.
     /// </summary>
-    public static void Run(Game game, GameData data, DayEndReason reason, IRandomSource random)
+    public static void Run(Game game, GameData data, DayEndReason reason, IRandomSource random) =>
+        Run(game, data, reason, random, static _ => { });
+
+    /// <summary>
+    /// As <see cref="Run(Game, GameData, DayEndReason, IRandomSource)"/>, then calls <paramref name="save"/> once as
+    /// the very last step, after every other Night step (BR-G5).
+    /// </summary>
+    public static void Run(Game game, GameData data, DayEndReason reason, IRandomSource random, Action<Game> save)
     {
         ArgumentNullException.ThrowIfNull(game);
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(random);
+        ArgumentNullException.ThrowIfNull(save);
 
         // BR-P3: a full night's sleep restores MaxEnergy; passing out wakes with PassOutEnergy. Worked out and
         // checked (BR-P1) before any step changes the Game, so a bad reason or energy leaves the Game as it was.
@@ -72,6 +80,7 @@ public static class NightProcessor
         // BR-P3: wake with the energy worked out above.
         game.StartNextDay(reason, energy, tuning.DayStartMinutes);
 
-        // BR-G5: save at the end of the Night goes here (epic #12).
+        // BR-G5: the save is the Night's last step, so the saved Game is the next morning's.
+        save(game);
     }
 }
