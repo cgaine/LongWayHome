@@ -2,7 +2,7 @@
 
 Nov 5, 2026 · @Chris Gaine
 
-> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 88). The live doc is the source of truth; re-export here as it evolves.
+> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 145). The live doc is the source of truth; re-export here as it evolves.
 
 Long Way Home is a cozy 3D farming game (working title chosen 2026-11-05; the browser prototype is still called Little Acre, v0.1). This doc tracks how its systems connect, the numbers behind them, and what to build next. The title may change before release: three space-themed games on Steam already use "A Long Way Home" or "The Long Way Home", one of them with farming, so a subtitle or different name may be needed.
 
@@ -48,9 +48,20 @@ These are the values hard-coded in the v0.1 prototype. Where later sections diff
 
 | ID | Name | Grow time (days) | Seed cost (g) | Sell price (g) | Season | Regrows |
 | --- | --- | --- | --- | --- | --- | --- |
-| carrot | Carrot | 3 | 15 | 35 | Spring | No |
-| potato | Potato | 5 | 30 | 75 | Spring | No |
-| pumpkin | Pumpkin | 8 | 60 | 190 | Fall | No |
+| emberroot | Emberroot | 3 | 15 | 35 | Spring | No |
+| dusktuber | Dusktuber | 5 | 30 | 75 | Spring | No |
+| moonmelon | Moonmelon | 8 | 60 | 190 | Fall | No |
+
+Name mapping: the v0.1 browser prototype and any earlier notes use Earth crop names. They map to the native crops as follows.
+
+| Prototype ID | New ID | Season |
+| --- | --- | --- |
+| carrot | emberroot | Spring |
+| potato | dusktuber | Spring |
+| pumpkin | moonmelon | Fall |
+| tomato (planned) | sunbell | Summer |
+| corn (planned) | starcorn | Summer |
+| squash (planned) | coilsquash | Fall |
 
 ### Tools and upgrades
 
@@ -64,6 +75,8 @@ These are the values hard-coded in the v0.1 prototype. Where later sections diff
 ### Tool upgrade levels (draft)
 
 Each tool (hoe, watering can, axe, pickaxe) upgrades through the same levels at Mira's blacksmith. Upgrade costs to be decided.
+
+Metal names: the tiers are Basic, Rosk (copper tier), Groth (iron tier) and Forgelight (steel tier, Groth forged with Embrite). Where this doc says Copper, Iron or Steel, read Rosk, Groth or Forgelight.
 
 | Level | Available from | Hoe | Watering can | Axe | Pickaxe |
 | --- | --- | --- | --- | --- | --- |
@@ -104,9 +117,9 @@ Pumpkins earn the most on every measure, about 2.4x carrots per tile per day, so
 
 | Crop | Profit per harvest (g) | Gold per tile per day | Upfront cost per tile (g) |
 | --- | --- | --- | --- |
-| Carrot | 20 | 6.7 | 15 |
-| Potato | 45 | 9.0 | 30 |
-| Pumpkin | 130 | 16.3 | 60 |
+| Emberroot | 20 | 6.7 | 15 |
+| Dusktuber | 45 | 9.0 | 30 |
+| Moonmelon | 130 | 16.3 | 60 |
 
 Each growing day costs 2 energy to water, so gold per energy is half the gold per tile per day.
 
@@ -132,6 +145,8 @@ You restore Ember Bay, an emptied lakeside town. At the start only one or two bu
 
 A space traveller crash-lands on a planet of a humanoid species, near the emptied town. His goal is to restore his ship and return to space. Along the way he meets the townspeople, builds a life, and rebuilds the town with the same resources he gathers for the ship. The ending is left open for now.
 
+Alien flavour: a bit more than a light touch. Ember Bay should feel cozy and familiar but clearly not Earth. Ideas: native plants that glow or grow oddly, a few local crops and fish alongside familiar ones, humanoid townsfolk with small differences, and an alien night sky (e.g. two moons).
+
 Why Ember Bay emptied: years ago a dam raised the lake. It drowned the lower town and flooded the deep levels of the mine. With the mine gone, the work dried up and families left.
 
 The flooded mine is the main progression gate. To go deeper, you shore up each flooded level (sealing or pumping it, with parts from Mira and Tom). Once a level is shored up it stays open for good; the next level down needs its own work.
@@ -150,6 +165,40 @@ Pattern: every fifth level needs a pump forged by Mira. The levels in between ne
 
 Depth: about 60 levels to start, so 12 pump levels (every fifth level).
 
+Early mine, levels 1–5 (draft):
+
+Access: the mine opens early, when you buy the pickaxe: Maggie mentions the old mine and the boards over the entrance come down. You can explore and get used to it early, but the flooding soon blocks you, a clue that something is wrong and a goal to work toward.
+
+Maggie's mine story (draft, told when you buy the pickaxe): the mine was the heart of Ember Bay and half the town worked there. When the dam went in, water rose through the deep tunnels almost overnight. Clyde helped pull the last miners out. Mira's father, Harlan, spent years forging pumps to drain it, but none held, and folks drifted away. Nobody has been down in years, and old-timers spoke of lights in the deep levels that weren't lanterns.
+
+- Resources: rocks for stone, copper ore for Mira's first tool upgrades, glimmercaps, the odd relic
+- Each level: clear debris with the pickaxe, then shore up the walls with planks and stone
+- Travel: a ladder or lift lets you return straight to any cleared level
+- No danger in this version, only energy cost; danger (creatures, collapses) is a future enhancement
+- Level 5: the first flooded level, drained with Mira's first pump, so the deeper mine is gated behind the blacksmith
+
+Ore and tool upgrades: tool upgrades are earned by collecting materials in the mine.
+
+| Where | What you get | Used for |
+| --- | --- | --- |
+| Rocks outside the mine | Stone only | Rebuilds, shoring |
+| Mine levels 1–15 | Rosk ore | Rosk tools |
+| Mine levels 15–30 | Groth ore | Groth tools |
+| Deeper levels | Embrite, a rare native glowing mineral | Mira forges it with Groth into Forgelight, for Forgelight tools |
+
+Pumps (draft): Mira forges each pump overnight from materials you bring. Rosk pumps (Rosk ore plus Tom's planks) for levels 5–15, available from blacksmith stage 1; Groth pumps for levels 20–30; Forgelight pumps for level 35 and deeper. Each pump needs metal from the levels just above it. First pump (level 5), draft: 20 Rosk ore, 30 planks, 500 gold; later prices set in playtesting.
+
+Pacing: no hard gate on how fast you go down; the mine is free to explore at any pace, as in Stardew. The cost is the brake: every level needs wood supports to shore it up, and pumps (every fifth level) are expensive, getting much more so deeper down, so reaching the bottom takes real time and resources. No company or faction choice.
+
+Shoring (draft): levels 1–4 are above the water and only need debris cleared with the pickaxe. Level 5 is the first flooded level and needs the first pump. From level 6 on, each level is shored up with sealed planks: planks treated with sap from native trees, which glows and hardens waterproof. Sap comes from chopping trees, so going deeper also means more time in the forest. Sealed planks per level:
+
+| Levels | Sealed planks per level |
+| --- | --- |
+| 6–15 | 10 |
+| 16–30 | 20 |
+| 31–45 | 30 |
+| 46–60 | 40 |
+
 The key ship parts lie in the mine, and each milestone deeper down gets him one step closer. The parts below are a first pass:
 
 | Mine depth | Ship part (draft) |
@@ -160,6 +209,8 @@ The key ship parts lie in the mine, and each milestone deeper down gets him one 
 | Level 60 (bottom) | Engine core |
 
 Idea to explore: some parts need the town to finish them, e.g. the blacksmith forges the alloy into plating, Tom builds a launch frame.
+
+Crash site (draft): fairly remote, in the forest at the base of the mountains near the mine entrance, hidden from town. The hull is half-buried with the power out. Inside are four empty slots for the power cell, navigation crystal, hull alloy and engine core; each installed part lights up a section of the ship, so progress is visible. Only Maggie knows at first; Mira and others learn through their lantern stories.
 
 ## First building: General store
 
@@ -178,32 +229,77 @@ Backpack (draft): slot-based; each slot holds a stack of one item, up to 99. Sta
 
 | Stage | Unlocks |
 | --- | --- |
-| 1. Reopened | Turns wood into planks; sells fences and chests |
+| 1. Reopened | Turns wood into planks, and planks plus sap into sealed planks for the mine; sells fences and chests |
 | 2. Workshop | Repairs the bridge to a new area; farmhouse upgrades |
 | 3. Builder | Rebuilds homes so more families can move back |
 
 Rebuilt homes are their own track: each one gives a family room to return, bringing a shop, a service or new requests.
 
+Homes start early, not at Builder stage: the Hollis family lives above the workshop, so they move in when it reopens. Mira needs a home, so rebuilding her house is the first home rebuild; once she moves in, she asks you to rebuild the blacksmith.
+
+### Returning households (draft, order to be decided)
+
+| Household | How they return | What they bring |
+| --- | --- | --- |
+| Retired schoolteacher (name TBD) | Rebuild their home | Opens the museum for relics |
+| Rancher family | Bridge repaired, then rebuild the ranch house | Animals, feed, and how to care for them |
+| Lumen-reader Ottlie | Rebuild their home | A wise elder who knows the planet's glowing plants; healing comes from plants that glow in the dark, gathered at night |
+
+Clyde's grown kids also return, possibly as a couple of separate families, a payoff for Clyde's lantern story. Three kids, three roles: a boatbuilder who rebuilds the ferry to the far shore; a diver or salvager who helps search the sunken town for relics; and a fish market owner who pays more for fish than the bin and sells bait and tackle.
+
+Arrival order and triggers (draft):
+
+| # | Who | Trigger |
+| --- | --- | --- |
+| 1 | Fish market kid | Clyde's 2nd lantern: he writes to his kid; you rebuild a house on the dock |
+| 2 | Rancher family | Tom repairs the bridge, then you rebuild the ranch house |
+| 3 | Ottlie | You reach the darker mine levels; Maggie mentions an old friend who knows the glowing plants |
+| 4 | Diver kid | Clyde's 5th lantern plus Mira's diving helmet; the sunken town opens |
+| 5 | Schoolteacher | You find your first relics; Maggie writes to an old friend |
+| 6 | Boatbuilder kid | Late game, tied to the ferry (parked for now) |
+
+Boats: Clyde's rowboat is mid-game, for fishing over the sunken town. The ferry to the far shore is a separate, late-game boat, parked for now.
+
 ## Blacksmith
 
 | Stage | Unlocks |
 | --- | --- |
-| 1. Reopened | Tool upgrades for axe, pickaxe, hoe and watering can |
-| 2. Forge | Reopens the mine; smelts ore into iron |
+| 1. Reopened | Tool upgrades for axe, pickaxe, hoe and watering can; forges Rosk pumps |
+| 2. Forge | Smelts ore into Groth; Groth pumps for deeper levels |
 | 3. Master smith | Best tools; metal parts (e.g. sprinklers) needed for later rebuilds |
 
 ## Seasons and crops
 
-Each season starts with two crops; more seeds unlock as the general store expands.
+Each season starts with two crops; more seeds unlock as the general store expands. Crops are native to the planet, not Earth crops (draft names, may change).
 
 | Season | Starting crops |
 | --- | --- |
-| Spring | Carrots, potatoes |
-| Summer | Tomatoes, corn |
-| Fall | Pumpkins, squash |
+| Spring | Emberroot (orange root, warm to the touch), dusktuber (purple tuber that keeps all winter) |
+| Summer | Sunbell (hanging fruit that rings in the wind), starcorn (tall stalks, glittering kernels) |
+| Fall | Moonmelon (pale gourd that glows faintly at night), coilsquash (spiral squash) |
 | Winter | None outdoors: a season for mining, fishing and rebuilding |
 
 A greenhouse, built at some point in the restoration, allows growing through winter.
+
+## Glowing plants (draft)
+
+- Wild native plants that glow and can be picked only at night
+- Found on the forest path, the riverbank and in the mine; rarer kinds deeper down
+- Picked by hand, no tool, giving a reason to stay out after dark
+- Most are seasonal, with a few that grow all year; winter has a few extra, since nothing else grows outdoors then
+- Before Ottlie arrives you can pick and sell them without knowing what they do; once she arrives she reads them and turns them into remedies (e.g. energy tonics, light for dark mine levels)
+- Later, Ottlie teaches you to grow a few on the farm, in shade or at night
+
+Starter set (placeholder names and effects):
+
+| Plant | Season | Effect |
+| --- | --- | --- |
+| Dawnmoss | Spring | Restores a little energy |
+| Firefrond | Summer | Lights up dark places |
+| Ashpetal | Fall | Makes crops grow faster |
+| Frostlantern | Winter | Restores energy |
+| Snowwick | Winter | Rare; sells for a lot |
+| Glimmercap | All year (forest and mine) | Common; good for selling |
 
 ## Café
 
@@ -211,6 +307,18 @@ A separate building, opened by the carpenter's partner once the carpenter family
 
 - Turns farm ingredients (crops now; eggs and milk once the ranch opens) into meals and baked goods
 - Exact stages and recipes to be decided
+
+Menu (draft): you simply buy dishes. June's ingredients are assumed to come from crops shipped through the farm bin, so there is no separate crop trade with her.
+
+Every season has one light and one hearty dish, so no season is better for food; the choice of dishes just changes.
+
+| Season | Light dish (30 energy, 60 gold) | Hearty dish (60 energy, 120 gold) |
+| --- | --- | --- |
+| Spring | Emberroot soup | Dusktuber hash |
+| Summer | Sunbell salad | Starcorn chowder |
+| Fall | Coilsquash stew | Moonmelon pie |
+
+Price rule: about 2 gold per energy restored. Bigger meals can come later as rewards (e.g. June's lanterns).
 
 ## Residents
 
@@ -277,7 +385,7 @@ The lower town stays underwater for good; the lake is never lowered.
 - Clyde's 4th lantern: his rowboat, to fish over the sunken town for rare fish
 - Clyde's 5th lantern: his family's sunken barn; Mira forges a diving helmet so you can salvage relics of the old town (and possibly more of the strange metal)
 
-Relics go to a museum. A returning resident (a historian or retired teacher, name to be decided) moves back once their home is rebuilt and offers to build an Ember Bay museum. Each donated relic fills a display and unlocks a piece of the lower town's history.
+Relics go to a museum. A returning resident (an old retired schoolteacher, name to be decided) moves back once their home is rebuilt and offers to build an Ember Bay museum. Each donated relic fills a display and unlocks a piece of the lower town's history.
 
 ## Restoration order
 
@@ -285,10 +393,10 @@ Upgrades interleave across buildings rather than finishing one building first. T
 
 1. General store, level 2
 2. Carpenter, stage 1
-3. Blacksmith, stage 1 (first tool upgrades)
+3. Mira's house (first home rebuild), then Blacksmith stage 1 (first tool upgrades): Mira moves back and asks you to rebuild the forge
 4. General store, level 3
 5. Carpenter, stage 2 (bridge opens)
-6. Blacksmith, stage 2 (mine opens)
+6. Blacksmith, stage 2 (Groth smelting and pumps)
 7. Third stages of each, with homes rebuilt in between
 
 ### First rebuild costs (draft)
@@ -309,13 +417,34 @@ The setting is mountain and lake cabin country. From top to bottom:
 
 | Area | What's there | How it opens |
 | --- | --- | --- |
-| Mountains | The old mine | Blacksmith stage 2 |
+| Mountains | The old mine | Opens when you buy the pickaxe; flooded levels block progress until shored up or pumped |
 | Meadow | Your farm, above town | Start |
 | Forest path | Trees and foraging between farm and town | Start |
 | Town | Town square with the general store, carpenter, blacksmith and empty houses | Start (mostly empty) |
 | Lakeshore | Dock for fishing | Start or early |
 | Across the river | Old ranch with cows, chickens and sheep | Carpenter stage 2 rebuilds the bridge |
 | Across the lake | Far shore, to be decided | Future ferry upgrade |
+
+### The river (draft)
+
+The river runs from the mountains to the lake, giving several fishing spots along the way.
+
+| Stretch | What it's like | Fishing |
+| --- | --- | --- |
+| Source | Snowmelt waterfall high in the mountains, near the mine and crash site | Cold pool at the base: rare fish |
+| Mountain creek | Fast, rocky creek through the forest | Small, quick fish |
+| Meadow | Slows and widens along the edge of your farm; can refill the watering can here | Easy early spot |
+| Town | Separates town from the ranch; the broken bridge crosses here | River fish |
+| River mouth | Spreads into the lake | River and lake fish mix |
+
+## Ranch and animals (draft)
+
+- Unlock: Tom repairs the bridge, you rebuild the ranch house, and the rancher family returns. They sell animals, feed and buildings
+- Animals are native creatures: puffhen (round fluffy bird, lays glowing eggs), mossback (slow gentle grazer, gives milk), woolhorn (shaggy goat-like animal with curly horns, gives wool)
+- Getting them: Tom builds a coop (puffhens) and a barn (mossbacks, woolhorns) on your farm; you buy young animals from the ranchers
+- Care: feed daily and let them graze; happy animals give better products
+- Uses: sell, supply June's café, or use in later rebuilds
+- Future enhancement: breeding and hatching eggs
 
 ## Milestone 1: Godot rebuild
 
