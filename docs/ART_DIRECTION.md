@@ -272,12 +272,12 @@ Each resident's palette is distinct in hue and value from the others and from th
 
 Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm animals page)
 
-Three native creatures in familiar farm roles (design doc, Ranch and animals). Round, soft shapes and gentle faces keep them cozy; the second look is in their bodies and their night glow. They use the same low-poly shading and soft outline as the characters.
+Three native creatures in familiar farm roles (design doc, Ranch and animals). Round, soft shapes and gentle faces keep them cozy; the second look is in their bodies and their night glow. They use the same low-poly shading and soft outline as the characters, with three tones per part, contact shadows and small details: the puffhen's layered wing feathers, scaled legs and three-toed feet; the mossback's knees and cloven hooves; the woolhorn's curly wool texture, ridged horns and cloven hooves.
 
 | Animal | Familiar read | Look | Product | At night |
 | --- | --- | --- | --- | --- |
 | Puffhen (coop) | A hen | Almost a ball with legs: round, fluffy cream body `#F2E2C8` with scalloped fluff, an orange beak and legs, and a violet spiral curl on its head | Speckled eggs that glow amber `#FFB04A` in the dark | Its curl glows amber |
-| Mossback (barn) | A cow | A slow, gentle grey-blue grazer `#8C98A8`, head low to graze, droopy ears. Its back is a small garden: moss `#7FA65A`, teal patches, small plants, violet flowers and a tiny mushroom | Pale mint milk `#DCF0E4` in a jar | The moss on its back glows cyan `#6FF2E0` |
+| Mossback (barn) | A cow | A slow, gentle grey-blue grazer `#8C98A8` with darker slate patches, head low to graze. A cow's head: broad flat forehead, small pale horn nubs, floppy ears with pink insides, and a broad, flat pink-grey muzzle `#C9A8A8` with big nostrils and a wet shine. Its back is a living moss cushion: layered dark-to-light greens (`#3E6A34`, `#5E8C46`, `#94C066`), a fuzzy top edge, stippled texture, strands draping down its sides, teal lichen, a fern sprig, violet flowers and a tiny mushroom; its tail ends in a moss tuft | Pale mint milk `#DCF0E4` in a jar | The moss on its back glows cyan `#6FF2E0` |
 | Woolhorn (barn) | A goat | A shaggy lavender-cream wool cloud `#E8E0EC` on thin dark legs, a darker face with a wool beard, spiral horns (the planet's spiral motif) and amber eyes with a bar-shaped pupil | Wool | The wool tips shimmer lilac `#D8C2FF` |
 
 **Young animals** (bought from the ranchers) are the same design at about 60 % size.
