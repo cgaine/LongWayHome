@@ -27,6 +27,7 @@ For players who enjoy relaxing farming and life games, Long Way Home offers a ge
 | Phase | Name | Promise | Requirements |
 | --- | --- | --- | --- |
 | Phase 1 (MVP) | Godot rebuild | The v0.1 farm loop plays the same on Windows, Linux and Steam Deck, with keyboard and mouse or a controller | REQ-1, REQ-2, REQ-3, REQ-4, REQ-5, REQ-6, REQ-7, REQ-8, REQ-9, REQ-10, REQ-11, REQ-12, REQ-13, REQ-14, REQ-42 |
+| Phase 1B | Farm art | The Phase 1 farm looks the way the art direction describes, with a camera the player can rotate and zoom, still at 30 fps on Steam Deck | REQ-52, REQ-53, REQ-54, REQ-55, REQ-56 |
 | Phase 2 | Rebuilding Ember Bay | The player gathers materials and rebuilds the first town buildings, which unlock tools and the early mine | REQ-44, REQ-16, REQ-17, REQ-45, REQ-46, REQ-47, REQ-48, REQ-22, REQ-49, REQ-50, REQ-51 |
 | Phase 3 | Life in town | Residents return and become friends; food, fishing, festivals and seasons give each day variety | REQ-43, REQ-26, REQ-27, REQ-28, REQ-29, REQ-30, REQ-31, REQ-32 |
 | Phase 4 | The way home | The player reaches the bottom of the mine, restores the wider world and repairs the ship; story complete and released on Steam | REQ-33, REQ-34, REQ-35, REQ-36, REQ-37, REQ-38, REQ-39, REQ-40 |
@@ -131,6 +132,43 @@ The **Player** can always see each crop's growth stage, whether a tile is watere
 - **Acceptance**:
   - Each of the three is identifiable on screen with no menu open.
 - **Out of scope**: tutorials and tooltips.
+
+### Phase 1B — Farm art
+
+#### REQ-52 — Rotate and zoom camera *(capability)*
+The **Player** can turn the camera a full 360° around their farmer and zoom in and out within set limits; zooming out tilts the view towards top-down and zooming in tilts it lower. Walking always follows the camera's facing. Replaces the fixed overhead angle.
+- **Acceptance**:
+  - The camera turns all the way round and zooms between its nearest and farthest limits, using only a controller and again using only keyboard and mouse.
+  - At any camera angle, pushing forward walks the farmer away from the camera.
+  - The targeted tile and the Use prompt stay correct at every angle and zoom.
+- **Out of scope**: a free camera detached from the farmer; a first-person view.
+
+#### REQ-53 — Farm ground art *(ui)*
+The **Player** sees the farm plot and meadow as the art direction describes: meadow ground and native plants, the plot's mown margin and stone edging, untilled, tilled and watered soil, the Use target marker, and grass that changes by season.
+- **Acceptance**:
+  - Untilled, tilled and watered tiles and the target marker can each be told apart at a glance from any camera angle.
+  - The meadow grass changes with the season.
+- **Out of scope**: clearing the meadow (REQ-16).
+
+#### REQ-54 — Crop and seed art *(ui)*
+The **Player** sees emberroot, dusktuber, moonmelon, sunbell and starcorn drawn to the art direction at every growth stage and at night, with matching seed and crop icons on the hotbar and in the shop.
+- **Acceptance**:
+  - Each crop's growth stage can be read at a glance.
+  - Ripe crops can be told apart by shape as well as colour.
+- **Out of scope**: coilsquash (REQ-43).
+
+#### REQ-55 — Farmhouse art *(ui)*
+The **Player** sleeps in the run-down "grown, not built" farmhouse, with the ship hull-panel patch on its roof.
+- **Acceptance**:
+  - The farmhouse matches the art direction's run-down state.
+- **Out of scope**: the restored farmhouse (Phase 2, with the carpenter).
+
+#### REQ-56 — The farmer *(ui)*
+The **Player** plays as the fixed farmer: chunky, about 3 heads tall, in his first outfit, with idle, walk, run, tool-use, sleep and pass-out animations.
+- **Acceptance**:
+  - Every Phase 1 action plays its own animation.
+  - Which way the farmer faces is clear at every camera angle.
+- **Out of scope**: character customisation; later outfits.
 
 ### Phase 2 — Rebuilding Ember Bay
 

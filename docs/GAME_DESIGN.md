@@ -488,7 +488,7 @@ Answer these from playtesting. Tick a question once its answer is written into t
 
 ### Questions
 
-- [ ] Camera: keep the fixed overhead angle, or allow rotate and zoom?
+- [x] Camera: decided 2026-11-06. Rotate and zoom: free 360° rotation around the farmer, zoom within limits that tilts towards top-down when zoomed out, and walking relative to the camera's facing (REQ-52, Phase 1B)
 - [ ] Pace: does a 12-minute day feel rushed or relaxed?
 - [ ] Long-term goal: money targets, house upgrades, relationships, or a story?
 - [ ] Failure: should anything ever be lost (crops dying, gold on pass-out)?

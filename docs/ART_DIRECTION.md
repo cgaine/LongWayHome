@@ -339,7 +339,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 - [x] The farmhouse: restored by a house upgrade, available once the carpenter moves back
 - [ ] The farmhouse: any further upgrade stages after restored (e.g. a bigger house)?
 - [ ] Flat shading (sharp facets) or soft stepped shading (smoother, more painterly)?
-- [ ] Camera: the art should be checked from the camera the game ends up using (the design doc still has "fixed overhead or rotate and zoom" open).
+- [x] Camera: decided 2026-11-06. Rotate and zoom (REQ-52): free 360° rotation, with a tilt that goes towards top-down when zoomed out. Check the art from every angle and across the zoom range.
 
 ## 10. Next steps
 
