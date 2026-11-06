@@ -17,7 +17,9 @@ namespace LongWayHome.Game.Ui;
 /// Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
 /// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Bottom
 /// centre, above the <see cref="UsePrompt"/>, a "&lt;interact glyph&gt; Refill can" hint shows while the Player is in
-/// range of the pond's <see cref="InteractionPoint"/>; its glyph follows <see cref="LastInputDevice"/>. Holds no rules.
+/// range of the pond's <see cref="InteractionPoint"/>; its glyph follows <see cref="LastInputDevice"/>. Top right,
+/// the clock as <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>. Holds no
+/// rules.
 /// </summary>
 public partial class Hud : CanvasLayer
 {
@@ -41,6 +43,8 @@ public partial class Hud : CanvasLayer
 
     private Label _refillHint = null!;
 
+    private Label _clockLabel = null!;
+
     public override void _Ready()
     {
         _energyBar = GetNode<ProgressBar>("Panel/Rows/EnergyBar");
@@ -48,6 +52,7 @@ public partial class Hud : CanvasLayer
         _canLabel = GetNode<Label>("Panel/Rows/CanLabel");
         _heldLabel = GetNode<Label>("Panel/Rows/HeldLabel");
         _refillHint = GetNode<Label>("RefillHint");
+        _clockLabel = GetNode<Label>("ClockLabel");
         _energyBar.MaxValue = PlayerState.MaxEnergy;
 
         _session = GetNode<GameRoot>("/root/GameRoot").Session;
@@ -64,6 +69,7 @@ public partial class Hud : CanvasLayer
 
         _session.PlayerChanged += Refresh;
         _session.InventoryChanged += Refresh;
+        _session.ClockChanged += RefreshClock;
         if (_selection is not null)
         {
             _selection.SelectionChanged += Refresh;
@@ -86,6 +92,7 @@ public partial class Hud : CanvasLayer
         }
 
         Refresh();
+        RefreshClock();
     }
 
     public override void _ExitTree()
@@ -94,6 +101,7 @@ public partial class Hud : CanvasLayer
         {
             _session.PlayerChanged -= Refresh;
             _session.InventoryChanged -= Refresh;
+            _session.ClockChanged -= RefreshClock;
         }
 
         if (_selection is not null)
@@ -140,6 +148,8 @@ public partial class Hud : CanvasLayer
         var glyph = LastInputDevice.GlyphFor("interact", _device);
         _refillHint.Text = $"{glyph} Refill can";
     }
+
+    private void RefreshClock() => _clockLabel.Text = ClockText.For(_session!.Game.ClockMinutes);
 
     private void Refresh()
     {

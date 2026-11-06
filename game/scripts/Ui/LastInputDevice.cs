@@ -32,6 +32,12 @@ public partial class LastInputDevice : Node
     /// <summary>The device the Player last used.</summary>
     public InputDevice Current { get; private set; } = InputDevice.KeyboardMouse;
 
+    public override void _Ready()
+    {
+        // Keeps tracking while a menu has paused the tree, so the menu's prompts follow the device too.
+        ProcessMode = ProcessModeEnum.Always;
+    }
+
     /// <summary>The glyph of <paramref name="action"/> on <paramref name="device"/>, e.g. "[Space]" or "(A)".</summary>
     public static string GlyphFor(string action, InputDevice device) => (action, device) switch
     {
@@ -39,6 +45,8 @@ public partial class LastInputDevice : Node
         ("use_tool", InputDevice.Controller) => "(A)",
         ("interact", InputDevice.KeyboardMouse) => "[F]",
         ("interact", InputDevice.Controller) => "(X)",
+        ("pause", InputDevice.KeyboardMouse) => "[Esc]",
+        ("pause", InputDevice.Controller) => "(Start)",
         _ => throw new ArgumentOutOfRangeException(nameof(action), action, "No glyph for this action."),
     };
 
