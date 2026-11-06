@@ -36,7 +36,12 @@ public class ShopTests
     {
         var game = TestGames.WithGold(100, TestGames.FirstDay);
 
-        Assert.Equal(["seed_emberroot", "seed_dusktuber"], OfferIds(game));
+        // #46 appends the Can upgrade after the seeds; this test is about the seeds.
+        var seedOffers = ShopService.Offers(game, TestGames.Shipped)
+            .Where(listing => listing.Kind == ShopItemKind.Seed)
+            .Select(listing => listing.Id);
+
+        Assert.Equal(["seed_emberroot", "seed_dusktuber"], seedOffers);
     }
 
     [Theory]
@@ -61,7 +66,10 @@ public class ShopTests
         var game = TestGames.WithGold(100, TestGames.FirstDay);
         var data = TestGames.ShippedWithout(CropTypeId.Emberroot);
 
-        var offers = ShopService.Offers(game, data).Select(listing => listing.Id);
+        // #46 appends the Can upgrade after the seeds; this test is about the seeds.
+        var offers = ShopService.Offers(game, data)
+            .Where(listing => listing.Kind == ShopItemKind.Seed)
+            .Select(listing => listing.Id);
 
         Assert.Equal(["seed_dusktuber"], offers);
     }
@@ -626,5 +634,35 @@ public class ShopTests
         Assert.Equal(new Gold(85), game.Player.Gold);
         Assert.Equal(11, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
         Assert.Equal((20, 20, false), CanState(game));
+    }
+
+    [Fact]
+    public void BR_L1_the_can_upgrade_comes_after_the_seeds_even_when_listed_first_in_the_data()
+    {
+        var game = TestGames.WithGold(100, TestGames.FirstDay);
+        var listings = TestGames.Shipped.ShopListings;
+        var data = TestGames.Shipped with
+        {
+            ShopListings = listings.Where(listing => listing.Kind == ShopItemKind.CanUpgrade)
+                .Concat(listings.Where(listing => listing.Kind != ShopItemKind.CanUpgrade))
+                .ToList(),
+        };
+
+        var offers = ShopService.Offers(game, data).Select(listing => listing.Id);
+
+        Assert.Equal(["seed_emberroot", "seed_dusktuber", CanUpgrade], offers);
+    }
+
+    [Fact]
+    public void BR_W4_buying_the_upgrade_takes_its_capacity_from_tuning()
+    {
+        var game = TestGames.WithGold(1000);
+        var data = TestGames.Shipped with
+        {
+            Tuning = TestGames.Shipped.Tuning with { CanUpgradedCapacity = 55 },
+        };
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, data, CanUpgrade));
+        Assert.Equal((55, 55, true), CanState(game));
     }
 }
