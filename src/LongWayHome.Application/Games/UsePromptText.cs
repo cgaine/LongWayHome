@@ -43,11 +43,18 @@ public static class UsePromptText
             Rejection.NotRipe => "Not ready yet",
             Rejection.AlreadyWatered => "Already watered",
             Rejection.CanEmpty => "Can is empty — refill at the pond",
+            Rejection.OutOfSeason => OutOfSeason(held, cropTypes),
             _ => null,
         };
 
         return reason is null ? null : (reason, false);
     }
+
+    // BR-C1: names the Season of the held Seed's Crop type; a Seed with no data row has no Season to name.
+    private static string OutOfSeason(HeldItem held, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        held.Seed is { } seed && cropTypes.TryGetValue(seed, out var cropType)
+            ? $"Out of season — plant in {SeasonLabels.For(cropType.Season)}"
+            : "Out of season";
 
     private static string CropName(CropTypeId cropTypeId, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
         cropTypes.TryGetValue(cropTypeId, out var cropType) ? cropType.Name : CropLabels.For(cropTypeId);

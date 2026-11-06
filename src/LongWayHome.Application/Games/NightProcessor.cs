@@ -47,7 +47,10 @@ public static class NightProcessor
         game.GrowPlantings(data.CropTypes);
 
         // BR-S2: shipping payout goes here (epic #11).
-        // BR-G1: date advance goes here (epic #10).
+
+        // BR-G1: the date moves on one day. After growth, which never reads the Season, so a Planting keeps growing
+        // across a season change (BR-T5).
+        game.AdvanceDate();
 
         // BR-G4: the next Day's weather, rolled exactly once: rain when the roll (0–99) is below the rain chance.
         var weather = random.NextPercent() < tuning.RainChancePercent ? Weather.Rain : Weather.Clear;

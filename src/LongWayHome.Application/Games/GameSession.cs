@@ -155,7 +155,7 @@ public sealed class GameSession
         if (held.Seed is { } seed)
         {
             // BR-T3: the domain decides, so the preview and Game.Plant cannot drift apart.
-            return Game.PlantRejection(position, seed) is { } rejection
+            return PlantRejection(position, seed) is { } rejection
                 ? Rejected(rejection)
                 : new UsePreview(UseActionKind.Plant, null);
         }
@@ -234,10 +234,17 @@ public sealed class GameSession
         return result;
     }
 
-    /// <summary>Plants one Seed of a Crop type (BR-T3). Raises InventoryChanged and TileChanged on success.</summary>
+    /// <summary>
+    /// Plants one Seed of a Crop type (BR-T3, BR-C1), looking up its Crop type in <see cref="GameData.CropTypes"/>.
+    /// Raises InventoryChanged and TileChanged on success. A Seed whose Crop type has no data row is never planted:
+    /// it is refused as OutOfSeason once the other checks pass.
+    /// </summary>
     public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
     {
-        var result = Game.Plant(position, cropTypeId);
+        // A Crop type with no data row always has a rejection (OutOfSeason at the latest), so it is never planted.
+        var result = Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
+            ? Game.Plant(position, cropType)
+            : ActionResult.Rejected(PlantRejection(position, cropTypeId)!.Value);
         if (result.IsOk)
         {
             TileChanged?.Invoke(position);
@@ -306,6 +313,12 @@ public sealed class GameSession
                 : planting.DaysGrown == 0 ? GrowthStage.Seed : GrowthStage.Sprout;
 
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
+
+    // BR-T3, BR-C1: the domain decides, for both the preview and Plant. A Crop type with no data row has no Season.
+    private Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId) =>
+        Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
+            ? Game.PlantRejection(position, cropType)
+            : Game.PlantRejection(position, cropTypeId, season: null);
 
     /// <summary>
     /// Ends the Day (BR-G3): raises DayEnded, runs the Night, then raises NightCompleted. The part-minute carried by

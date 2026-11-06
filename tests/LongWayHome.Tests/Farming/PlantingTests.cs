@@ -20,7 +20,7 @@ public class PlantingTests
         Assert.Equal(new GameDate(1, Season.Spring, 1), game.Date);
         game.FarmPlot[Target].Till();
 
-        var result = game.Plant(Target, CropTypeId.Emberroot);
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(
@@ -37,7 +37,7 @@ public class PlantingTests
         var game = TestGames.NewSession().Game;
         var before = TestGames.FullSnapshot(game);
 
-        var result = game.Plant(Target, CropTypeId.Emberroot);
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
 
         Assert.Equal(ActionResult.Rejected(Rejection.NotTilled), result);
         Assert.Equal(TileState.Grass, game.FarmPlot[Target].State);
@@ -51,11 +51,11 @@ public class PlantingTests
     {
         var game = TestGames.NewSession().Game;
         game.FarmPlot[Target].Till();
-        game.Plant(Target, CropTypeId.Emberroot);
+        game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
         var existing = game.FarmPlot[Target].Planting;
         var before = TestGames.FullSnapshot(game);
 
-        var result = game.Plant(Target, CropTypeId.Dusktuber);
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Dusktuber));
 
         Assert.Equal(ActionResult.Rejected(Rejection.TileOccupied), result);
         Assert.Equal(existing, game.FarmPlot[Target].Planting);
@@ -71,7 +71,7 @@ public class PlantingTests
         var positions = Enumerable.Range(0, 6).Select(x => new GridPosition(x, 0)).ToList();
         positions.ForEach(position => game.FarmPlot[position].Till());
 
-        var results = positions.Take(5).Select(position => game.Plant(position, CropTypeId.Dusktuber)).ToList();
+        var results = positions.Take(5).Select(position => game.Plant(position, TestGames.Crop(CropTypeId.Dusktuber))).ToList();
 
         Assert.All(results, result => Assert.Equal(ActionResult.Ok, result));
         Assert.DoesNotContain(
@@ -79,7 +79,7 @@ public class PlantingTests
             stack => stack.Kind == ItemKind.Seed && stack.CropTypeId == CropTypeId.Dusktuber);
         var before = TestGames.FullSnapshot(game);
 
-        var sixth = game.Plant(positions[5], CropTypeId.Dusktuber);
+        var sixth = game.Plant(positions[5], TestGames.Crop(CropTypeId.Dusktuber));
 
         Assert.Equal(ActionResult.Rejected(Rejection.NoSeed), sixth);
         Assert.Null(game.FarmPlot[positions[5]].Planting);
@@ -131,12 +131,12 @@ public class PlantingTests
             TestGames.TilledWith(occupied, growing),
             TestGames.TilledWith(empty, null));
 
-        Assert.Equal(Rejection.NotTilled, game.PlantRejection(Target, CropTypeId.Emberroot));
-        Assert.Equal(Rejection.TileOccupied, game.PlantRejection(occupied, CropTypeId.Emberroot));
-        Assert.Equal(Rejection.NoSeed, game.PlantRejection(empty, CropTypeId.Emberroot));
-        Assert.Equal(ActionResult.Rejected(Rejection.NotTilled), game.Plant(Target, CropTypeId.Emberroot));
-        Assert.Equal(ActionResult.Rejected(Rejection.TileOccupied), game.Plant(occupied, CropTypeId.Emberroot));
-        Assert.Equal(ActionResult.Rejected(Rejection.NoSeed), game.Plant(empty, CropTypeId.Emberroot));
+        Assert.Equal(Rejection.NotTilled, game.PlantRejection(Target, TestGames.Crop(CropTypeId.Emberroot)));
+        Assert.Equal(Rejection.TileOccupied, game.PlantRejection(occupied, TestGames.Crop(CropTypeId.Emberroot)));
+        Assert.Equal(Rejection.NoSeed, game.PlantRejection(empty, TestGames.Crop(CropTypeId.Emberroot)));
+        Assert.Equal(ActionResult.Rejected(Rejection.NotTilled), game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot)));
+        Assert.Equal(ActionResult.Rejected(Rejection.TileOccupied), game.Plant(occupied, TestGames.Crop(CropTypeId.Emberroot)));
+        Assert.Equal(ActionResult.Rejected(Rejection.NoSeed), game.Plant(empty, TestGames.Crop(CropTypeId.Emberroot)));
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class PlantingTests
         game.FarmPlot[Target].Till();
         var before = TestGames.FullSnapshot(game);
 
-        var rejection = game.PlantRejection(Target, CropTypeId.Emberroot);
+        var rejection = game.PlantRejection(Target, TestGames.Crop(CropTypeId.Emberroot));
 
         Assert.Null(rejection);
         Assert.Equal(before, TestGames.FullSnapshot(game));
@@ -159,7 +159,7 @@ public class PlantingTests
         game.FarmPlot[Target].Till();
         var before = TestGames.FullSnapshot(game);
 
-        var result = game.Plant(Target, CropTypeId.Moonmelon);
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Moonmelon));
 
         Assert.Equal(ActionResult.Rejected(Rejection.NoSeed), result);
         Assert.Equal(before, TestGames.FullSnapshot(game));
@@ -171,7 +171,7 @@ public class PlantingTests
         var game = TestGames.NewSession().Game;
         game.FarmPlot[Target].Till();
 
-        game.Plant(Target, CropTypeId.Dusktuber);
+        game.Plant(Target, TestGames.Crop(CropTypeId.Dusktuber));
 
         Assert.Equal(4, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
         Assert.Equal(10, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
@@ -278,7 +278,7 @@ public class PlantingTests
     {
         var game = TestGames.WithTiles(0, TestGames.StartingSeeds(), TestGames.TilledWith(Target, null));
 
-        var result = game.Plant(Target, CropTypeId.Emberroot);
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(0, game.Player.Energy);
@@ -292,7 +292,7 @@ public class PlantingTests
         inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 1);
         var game = TestGames.WithTiles(150, inventory, TestGames.TilledWith(Target, null));
 
-        var result = game.Plant(Target, CropTypeId.Emberroot);
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Empty(game.Player.Inventory.Stacks);
@@ -305,7 +305,7 @@ public class PlantingTests
         var game = TestGames.NewSession().Game;
         game.FarmPlot[Target].Till();
 
-        game.Plant(Target, CropTypeId.Emberroot);
+        game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
 
         Assert.Equal(game.Date, game.FarmPlot[Target].Planting?.PlantedOn);
         Assert.Equal(0, game.FarmPlot[Target].Planting?.DaysGrown);

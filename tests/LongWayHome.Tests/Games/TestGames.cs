@@ -16,6 +16,14 @@ internal static class TestGames
 
     public static readonly GameData Shipped = LoadShippedData();
 
+    /// <summary>The shipped data without one Crop type's row, for the paths a Crop type with no data row takes.</summary>
+    public static GameData ShippedWithout(CropTypeId cropTypeId) => Shipped with
+    {
+        CropTypes = Shipped.CropTypes
+            .Where(pair => pair.Key != cropTypeId)
+            .ToDictionary(pair => pair.Key, pair => pair.Value),
+    };
+
     /// <summary>A Game on a fresh plot whose Player has the given energy and inventory.</summary>
     public static GameState WithEnergy(int energy, Inventory? inventory = null) =>
         new(
@@ -74,7 +82,28 @@ internal static class TestGames
         WithCan(energy, new WateringCan(20), inventory, tiles);
 
     /// <summary>A Game with the given energy and Watering can, grass except for the given Tiles.</summary>
-    public static GameState WithCan(int energy, WateringCan can, Inventory? inventory, params Tile[] tiles)
+    public static GameState WithCan(int energy, WateringCan can, Inventory? inventory, params Tile[] tiles) =>
+        OnDate(FirstDay, energy, can, inventory, tiles);
+
+    /// <summary>A Game on the given date at 150 energy, grass except for the given Tiles.</summary>
+    public static GameState OnDate(GameDate date, Inventory? inventory, params Tile[] tiles) =>
+        OnDate(date, 150, new WateringCan(20), inventory, tiles);
+
+    /// <summary>
+    /// The canonical Crop type rows (canonical-values.md), built here rather than read from the shipped data so domain
+    /// tests do not depend on which rows the data files ship.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<CropTypeId, CropType> CanonicalCrops = new Dictionary<CropTypeId, CropType>
+    {
+        [CropTypeId.Emberroot] = new(CropTypeId.Emberroot, "Emberroot", 3, new Gold(15), new Gold(35), Season.Spring, false),
+        [CropTypeId.Dusktuber] = new(CropTypeId.Dusktuber, "Dusktuber", 5, new Gold(30), new Gold(75), Season.Spring, false),
+        [CropTypeId.Moonmelon] = new(CropTypeId.Moonmelon, "Moonmelon", 8, new Gold(60), new Gold(190), Season.Fall, false),
+        [CropTypeId.Sunbell] = new(CropTypeId.Sunbell, "Sunbell", 4, new Gold(20), new Gold(50), Season.Summer, false),
+        [CropTypeId.Starcorn] = new(CropTypeId.Starcorn, "Starcorn", 7, new Gold(45), new Gold(130), Season.Summer, false),
+    };
+
+    /// <summary>A Game on the given date with the given energy and Watering can, grass except for the given Tiles.</summary>
+    public static GameState OnDate(GameDate date, int energy, WateringCan can, Inventory? inventory, params Tile[] tiles)
     {
         var overrides = tiles.ToDictionary(tile => tile.Position);
         var all = new List<Tile>();
@@ -89,7 +118,7 @@ internal static class TestGames
 
         return new GameState(
             Guid.NewGuid(),
-            FirstDay,
+            date,
             360,
             Weather.Clear,
             null,

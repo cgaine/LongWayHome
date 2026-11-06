@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using LongWayHome.Application.Games;
+using LongWayHome.Application.Ports;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
@@ -6,8 +8,8 @@ using GameState = LongWayHome.Domain.Games.Game;
 
 namespace LongWayHome.Tests.Games;
 
-/// <summary>The Night (<see cref="NightProcessor.Run"/>): growth (BR-T4, BR-T5), watering reset (BR-T7, BR-T8), then
-/// the next morning's energy and clock (BR-P3).</summary>
+/// <summary>The Night (<see cref="NightProcessor.Run"/>): growth (BR-T4, BR-T5), the date step (BR-G1), the weather
+/// (BR-G4), watering reset (BR-T7, BR-T8), then the next morning's energy and clock (BR-P3).</summary>
 public class NightTests
 {
     private static readonly GridPosition Spot = new(3, 2);
@@ -218,16 +220,75 @@ public class NightTests
         Assert.Equal(TestGames.Shipped.Tuning.MaxEnergy, game.Player.Energy);
         Assert.Equal(TestGames.Shipped.Tuning.DayStartMinutes, game.ClockMinutes);
         Assert.Equal(DayEndReason.Slept, game.LastDayEnd);
+        Assert.Equal(new GameDate(1, Season.Spring, 2), game.Date);
+    }
+
+    [Fact]
+    public void BR_G1_the_date_step_runs_after_growth_and_before_the_weather_roll()
+    {
+        var game = TestGames.OnDate(
+            new GameDate(1, Season.Spring, 28),
+            null,
+            TestGames.TilledWith(Spot, TestGames.PlantingOf(CropTypeId.Dusktuber, 2), watered: true));
+        var cropTypes = new DateRecordingCropTypes(game, TestGames.Shipped.CropTypes);
+        var random = new DateRecordingRandom(game);
+
+        NightProcessor.Run(game, TestGames.Shipped with { CropTypes = cropTypes }, DayEndReason.Slept, random);
+
+        // Growth looked its Crop type up on the old date; the weather was rolled on the new one.
+        Assert.Equal([new GameDate(1, Season.Spring, 28)], cropTypes.LookupDates);
+        Assert.Equal(new GameDate(1, Season.Summer, 1), random.RolledOn);
+        Assert.Equal(TestGames.PlantingOf(CropTypeId.Dusktuber, 3), game.FarmPlot[Spot].Planting);
+        Assert.Equal(new GameDate(1, Season.Summer, 1), game.Date);
+    }
+
+    /// <summary>Crop type rows that record the Game's date at every lookup.</summary>
+    private sealed class DateRecordingCropTypes(GameState game, IReadOnlyDictionary<CropTypeId, CropType> inner)
+        : IReadOnlyDictionary<CropTypeId, CropType>
+    {
+        public List<GameDate> LookupDates { get; } = [];
+
+        public CropType this[CropTypeId key] => inner[key];
+
+        public IEnumerable<CropTypeId> Keys => inner.Keys;
+
+        public IEnumerable<CropType> Values => inner.Values;
+
+        public int Count => inner.Count;
+
+        public bool ContainsKey(CropTypeId key) => inner.ContainsKey(key);
+
+        public bool TryGetValue(CropTypeId key, [MaybeNullWhen(false)] out CropType value)
+        {
+            LookupDates.Add(game.Date);
+            return inner.TryGetValue(key, out value);
+        }
+
+        public IEnumerator<KeyValuePair<CropTypeId, CropType>> GetEnumerator() => inner.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    /// <summary>A never-rain random source that records the Game's date when the weather is rolled.</summary>
+    private sealed class DateRecordingRandom(GameState game) : IRandomSource
+    {
+        public GameDate? RolledOn { get; private set; }
+
+        public int NextPercent()
+        {
+            RolledOn = game.Date;
+            return 99;
+        }
     }
 
     [Fact]
     public void Planting_with_unknown_crop_type_is_unchanged()
     {
-        // Sunbell is a CropTypeId with no data row yet (REQ-42).
+        // Sunbell with its data row removed.
         var sunbell = TestGames.PlantingOf(CropTypeId.Sunbell, 1);
         var game = TestGames.WithTiles(150, null, TestGames.TilledWith(Spot, sunbell, watered: true));
 
-        Night(game);
+        NightProcessor.Run(game, TestGames.ShippedWithout(CropTypeId.Sunbell), DayEndReason.Slept);
 
         Assert.Equal(sunbell, game.FarmPlot[Spot].Planting);
         Assert.False(game.FarmPlot[Spot].Watered);
@@ -242,7 +303,7 @@ public class NightTests
             TestGames.TilledWith(Spot, TestGames.PlantingOf(CropTypeId.Starcorn, 0), watered: true),
             TestGames.TilledWith(Other, TestGames.PlantingOf(CropTypeId.Emberroot, 0), watered: true));
 
-        game.GrowPlantings(TestGames.Shipped.CropTypes);
+        game.GrowPlantings(TestGames.ShippedWithout(CropTypeId.Starcorn).CropTypes);
 
         Assert.Equal(TestGames.PlantingOf(CropTypeId.Starcorn, 0), game.FarmPlot[Spot].Planting);
         Assert.Equal(TestGames.PlantingOf(CropTypeId.Emberroot, 1), game.FarmPlot[Other].Planting);
