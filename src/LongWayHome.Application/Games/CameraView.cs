@@ -68,6 +68,14 @@ public readonly record struct CameraView(float YawDegrees, float Zoom)
     public CameraView Zoomed(float input, float seconds) =>
         this with { Zoom = Math.Clamp(Zoom + input * ZoomPerSecond * seconds, 0f, 1f) };
 
+    /// <summary>
+    /// Turns a movement input (from <c>Input.GetVector</c>: <paramref name="x"/> positive = right,
+    /// <paramref name="y"/> negative = forward) into a world-space move on the ground plane, relative to the camera's
+    /// yaw, so forward always walks away from the camera. Preserves the input's length; at yaw 0 it returns the input
+    /// unchanged (issue #70, REQ-52).
+    /// </summary>
+    public (float X, float Z) ToWorldMove(float x, float y) => throw new NotImplementedException();
+
     private static float Wrap(float degrees)
     {
         var wrapped = degrees % 360f;
