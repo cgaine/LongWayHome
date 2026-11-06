@@ -74,7 +74,14 @@ public readonly record struct CameraView(float YawDegrees, float Zoom)
     /// yaw, so forward always walks away from the camera. Preserves the input's length; at yaw 0 it returns the input
     /// unchanged (issue #70, REQ-52).
     /// </summary>
-    public (float X, float Z) ToWorldMove(float x, float y) => throw new NotImplementedException();
+    public (float X, float Z) ToWorldMove(float x, float y)
+    {
+        // Rotates the input clockwise (seen from above) by the yaw, about the vertical axis.
+        var yaw = YawDegrees * MathF.PI / 180f;
+        var cos = MathF.Cos(yaw);
+        var sin = MathF.Sin(yaw);
+        return (x * cos - y * sin, x * sin + y * cos);
+    }
 
     private static float Wrap(float degrees)
     {

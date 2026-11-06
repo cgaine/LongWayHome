@@ -59,4 +59,17 @@ public class FacingDirectionTests
         // |y| - |x| is about 1e-4: outside the tolerance, so the larger (north) axis wins over the current east facing.
         Assert.Equal(North, FacingDirection.Snap(0.7f, -0.7001f, East));
     }
+
+    [Fact]
+    public void AC5_exact_diagonal_keeps_north_when_facing_north()
+    {
+        Assert.Equal(North, FacingDirection.Snap(-0.7071f, -0.7071f, North));
+    }
+
+    [Fact]
+    public void AC5_exact_diagonal_gives_the_vertical_direction_when_facing_away_from_both()
+    {
+        // Facing east while moving south-west: neither pressed direction is the current one, so south wins.
+        Assert.Equal(South, FacingDirection.Snap(-0.7071f, 0.7071f, East));
+    }
 }
