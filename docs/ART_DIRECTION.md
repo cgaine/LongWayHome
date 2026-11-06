@@ -182,9 +182,7 @@ The planet's signature. They're picked by hand and only at night (design doc), s
 
 ## 6. Creatures and people (draft)
 
-- **Puffhen:** a round, fluffy bird, almost a ball with legs. Its eggs glow faintly.
-- **Mossback:** a slow, gentle grazer with real moss and little plants growing on its back.
-- **Woolhorn:** a shaggy goat-like animal with spiral horns (the same spiral as coilsquash and the trunks: spirals are a family trait of the planet's life).
+- **Farm animals:** puffhen, mossback and woolhorn. See section 6.3.
 - **Townsfolk:** see section 6.2.
 - **The farmer:** a human from Earth. See section 6.1.
 
@@ -232,13 +230,27 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Townsfolk page)
 
 **Same world, same build.** The residents share the farmer's chunky proportions (about 3 heads tall), low-poly shading and soft outline, with their own heights and builds (Tom broad and tall, Maggie and Ottlie small, Jesse slight). They read as warm, friendly people first.
 
-**What makes them not quite human** (proposed; the farmer is the only Earth human, section 6.1):
+**What makes them not quite human** (the farmer is the only Earth human, section 6.1). Warm and friendly first, subtly less Earth-human on a second look:
 
 1. **Pointed ears:** a little longer than human ears, angled up and back. Chosen because it reads from the overhead camera, where facial details don't.
-2. **Glow-marks:** three freckle-like dots on each cheek, a shade darker than the skin by day, that glow soft cyan at night, like the planet's glowing plants. Residents are easy to spot across the dark square.
-3. **Hair colours Earth doesn't grow:** teal, lavender-silver and white alongside browns and auburns.
+2. **Cool undertone:** skin stays close to the human range, but the shadows of the face, neck and hands lean slightly blue or green (each resident has their own undertone, below). It reads as a little alien without being obvious; lit skin stays warm.
+3. **Cheek marks:** freckle-like marks on both cheeks, clearly darker than the skin by day, in a pattern unique to each person, like a fingerprint. At night they glow in the same colour as that person's hair glow.
+4. **Hair colours Earth doesn't grow:** teal, lavender-silver and white alongside browns and auburns.
+5. **Glowing hair, only after dark:** a few strands or the tips of the hair glow softly, in each resident's own colour, close to their hair colour. By day, hair looks normal.
 
-Skin tones stay in the human range so the differences stay small and friendly.
+At night, every resident's marks and hair glow in their own colour, so people can be told apart across the dark square.
+
+**Undertone, glow colour and marks:**
+
+| Resident | Undertone (in the shadows) | Glow colour (hair and marks) | Cheek marks |
+| --- | --- | --- | --- |
+| Maggie | Blue-lilac `#6A7AB0` | Lavender `#D8C8FF` | Two rows of stitch-like dots |
+| Clyde | Blue `#4A7A9A` | Teal shimmer `#6FF2E0`; his cap hides his hair, so the shimmer is in his beard tips and the hair at his temples | Two short waves, like ripples |
+| Tom | Green `#4A8A6A` | Warm copper `#FFB870`, in his hair and beard | Three bold dots in a triangle |
+| June | Teal-green `#3E8A7A` | Ember `#FF9A50`, on the edges of her curls | A curve of dots |
+| Jesse | Blue `#5A7AB0` | Mint `#8AFFC8`, on the spike tips and the lock over the eye | One bold dot between two small ones |
+| Mira | Teal-green `#3E7A72` | Indigo `#A89CFF`, a cool glow for very dark hair, mostly in the ponytail | Three short dashes |
+| Ottlie | Blue `#6A8AB0` | Moonlight white `#E0FFFA`, along the braid | A long trail of dots from temple to jaw, spread out with age |
 
 **The residents:**
 
@@ -255,6 +267,30 @@ Skin tones stay in the human range so the differences stay small and friendly.
 Each resident's palette is distinct in hue and value from the others and from the farmer's blue-silver, so they're told apart from the overhead camera.
 
 **Still to design:** the rancher family, the retired schoolteacher, and Clyde's three grown kids (design doc, Returning households).
+
+### 6.3 Farm animals (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm animals page)
+
+Three native creatures in familiar farm roles (design doc, Ranch and animals). Round, soft shapes and gentle faces keep them cozy; the second look is in their bodies and their night glow. They use the same low-poly shading and soft outline as the characters, with three tones per part, contact shadows and small details: the puffhen's layered wing feathers, scaled legs and three-toed feet; the mossback's knees and cloven hooves; the woolhorn's curly wool texture, ridged horns and cloven hooves.
+
+| Animal | Familiar read | Look | Product | At night |
+| --- | --- | --- | --- | --- |
+| Puffhen (coop) | A hen | Almost a ball with legs: round, fluffy cream body `#F2E2C8` with scalloped fluff, an orange beak and legs, and a violet spiral curl on its head | Speckled eggs that glow amber `#FFB04A` in the dark | Its curl glows amber |
+| Mossback (barn) | A cow | A slow, gentle grey-blue grazer `#8C98A8` with darker slate patches, head low to graze. A cow's head: broad flat forehead, small pale horn nubs, floppy ears with pink insides, and a broad, flat pink-grey muzzle `#C9A8A8` with big nostrils and a wet shine. Its back is a living moss cushion: layered dark-to-light greens (`#3E6A34`, `#5E8C46`, `#94C066`), a fuzzy top edge, stippled texture, strands draping down its sides, teal lichen, a fern sprig, violet flowers and a tiny mushroom; its tail ends in a moss tuft | Pale mint milk `#DCF0E4` in a jar | The moss on its back glows cyan `#6FF2E0` |
+| Woolhorn (barn) | A goat | A shaggy lavender-cream wool cloud `#E8E0EC` on thin dark legs, a darker face with a wool beard, spiral horns (the planet's spiral motif) and amber eyes with a bar-shaped pupil | Wool | The wool tips shimmer lilac `#D8C2FF` |
+
+**Young animals** (bought from the ranchers) are the same design at about 60 % size.
+
+**Mood reads at a glance (pillar 4):**
+
+| Mood | Cue |
+| --- | --- |
+| Happy (fed and content) | A small heart in the animal's own glow colour above its head. Happy animals give better products (design doc): a happy puffhen's egg glows brighter |
+| Hungry (not fed today) | A thought bubble with a leaf |
+| Asleep (night) | Eyes closed, its night glow showing |
+
+**Still to design:** the coop and barn (grown, like the farmhouse, section 7.1), feed troughs, and products as inventory icons.
 
 ## 7. Places
 
@@ -332,6 +368,26 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 
 **Night:** tiles darken with the rest of the scene, but tilled, watered and the target marker all stay distinct.
 
+### 7.3 Town buildings (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings page)
+
+**Grown, like the farmhouse.** Every town building uses the farmhouse's language (section 7.1): living violet trunk posts, leaf roofs, mauve timber, arched windows and an ember-orange door. Buildings are told apart by silhouette and props, so each one reads from across the square and from any camera angle.
+
+**Restoration is visible.** Before a rebuild, a building looks like the run-down farmhouse: wilted leaves, gaps in the roof, boarded windows and weeds. Each rebuild stage makes it more alive: fresh leaves first, then new growth and extensions grown onto the side. This follows "a building that comes back to life sprouts new leaves" (section 7.1).
+
+| Building | Who | Identity | Stages (design doc) |
+| --- | --- | --- | --- |
+| General store | Maggie | Leaf awning over a big round-topped shop window, produce crates, round sprout sign | 1. Maggie's corner: one fixed corner (a lit window, a small awning, a few crates) on an otherwise wilted building. 2. Reopened: the whole building alive. 3. Storeroom: a grown storeroom on the side with sacks. 4. Expanded shop: a second awning, more crates and string lights |
+| Carpenter | Tom and the Hollis family | Big braced double doors, plank stacks, saw sign; the family lives upstairs | 0. Empty. 1. Reopened. 2. Workshop: a side shed with a workbench and sap barrels that glow amber (sealed planks). 3. Builder: timber frames for new homes and stacks of sealed planks |
+| Blacksmith | Mira | The heaviest building: a stone lower storey, an open forge arch that glows orange, anvil, quench trough, hammer sign, big stone chimney | 0. Empty: a cold, dark forge. 1. Reopened: the forge glows again. 2. Forge: a smelting furnace on the side, more smoke. 3. Master smith: a teal weathervane and finished metal parts on display |
+| Café | June | A round window, leaf parasols over outdoor tables, a chalkboard, a mug sign and string lights | Empty, then open (stages still to be decided in the design doc) |
+| Homes | Returning households | The farmhouse design | Empty, then rebuilt |
+
+**At night.** Amber windows and string lights are the town's warm light (section 2). The forge glows orange, sap barrels glow amber and the leaf tips glow cyan. Homes show **friendship lanterns** in the window, one per friendship step, as the design doc proposes, so the town visibly gets brighter as friendships grow.
+
+**Still to design:** the ranch house, the museum, the dock houses for Clyde's family, the bridge, and the town square (paving, well, lamp posts).
+
 ## 8. Style and technical direction (draft)
 
 - **Style:** stylised low-poly with flat or softly stepped shading, simple shapes, and colour doing most of the work. No realistic textures. This matches what the prototype already uses (REQ-12 "low-poly"), so the upgrade is a better version of the same direction, not a change.
@@ -344,7 +400,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 
 - [x] How alien overall? Decided: a little further than the first draft for buildings, which are "grown, not built" (section 7.1). The rest keeps "familiar at first, different on a second look".
 - [ ] Moon names: Hearth and Wisp, or something else?
-- [ ] Townsfolk differences: proposed pointed ears, glow-marks on the cheeks and non-Earth hair colours (section 6.2). Confirm or change.
+- [x] Townsfolk differences: pointed ears, a cool undertone in the shadows, cheek marks unique to each person, non-Earth hair colours, and hair and marks that glow in each person's own colour after dark (section 6.2)
 - [x] The farmer: fixed character for now; customisation is a future enhancement
 - [x] The farmer: his outfit changes with the story
 - [x] The farmer: chunky proportions, about 3 heads tall
