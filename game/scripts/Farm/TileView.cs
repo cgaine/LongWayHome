@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
@@ -36,6 +37,10 @@ public partial class TileView : Node3D
     private static readonly float[] FurrowRows = [-0.3f, 0f, 0.3f];
 
     private static readonly Vector3 FurrowSize = new(0.9f, FurrowHeight, 0.12f);
+
+    private static BoxMesh? _slabMesh;
+
+    private static ArrayMesh? _furrowMesh;
 
     /// <summary>
     /// The planting models are authored at about a tile's quarter and drawn larger, so each stage and crop reads from
@@ -170,21 +175,15 @@ public partial class TileView : Node3D
         {
             Name = "Slab",
             Position = new Vector3(0f, SurfaceHeight / 2f, 0f),
-            Mesh = new BoxMesh { Size = new Vector3(0.96f, 0.06f, 0.96f) },
+            Mesh = SlabMesh,
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
         };
         AddChild(_slab);
 
-        var ridges = new List<Part>();
-        foreach (var z in FurrowRows)
-        {
-            ridges.Add(new Part(new BoxMesh { Size = FurrowSize }, At(0f, SurfaceHeight + (FurrowHeight / 2f), z)));
-        }
-
         _furrows = new MeshInstance3D
         {
             Name = "Furrows",
-            Mesh = Merge(ridges),
+            Mesh = FurrowMesh,
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
             Visible = false,
         };
@@ -209,7 +208,7 @@ public partial class TileView : Node3D
         }
 
         var decoration = TileDecoration.For(position);
-        var blades = new List<Part>();
+        var blades = new List<Art.MeshPart>();
         foreach (var (x, z) in decoration.TuftOffsets)
         {
             blades.AddRange(Decorations.Tuft(x, z, SurfaceHeight));
@@ -218,7 +217,7 @@ public partial class TileView : Node3D
         _tufts = new MeshInstance3D
         {
             Name = "Tufts",
-            Mesh = Merge(blades),
+            Mesh = Art.ArtMeshes.Merge(blades),
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
             Visible = false,
         };
@@ -234,7 +233,7 @@ public partial class TileView : Node3D
         _nativePlant = new MeshInstance3D
         {
             Name = "NativePlant",
-            Mesh = Merge(decoration.NativePlant == NativePlantKind.Frond
+            Mesh = Art.ArtMeshes.Merge(decoration.NativePlant == NativePlantKind.Frond
                 ? Decorations.Frond(SurfaceHeight)
                 : Decorations.Puffball(SurfaceHeight)),
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
@@ -247,73 +246,37 @@ public partial class TileView : Node3D
 
     private static Transform3D At(float x, float y, float z) => new(Basis.Identity, new Vector3(x, y, z));
 
-    /// <summary>
-    /// Merges the parts into one mesh, so each part of the tile is one draw. Normals go through the inverse transpose
-    /// of each part's basis, so they stay true under stepped shading. A part with a role has its UVs set to that
-    /// swatch's centre, for meshes that leave the <c>swatch</c> instance parameter unset.
-    /// </summary>
-    private static ArrayMesh Merge(IEnumerable<Part> parts)
-    {
-        var surface = new SurfaceTool();
-        surface.Begin(Mesh.PrimitiveType.Triangles);
-        var offset = 0;
-        foreach (var (mesh, at, role) in parts)
-        {
-            var arrays = mesh.SurfaceGetArrays(0);
-            var vertices = arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array();
-            var normals = arrays[(int)Mesh.ArrayType.Normal].AsVector3Array();
-            var indices = arrays[(int)Mesh.ArrayType.Index].AsInt32Array();
-            var normalBasis = at.Basis.Inverse().Transposed();
-            var (u, v) = role is null ? (-1f, -1f) : ArtPalette.UvCentre(role);
-            for (var i = 0; i < vertices.Length; i++)
-            {
-                if (role is not null)
-                {
-                    surface.SetUV(new Vector2(u, v));
-                }
+    /// <summary>The slab mesh, the same on every Tile, so all 108 share one resource.</summary>
+    private static BoxMesh SlabMesh => _slabMesh ??= new BoxMesh { Size = new Vector3(0.96f, 0.06f, 0.96f) };
 
-                surface.SetNormal((normalBasis * normals[i]).Normalized());
-                surface.AddVertex(at * vertices[i]);
-            }
-
-            foreach (var index in indices)
-            {
-                surface.AddIndex(offset + index);
-            }
-
-            offset += vertices.Length;
-        }
-
-        return surface.Commit();
-    }
-
-    /// <summary>One primitive placed in a merged mesh, with the palette role its UVs point at, if any.</summary>
-    private readonly record struct Part(Mesh Mesh, Transform3D At, string? Role = null);
+    /// <summary>The three furrow ridges in one mesh, the same on every Tile, so all 108 share one resource.</summary>
+    private static ArrayMesh FurrowMesh => _furrowMesh ??= Art.ArtMeshes.Merge(FurrowRows.Select(z =>
+        new Art.MeshPart(new BoxMesh { Size = FurrowSize }, At(0f, SurfaceHeight + (FurrowHeight / 2f), z))));
 
     /// <summary>The grass tile's tufts and native plants, each standing on the slab top at <c>top</c>.</summary>
     private static class Decorations
     {
         /// <summary>Three thin blades, 0.08–0.12 m tall, fanned out and leaning away from the tuft's centre.</summary>
-        public static IEnumerable<Part> Tuft(float x, float z, float top)
+        public static IEnumerable<Art.MeshPart> Tuft(float x, float z, float top)
         {
             for (var i = 0; i < 3; i++)
             {
                 var height = 0.08f + (0.02f * i);
-                yield return new Part(
+                yield return new Art.MeshPart(
                     new PrismMesh { Size = new Vector3(0.03f, height, 0.008f) },
                     Lean(x, top, z, (i * 120f) + 15f, 20f, height / 2f));
             }
         }
 
         /// <summary>Two flat fronds leaning out on opposite sides, about 0.22 m tall.</summary>
-        public static IEnumerable<Part> Frond(float top) =>
+        public static IEnumerable<Art.MeshPart> Frond(float top) =>
         [
             new(new PrismMesh { Size = new Vector3(0.07f, 0.26f, 0.015f) }, Lean(0f, top, 0f, 0f, 30f, 0.13f), "foliage"),
             new(new PrismMesh { Size = new Vector3(0.06f, 0.22f, 0.015f) }, Lean(0f, top, 0f, 160f, 36f, 0.11f), "foliage"),
         ];
 
         /// <summary>A thin stem with a round lilac head, about 0.22 m tall.</summary>
-        public static IEnumerable<Part> Puffball(float top) =>
+        public static IEnumerable<Art.MeshPart> Puffball(float top) =>
         [
             new(
                 new CylinderMesh { TopRadius = 0.008f, BottomRadius = 0.012f, Height = 0.18f, RadialSegments = 5, Rings = 1 },

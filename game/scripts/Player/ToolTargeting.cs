@@ -16,9 +16,7 @@ namespace LongWayHome.Game.Player;
 /// </summary>
 public partial class ToolTargeting : Node3D
 {
-    /// <summary>Height of the cursor node; its parts carry their own heights above the slab top (y 0.06).</summary>
-    private const float CursorHeight = 0f;
-
+    /// <summary>Just above the slab top (y 0.06); the cursor node itself sits on the ground, as FarmGrid.ToWorld gives.</summary>
     private const float HighlightHeight = 0.065f;
 
     private const float HighlightSize = 0.96f;
@@ -61,7 +59,7 @@ public partial class ToolTargeting : Node3D
     {
         if (Target is { } target)
         {
-            _cursor.GlobalPosition = FarmGrid.ToWorld(target) with { Y = CursorHeight };
+            _cursor.GlobalPosition = FarmGrid.ToWorld(target);
             _cursor.Visible = true;
         }
         else

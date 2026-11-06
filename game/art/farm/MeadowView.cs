@@ -283,37 +283,8 @@ public partial class MeadowView : Node3D
                 * new Transform3D(new Basis(Vector3.Right, Mathf.Pi / 2f), tip);
         }
 
-        /// <summary>
-        /// Merges the parts into one mesh. Normals go through the inverse transpose of each part's basis and are
-        /// re-normalised, so squashed shapes (the edging stones, rocks) keep true normals for stepped shading.
-        /// </summary>
-        private static Mesh Merge(params (Mesh Mesh, Transform3D At)[] parts)
-        {
-            var surface = new SurfaceTool();
-            surface.Begin(Mesh.PrimitiveType.Triangles);
-            var offset = 0;
-            foreach (var (mesh, at) in parts)
-            {
-                var arrays = mesh.SurfaceGetArrays(0);
-                var vertices = arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array();
-                var normals = arrays[(int)Mesh.ArrayType.Normal].AsVector3Array();
-                var indices = arrays[(int)Mesh.ArrayType.Index].AsInt32Array();
-                var normalBasis = at.Basis.Inverse().Transposed();
-                for (var i = 0; i < vertices.Length; i++)
-                {
-                    surface.SetNormal((normalBasis * normals[i]).Normalized());
-                    surface.AddVertex(at * vertices[i]);
-                }
-
-                foreach (var index in indices)
-                {
-                    surface.AddIndex(offset + index);
-                }
-
-                offset += vertices.Length;
-            }
-
-            return surface.Commit();
-        }
+        /// <summary>Merges the parts into one mesh (<see cref="ArtMeshes.Merge"/>), so each part is one MultiMesh draw.</summary>
+        private static Mesh Merge(params (Mesh Mesh, Transform3D At)[] parts) =>
+            ArtMeshes.Merge(parts.Select(p => new MeshPart(p.Mesh, p.At)));
     }
 }
