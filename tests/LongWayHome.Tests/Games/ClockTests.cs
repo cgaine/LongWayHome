@@ -78,6 +78,38 @@ public class ClockTests
     }
 
     [Fact]
+    public void AC7_21600_frames_of_one_thirtieth_second_end_at_exactly_02_00_in_one_pass_out()
+    {
+        var session = TestGames.NewSession();
+        var dayEnds = CountDayEnds(session);
+
+        for (var i = 0; i < 21_600; i++)
+        {
+            session.AdvanceClock(1.0 / 30);
+        }
+
+        // A 720-s Day at the Steam Deck's 30 fps cap ends exactly one Day, as at 60 fps.
+        Assert.Equal(1, dayEnds());
+        AssertPassedOut(session);
+    }
+
+    [Fact]
+    public void BR_G2_thirty_steps_of_one_thirtieth_second_advance_as_much_as_one_second()
+    {
+        var stepped = TestGames.NewSession();
+        var whole = TestGames.NewSession();
+
+        for (var i = 0; i < 30; i++)
+        {
+            stepped.AdvanceClock(1.0 / 30);
+        }
+
+        whole.AdvanceClock(1.0);
+
+        Assert.Equal(whole.Game.ClockMinutes, stepped.Game.ClockMinutes);
+    }
+
+    [Fact]
     public void AC3_three_calls_of_0_3_seconds_move_the_clock_by_one_minute()
     {
         var session = TestGames.NewSession();
