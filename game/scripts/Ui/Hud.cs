@@ -13,8 +13,10 @@ namespace LongWayHome.Game.Ui;
 
 /// <summary>
 /// The heads-up display, top-left: the energy bar with "Energy &lt;n&gt; / 150", the Watering can's
-/// "Can &lt;charges&gt; / &lt;capacity&gt;" and the held item's label (with the seed count when a seed is held).
-/// Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
+/// "Can &lt;charges&gt; / &lt;capacity&gt;", the gold as <see cref="GoldText"/> ("Gold 100"), the carried crops as
+/// <see cref="CropsText"/> ("Crops: Emberroot × 9" or "Crops: none") and the held item's label (with the seed count
+/// when a seed is held). Along the bottom centre, the hotbar: one slot per entry of <see cref="GameSession.Hotbar"/>,
+/// the selected one bordered in ember orange. Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
 /// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Bottom
 /// centre, above the <see cref="UsePrompt"/>, a "&lt;interact glyph&gt; Refill can" hint shows while the Player is in
 /// range of the pond's <see cref="InteractionPoint"/>, and a "&lt;interact glyph&gt; Sleep" hint in the same place
@@ -36,6 +38,21 @@ public partial class Hud : CanvasLayer
 
     private const string ShopPointId = "shop";
 
+    private const int SlotFontSize = 20;
+
+    private const int SelectedBorderWidth = 3;
+
+    /// <summary>Horizontal slot padding: 4 px, so the widest hotbar (7 slots of "Moonmelon seeds × 99" and the like)
+    /// fits in 1280 px at font 20.</summary>
+    private const int SlotPaddingX = 4;
+
+    private const int SlotPaddingY = 4;
+
+    private static readonly Color SlotBackground = new(0, 0, 0, 0.55f);
+
+    /// <summary>The HUD accent, ember orange (docs/ART_DIRECTION.md).</summary>
+    private static readonly Color EmberOrange = new("#E9773A");
+
     private GameSession? _session;
 
     private HeldItemSelection? _selection;
@@ -56,7 +73,17 @@ public partial class Hud : CanvasLayer
 
     private Label _canLabel = null!;
 
+    private Label _goldLabel = null!;
+
+    private Label _cropsLabel = null!;
+
     private Label _heldLabel = null!;
+
+    private HBoxContainer _hotbar = null!;
+
+    private StyleBoxFlat _slotStyle = null!;
+
+    private StyleBoxFlat _selectedSlotStyle = null!;
 
     private Label _refillHint = null!;
 
@@ -77,7 +104,12 @@ public partial class Hud : CanvasLayer
         _energyBar = GetNode<ProgressBar>("Panel/Rows/EnergyBar");
         _energyLabel = GetNode<Label>("Panel/Rows/EnergyLabel");
         _canLabel = GetNode<Label>("Panel/Rows/CanLabel");
+        _goldLabel = GetNode<Label>("Panel/Rows/GoldLabel");
+        _cropsLabel = GetNode<Label>("Panel/Rows/CropsLabel");
         _heldLabel = GetNode<Label>("Panel/Rows/HeldLabel");
+        _hotbar = GetNode<HBoxContainer>("Hotbar");
+        _slotStyle = SlotStyle(borderWidth: 0);
+        _selectedSlotStyle = SlotStyle(borderWidth: SelectedBorderWidth);
         _refillHint = GetNode<Label>("RefillHint");
         _sleepHint = GetNode<Label>("SleepHint");
         _shipHint = GetNode<Label>("ShipHint");
@@ -244,6 +276,46 @@ public partial class Hud : CanvasLayer
         _energyBar.Value = player.Energy;
         _energyLabel.Text = $"Energy {player.Energy} / {PlayerState.MaxEnergy}";
         _canLabel.Text = $"Can {player.WateringCan.Charges} / {player.WateringCan.Capacity}";
-        _heldLabel.Text = _session.HeldLabel(_selection?.Held ?? HeldItem.Of(ToolId.Hoe));
+        _goldLabel.Text = GoldText.For(player.Gold.Value);
+        _cropsLabel.Text = CropsText.For(player.Inventory.Stacks, _session.Data.CropTypes);
+        var held = _selection?.Held ?? HeldItem.Of(ToolId.Hoe);
+        _heldLabel.Text = _session.HeldLabel(held);
+        RefreshHotbar(held);
+    }
+
+    private void RefreshHotbar(HeldItem held)
+    {
+        foreach (var child in _hotbar.GetChildren())
+        {
+            _hotbar.RemoveChild(child);
+            child.QueueFree();
+        }
+
+        foreach (var slot in _session!.Hotbar(held))
+        {
+            var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+            panel.AddThemeStyleboxOverride("panel", slot.Selected ? _selectedSlotStyle : _slotStyle);
+            var label = new Label { Text = slot.Label, MouseFilter = Control.MouseFilterEnum.Ignore };
+            label.AddThemeFontSizeOverride("font_size", SlotFontSize);
+            label.AddThemeConstantOverride("outline_size", 4);
+            label.AddThemeColorOverride("font_outline_color", Colors.Black);
+            panel.AddChild(label);
+            _hotbar.AddChild(panel);
+        }
+    }
+
+    private static StyleBoxFlat SlotStyle(int borderWidth)
+    {
+        var style = new StyleBoxFlat
+        {
+            BgColor = SlotBackground,
+            BorderColor = EmberOrange,
+            ContentMarginLeft = SlotPaddingX,
+            ContentMarginRight = SlotPaddingX,
+            ContentMarginTop = SlotPaddingY,
+            ContentMarginBottom = SlotPaddingY,
+        };
+        style.SetBorderWidthAll(borderWidth);
+        return style;
     }
 }
