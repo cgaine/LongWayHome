@@ -17,7 +17,7 @@ public partial class FollowCamera : Camera3D
     /// <summary>How quickly the camera catches up; 15 settles within about 0.3 s.</summary>
     [Export] public float Sharpness { get; set; } = 15f;
 
-    /// <summary>The current turn and zoom, read by later work such as camera-relative walking.</summary>
+    /// <summary>The current turn and zoom, read by the Player for camera-relative walking.</summary>
     public CameraView View { get; private set; } = CameraView.Default;
 
     private Node3D _target = null!;

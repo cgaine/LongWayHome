@@ -205,4 +205,65 @@ public class CameraViewTests
         Assert.Equal(16.02f, y, 0.05f);
         Assert.Equal(0f, z, 0.05f);
     }
+
+    // Issue #70: walking is relative to the camera.
+
+    private const float MoveTolerance = 1e-5f;
+
+    [Theory]
+    [InlineData(0f, 0f, -1f)]
+    [InlineData(90f, 1f, 0f)]
+    [InlineData(180f, 0f, 1f)]
+    [InlineData(270f, -1f, 0f)]
+    public void AC1_forward_walks_away_from_the_camera(float yaw, float expectedX, float expectedZ)
+    {
+        var (x, z) = new CameraView(yaw, 0.5f).ToWorldMove(0f, -1f);
+
+        Assert.Equal(expectedX, x, MoveTolerance);
+        Assert.Equal(expectedZ, z, MoveTolerance);
+    }
+
+    [Fact]
+    public void AC2_right_walks_to_the_cameras_right_at_yaw_90()
+    {
+        var (x, z) = new CameraView(90f, 0.5f).ToWorldMove(1f, 0f);
+
+        Assert.Equal(0f, x, MoveTolerance);
+        Assert.Equal(1f, z, MoveTolerance);
+    }
+
+    [Fact]
+    public void AC3_to_world_move_preserves_a_full_tilts_length()
+    {
+        var (x, z) = new CameraView(37f, 0.5f).ToWorldMove(0.6f, -0.8f);
+
+        Assert.Equal(1f, MathF.Sqrt(x * x + z * z), MoveTolerance);
+    }
+
+    [Theory]
+    [InlineData(0f)]
+    [InlineData(45f)]
+    [InlineData(90f)]
+    [InlineData(137.5f)]
+    [InlineData(270f)]
+    [InlineData(359f)]
+    public void AC3_to_world_move_preserves_a_partial_tilts_length(float yaw)
+    {
+        var (x, z) = new CameraView(yaw, 0.5f).ToWorldMove(0.3f, 0f);
+
+        Assert.Equal(0.3f, MathF.Sqrt(x * x + z * z), MoveTolerance);
+    }
+
+    [Theory]
+    [InlineData(0.6f, -0.8f)]
+    [InlineData(-1f, 0f)]
+    [InlineData(0.25f, 0.5f)]
+    [InlineData(0f, 0f)]
+    public void AC4_to_world_move_at_yaw_0_returns_the_input(float inputX, float inputY)
+    {
+        var (x, z) = new CameraView(0f, 0.5f).ToWorldMove(inputX, inputY);
+
+        Assert.Equal(inputX, x, MoveTolerance);
+        Assert.Equal(inputY, z, MoveTolerance);
+    }
 }
