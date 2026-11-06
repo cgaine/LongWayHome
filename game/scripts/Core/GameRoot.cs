@@ -13,7 +13,8 @@ using LongWayHome.Infrastructure.Saves;
 namespace LongWayHome.Game.Core;
 
 /// <summary>
-/// The composition root, registered as an autoload. Loads the reference data when the game starts and
+/// The composition root, registered as an autoload. First caps the frame rate with <see cref="DisplayProfile"/>:
+/// 30 fps when the <c>SteamDeck</c> environment variable is "1", uncapped elsewhere. Then loads the reference data when the game starts and
 /// quits with exit code 1 if it is missing or invalid: a game with broken data must not start. With the data
 /// loaded it holds a fallback new-Game <see cref="Session"/> that saves nowhere, so <c>Farm.tscn</c> runs on its own.
 /// The title screen lists the save slots with <see cref="SaveSlots"/> from a <see cref="JsonSaveStore"/> on
@@ -38,6 +39,9 @@ public partial class GameRoot : Node
 
     public override void _Ready()
     {
+        // OS.GetEnvironment returns "" when SteamDeck is unset. V-sync is left as the project sets it.
+        Engine.MaxFps = DisplayProfile.MaxFps(DisplayProfile.IsSteamDeck(OS.GetEnvironment("SteamDeck")));
+
         var errors = new List<string>();
         var crops = ReadFile(JsonGameDataSource.CropsFileName, errors);
         var shop = ReadFile(JsonGameDataSource.ShopFileName, errors);
