@@ -33,6 +33,46 @@ public class PlayerTests
     }
 
     [Fact]
+    public void BR_P1_spending_more_energy_than_held_fails_and_changes_nothing()
+    {
+        var player = CreatePlayer(energy: 1);
+
+        var spent = player.TrySpendEnergy(2);
+
+        Assert.False(spent);
+        Assert.Equal(1, player.Energy);
+    }
+
+    [Fact]
+    public void BR_P1_spending_exactly_the_energy_held_leaves_0()
+    {
+        var player = CreatePlayer(energy: 2);
+
+        var spent = player.TrySpendEnergy(2);
+
+        Assert.True(spent);
+        Assert.Equal(0, player.Energy);
+    }
+
+    [Fact]
+    public void BR_P1_spending_energy_with_none_left_fails()
+    {
+        var player = CreatePlayer(energy: 0);
+
+        Assert.False(player.TrySpendEnergy(2));
+        Assert.Equal(0, player.Energy);
+    }
+
+    [Fact]
+    public void Spending_energy_subtracts_the_amount()
+    {
+        var player = CreatePlayer(energy: 150);
+
+        Assert.True(player.TrySpendEnergy(5));
+        Assert.Equal(145, player.Energy);
+    }
+
+    [Fact]
     public void Player_rejects_null_tools_can_or_inventory()
     {
         var tools = new HashSet<ToolId> { ToolId.Hoe };

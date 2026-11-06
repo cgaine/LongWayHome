@@ -65,6 +65,39 @@ public class InputMapTests
         Assert.Matches($@"InputEventJoypadButton,[^)]*""button_index"":{dpadButton},", body);
     }
 
+    [Theory]
+    [InlineData("tool_prev", 81)]
+    [InlineData("tool_next", 69)]
+    [InlineData("use_tool", 32)]
+    public void AC9_tool_action_is_bound_to_its_key(string action, int physicalKeycode)
+    {
+        Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+
+        Assert.Matches($@"InputEventKey,(?:(?!Object\().)*""physical_keycode"":{physicalKeycode},", Actions[action].Body);
+    }
+
+    [Theory]
+    [InlineData("tool_prev", 4)]
+    [InlineData("tool_next", 5)]
+    [InlineData("use_tool", 1)]
+    public void AC9_tool_action_is_bound_to_its_mouse_button(string action, int buttonIndex)
+    {
+        Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+
+        Assert.Matches($@"InputEventMouseButton,(?:(?!Object\().)*""button_index"":{buttonIndex},", Actions[action].Body);
+    }
+
+    [Theory]
+    [InlineData("tool_prev", 9)]
+    [InlineData("tool_next", 10)]
+    [InlineData("use_tool", 0)]
+    public void AC10_tool_action_is_bound_to_its_controller_button(string action, int buttonIndex)
+    {
+        Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+
+        Assert.Matches($@"InputEventJoypadButton,(?:(?!Object\().)*""button_index"":{buttonIndex},", Actions[action].Body);
+    }
+
     private sealed record InputAction(double Deadzone, IReadOnlyList<string> EventTypes, string Body);
 
     private static Dictionary<string, InputAction> ReadInputMap()

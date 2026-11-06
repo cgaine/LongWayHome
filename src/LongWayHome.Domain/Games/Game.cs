@@ -50,4 +50,7 @@ public sealed class Game
     public Player Player { get; }
 
     public FarmPlot FarmPlot { get; }
+
+    /// <summary>Tills a Tile: AlreadyTilled, then TooTired, else tills and spends the energy (BR-T2, BR-P2).</summary>
+    public ActionResult Till(GridPosition position, int toolEnergyCost) => throw new NotImplementedException();
 }
