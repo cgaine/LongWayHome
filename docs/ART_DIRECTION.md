@@ -173,7 +173,7 @@ Three species, each with a familiar silhouette. They share a family look: violet
 - **Puffhen:** a round, fluffy bird, almost a ball with legs. Its eggs glow faintly.
 - **Mossback:** a slow, gentle grazer with real moss and little plants growing on its back.
 - **Woolhorn:** a shaggy goat-like animal with spiral horns (the same spiral as coilsquash and the trunks: spirals are a family trait of the planet's life).
-- **Townsfolk:** human proportions and warm, readable faces. Proposed small differences (choose one or two): slightly longer pointed ears, a faint pattern of freckle-like marks across the cheeks, or eyes that catch the light at night. Nothing that makes them hard to read as friendly.
+- **Townsfolk:** see section 6.2.
 - **The farmer:** a human from Earth. See section 6.1.
 
 ### 6.1 The farmer (draft)
@@ -213,6 +213,36 @@ Decided: the outfit changes with the story. Draft trigger for each step: a story
 - Size and collision stay as they are now (capsule 1.6 m tall, radius 0.35) so the art upgrade doesn't change gameplay.
 
 **Build notes:** chunky: about 3 heads tall, with a big head, wide body, short legs and oversized boots and hands, for a cozy read and so the face and the tool read from the overhead camera (decided: chunkier than the first 4-head draft). Low-poly with three tones per part (highlight, lit and shade facets), a soft dark outline, a little contact shadow (under the cap brim, under the chin, on the ground) and small details that read up close: boot toe caps and laces, knee pads, a chest pocket, fabric folds at elbows and knees, stitching on the overalls, a weave on the hat. One material using a palette texture. Rigged to Godot's humanoid skeleton profile so shared animations can be retargeted. First animations needed: idle, walk, hoe swing, watering, plant, harvest, carry, sleep and pass out.
+
+### 6.2 The townsfolk (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Townsfolk page)
+
+**Same world, same build.** The residents share the farmer's chunky proportions (about 3 heads tall), low-poly shading and soft outline, with their own heights and builds (Tom broad and tall, Maggie and Ottlie small, Jesse slight). They read as warm, friendly people first.
+
+**What makes them not quite human** (proposed; the farmer is the only Earth human, section 6.1):
+
+1. **Pointed ears:** a little longer than human ears, angled up and back. Chosen because it reads from the overhead camera, where facial details don't.
+2. **Glow-marks:** three freckle-like dots on each cheek, a shade darker than the skin by day, that glow soft cyan at night, like the planet's glowing plants. Residents are easy to spot across the dark square.
+3. **Hair colours Earth doesn't grow:** teal, lavender-silver and white alongside browns and auburns.
+
+Skin tones stay in the human range so the differences stay small and friendly.
+
+**The residents:**
+
+| Resident | Arrives | Look | Palette |
+| --- | --- | --- | --- |
+| Maggie | From the start | Elderly and small. Lavender-silver bun, round glasses, cardigan, long skirt, cream shop apron | Lavender `#9A7EA8`, teal skirt `#3E6E6A`, cream `#EDE3CF` |
+| Clyde | From the start | Old fisherman. Teal knit cap, big white beard, mustard oilskin coat, fishing rod over his shoulder | Mustard `#C9A040`, teal cap `#3E6E7A`, slate `#4A5568` |
+| Tom | Carpenter stage 1 | The biggest build in town. Rust check shirt, rolled sleeves, short brown beard, tool belt with a hammer | Rust `#B0503A`, brown `#6E5A44`, leather `#7A5232` |
+| June | Carpenter stage 1 | Auburn curls, cream blouse, teal skirt, ember-orange café apron, always a mug in hand | Auburn `#A0482E`, teal `#3E8F82`, ember `#E9773A` |
+| Jesse | Carpenter stage 1 | Teen, slight. Messy teal hair over one eye, violet hoodie, dark trousers, white trainers | Teal hair `#2F6B6E`, violet `#6A5A9A` |
+| Mira | Blacksmith stage 1 | Dark ponytail with an ember headband, leather smith apron with straps, gloves, rolled sleeves, forge hammer | Charcoal `#4A4652`, leather `#7A4A2E`, ember band |
+| Ottlie | Later (lumen-reader) | Small elder. Long white braid with glowing buds, violet shawl, moss-green dress, staff topped with a glowing bulb | Moss `#4E7A6A`, violet `#7A68A8`, glow `#6FF2E0` |
+
+Each resident's palette is distinct in hue and value from the others and from the farmer's blue-silver, so they're told apart from the overhead camera.
+
+**Still to design:** the rancher family, the retired schoolteacher, and Clyde's three grown kids (design doc, Returning households).
 
 ## 7. Places
 
@@ -302,7 +332,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 
 - [x] How alien overall? Decided: a little further than the first draft for buildings, which are "grown, not built" (section 7.1). The rest keeps "familiar at first, different on a second look".
 - [ ] Moon names: Hearth and Wisp, or something else?
-- [ ] Which small differences for the townsfolk (ears, cheek marks, eyes)?
+- [ ] Townsfolk differences: proposed pointed ears, glow-marks on the cheeks and non-Earth hair colours (section 6.2). Confirm or change.
 - [x] The farmer: fixed character for now; customisation is a future enhancement
 - [x] The farmer: his outfit changes with the story
 - [x] The farmer: chunky proportions, about 3 heads tall
