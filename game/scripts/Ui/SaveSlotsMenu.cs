@@ -203,7 +203,14 @@ public partial class SaveSlotsMenu : Control
         }
 
         _leaving = true;
-        GetTree().ChangeSceneToFile(FarmScene);
+        var error = GetTree().ChangeSceneToFile(FarmScene);
+        if (error != Error.Ok)
+        {
+            // The farm could not be opened: stay on the title screen so the Player can still act or quit.
+            _leaving = false;
+            GD.PushError($"Could not open {FarmScene}: {error}");
+        }
+
         return true;
     }
 
