@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3]
+[gd_scene load_steps=42 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://ui/PauseMenu.tscn" id="7_pausemenu"]
 [ext_resource type="Script" path="res://scripts/World/DoorSleep.cs" id="8_doorsleep"]
 [ext_resource type="PackedScene" path="res://ui/NightTransition.tscn" id="9_nighttransition"]
+[ext_resource type="Script" path="res://scripts/World/RainView.cs" id="10_rainview"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -115,6 +116,24 @@ size = Vector3(1, 3, 28)
 
 [sub_resource type="BoxShape3D" id="BoxShape_wall_ns"]
 size = Vector3(34, 3, 1)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcess_rain"]
+emission_shape = 3
+emission_box_extents = Vector3(20, 0.5, 16)
+direction = Vector3(0.08, -1, 0)
+spread = 2.0
+initial_velocity_min = 16.0
+initial_velocity_max = 20.0
+gravity = Vector3(0, -9.8, 0)
+
+[sub_resource type="StandardMaterial3D" id="Mat_raindrop"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.75, 0.82, 0.95, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_raindrop"]
+material = SubResource("Mat_raindrop")
+size = Vector3(0.025, 0.45, 0.025)
 
 [node name="Farm" type="Node3D"]
 
@@ -251,6 +270,21 @@ script = ExtResource("5_pondrefill")
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.8)
+
+[node name="RainView" type="Node3D" parent="." node_paths=PackedStringArray("Light", "Environment")]
+script = ExtResource("10_rainview")
+Light = NodePath("../DirectionalLight3D")
+Environment = NodePath("../WorldEnvironment")
+
+[node name="Rain" type="GPUParticles3D" parent="RainView"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 0)
+emitting = false
+visible = false
+amount = 1800
+lifetime = 0.8
+visibility_aabb = AABB(-22, -14, -18, 44, 16, 36)
+process_material = SubResource("ParticleProcess_rain")
+draw_pass_1 = SubResource("BoxMesh_raindrop")
 
 [node name="Hud" parent="." instance=ExtResource("4_hud")]
 

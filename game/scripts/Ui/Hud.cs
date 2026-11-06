@@ -19,7 +19,8 @@ namespace LongWayHome.Game.Ui;
 /// centre, above the <see cref="UsePrompt"/>, a "&lt;interact glyph&gt; Refill can" hint shows while the Player is in
 /// range of the pond's <see cref="InteractionPoint"/>, and a "&lt;interact glyph&gt; Sleep" hint in the same place
 /// while in range of the house door's; their glyph follows <see cref="LastInputDevice"/>. Top right, the clock as
-/// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>. Everything is redrawn on
+/// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>, with the Day's weather as
+/// <see cref="WeatherText"/> ("Clear", "Rain") under it. Everything is redrawn on
 /// <see cref="GameSession.NightCompleted"/>. Holds no rules.
 /// </summary>
 public partial class Hud : CanvasLayer
@@ -52,6 +53,8 @@ public partial class Hud : CanvasLayer
 
     private Label _clockLabel = null!;
 
+    private Label _weatherLabel = null!;
+
     public override void _Ready()
     {
         _energyBar = GetNode<ProgressBar>("Panel/Rows/EnergyBar");
@@ -61,6 +64,7 @@ public partial class Hud : CanvasLayer
         _refillHint = GetNode<Label>("RefillHint");
         _sleepHint = GetNode<Label>("SleepHint");
         _clockLabel = GetNode<Label>("ClockLabel");
+        _weatherLabel = GetNode<Label>("WeatherLabel");
         _energyBar.MaxValue = PlayerState.MaxEnergy;
 
         _session = GetNode<GameRoot>("/root/GameRoot").Session;
@@ -110,6 +114,7 @@ public partial class Hud : CanvasLayer
 
         Refresh();
         RefreshClock();
+        RefreshWeather();
     }
 
     public override void _ExitTree()
@@ -182,7 +187,10 @@ public partial class Hud : CanvasLayer
     {
         Refresh();
         RefreshClock();
+        RefreshWeather();
     }
+
+    private void RefreshWeather() => _weatherLabel.Text = WeatherText.For(_session!.Game.Weather);
 
     private void RefreshClock() => _clockLabel.Text = ClockText.For(_session!.Game.ClockMinutes);
 
