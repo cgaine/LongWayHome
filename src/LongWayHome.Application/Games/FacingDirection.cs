@@ -22,8 +22,9 @@ public static class FacingDirection
         var absY = MathF.Abs(y);
 
         // An exact diagonal keeps the current facing when it is one of the two directions pressed, so walking
-        // diagonally doesn't flip it.
-        if (MathF.Abs(absX - absY) <= DiagonalTolerance)
+        // diagonally doesn't flip it. A diagonal needs both axes: a tiny move along one axis alone is within the
+        // tolerance of zero, but snapping it as a diagonal could give the zero direction.
+        if (absX > 0f && absY > 0f && MathF.Abs(absX - absY) <= DiagonalTolerance)
         {
             return current == horizontal ? horizontal : vertical;
         }

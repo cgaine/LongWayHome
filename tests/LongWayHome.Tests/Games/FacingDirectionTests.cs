@@ -72,4 +72,12 @@ public class FacingDirectionTests
         // Facing east while moving south-west: neither pressed direction is the current one, so south wins.
         Assert.Equal(South, FacingDirection.Snap(-0.7071f, 0.7071f, East));
     }
+
+    [Fact]
+    public void AC5_a_tiny_move_along_one_axis_snaps_to_that_axis_not_to_no_direction()
+    {
+        // |x| - |y| is below the tolerance in absolute terms, but this is a pure east move, not a diagonal: the
+        // facing must be east, never the zero vector.
+        Assert.Equal(East, FacingDirection.Snap(5e-6f, 0f, South));
+    }
 }

@@ -48,7 +48,7 @@ public readonly record struct CameraView(float YawDegrees, float Zoom)
         get
         {
             var pitch = PitchDegrees * MathF.PI / 180f;
-            var yaw = YawDegrees * MathF.PI / 180f;
+            var yaw = YawRadians;
             var horizontal = Distance * MathF.Cos(pitch);
             return (-horizontal * MathF.Sin(yaw), Distance * MathF.Sin(pitch), horizontal * MathF.Cos(yaw));
         }
@@ -77,11 +77,13 @@ public readonly record struct CameraView(float YawDegrees, float Zoom)
     public (float X, float Z) ToWorldMove(float x, float y)
     {
         // Rotates the input clockwise (seen from above) by the yaw, about the vertical axis.
-        var yaw = YawDegrees * MathF.PI / 180f;
+        var yaw = YawRadians;
         var cos = MathF.Cos(yaw);
         var sin = MathF.Sin(yaw);
         return (x * cos - y * sin, x * sin + y * cos);
     }
+
+    private float YawRadians => YawDegrees * MathF.PI / 180f;
 
     private static float Wrap(float degrees)
     {
