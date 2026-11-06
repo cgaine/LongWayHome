@@ -243,7 +243,7 @@ public class UseTests
     }
 
     [Theory]
-    [InlineData(ToolId.WateringCan, null, Rejection.NothingToDo)]
+    [InlineData(ToolId.WateringCan, null, Rejection.NotTilled)]
     [InlineData(null, CropTypeId.Emberroot, Rejection.NotTilled)]
     [InlineData(null, CropTypeId.Dusktuber, Rejection.NotTilled)]
     public void Use_on_grass_with_an_item_other_than_the_hoe_is_rejected_and_changes_nothing(
@@ -398,14 +398,14 @@ public class UseTests
     }
 
     [Fact]
-    public void AC9_preview_with_the_can_on_a_growing_planting_is_NothingToDo()
+    public void AC8_preview_with_the_can_on_a_dry_growing_planting_is_Water()
     {
         var session = TestGames.SessionWithTiles(
             TestGames.TilledWith(Target, TestGames.PlantingOf(CropTypeId.Emberroot, 2)));
 
         var preview = session.PreviewUse(Target, Can);
 
-        Assert.Equal(new UsePreview(null, Rejection.NothingToDo), preview);
+        Assert.Equal(new UsePreview(UseActionKind.Water, null), preview);
     }
 
     [Fact]
@@ -641,7 +641,7 @@ public class UseTests
         var before = TestGames.FullSnapshot(session.Game);
 
         Assert.Equal(new UsePreview(null, Rejection.AlreadyTilled), session.PreviewUse(Target, Hoe));
-        Assert.Equal(new UsePreview(null, Rejection.NothingToDo), session.PreviewUse(Target, Can));
+        Assert.Equal(new UsePreview(UseActionKind.Water, null), session.PreviewUse(Target, Can));
         Assert.Equal(new UsePreview(null, Rejection.TileOccupied), session.PreviewUse(Target, EmberrootSeeds));
         Assert.Equal(ActionResult.Rejected(Rejection.TileOccupied), session.Use(Target, EmberrootSeeds));
         Assert.Equal(ActionResult.Rejected(Rejection.NotRipe), session.Harvest(Target));
@@ -727,6 +727,221 @@ public class UseTests
         Assert.Equal(1, playerChanges);
         Assert.Equal(148, session.Game.Player.Energy);
     }
+
+    // ---- #25: watering and refilling the can ----
+
+    public static TheoryData<string, Rejection> CanRejections => new()
+    {
+        { "grass", Rejection.NotTilled },
+        { "watered", Rejection.AlreadyWatered },
+        { "empty", Rejection.CanEmpty },
+        { "too_tired", Rejection.TooTired },
+    };
+
+    [Fact]
+    public void AC8_preview_with_the_can_on_dry_tilled_soil_is_Water_and_changes_nothing()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, null));
+        var before = TestGames.WaterSnapshot(session.Game);
+
+        var preview = session.PreviewUse(Target, Can);
+
+        Assert.Equal(new UsePreview(UseActionKind.Water, null), preview);
+        Assert.Equal(before, TestGames.WaterSnapshot(session.Game));
+    }
+
+    [Theory]
+    [MemberData(nameof(CanRejections))]
+    public void AC8_preview_with_the_can_gives_the_rejection_and_changes_nothing(string scenario, Rejection expected)
+    {
+        var session = CanScenario(scenario);
+        var before = TestGames.WaterSnapshot(session.Game);
+
+        var preview = session.PreviewUse(Target, Can);
+
+        Assert.Equal(new UsePreview(null, expected), preview);
+        Assert.Equal(before, TestGames.WaterSnapshot(session.Game));
+    }
+
+    [Fact]
+    public void AC8_preview_with_the_can_checks_AlreadyWatered_before_CanEmpty_and_TooTired()
+    {
+        var session = TestGames.SessionWithCan(0, TestGames.CanWith(0), TestGames.TilledWith(Target, null, watered: true));
+
+        Assert.Equal(new UsePreview(null, Rejection.AlreadyWatered), session.PreviewUse(Target, Can));
+    }
+
+    [Fact]
+    public void AC8_preview_with_the_can_checks_CanEmpty_before_TooTired()
+    {
+        var session = TestGames.SessionWithCan(0, TestGames.CanWith(0), TestGames.TilledWith(Target, null));
+
+        Assert.Equal(new UsePreview(null, Rejection.CanEmpty), session.PreviewUse(Target, Can));
+    }
+
+    [Fact]
+    public void AC8_preview_with_the_can_on_a_ripe_planting_is_still_Harvest()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));
+
+        Assert.Equal(new UsePreview(UseActionKind.Harvest, null), session.PreviewUse(Target, Can));
+    }
+
+    [Fact]
+    public void AC8_preview_with_the_can_and_no_target_is_NoTarget()
+    {
+        var session = TestGames.NewSession();
+
+        Assert.Equal(new UsePreview(null, Rejection.NoTarget), session.PreviewUse(null, Can));
+    }
+
+    [Fact]
+    public void AC8_use_with_the_can_on_dry_tilled_soil_waters_it_using_one_charge_and_2_energy()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, null));
+
+        var result = session.Use(Target, Can);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.True(session.Game.FarmPlot[Target].Watered);
+        Assert.Equal(19, session.Game.Player.WateringCan.Charges);
+        Assert.Equal(148, session.Game.Player.Energy);
+    }
+
+    [Theory]
+    [MemberData(nameof(CanRejections))]
+    public void AC8_a_rejected_use_with_the_can_returns_the_rejection_raises_nothing_and_changes_nothing(
+        string scenario, Rejection expected)
+    {
+        var session = CanScenario(scenario);
+        var events = 0;
+        session.TileChanged += _ => events++;
+        session.PlayerChanged += () => events++;
+        session.InventoryChanged += () => events++;
+        var before = TestGames.WaterSnapshot(session.Game);
+
+        var result = session.Use(Target, Can);
+
+        Assert.Equal(ActionResult.Rejected(expected), result);
+        Assert.Equal(before, TestGames.WaterSnapshot(session.Game));
+        Assert.Equal(0, events);
+    }
+
+    [Fact]
+    public void AC8_a_successful_water_command_raises_TileChanged_once_with_its_position_and_PlayerChanged_once()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, null));
+        var tiles = new List<GridPosition>();
+        var players = 0;
+        var inventories = 0;
+        session.TileChanged += tiles.Add;
+        session.PlayerChanged += () => players++;
+        session.InventoryChanged += () => inventories++;
+
+        var result = session.Water(Target);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.True(session.Game.FarmPlot[Target].Watered);
+        Assert.Equal([Target], tiles);
+        Assert.Equal(1, players);
+        Assert.Equal(0, inventories);
+    }
+
+    [Fact]
+    public void AC8_a_use_that_waters_raises_TileChanged_and_PlayerChanged()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, null));
+        var tiles = new List<GridPosition>();
+        var players = 0;
+        session.TileChanged += tiles.Add;
+        session.PlayerChanged += () => players++;
+
+        session.Use(Target, Can);
+
+        Assert.Equal([Target], tiles);
+        Assert.Equal(1, players);
+    }
+
+    [Theory]
+    [MemberData(nameof(CanRejections))]
+    public void AC8_a_rejected_water_command_raises_nothing_and_changes_nothing(string scenario, Rejection expected)
+    {
+        var session = CanScenario(scenario);
+        var events = 0;
+        session.TileChanged += _ => events++;
+        session.PlayerChanged += () => events++;
+        session.InventoryChanged += () => events++;
+        var before = TestGames.WaterSnapshot(session.Game);
+
+        var result = session.Water(Target);
+
+        Assert.Equal(ActionResult.Rejected(expected), result);
+        Assert.Equal(before, TestGames.WaterSnapshot(session.Game));
+        Assert.Equal(0, events);
+    }
+
+    [Fact]
+    public void AC8_refill_can_command_fills_the_can_returns_Ok_and_raises_PlayerChanged_once()
+    {
+        var session = TestGames.SessionWithCan(150, TestGames.CanWith(0));
+        var tiles = 0;
+        var players = 0;
+        session.TileChanged += _ => tiles++;
+        session.PlayerChanged += () => players++;
+
+        var result = session.RefillCan();
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(session.Game.Player.WateringCan.Capacity, session.Game.Player.WateringCan.Charges);
+        Assert.Equal(150, session.Game.Player.Energy);
+        Assert.Equal(1, players);
+        Assert.Equal(0, tiles);
+    }
+
+    [Fact]
+    public void AC8_refill_can_command_on_a_full_can_returns_Ok_and_raises_PlayerChanged()
+    {
+        var session = TestGames.NewSession();
+        var players = 0;
+        session.PlayerChanged += () => players++;
+        var before = TestGames.WaterSnapshot(session.Game);
+
+        var result = session.RefillCan();
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(before, TestGames.WaterSnapshot(session.Game));
+        Assert.Equal(1, players);
+    }
+
+    [Fact]
+    public void BR_P2_water_command_charges_the_tuning_tool_energy_cost()
+    {
+        var session = new GameSession(
+            TestGames.WithTiles(150, null, TestGames.TilledWith(Target, null)), WithToolEnergyCost(5));
+
+        var result = session.Water(Target);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(145, session.Game.Player.Energy);
+    }
+
+    [Fact]
+    public void BR_P2_preview_with_the_can_is_TooTired_below_the_tuning_tool_energy_cost()
+    {
+        var session = new GameSession(
+            TestGames.WithTiles(4, null, TestGames.TilledWith(Target, null)), WithToolEnergyCost(5));
+
+        Assert.Equal(new UsePreview(null, Rejection.TooTired), session.PreviewUse(Target, Can));
+    }
+
+    private static GameSession CanScenario(string scenario) => scenario switch
+    {
+        "grass" => TestGames.NewSession(),
+        "watered" => TestGames.SessionWithTiles(TestGames.TilledWith(Target, null, watered: true)),
+        "empty" => TestGames.SessionWithCan(150, TestGames.CanWith(0), TestGames.TilledWith(Target, null)),
+        "too_tired" => TestGames.SessionWithCan(1, TestGames.CanWith(20), TestGames.TilledWith(Target, null)),
+        _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null),
+    };
 
     private static GameData WithToolEnergyCost(int cost) =>
         TestGames.Shipped with { Tuning = TestGames.Shipped.Tuning with { ToolEnergyCost = cost } };

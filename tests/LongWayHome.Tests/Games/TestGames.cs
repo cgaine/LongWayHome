@@ -70,7 +70,11 @@ internal static class TestGames
     }
 
     /// <summary>A Game whose plot is grass except for the given Tiles (restored through FarmPlot(IEnumerable&lt;Tile&gt;)).</summary>
-    public static GameState WithTiles(int energy, Inventory? inventory, params Tile[] tiles)
+    public static GameState WithTiles(int energy, Inventory? inventory, params Tile[] tiles) =>
+        WithCan(energy, new WateringCan(20), inventory, tiles);
+
+    /// <summary>A Game with the given energy and Watering can, grass except for the given Tiles.</summary>
+    public static GameState WithCan(int energy, WateringCan can, Inventory? inventory, params Tile[] tiles)
     {
         var overrides = tiles.ToDictionary(tile => tile.Position);
         var all = new List<Tile>();
@@ -95,10 +99,21 @@ internal static class TestGames
                 new Gold(100),
                 energy,
                 new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
-                new WateringCan(20),
+                can,
                 inventory ?? StartingSeeds()),
             new FarmPlot(all));
     }
+
+    /// <summary>A can of the shipped capacity holding the given charges.</summary>
+    public static WateringCan CanWith(int charges) => new(Shipped.Tuning.CanCapacity, charges, false);
+
+    /// <summary>A session with the given energy, can and Tiles, and the starting seeds.</summary>
+    public static GameSession SessionWithCan(int energy, WateringCan can, params Tile[] tiles) =>
+        new(WithCan(energy, can, null, tiles), Shipped);
+
+    /// <summary>The full snapshot plus the can's charges, to prove a watering action changed nothing.</summary>
+    public static ((int Energy, string Tiles, string Inventory) Full, int Charges) WaterSnapshot(GameState game) =>
+        (FullSnapshot(game), game.Player.WateringCan.Charges);
 
     /// <summary>A session at 150 energy with the starting seeds and the given Tiles.</summary>
     public static GameSession SessionWithTiles(params Tile[] tiles) => new(WithTiles(150, null, tiles), Shipped);

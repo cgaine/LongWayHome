@@ -6,4 +6,5 @@ public enum UseActionKind
     Till,
     Plant,
     Harvest,
+    Water,
 }

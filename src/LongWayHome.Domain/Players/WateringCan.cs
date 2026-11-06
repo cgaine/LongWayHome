@@ -13,9 +13,28 @@ public sealed class WateringCan
         Upgraded = false;
     }
 
+    /// <summary>Restores a can at a given charge level; charges must be within 0..capacity (BR-W1).</summary>
+    public WateringCan(int capacity, int charges, bool upgraded)
+    {
+        // BR-W1
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
+        ArgumentOutOfRangeException.ThrowIfNegative(charges);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(charges, capacity);
+
+        Capacity = capacity;
+        Charges = charges;
+        Upgraded = upgraded;
+    }
+
     public int Capacity { get; }
 
     public int Charges { get; }
 
     public bool Upgraded { get; }
+
+    /// <summary>Uses one charge (BR-W2); false and no change when the can is empty.</summary>
+    public bool TryUseCharge() => throw new NotImplementedException();
+
+    /// <summary>Fills the can to capacity (BR-W3).</summary>
+    public void Refill() => throw new NotImplementedException();
 }

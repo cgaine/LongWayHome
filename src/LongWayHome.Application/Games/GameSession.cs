@@ -109,6 +109,12 @@ public sealed class GameSession
         return result;
     }
 
+    /// <summary>Waters a Tile (BR-T9, BR-W2, BR-P2). Raises TileChanged and PlayerChanged on success.</summary>
+    public ActionResult Water(GridPosition position) => throw new NotImplementedException();
+
+    /// <summary>Refills the can at the Pond (BR-W3). Raises PlayerChanged.</summary>
+    public ActionResult RefillCan() => throw new NotImplementedException();
+
     /// <summary>Plants one Seed of a Crop type (BR-T3). Raises InventoryChanged and TileChanged on success.</summary>
     public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
     {

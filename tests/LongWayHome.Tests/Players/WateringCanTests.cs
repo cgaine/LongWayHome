@@ -30,4 +30,122 @@ public class WateringCanTests
         Assert.Equal(1, can.Capacity);
         Assert.Equal(1, can.Charges);
     }
+
+    // ---- #25: using and refilling charges ----
+
+    [Fact]
+    public void BR_W1_using_charges_never_takes_an_empty_can_below_0()
+    {
+        var can = new WateringCan(3, 1, false);
+
+        can.TryUseCharge();
+        can.TryUseCharge();
+        can.TryUseCharge();
+
+        Assert.Equal(0, can.Charges);
+        Assert.Equal(3, can.Capacity);
+    }
+
+    [Fact]
+    public void BR_W1_refilling_never_takes_charges_above_capacity()
+    {
+        var can = new WateringCan(20);
+
+        can.Refill();
+        can.Refill();
+
+        Assert.Equal(can.Capacity, can.Charges);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(21)]
+    public void Restored_can_rejects_charges_outside_0_to_capacity(int charges)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new WateringCan(20, charges, false));
+    }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(7, false)]
+    [InlineData(40, true)]
+    public void Restored_can_keeps_its_capacity_charges_and_upgraded_flag(int charges, bool upgraded)
+    {
+        var can = new WateringCan(40, charges, upgraded);
+
+        Assert.Equal(40, can.Capacity);
+        Assert.Equal(charges, can.Charges);
+        Assert.Equal(upgraded, can.Upgraded);
+    }
+
+    [Fact]
+    public void BR_W2_using_a_charge_on_a_full_can_returns_true_and_leaves_one_fewer()
+    {
+        var can = new WateringCan(20);
+
+        var used = can.TryUseCharge();
+
+        Assert.True(used);
+        Assert.Equal(can.Capacity - 1, can.Charges);
+    }
+
+    [Fact]
+    public void BR_W2_using_the_last_charge_succeeds_and_leaves_0()
+    {
+        var can = new WateringCan(20, 1, false);
+
+        var used = can.TryUseCharge();
+
+        Assert.True(used);
+        Assert.Equal(0, can.Charges);
+    }
+
+    [Fact]
+    public void BR_W2_using_a_charge_on_an_empty_can_returns_false_and_changes_nothing()
+    {
+        var can = new WateringCan(20, 0, false);
+
+        var used = can.TryUseCharge();
+
+        Assert.False(used);
+        Assert.Equal(0, can.Charges);
+        Assert.Equal(20, can.Capacity);
+    }
+
+    [Fact]
+    public void BR_W2_each_use_takes_exactly_one_charge_until_the_can_is_empty()
+    {
+        var can = new WateringCan(5);
+
+        var results = Enumerable.Range(0, can.Capacity + 1).Select(_ => (Used: can.TryUseCharge(), can.Charges)).ToList();
+
+        Assert.Equal(
+            [(true, 4), (true, 3), (true, 2), (true, 1), (true, 0), (false, 0)],
+            results);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(19)]
+    [InlineData(20)]
+    public void BR_W3_refill_sets_charges_to_capacity(int charges)
+    {
+        var can = new WateringCan(20, charges, false);
+
+        can.Refill();
+
+        Assert.Equal(can.Capacity, can.Charges);
+    }
+
+    [Fact]
+    public void BR_W3_refill_fills_an_upgraded_can_to_its_own_capacity()
+    {
+        var can = new WateringCan(40, 3, true);
+
+        can.Refill();
+
+        Assert.Equal(40, can.Charges);
+        Assert.True(can.Upgraded);
+    }
 }

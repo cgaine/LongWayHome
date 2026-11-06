@@ -50,6 +50,9 @@ public sealed class Tile
         return ActionResult.Ok;
     }
 
+    /// <summary>Waters a tilled, unwatered Tile (BR-T9); the Game checks first.</summary>
+    public void Water() => throw new NotImplementedException();
+
     /// <summary>Puts a Planting on the Tile: NotTilled, then TileOccupied (BR-T3).</summary>
     public ActionResult Plant(Planting planting)
     {

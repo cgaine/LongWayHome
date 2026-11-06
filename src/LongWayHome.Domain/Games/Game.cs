@@ -78,6 +78,15 @@ public sealed class Game
         return FarmPlot[position].Till();
     }
 
+    /// <summary>Why watering would be refused, or null: NotTilled, AlreadyWatered, CanEmpty, then TooTired (BR-T9, BR-W2, BR-P2).</summary>
+    public Rejection? WaterRejection(GridPosition position, int toolEnergyCost) => throw new NotImplementedException();
+
+    /// <summary>Waters a Tile, using one charge and the tool energy cost (BR-T9, BR-W2, BR-P2).</summary>
+    public ActionResult Water(GridPosition position, int toolEnergyCost) => throw new NotImplementedException();
+
+    /// <summary>Fills the can to capacity at no energy cost (BR-W3).</summary>
+    public ActionResult RefillCan() => throw new NotImplementedException();
+
     /// <summary>Why planting would be refused, or null: NotTilled, then TileOccupied, then NoSeed (BR-T3).</summary>
     public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId)
     {
