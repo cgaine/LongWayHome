@@ -176,6 +176,38 @@ Decided: the outfit changes with the story. Draft trigger for each step: a story
 | Mountains and mine | Gets stranger the deeper you go | Upper levels: timber and lantern light. Deep levels: violet glows, then the ship-metal colour |
 | Crash site | Out of place | Smooth, pale, iridescent hull against the organic forest; each installed part lights a section |
 
+### 7.1 The farmhouse (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse page)
+
+**What it is:** an old Ember Bay cabin in the meadow, left empty when families moved away. Maggie shows the farmer to it on day one, and it becomes his first home on the planet.
+
+**Mostly familiar.** The town built it, so it reads as a mountain cabin: horizontal honey-wood planks, a stone base, corner posts, a steep gabled roof for snow, shutters and a stone chimney. The gable end faces the farm plot, with the door in the middle.
+
+**The second look:**
+
+- The roof is overlapping rounded slate scales in blue-grey teal, a local stone, instead of Earth shingles.
+- Spiral carvings on the door and shutters: the planet's spiral motif (section 6) carried into the town's craft.
+- A round attic window in the gable.
+- Native moss on the eaves (Dawnmoss) that glows cyan at night.
+
+**A piece of the ship.** His first repair is to patch the hole in the roof with a hull panel from the crash: pale blue-silver, riveted, with a navy stripe. It stays when the house is restored, so a little of the ship is always part of his home.
+
+**Run-down to restored:**
+
+| State | Look |
+| --- | --- |
+| Run-down (day one) | Weathered grey wood, a hole in the roof, one window boarded up and one cracked, a crooked door, a missing plank, extra moss and weeds |
+| Restored | Fresh honey wood, ember-orange door and shutters, the hull-panel patch, a flower box with native plants (teal fronds, violet puffballs), chimney smoke |
+
+Draft: the step from run-down to restored is a story or rebuild beat (for example the carpenter fixes it up). The design doc still has "house upgrades" as an open long-term question.
+
+**At night:** warm amber windows with light spilling onto the ground, a lantern by the door, and cyan moss on the eaves: the town's warm light against the planet's cool glow (section 2).
+
+**Palette:** honey wood `#C08A5A`, wood shade `#9E6E44`, trim `#6E4A2E`, ember door and shutters `#E9773A`, slate roof `#6F9299` (shade `#4E6B71`), stone `#8F8A96`, hull patch `#C9D6E8`, window glow `#FFB04A`, moss glow `#6FF2E0`. Run-down wood `#9C8670`.
+
+**Fits the game:** the same 6 x 4 m footprint and 3 m walls as now, with the door on the side facing the plot, so the collision box and the sleep door point don't move. The roof may be a little taller than the prototype's, which doesn't affect collision. The front step stays within about 0.3 m of the wall, clear of the shipping bin.
+
 ## 8. Style and technical direction (draft)
 
 - **Style:** stylised low-poly with flat or softly stepped shading, simple shapes, and colour doing most of the work. No realistic textures. This matches what the prototype already uses (REQ-12 "low-poly"), so the upgrade is a better version of the same direction, not a change.
@@ -192,6 +224,7 @@ Decided: the outfit changes with the story. Draft trigger for each step: a story
 - [x] The farmer: fixed character for now; customisation is a future enhancement
 - [x] The farmer: his outfit changes with the story
 - [x] The farmer: chunky proportions, about 3 heads tall
+- [ ] The farmhouse: what restores it (a rebuild, a story beat or a house upgrade), and does it have more stages than run-down and restored?
 - [ ] Flat shading (sharp facets) or soft stepped shading (smoother, more painterly)?
 - [ ] Camera: the art should be checked from the camera the game ends up using (the design doc still has "fixed overhead or rotate and zoom" open).
 
