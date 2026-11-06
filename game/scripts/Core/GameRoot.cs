@@ -1,15 +1,18 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using Godot;
 using LongWayHome.Application.Data;
+using LongWayHome.Application.Games;
 using LongWayHome.Infrastructure.Data;
 
 namespace LongWayHome.Game.Core;
 
 /// <summary>
 /// The composition root, registered as an autoload. Loads the reference data when the game starts and
-/// quits with exit code 1 if it is missing or invalid: a game with broken data must not start.
+/// quits with exit code 1 if it is missing or invalid: a game with broken data must not start. With the data
+/// loaded it starts a new Game and holds it in <see cref="Session"/> (there is no title screen yet).
 /// Holds no rules.
 /// </summary>
 public partial class GameRoot : Node
@@ -17,6 +20,9 @@ public partial class GameRoot : Node
     private const string DataFolder = "res://data/";
 
     public GameData Data { get; private set; } = null!;
+
+    /// <summary>The current Game session. Set once the data has loaded; null only while the game is quitting.</summary>
+    public GameSession Session { get; private set; } = null!;
 
     public override void _Ready()
     {
@@ -49,6 +55,8 @@ public partial class GameRoot : Node
         }
 
         GD.Print($"Loaded {Data.CropTypes.Count} crop types, {Data.ShopListings.Count} shop listings and tuning");
+
+        Session = new GameSession(NewGameFactory.Create(Data, DateTimeOffset.UtcNow), Data);
     }
 
     private static string? ReadFile(string fileName, List<string> errors)
