@@ -27,11 +27,22 @@ namespace LongWayHome.Game.Ui;
 /// gives focus to its first enabled button, so <c>ui_up</c>/<c>ui_down</c> move and <c>ui_accept</c> presses; when
 /// nothing has focus (e.g. a mouse click on empty space cleared it), a navigation or accept press gives that button
 /// focus back through <see cref="MenuFocusRecovery"/> and is consumed. <c>ui_cancel</c> is Back in the slot list and Cancel in the confirmation. Every text is 22 px or larger with a
-/// black outline of 4, as the shop menu. Holds no rules.
+/// black outline of 4, as the shop menu. The first time it opens in a process started with <c>--art-sandbox</c>
+/// (<see cref="DisplayProfile.OpensArtSandbox"/>) it changes to the art sandbox instead of showing a view; later
+/// openings, such as the sandbox's way back, show the title view as usual. Holds no rules.
 /// </summary>
 public partial class SaveSlotsMenu : Control
 {
     private const string FarmScene = "res://scenes/Farm.tscn";
+
+    /// <summary>The art sandbox (#75), opened instead of the title view when the game starts with <c>--art-sandbox</c>.</summary>
+    private const string ArtSandboxScene = "res://art/sandbox/ArtSandbox.tscn";
+
+    /// <summary>
+    /// Set once the title screen has gone to the art sandbox, so returning from it (whose pause opens this scene
+    /// again, with the flag still on the command line) shows the title view instead of bouncing back.
+    /// </summary>
+    private static bool _artSandboxOpened;
 
     private enum View
     {
@@ -72,7 +83,28 @@ public partial class SaveSlotsMenu : Control
             return;
         }
 
+        if (!_artSandboxOpened && DisplayProfile.OpensArtSandbox(OS.GetCmdlineUserArgs()))
+        {
+            _artSandboxOpened = true;
+            _leaving = true;
+            // Deferred: the scene tree cannot change scene while this one is still being added.
+            Callable.From(OpenArtSandbox).CallDeferred();
+            return;
+        }
+
         ShowTitle();
+    }
+
+    private void OpenArtSandbox()
+    {
+        var error = GetTree().ChangeSceneToFile(ArtSandboxScene);
+        if (error != Error.Ok)
+        {
+            // The sandbox could not be opened: show the title screen so the Player can still play or quit.
+            _leaving = false;
+            GD.PushError($"Could not open {ArtSandboxScene}: {error}");
+            ShowTitle();
+        }
     }
 
     public override void _Input(InputEvent @event)

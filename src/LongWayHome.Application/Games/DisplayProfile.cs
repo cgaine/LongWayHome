@@ -17,4 +17,10 @@ public static class DisplayProfile
 
     /// <summary>True when the user command-line arguments include <c>--show-fps</c>.</summary>
     public static bool ShowFps(IReadOnlyList<string> userArgs) => userArgs.Contains(ShowFpsArg);
+
+    /// <summary>The user command-line argument that opens the art sandbox instead of the title screen.</summary>
+    public const string ArtSandboxArg = "--art-sandbox";
+
+    /// <summary>True when the user command-line arguments include <c>--art-sandbox</c>.</summary>
+    public static bool OpensArtSandbox(IReadOnlyList<string> userArgs) => userArgs.Contains(ArtSandboxArg);
 }
