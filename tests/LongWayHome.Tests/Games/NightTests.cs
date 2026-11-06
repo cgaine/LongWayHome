@@ -4,6 +4,8 @@ using LongWayHome.Application.Ports;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
+using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Shipping;
 using GameState = LongWayHome.Domain.Games.Game;
 
 namespace LongWayHome.Tests.Games;
@@ -277,6 +279,202 @@ public class NightTests
         public int NextPercent()
         {
             RolledOn = game.Date;
+            return 99;
+        }
+    }
+
+    /// <summary>A session whose bin holds emberroot × 9 and dusktuber × 2 (worth 465), at the given energy.</summary>
+    private static GameSession ShippedBasketSession(int energy = 150) =>
+        new(
+            TestGames.WithShippingBin(energy, null, (CropTypeId.Emberroot, 9), (CropTypeId.Dusktuber, 2)),
+            TestGames.Shipped);
+
+    [Fact]
+    public void BR_P5_a_night_whose_payout_overflows_gold_throws_before_any_step_changes_the_game()
+    {
+        var game = TestGames.OnDateWithShippingBin(
+            TestGames.FirstDay,
+            150,
+            null,
+            [TestGames.TilledWith(Spot, TestGames.PlantingOf(CropTypeId.Dusktuber, 1), watered: true)],
+            (CropTypeId.Moonmelon, int.MaxValue / 190));
+
+        Assert.Throws<OverflowException>(() => Night(game));
+
+        Assert.Equal(TestGames.PlantingOf(CropTypeId.Dusktuber, 1), game.FarmPlot[Spot].Planting);
+        Assert.Equal(TestGames.FirstDay, game.Date);
+        Assert.Equal(new Gold(100), game.Player.Gold);
+        Assert.Equal([new ShippedItem(CropTypeId.Moonmelon, int.MaxValue / 190)], game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void AC5_sleeping_pays_465_for_emberroot_9_and_dusktuber_2_and_empties_the_bin()
+    {
+        var session = ShippedBasketSession();
+
+        Assert.Equal(ActionResult.Ok, session.Sleep());
+
+        Assert.Equal(new Gold(100 + 465), session.Game.Player.Gold);
+        Assert.Empty(session.Game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void AC5_crops_shipped_through_the_session_are_paid_after_sleeping()
+    {
+        var inventory = new Inventory();
+        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 9);
+        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 2);
+        var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
+        Assert.Equal(ActionResult.Ok, session.ShipAll());
+
+        session.Sleep();
+
+        Assert.Equal(new Gold(565), session.Game.Player.Gold);
+        Assert.Empty(session.Game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void AC6_passing_out_pays_the_same_465_and_empties_the_bin()
+    {
+        var session = ShippedBasketSession();
+
+        session.AdvanceClock(720);
+
+        Assert.Equal(DayEndReason.PassedOut, session.Game.LastDayEnd);
+        Assert.Equal(new Gold(100 + 465), session.Game.Player.Gold);
+        Assert.Empty(session.Game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void AC6_night_processor_pays_out_on_a_passed_out_night()
+    {
+        var game = TestGames.WithShippingBin(150, null, (CropTypeId.Emberroot, 9), (CropTypeId.Dusktuber, 2));
+
+        NightProcessor.Run(game, TestGames.Shipped, DayEndReason.PassedOut);
+
+        Assert.Equal(new Gold(565), game.Player.Gold);
+        Assert.Empty(game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void AC7_a_night_with_an_empty_bin_leaves_gold_unchanged()
+    {
+        var game = TestGames.WithEnergy(150);
+
+        Night(game);
+
+        Assert.Equal(new Gold(100), game.Player.Gold);
+        Assert.Empty(game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void AC7_a_bin_item_with_no_data_row_pays_0_and_is_removed_while_the_rest_pay()
+    {
+        var game = TestGames.WithShippingBin(150, null, (CropTypeId.Emberroot, 3), (CropTypeId.Dusktuber, 2));
+
+        NightProcessor.Run(game, TestGames.ShippedWithout(CropTypeId.Dusktuber), DayEndReason.Slept);
+
+        Assert.Equal(new Gold(100 + (3 * 35)), game.Player.Gold);
+        Assert.Empty(game.ShippingBin.Items);
+    }
+
+    [Fact]
+    public void AC8_the_payout_runs_after_growth_and_before_the_date_advances()
+    {
+        // Dusktuber is only planted (looked up by growth); emberroot is only in the bin (looked up by the payout).
+        var lastDayOfSpring = new GameDate(1, Season.Spring, 28);
+        var game = TestGames.OnDateWithShippingBin(
+            lastDayOfSpring,
+            150,
+            null,
+            [TestGames.TilledWith(Spot, TestGames.PlantingOf(CropTypeId.Dusktuber, 2), watered: true)],
+            (CropTypeId.Emberroot, 4));
+        var cropTypes = new LookupRecordingCropTypes(game, TestGames.Shipped.CropTypes);
+        var random = new GoldRecordingRandom(game);
+
+        NightProcessor.Run(game, TestGames.Shipped with { CropTypes = cropTypes }, DayEndReason.Slept, random);
+
+        // Growth looked its Crop type up before any gold was paid.
+        var growthLookups = cropTypes.Lookups.Where(lookup => lookup.Key == CropTypeId.Dusktuber).ToList();
+        Assert.NotEmpty(growthLookups);
+        Assert.All(growthLookups, lookup => Assert.Equal(new Gold(100), lookup.Gold));
+
+        // The payout looked its Crop type up on the old date, before the date step.
+        var payoutLookups = cropTypes.Lookups.Where(lookup => lookup.Key == CropTypeId.Emberroot).ToList();
+        Assert.NotEmpty(payoutLookups);
+        Assert.All(payoutLookups, lookup => Assert.Equal(lastDayOfSpring, lookup.Date));
+
+        // By the weather roll (after the date step) the gold was already paid.
+        Assert.Equal(new Gold(100 + (4 * 35)), random.GoldAtRoll);
+        Assert.Equal(new Gold(240), game.Player.Gold);
+        Assert.Empty(game.ShippingBin.Items);
+        Assert.Equal(TestGames.PlantingOf(CropTypeId.Dusktuber, 3), game.FarmPlot[Spot].Planting);
+        Assert.Equal(new GameDate(1, Season.Summer, 1), game.Date);
+    }
+
+    [Fact]
+    public void BR_P4_passing_out_and_sleeping_pay_the_same_gold_and_leave_the_same_bin()
+    {
+        var slept = ShippedBasketSession(energy: 60);
+        var passedOut = ShippedBasketSession(energy: 60);
+
+        slept.Sleep();
+        passedOut.AdvanceClock(720);
+
+        Assert.Equal(DayEndReason.PassedOut, passedOut.Game.LastDayEnd);
+        Assert.Equal(slept.Game.Player.Gold, passedOut.Game.Player.Gold);
+        Assert.Equal(slept.Game.ShippingBin.Items, passedOut.Game.ShippingBin.Items);
+        Assert.Equal(new Gold(565), passedOut.Game.Player.Gold);
+    }
+
+    /// <summary>Crop type rows that record the looked-up key, the Game's date and the Player's gold at every lookup.</summary>
+    private sealed class LookupRecordingCropTypes(GameState game, IReadOnlyDictionary<CropTypeId, CropType> inner)
+        : IReadOnlyDictionary<CropTypeId, CropType>
+    {
+        public List<(CropTypeId Key, GameDate Date, Gold Gold)> Lookups { get; } = [];
+
+        public CropType this[CropTypeId key]
+        {
+            get
+            {
+                Record(key);
+                return inner[key];
+            }
+        }
+
+        public IEnumerable<CropTypeId> Keys => inner.Keys;
+
+        public IEnumerable<CropType> Values => inner.Values;
+
+        public int Count => inner.Count;
+
+        public bool ContainsKey(CropTypeId key)
+        {
+            Record(key);
+            return inner.ContainsKey(key);
+        }
+
+        public bool TryGetValue(CropTypeId key, [MaybeNullWhen(false)] out CropType value)
+        {
+            Record(key);
+            return inner.TryGetValue(key, out value);
+        }
+
+        public IEnumerator<KeyValuePair<CropTypeId, CropType>> GetEnumerator() => inner.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private void Record(CropTypeId key) => Lookups.Add((key, game.Date, game.Player.Gold));
+    }
+
+    /// <summary>A never-rain random source that records the Player's gold when the weather is rolled.</summary>
+    private sealed class GoldRecordingRandom(GameState game) : IRandomSource
+    {
+        public Gold? GoldAtRoll { get; private set; }
+
+        public int NextPercent()
+        {
+            GoldAtRoll = game.Player.Gold;
             return 99;
         }
     }

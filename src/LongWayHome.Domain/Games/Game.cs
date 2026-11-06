@@ -1,6 +1,7 @@
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Shipping;
 
 namespace LongWayHome.Domain.Games;
 
@@ -18,7 +19,8 @@ public sealed class Game
         DateTimeOffset createdAt,
         DateTimeOffset savedAt,
         Player player,
-        FarmPlot farmPlot)
+        FarmPlot farmPlot,
+        ShippingBin? shippingBin = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -32,6 +34,7 @@ public sealed class Game
         SavedAt = savedAt;
         Player = player;
         FarmPlot = farmPlot;
+        ShippingBin = shippingBin ?? new ShippingBin();
     }
 
     public Guid Id { get; }
@@ -53,6 +56,9 @@ public sealed class Game
     public Player Player { get; }
 
     public FarmPlot FarmPlot { get; }
+
+    /// <summary>The crops shipped today, paid for in the Night (BR-S1, BR-S2).</summary>
+    public ShippingBin ShippingBin { get; }
 
     /// <summary>Adds game minutes to the clock, never past the day end (BR-G2). Negative minutes throw.</summary>
     public void AdvanceClock(int minutes, int dayEndMinutes)
@@ -286,5 +292,73 @@ public sealed class Game
         // first so a failing Add leaves the Planting in place.
         Player.Inventory.Add(ItemKind.Crop, cropType.Id, 1);
         return FarmPlot[position].Harvest(cropType);
+    }
+
+    /// <summary>
+    /// Moves every Crop stack into the Shipping Bin (BR-S1); NothingToShip when there is none. Costs no energy (BR-P2).
+    /// </summary>
+    public ActionResult ShipAll()
+    {
+        // BR-S1: only Crops ship; with none held nothing changes.
+        var crops = Player.Inventory.Stacks.Where(stack => stack.Kind == ItemKind.Crop).ToList();
+        if (crops.Count == 0)
+        {
+            return ActionResult.Rejected(Rejection.NothingToShip);
+        }
+
+        // BR-S1: every merged quantity is checked before anything moves, so an overflowing stack ships nothing.
+        var inBin = ShippingBin.Items.ToDictionary(item => item.CropTypeId, item => item.Quantity);
+        foreach (var stack in crops)
+        {
+            _ = checked(inBin.GetValueOrDefault(stack.CropTypeId) + stack.Quantity);
+        }
+
+        // BR-P2: shipping spends no energy; gold only changes in the Night (BR-S2).
+        foreach (var stack in crops)
+        {
+            ShippingBin.Add(stack.CropTypeId, stack.Quantity);
+            Player.Inventory.Remove(ItemKind.Crop, stack.CropTypeId, stack.Quantity);
+        }
+
+        return ActionResult.Ok;
+    }
+
+    /// <summary>
+    /// The Night's payout (BR-S2): gold rises by quantity × sellPrice of every bin item, then the bin empties. An item
+    /// whose Crop type has no data row pays 0 and is still removed. Returns the amount paid. An overflowing total
+    /// throws and changes nothing (BR-P5).
+    /// </summary>
+    public int PayOutShippingBin(IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
+        var total = ShippingPayout(cropTypes);
+
+        // The gold is earned before the bin empties, so a failing EarnGold leaves the bin to pay another Night.
+        Player.EarnGold(total);
+        ShippingBin.Empty();
+        return total;
+    }
+
+    /// <summary>
+    /// What the Night's payout would pay (BR-S2), changing nothing: Σ quantity × sellPrice over the bin's items, where
+    /// an item with no data row pays 0. Throws on overflow, or when the Player's gold plus the total would overflow
+    /// (BR-P5), so the Night can check it before any step changes the Game.
+    /// </summary>
+    public int ShippingPayout(IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
+        ArgumentNullException.ThrowIfNull(cropTypes);
+
+        // BR-S2: each Crop type is looked up by key; a missing row pays 0.
+        var total = 0;
+        foreach (var item in ShippingBin.Items)
+        {
+            if (cropTypes.TryGetValue(item.CropTypeId, out var cropType))
+            {
+                total = checked(total + (item.Quantity * cropType.SellPrice.Value));
+            }
+        }
+
+        // BR-P5: the gold the payout would leave must fit too.
+        _ = checked(Player.Gold.Value + total);
+        return total;
     }
 }

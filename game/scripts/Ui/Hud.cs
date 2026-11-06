@@ -18,7 +18,8 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Bottom
 /// centre, above the <see cref="UsePrompt"/>, a "&lt;interact glyph&gt; Refill can" hint shows while the Player is in
 /// range of the pond's <see cref="InteractionPoint"/>, and a "&lt;interact glyph&gt; Sleep" hint in the same place
-/// while in range of the house door's; their glyph follows <see cref="LastInputDevice"/>. Top right, the clock as
+/// while in range of the house door's, and a "&lt;interact glyph&gt; Ship crops" hint in the same place while in range
+/// of the shipping bin's; their glyph follows <see cref="LastInputDevice"/>. Top right, the clock as
 /// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>, with the Day's weather as
 /// <see cref="WeatherText"/> ("Clear", "Rain") under it and the date as <see cref="DateText"/> ("Spring 1, Year 1")
 /// under that. Everything is redrawn on
@@ -30,6 +31,8 @@ public partial class Hud : CanvasLayer
 
     private const string DoorPointId = "door";
 
+    private const string BinPointId = "bin";
+
     private GameSession? _session;
 
     private HeldItemSelection? _selection;
@@ -37,6 +40,8 @@ public partial class Hud : CanvasLayer
     private InteractionPoint? _pond;
 
     private InteractionPoint? _door;
+
+    private InteractionPoint? _bin;
 
     private LastInputDevice? _device;
 
@@ -52,6 +57,8 @@ public partial class Hud : CanvasLayer
 
     private Label _sleepHint = null!;
 
+    private Label _shipHint = null!;
+
     private Label _clockLabel = null!;
 
     private Label _weatherLabel = null!;
@@ -66,6 +73,7 @@ public partial class Hud : CanvasLayer
         _heldLabel = GetNode<Label>("Panel/Rows/HeldLabel");
         _refillHint = GetNode<Label>("RefillHint");
         _sleepHint = GetNode<Label>("SleepHint");
+        _shipHint = GetNode<Label>("ShipHint");
         _clockLabel = GetNode<Label>("ClockLabel");
         _weatherLabel = GetNode<Label>("WeatherLabel");
         _dateLabel = GetNode<Label>("DateLabel");
@@ -116,6 +124,14 @@ public partial class Hud : CanvasLayer
             _sleepHint.Visible = _door.IsPlayerInRange;
         }
 
+        _bin = FindPoint(GetTree().Root, BinPointId);
+        if (_bin is not null)
+        {
+            _bin.PlayerEntered += ShowShipHint;
+            _bin.PlayerExited += HideShipHint;
+            _shipHint.Visible = _bin.IsPlayerInRange;
+        }
+
         Refresh();
         RefreshClock();
         RefreshWeather();
@@ -153,6 +169,12 @@ public partial class Hud : CanvasLayer
             _door.PlayerEntered -= ShowSleepHint;
             _door.PlayerExited -= HideSleepHint;
         }
+
+        if (_bin is not null && IsInstanceValid(_bin))
+        {
+            _bin.PlayerEntered -= ShowShipHint;
+            _bin.PlayerExited -= HideShipHint;
+        }
     }
 
     private static InteractionPoint? FindPoint(Node node, string pointId)
@@ -181,11 +203,16 @@ public partial class Hud : CanvasLayer
 
     private void HideSleepHint() => _sleepHint.Visible = false;
 
+    private void ShowShipHint() => _shipHint.Visible = true;
+
+    private void HideShipHint() => _shipHint.Visible = false;
+
     private void RefreshHints()
     {
         var glyph = LastInputDevice.GlyphFor("interact", _device);
         _refillHint.Text = $"{glyph} Refill can";
         _sleepHint.Text = $"{glyph} Sleep";
+        _shipHint.Text = $"{glyph} Ship crops";
     }
 
     private void RefreshAll()

@@ -28,7 +28,7 @@ public sealed class Player
         Inventory = inventory;
     }
 
-    public Gold Gold { get; }
+    public Gold Gold { get; private set; }
 
     public int Energy { get; private set; }
 
@@ -64,5 +64,14 @@ public sealed class Player
 
         Energy -= amount;
         return true;
+    }
+
+    /// <summary>Adds gold: a negative amount throws, and the sum is checked (BR-P5).</summary>
+    public void EarnGold(int amount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+
+        // BR-P5: an overflowing sum throws before Gold is assigned, so gold is unchanged.
+        Gold = new Gold(checked(Gold.Value + amount));
     }
 }

@@ -43,10 +43,14 @@ public static class NightProcessor
                 nameof(data), energy, $"Wake energy must be between 0 and {Player.MaxEnergy} (BR-P1).");
         }
 
+        // BR-S2, BR-P5: an overflowing payout throws here, before growth changes the Game, not halfway through.
+        game.ShippingPayout(data.CropTypes);
+
         // BR-T4: growth reads the watered flags, so it runs before the watering reset clears them.
         game.GrowPlantings(data.CropTypes);
 
-        // BR-S2: shipping payout goes here (epic #11).
+        // BR-S2: the shipping payout, after growth and before the date step.
+        game.PayOutShippingBin(data.CropTypes);
 
         // BR-G1: the date moves on one day. After growth, which never reads the Season, so a Planting keeps growing
         // across a season change (BR-T5).

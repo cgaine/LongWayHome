@@ -16,4 +16,5 @@ public enum Rejection
     CanEmpty,
     TooLate,
     OutOfSeason,
+    NothingToShip,
 }
