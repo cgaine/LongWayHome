@@ -1,0 +1,18 @@
+# Godot
+.godot/
+
+# .NET build output
+bin/
+obj/
+
+# IDEs
+*.user
+.vs/
+.idea/
+
+# Test and coverage output
+TestResults/
+coverage/
+
+# Godot export output (CI)
+build/
