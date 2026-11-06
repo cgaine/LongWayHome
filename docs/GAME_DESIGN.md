@@ -2,7 +2,7 @@
 
 Nov 5, 2026 · @Chris Gaine
 
-> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 145). The live doc is the source of truth; re-export here as it evolves.
+> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 171). The live doc is the source of truth; re-export here as it evolves.
 
 Long Way Home is a cozy 3D farming game (working title chosen 2026-11-05; the browser prototype is still called Little Acre, v0.1). This doc tracks how its systems connect, the numbers behind them, and what to build next. The title may change before release: three space-themed games on Steam already use "A Long Way Home" or "The Long Way Home", one of them with farming, so a subtitle or different name may be needed.
 
@@ -30,13 +30,13 @@ Nine systems exist in v0.1. Each row says how it works today, what it feeds, and
 | Time | Day runs 6:00 am to 2:00 am, about 12 real minutes per day (about 1.7 game minutes per real second). Pauses while a menu is open. | Lighting, sleep, crop growth | Does a 12-minute day feel right once there is more to do? |
 | Sleep | Bed at the front door ends the day. Staying up past 2 am means passing out and waking with 50% energy. | Crop growth, shipping payout, weather roll, save | Should passing out cost gold too? |
 | Energy | 150 per day. Every tool swing or pour costs 2 (tilling, watering, chopping, mining); planting and harvesting are free. Refills fully on sleep. | Limits tilling and watering per day | What restores energy mid-day (food)? |
-| Farming | Till a tile, plant a seed, crop grows 1 stage per watered night, harvest when ripe. Harvested tile stays tilled. | Basket | Do untouched tilled tiles revert to grass? Do crops die at season change? |
-| Watering | Can holds 20 (40 after upgrade), 1 per tile, refills at the pond. Watered state resets each night. | Crop growth | Should upgrades water a 3-tile row at once? |
+| Farming | Till a tile, plant a seed, crop grows 1 stage per watered night, harvest when ripe. Harvested tile stays tilled. | Basket | Decided: crops already planted keep growing past a season change; you just can't plant out-of-season seeds. Tilled tiles stay tilled for now (no reverting to grass). |
+| Watering | Can holds 20 at Basic (more with Rosk, Groth and Forgelight upgrades), one charge per tile, 2 energy per pour; refills at any water: the pond on the farm, the river or the lake. Watered state resets each night. | Crop growth | Decided: Groth waters 3 tiles in a row, Forgelight a 3 x 3 area, still one charge per tile. |
 | Weather | 22% chance of rain each new day. Rain waters every tilled tile, including newly tilled ones. | Watering, lighting | Add storms or seasonal weather odds? |
-| Inventory | Seeds per crop type, plus a basket of harvested crops. No size limit. | Shipping | Add a backpack limit to create a reason for chests? |
+| Inventory | Slot-based backpack, stacks up to 99 per slot; 12 slots to start, tools take slots. | Shipping | Decided: backpack upgrades at Maggie's store (24, then 36 slots); chests from store level 3 and Tom. |
 | Shipping | Drop the whole basket into the bin. Items sell at their base price overnight. | Gold | Add quality tiers (normal, silver, gold) for higher prices? |
 | Shop | Prototype only: a seed stall on the farm sold 3 seed types and a can upgrade. Decided: the stall is removed; seeds and tools come from the general store in town, open from day one, so there's a reason to go into town. | Seeds, can capacity | Opening hours? Seasonal stock? |
-| Gathering (planned) | Not in v0.1. Axe on trees gives wood, pickaxe on rocks gives stone. Each swing costs energy, so gathering competes with farming for the day. Materials go into the backpack. | Rebuilds, carpenter (wood to planks), backpack upgrades | Decided: trees and rocks respawn every couple of days. |
+| Gathering (planned) | Not in v0.1. Axe on trees gives wood, pickaxe on rocks gives stone. Each swing costs energy, so gathering competes with farming for the day. Materials go into the backpack. | Rebuilds, carpenter (wood to planks), backpack upgrades | Decided: trees and rocks respawn every couple of days, including in the meadow, but never on tilled soil or within 2–3 tiles of it. |
 
 Saving happens once a night in the player's browser, so a day can be replayed by reloading before bed.
 
@@ -102,7 +102,7 @@ Energy rule (draft): every swing or pour costs 2 energy at every level. Upgrades
 | Constant | Value | Used by |
 | --- | --- | --- |
 | Starting gold | 100g | New game |
-| Starting seeds | 10 carrot, 5 potato | New game |
+| Starting seeds | 10 emberroot, 5 dusktuber (from Maggie) | New game |
 | Max energy | 150 | Energy |
 | Pass-out energy | 50% | Sleep |
 | Time rate | About 1.7 game min per real sec (12 real min per day) | Time |
@@ -157,7 +157,7 @@ Shoring up a level can require any one or a combination of the following, varied
 - Metal parts: a pump or seal forged by Mira from ore found on the level above
 - Tool tier: a pickaxe strong enough to clear the debris
 
-Opening (draft): after the crash, he stumbles into town and meets Maggie. She is the only one who knows where he really came from, and she shows him to an abandoned farmhouse in the meadow, which becomes his farm. She acts as the tutorial: shows how to use the hoe and watering can, gives starter seeds (draft: 10 carrot, 5 potato for spring), and points him to her store for the axe and pickaxe once he has earned some gold.
+Opening (draft): after the crash, he stumbles into town and meets Maggie. She is the only one who knows where he really came from, and she shows him to an abandoned farmhouse in the meadow, which becomes his farm. She acts as the tutorial: shows how to use the hoe and watering can, gives starter seeds (draft: 10 emberroot, 5 dusktuber for spring), and points him to her store for the axe and pickaxe once he has earned some gold.
 
 Start (draft): 100 gold and a cleared 6 x 6 plot; the rest of the meadow is overgrown with trees, stumps and rocks. Clearing it both expands the farm and gives the first wood and stone. Expected first week: plant Maggie's seeds and buy the axe on day 1, sell carrots on day 4 (about 400 gold), buy the pickaxe on day 5, rebuild the store to level 2 around day 5–6.
 
@@ -173,7 +173,7 @@ Maggie's mine story (draft, told when you buy the pickaxe): the mine was the hea
 
 - Resources: rocks for stone, copper ore for Mira's first tool upgrades, glimmercaps, the odd relic
 - Each level: clear debris with the pickaxe, then shore up the walls with planks and stone
-- Travel: a ladder or lift lets you return straight to any cleared level
+- Travel: a staircase built into the mine connects the levels; every fifth cleared level adds a shortcut from the entrance
 - No danger in this version, only energy cost; danger (creatures, collapses) is a future enhancement
 - Level 5: the first flooded level, drained with Mira's first pump, so the deeper mine is gated behind the blacksmith
 
@@ -185,6 +185,8 @@ Ore and tool upgrades: tool upgrades are earned by collecting materials in the m
 | Mine levels 1–15 | Rosk ore | Rosk tools |
 | Mine levels 15–30 | Groth ore | Groth tools |
 | Deeper levels | Embrite, a rare native glowing mineral | Mira forges it with Groth into Forgelight, for Forgelight tools |
+
+Early Groth: a few small Groth deposits appear on levels 3–5, so Groth tool upgrades are possible in Phase 2 before the main Groth levels (15–30).
 
 Pumps (draft): Mira forges each pump overnight from materials you bring. Rosk pumps (Rosk ore plus Tom's planks) for levels 5–15, available from blacksmith stage 1; Groth pumps for levels 20–30; Forgelight pumps for level 35 and deeper. Each pump needs metal from the levels just above it. First pump (level 5), draft: 20 Rosk ore, 30 planks, 500 gold; later prices set in playtesting.
 
@@ -221,9 +223,13 @@ The general store is the first building to restore. It is open from day one at l
 | 1. Maggie's corner | Open from day one: starter seeds, axe and pickaxe |
 | 2. Reopened | Basic seeds, first backpack upgrade |
 | 3. Storeroom | More seed types, bigger backpack, chests for the farm |
-| 4. Expanded shop | Buys your crops; wider range of seeds and farm supplies |
+| 4. Expanded shop | Maggie gives you a shipping bin for the farm; wider range of seeds and farm supplies |
 
-Backpack (draft): slot-based; each slot holds a stack of one item, up to 99. Start with 12 slots, with the four tools taking slots (8 left for seeds, crops and materials). Maggie's upgrades: 24 slots at store level 2, 36 at level 3.
+Store rebuild costs (draft): level 2 is 50 wood, 25 stone, 300 gold and needs no Tom. Level 3 (storeroom): 40 planks, 60 stone, 1,200 gold. Level 4 (expanded shop): 80 planks, 120 stone, 20 Rosk ore, 3,000 gold. Levels 3 and 4 need Tom's planks, so they come after the carpenter reopens.
+
+Selling: until store level 4 you carry crops to the store and sell them to Maggie. At level 4 she gives you a shipping bin for the farm, which sells overnight. (Early playtest builds can keep the bin from the start.)
+
+Backpack (draft): slot-based; each slot holds a stack of one item, up to 99. Start with 12 slots, with the four tools taking slots (8 left for seeds, crops and materials). Maggie's upgrades: 24 slots at store level 2, 36 at level 3. The hotbar is one 6-slot row of the backpack shown on screen; a key or controller button cycles which row is the hotbar. With a full backpack, extra items drop on the ground and stay until the next morning.
 
 ## Carpenter
 
@@ -235,7 +241,9 @@ Backpack (draft): slot-based; each slot holds a stack of one item, up to 99. Sta
 
 Rebuilt homes are their own track: each one gives a family room to return, bringing a shop, a service or new requests.
 
-Homes start early, not at Builder stage: the Hollis family lives above the workshop, so they move in when it reopens. Mira needs a home, so rebuilding her house is the first home rebuild; once she moves in, she asks you to rebuild the blacksmith.
+Carpenter costs (draft): stage 1 is 100 wood, 50 stone, 600 gold (no planks, since Tom isn't open yet); stage 2 (workshop, bridge repair) is 60 planks, 80 stone, 10 Rosk ore, 1,500 gold. Tom's conversions (draft): a plank costs 2 wood + 5 gold; a sealed plank costs 1 plank + 1 sap + 10 gold. Drop off materials and they're ready the next morning. A mine level needing 10 sealed planks costs about 20 wood, 10 sap and 150 gold.
+
+Homes start early, not at Builder stage: the Hollis family lives above the workshop, so they move in when it reopens. Mira needs a home, so rebuilding her house is the first home rebuild. Her house costs 30 planks, 40 stone and 800 gold (draft), so Tom must be open first. She returns once that house is repaired and you have explored mine levels 1–5; once she moves in, she asks you to rebuild the blacksmith.
 
 ### Returning households (draft, order to be decided)
 
@@ -391,6 +399,8 @@ Relics go to a museum. A returning resident (an old retired schoolteacher, name 
 
 Upgrades interleave across buildings rather than finishing one building first. Tool upgrades come early because most other progress depends on them.
 
+How a rebuild works: each building has a sign out front. You drop off the wood, stone and gold it needs, and once everything is in, the building is rebuilt overnight. This works before Tom arrives.
+
 1. General store, level 2
 2. Carpenter, stage 1
 3. Mira's house (first home rebuild), then Blacksmith stage 1 (first tool upgrades): Mira moves back and asks you to rebuild the forge
@@ -407,9 +417,10 @@ The first rebuild should take a few in-game days; numbers will be tuned in playt
 | --- | --- | --- | --- | --- |
 | General store, level 2 | 50 | 25 | 300 | 3–4 days |
 | Carpenter, stage 1 | 100 | 50 | 600 | About a week |
-| Blacksmith, stage 1 | 80 | 100 | 900 | About a week and a half |
+| Blacksmith, stage 1 | 40 planks (Tom is open by then) | 100 | 900 | About a week and a half |
+| Blacksmith, stage 2 (Groth smelting and pumps) | 80 planks, plus 30 Rosk ore | 150 | 2,500 | Set in playtesting |
 
-Gathering (draft): trees along the forest path and farm edges give about 5 wood each; rocks in the meadow and along the riverbank give about 3 stone each. Each swing costs energy, and both respawn every couple of days. The axe (50g) and pickaxe (75g) are cheap so the first harvest or two pays for them.
+Gathering (draft): trees along the forest path and farm edges give about 5 wood and 2 sap each; rocks in the meadow and along the riverbank give about 3 stone each. Each swing costs energy, and both respawn every couple of days. The axe (50g) and pickaxe (75g) are cheap so the first harvest or two pays for them.
 
 ## World layout
 
@@ -422,7 +433,7 @@ The setting is mountain and lake cabin country. From top to bottom:
 | Forest path | Trees and foraging between farm and town | Start |
 | Town | Town square with the general store, carpenter, blacksmith and empty houses | Start (mostly empty) |
 | Lakeshore | Dock for fishing | Start or early |
-| Across the river | Old ranch with cows, chickens and sheep | Carpenter stage 2 rebuilds the bridge |
+| Across the river | Old ranch (empty at first: a new area with trees and rocks to gather); later the rancher family and native animals | Carpenter stage 2 rebuilds the bridge |
 | Across the lake | Far shore, to be decided | Future ferry upgrade |
 
 ### The river (draft)
@@ -445,6 +456,19 @@ The river runs from the mountains to the lake, giving several fishing spots alon
 - Care: feed daily and let them graze; happy animals give better products
 - Uses: sell, supply June's café, or use in later rebuilds
 - Future enhancement: breeding and hatching eggs
+
+## Art direction (draft)
+
+Stylized 3D, a step up from the choppy low-poly prototype: cozy, readable, light enough for the Steam Deck. Familiar at first glance, with a touch of alien.
+
+- Shapes: smooth shading on organic things (crops, rocks, characters, animals); harder edges on buildings. Plants and trees slightly off from Earth (spiral trunks, oversized leaves); buildings stay familiar and cozy
+- Colour: one tight palette used everywhere. Mostly familiar greens and browns, with a few odd accents (teal-tinted grass, purple dusk shadows)
+- Light: soft shadows, light ambient occlusion, warm-to-cool light shifting through the day
+- Glow: crops, wild glowing plants, Embrite and the crash site glow softly at night; glow is the main alien signature
+- Sky: an alien night sky (e.g. a second moon or a ringed planet)
+- Motion: grass and leaves sway in the wind via a shader
+
+Process: settle style, palette, camera angle and scale (tile and character size) early; leave detailed assets until each area's design is stable. Merge graphics work into the main branch early and then add it phase by phase, rather than keeping a long-lived separate branch. Merge this section with the existing art notes in the repo. Where they differ on colours, the graphics-branch design takes priority over the colour notes here.
 
 ## Milestone 1: Godot rebuild
 

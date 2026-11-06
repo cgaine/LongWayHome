@@ -27,7 +27,7 @@ For players who enjoy relaxing farming and life games, Long Way Home offers a ge
 | Phase | Name | Promise | Requirements |
 | --- | --- | --- | --- |
 | Phase 1 (MVP) | Godot rebuild | The v0.1 farm loop plays the same on Windows, Linux and Steam Deck, with keyboard and mouse or a controller | REQ-1, REQ-2, REQ-3, REQ-4, REQ-5, REQ-6, REQ-7, REQ-8, REQ-9, REQ-10, REQ-11, REQ-12, REQ-13, REQ-14, REQ-42 |
-| Phase 2 | Rebuilding Ember Bay | The player gathers materials and rebuilds the first town buildings, which unlock tools and the early mine | REQ-15, REQ-16, REQ-17, REQ-18, REQ-19, REQ-20, REQ-21, REQ-22, REQ-23, REQ-24 |
+| Phase 2 | Rebuilding Ember Bay | The player gathers materials and rebuilds the first town buildings, which unlock tools and the early mine | REQ-44, REQ-16, REQ-17, REQ-45, REQ-46, REQ-47, REQ-48, REQ-22, REQ-49, REQ-50, REQ-51 |
 | Phase 3 | Life in town | Residents return and become friends; food, fishing, festivals and seasons give each day variety | REQ-43, REQ-26, REQ-27, REQ-28, REQ-29, REQ-30, REQ-31, REQ-32 |
 | Phase 4 | The way home | The player reaches the bottom of the mine, restores the wider world and repairs the ship; story complete and released on Steam | REQ-33, REQ-34, REQ-35, REQ-36, REQ-37, REQ-38, REQ-39, REQ-40 |
 
@@ -134,11 +134,11 @@ The **Player** can always see each crop's growth stage, whether a tile is watere
 
 ### Phase 2 — Rebuilding Ember Bay
 
-#### REQ-15 — Gathering *(capability)*
-The **Player** chops trees for wood and sap with the axe, and breaks rocks for stone with the pickaxe. Each swing costs energy, and trees and rocks respawn every couple of days.
+#### REQ-44 — Gathering *(capability)* *(supersedes REQ-15, 2026-11-06)*
+The **Player** chops trees for wood and sap with the axe (about 5 wood and 2 sap a tree), and breaks rocks for stone with the pickaxe (about 3 stone a rock). Each swing costs energy. Trees and rocks respawn every couple of days, including in the meadow, but never on tilled soil or within 2–3 tiles of it.
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: stumps and large trees before the matching tool tier.
-
+- **Open**: The exact no-respawn distance around tilled soil (2 or 3 tiles).
 #### REQ-16 — Clearing the meadow *(capability)*
 The **Player** starts with a cleared 6 x 6 plot; clearing the trees, stumps and rocks around it expands the area they can farm.
 - **Acceptance**: to settle at phase readiness
@@ -149,41 +149,41 @@ After the crash, Maggie guides the **Player** to the abandoned farmhouse, shows 
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: a skippable full tutorial menu.
 
-#### REQ-18 — Rebuilding buildings *(capability)*
-The **Player** spends wood, stone and gold to rebuild a town building one stage at a time; each finished stage restores the building's look and unlocks new goods, services or residents.
+#### REQ-45 — Rebuilding buildings *(capability)* *(supersedes REQ-18, 2026-11-06)*
+Each town building has a sign out front. The **Player** drops off the wood, stone and gold its next stage needs (later stages also need planks and ore); once everything is in, the building is rebuilt overnight, restoring its look and unlocking new goods, services or residents. This works before the carpenter reopens.
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: the Player designing building layouts.
-
-#### REQ-19 — General store *(capability)*
-The **Player** can shop at Maggie's corner of the general store from day one for seeds, the axe (50 gold) and the pickaxe (75 gold). Rebuilding it through stages 2 to 4 adds more seeds, backpack upgrades, farm chests and, at stage 4, buying the Player's crops.
+#### REQ-46 — General store *(capability)* *(supersedes REQ-19, 2026-11-06)*
+The **Player** can shop at Maggie's corner of the general store from day one for seeds, the axe (50 gold) and the pickaxe (75 gold), and sells harvested crops to Maggie at the store. Rebuilding it through stages 2 to 4 adds more seeds, backpack upgrades, farm chests and, at stage 4, a shipping bin on the farm that sells overnight.
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: seasonal stock and opening hours (undecided).
-
-#### REQ-20 — Slot backpack *(capability)*
-The **Player** carries items in a 12-slot backpack where each slot holds a stack of up to 99 of one item, and the tools take slots. Store stage 2 upgrades it to 24 slots and stage 3 to 36.
+- **Open**: The Phase 1 build has a farm shipping bin from the start (REQ-8). When Phase 2 adds the store, does that bin stay (the design doc allows it in early playtest builds) or arrive only at store stage 4?
+#### REQ-47 — Slot backpack and hotbar *(capability)* *(supersedes REQ-20, 2026-11-06)*
+The **Player** carries items in a 12-slot backpack where each slot holds a stack of up to 99 of one item, and the tools take slots. Store stage 2 upgrades it to 24 slots and stage 3 to 36. The hotbar is one 6-slot row of the backpack shown on screen; a key or controller button cycles which row is the hotbar. When the backpack is full, extra items drop on the ground and stay there until the next morning.
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: item weight.
-
-#### REQ-21 — Carpenter *(capability)*
-Once the carpenter is rebuilt, the **Player** can have wood made into planks and planks plus sap made into sealed planks, and buy fences and chests (stage 1). Stage 2 repairs the bridge to a new area and offers farmhouse upgrades.
+#### REQ-48 — Carpenter *(capability)* *(supersedes REQ-21, 2026-11-06)*
+Once the carpenter is rebuilt, the **Player** can have wood made into planks and planks plus sap made into sealed planks, ready the next morning, and buy fences and chests (stage 1). Stage 2 repairs the bridge, opening the area across the river (empty at first, with trees and rocks to gather), and offers farmhouse upgrades.
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: rebuilding homes (REQ-32).
-
 #### REQ-22 — Blacksmith and tool upgrades *(capability)*
 The **Player** rebuilds Mira's house, then her forge. Stage 1 upgrades tools to Rosk and forges Rosk pumps; stage 2 smelts Groth for Groth tools and pumps. An upgraded tool does more per action for the same 2 energy.
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: Forgelight tools (REQ-34).
 
-#### REQ-23 — Early mine *(capability)*
-Buying the pickaxe opens the old mine, with Maggie telling its story. The **Player** clears debris on levels 1 to 4, collects stone, Rosk ore and glimmercaps, returns to any cleared level by ladder or lift, and drains level 5 with Mira's first pump.
+#### REQ-49 — Early mine *(capability)* *(supersedes REQ-23, 2026-11-06)*
+Buying the pickaxe opens the old mine, with Maggie telling its story. The **Player** clears debris on levels 1 to 4 and collects stone, Rosk ore, glimmercaps and a few small Groth deposits on levels 3 to 5. A staircase built into the mine connects the levels, and every fifth cleared level adds a shortcut from the entrance. Level 5 is drained with Mira's first pump.
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: danger (creatures, collapses).
-
-#### REQ-24 — First residents return *(capability)*
-The **Player** sees the Hollis family (Tom, June and Jesse) move in when the carpenter reopens, and Mira move in when her house is rebuilt.
+#### REQ-50 — First residents return *(capability)* *(supersedes REQ-24, 2026-11-06)*
+The **Player** sees the Hollis family (Tom, June and Jesse) move in when the carpenter reopens. Mira moves in once her house is rebuilt and the Player has explored mine levels 1 to 5; she then asks the Player to rebuild the blacksmith.
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: other households (REQ-32).
 
+#### REQ-51 — Refilling at any water *(capability)*
+The **Player** refills the watering can at any water: the pond on the farm, the river and the lake, as each area opens. Extends REQ-6.
+- **Acceptance**: to settle at phase readiness
+- **Out of scope**: carrying water in other containers.
 ### Phase 3 — Life in town
 
 #### REQ-43 — Coilsquash *(capability)* *(supersedes REQ-25, 2026-11-06)*
