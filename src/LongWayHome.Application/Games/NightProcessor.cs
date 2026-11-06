@@ -1,4 +1,5 @@
 using LongWayHome.Application.Data;
+using LongWayHome.Application.Ports;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
 
@@ -48,4 +49,8 @@ public static class NightProcessor
 
         // BR-G5: save at the end of the Night goes here (epic #12).
     }
+
+    /// <summary>Runs the Night steps, rolling the next Day's weather from the random source (BR-G4).</summary>
+    public static void Run(Game game, GameData data, DayEndReason reason, IRandomSource random) =>
+        throw new NotImplementedException();
 }

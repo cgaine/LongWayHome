@@ -1,4 +1,5 @@
 using LongWayHome.Application.Data;
+using LongWayHome.Application.Ports;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
@@ -22,6 +23,13 @@ public sealed class GameSession
 
         Game = game;
         Data = data;
+    }
+
+    /// <summary>A session whose Nights roll the weather from the given random source (BR-G4).</summary>
+    public GameSession(Game game, GameData data, IRandomSource random)
+        : this(game, data)
+    {
+        ArgumentNullException.ThrowIfNull(random);
     }
 
     /// <summary>Raised after a successful action changes a Tile.</summary>

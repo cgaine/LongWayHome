@@ -90,6 +90,12 @@ public sealed class Game
         }
     }
 
+    /// <summary>Sets the Day's weather; only the Night calls this (BR-G4).</summary>
+    public void SetWeather(Weather weather) => throw new NotImplementedException();
+
+    /// <summary>The Night's rain step (BR-T7): every tilled Tile is watered; grass stays dry.</summary>
+    public void WaterAllTilledTiles() => throw new NotImplementedException();
+
     /// <summary>
     /// Starts the next Day: records why the last one ended, sets energy (BR-P1, BR-P3) and the clock. Energy outside
     /// 0–150 throws and changes nothing.

@@ -68,6 +68,9 @@ public sealed class Tile
         Watered = true;
     }
 
+    /// <summary>Rain (BR-T7): waters a tilled Tile without a precondition; grass is unchanged.</summary>
+    public void Soak() => throw new NotImplementedException();
+
     /// <summary>Clears the watered flag (BR-T7 reset).</summary>
     public void Dry() => Watered = false;
 
