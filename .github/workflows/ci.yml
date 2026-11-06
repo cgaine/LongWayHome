@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Must equal the Godot.NET.Sdk version in game/LongWayHome.Game.csproj.
+  GODOT_VERSION: "4.7.2"
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore LongWayHome.sln
+
+      - name: Build
+        run: dotnet build LongWayHome.sln -c Release --no-restore
+
+      - name: Test with coverage
+        run: >
+          dotnet test LongWayHome.sln -c Release --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory ./coverage
+          --logger trx
+
+      - name: Merge coverage reports
+        if: always()
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: coverage/**/coverage.cobertura.xml
+          targetdir: coverage/report
+          reporttypes: MarkdownSummaryGithub;Cobertura
+
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/report/SummaryGithub.md ]; then
+            cat coverage/report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+  export:
+    name: export
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore Godot from cache
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable.mono
+          key: godot-${{ env.GODOT_VERSION }}-mono
+
+      - name: Download Godot and export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          base="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable"
+          editor="Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64"
+          tmp="$(mktemp -d)"
+          curl -fsSL -o "$tmp/editor.zip" "$base/${editor}.zip"
+          curl -fsSL -o "$tmp/templates.tpz" "$base/Godot_v${GODOT_VERSION}-stable_mono_export_templates.tpz"
+          mkdir -p ~/godot
+          unzip -q "$tmp/editor.zip" -d ~/godot
+          templates=~/.local/share/godot/export_templates/${GODOT_VERSION}.stable.mono
+          mkdir -p "$templates"
+          unzip -q "$tmp/templates.tpz" -d "$tmp/tpl"
+          mv "$tmp"/tpl/templates/* "$templates/"
+          rm -rf "$tmp"
+
+      - name: Put Godot on PATH
+        run: |
+          set -euo pipefail
+          dir=~/godot/"Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64"
+          mkdir -p ~/.local/bin
+          ln -sf "$dir/Godot_v${GODOT_VERSION}-stable_mono_linux.x86_64" ~/.local/bin/godot
+          godot_bin=~/.local/bin/godot
+          "$godot_bin" --version
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Import resources
+        run: godot --headless --path game --import
+
+      - name: Export Windows and Linux builds
+        run: |
+          mkdir -p build/windows build/linux
+          godot --headless --path game --export-release "Windows Desktop" ../build/windows/LongWayHome.exe
+          godot --headless --path game --export-release "Linux" ../build/linux/LongWayHome.x86_64
+
+      - name: Verify export output
+        run: |
+          set -uo pipefail
+          missing=0
+          for f in build/windows/LongWayHome.exe build/windows/LongWayHome.pck \
+                   build/linux/LongWayHome.x86_64 build/linux/LongWayHome.pck; do
+            if [ ! -s "$f" ]; then
+              echo "::error::Missing or empty export output: $f"
+              missing=1
+            fi
+          done
+          for d in build/windows build/linux; do
+            count=$(find "$d" -maxdepth 1 -type d -name 'data_LongWayHome.Game_*' | wc -l)
+            if [ "$count" -ne 1 ]; then
+              echo "::error::Expected one data_LongWayHome.Game_* folder in $d, found $count"
+              missing=1
+            elif [ -z "$(find "$d"/data_LongWayHome.Game_* -mindepth 1 -print -quit)" ]; then
+              echo "::error::The data_LongWayHome.Game_* folder in $d is empty"
+              missing=1
+            fi
+          done
+          ls -la build/windows build/linux
+          exit "$missing"
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: LongWayHome-windows-${{ github.sha }}
+          path: build/windows/
+          retention-days: 14
+
+      - name: Upload Linux build
+        uses: actions/upload-artifact@v4
+        with:
+          name: LongWayHome-linux-${{ github.sha }}
+          path: build/linux/
+          retention-days: 14

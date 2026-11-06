@@ -1,5 +1,7 @@
 # Long Way Home
 
+[![CI](https://github.com/cgaine/LongWayHome/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cgaine/LongWayHome/actions/workflows/ci.yml?query=branch%3Amain)
+
 A cozy 3D farming game (working title) built with Godot 4 (.NET / C#) for Windows and Linux, including Steam Deck.
 
 - [Game Design Doc](docs/GAME_DESIGN.md) — pillars, systems, data tables, world and roadmap. This is a living document and will keep changing as the design is fleshed out.
@@ -27,3 +29,5 @@ A cozy 3D farming game (working title) built with Godot 4 (.NET / C#) for Window
 **Run the tests:** `dotnet test` at the repository root. You don't need the Godot editor.
 
 **Build everything:** `dotnet build LongWayHome.sln` at the repository root. `Godot.NET.Sdk` is restored from NuGet, so this works without the editor installed.
+
+**Builds:** CI (`.github/workflows/ci.yml`) builds the solution and runs the tests with coverage on every pull request. Every push to `main` also exports the game for Windows and Linux; download both builds from the artifacts of the latest [`CI` run on `main`](https://github.com/cgaine/LongWayHome/actions/workflows/ci.yml?query=branch%3Amain). The Godot version CI uses is `GODOT_VERSION` in `ci.yml` and must match `Godot.NET.Sdk` in `game/LongWayHome.Game.csproj`.
