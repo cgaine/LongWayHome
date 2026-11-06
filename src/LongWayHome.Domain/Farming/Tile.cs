@@ -13,13 +13,19 @@ public sealed class Tile
         Watered = false;
     }
 
-    /// <summary>Restores a Tile; a Planting is allowed only on a tilled Tile.</summary>
+    /// <summary>Restores a Tile; a Planting and the watered flag are allowed only on a tilled Tile.</summary>
     public Tile(GridPosition position, TileState state, bool watered, Planting? planting)
     {
         // BR-T3: a Planting only ever sits on tilled soil.
         if (planting is not null && state != TileState.Tilled)
         {
             throw new ArgumentException("A Planting can only be on a tilled Tile.", nameof(planting));
+        }
+
+        // BR-T9: only tilled soil can be watered.
+        if (watered && state != TileState.Tilled)
+        {
+            throw new ArgumentException("Only a tilled Tile can be watered.", nameof(watered));
         }
 
         Position = position;

@@ -214,6 +214,12 @@ public class PlantingTests
             () => new Tile(Target, TileState.Grass, false, TestGames.PlantingOf(CropTypeId.Emberroot, 0)));
     }
 
+    [Fact]
+    public void BR_T9_restoring_a_watered_grass_tile_is_refused()
+    {
+        Assert.Throws<ArgumentException>(() => new Tile(Target, TileState.Grass, true, null));
+    }
+
     [Theory]
     [InlineData(TileState.Grass, false, false)]
     [InlineData(TileState.Tilled, true, false)]
