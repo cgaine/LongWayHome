@@ -162,7 +162,7 @@ Decided: the outfit changes with the story. Draft trigger for each step: a story
 - The tool in hand is always visible, so the next action reads at a glance.
 - Size and collision stay as they are now (capsule 1.6 m tall, radius 0.35) so the art upgrade doesn't change gameplay.
 
-**Build notes:** chunky: about 3 heads tall, with a big head, wide body, short legs and oversized boots and hands, for a cozy read and so the face and the tool read from the overhead camera (decided: chunkier than the first 4-head draft). Low-poly, flat facets with a lit side and a shade side, one material using a palette texture. Rigged to Godot's humanoid skeleton profile so shared animations can be retargeted. First animations needed: idle, walk, hoe swing, watering, plant, harvest, carry, sleep and pass out.
+**Build notes:** chunky: about 3 heads tall, with a big head, wide body, short legs and oversized boots and hands, for a cozy read and so the face and the tool read from the overhead camera (decided: chunkier than the first 4-head draft). Low-poly with three tones per part (highlight, lit and shade facets), a soft dark outline, a little contact shadow (under the cap brim, under the chin, on the ground) and small details that read up close: boot toe caps and laces, knee pads, a chest pocket, fabric folds at elbows and knees, stitching on the overalls, a weave on the hat. One material using a palette texture. Rigged to Godot's humanoid skeleton profile so shared animations can be retargeted. First animations needed: idle, walk, hoe swing, watering, plant, harvest, carry, sleep and pass out.
 
 ## 7. Places
 
