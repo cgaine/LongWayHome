@@ -661,3 +661,85 @@ and roadmap issues.
 - **Documents**: product-definition (REQ-42 added, REQ-25 entry replaced by REQ-43, REQ-14 acceptance); domain-model (`CropType` sunbell, starcorn); canonical-values (`CropTypeId`, `Season`); technical-blueprint (Deck 30 fps target and cap)
 - **Rule changes**: none
 - **Ready**: all REQs in Phase 1. Handed to epic-planning.
+
+### REQ-44 — Rotate and zoom camera
+- **Date**: 2026-11-06
+- **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "lets do a rotate and zoom camera"
+- **Kind**: capability
+- **Statement**: The Player can turn the camera a full 360° around their farmer and zoom in and out within set limits; zooming out tilts the view towards top-down and zooming in tilts it lower. Walking always follows the camera's facing. Replaces the fixed overhead angle. Out of scope: a camera detached from the farmer; first-person view.
+- **Acceptance**: turns all the way round and zooms between its limits using only a controller and again using only keyboard and mouse; at any angle, forward walks away from the camera; the targeted tile and Use prompt stay correct at every angle and zoom.
+- **Verdict**: new
+- **Phase**: Phase 1B
+- **Documents**: product-definition (3 Phases, new Phase 1B row; 5 Functional Requirements, Phase 1B); GAME_DESIGN.md (camera question decided, live doc and snapshot); ART_DIRECTION.md (§9 camera question decided)
+- **Rule changes**: none
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 1B entry on #2
+- **Supersedes**: —
+
+### REQ-45 — Farm ground art
+- **Date**: 2026-11-06
+- **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "ground tiles"
+- **Kind**: ui
+- **Statement**: The Player sees the farm plot and meadow as ART_DIRECTION §7.2 describes: meadow ground and native plants, mown margin and stone edging, untilled, tilled and watered soil, the Use target marker, and grass by season. Out of scope: clearing the meadow (REQ-16).
+- **Acceptance**: each tile state and the target marker can be told apart at a glance from any camera angle; the grass changes with the season.
+- **Verdict**: new
+- **Phase**: Phase 1B
+- **Documents**: product-definition (3 Phases, new Phase 1B row; 5 Functional Requirements, Phase 1B)
+- **Rule changes**: none
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 1B entry on #2
+- **Supersedes**: —
+
+### REQ-46 — Crop and seed art
+- **Date**: 2026-11-06
+- **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "seeds & crops"
+- **Kind**: ui
+- **Statement**: The Player sees emberroot, dusktuber, moonmelon, sunbell and starcorn drawn to ART_DIRECTION §4 at every growth stage and at night, with matching seed and crop icons on the hotbar and in the shop. Out of scope: coilsquash (REQ-43).
+- **Acceptance**: each crop's growth stage can be read at a glance; ripe crops can be told apart by shape as well as colour.
+- **Verdict**: new
+- **Phase**: Phase 1B
+- **Documents**: product-definition (3 Phases, new Phase 1B row; 5 Functional Requirements, Phase 1B)
+- **Rule changes**: none
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 1B entry on #2
+- **Supersedes**: —
+
+### REQ-47 — Farmhouse art
+- **Date**: 2026-11-06
+- **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "house"
+- **Kind**: ui
+- **Statement**: The Player sleeps in the run-down "grown, not built" farmhouse (ART_DIRECTION §7.1), with the ship hull-panel patch on its roof. Out of scope: the restored farmhouse (Phase 2, carpenter).
+- **Acceptance**: the farmhouse matches the art direction's run-down state.
+- **Verdict**: new
+- **Phase**: Phase 1B
+- **Documents**: product-definition (3 Phases, new Phase 1B row; 5 Functional Requirements, Phase 1B)
+- **Rule changes**: none
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 1B entry on #2
+- **Supersedes**: —
+
+### REQ-48 — The farmer
+- **Date**: 2026-11-06
+- **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "main character"
+- **Kind**: ui
+- **Statement**: The Player plays as the fixed farmer (ART_DIRECTION §6.1): chunky, about 3 heads tall, in his first outfit, with idle, walk, run, tool-use, sleep and pass-out animations. Out of scope: character customisation; later outfits.
+- **Acceptance**: every Phase 1 action plays its own animation; which way the farmer faces is clear at every camera angle.
+- **Verdict**: new
+- **Phase**: Phase 1B
+- **Documents**: product-definition (3 Phases, new Phase 1B row; 5 Functional Requirements, Phase 1B)
+- **Rule changes**: none
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 1B entry on #2
+- **Supersedes**: —
+
+### Not treated as a requirement — Art sandbox and shading style
+- **Date**: 2026-11-06
+- **Source**: roadmap #2 Phase 1B; ART_DIRECTION §8, §10
+- **Kind**: —
+- **Statement**: A `game/art/` sandbox scene to try the palette, light and models and settle flat or stepped shading.
+- **Verdict**: dropped (a development step, not player-facing; stays a Phase 1B roadmap entry)
