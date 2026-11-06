@@ -7,6 +7,7 @@ using LongWayHome.Application.Data;
 using LongWayHome.Application.Games;
 using LongWayHome.Infrastructure.Data;
 using LongWayHome.Infrastructure.Random;
+using LongWayHome.Infrastructure.Saves;
 
 namespace LongWayHome.Game.Core;
 
@@ -14,12 +15,19 @@ namespace LongWayHome.Game.Core;
 /// The composition root, registered as an autoload. Loads the reference data when the game starts and
 /// quits with exit code 1 if it is missing or invalid: a game with broken data must not start. With the data
 /// loaded it starts a new Game and holds it in <see cref="Session"/> (there is no title screen yet), with a
-/// <see cref="SystemRandomSource"/> for each Night's weather roll.
+/// <see cref="SystemRandomSource"/> for each Night's weather roll and a <see cref="JsonSaveStore"/> on
+/// <c>user://saves</c> that each Night saves the Game to (slot 1). A failed save is pushed to the error log.
 /// Holds no rules.
 /// </summary>
 public partial class GameRoot : Node
 {
     private const string DataFolder = "res://data/";
+
+    /// <summary>The save folder; only this composition root knows the <c>user://</c> path.</summary>
+    private const string SaveFolder = "user://saves";
+
+    /// <summary>The slot the new Game saves to, until a title screen lets the Player choose one.</summary>
+    private const int NewGameSlot = 1;
 
     public GameData Data { get; private set; } = null!;
 
@@ -58,8 +66,27 @@ public partial class GameRoot : Node
 
         GD.Print($"Loaded {Data.CropTypes.Count} crop types, {Data.ShopListings.Count} shop listings and tuning");
 
-        Session = new GameSession(NewGameFactory.Create(Data, DateTimeOffset.UtcNow), Data, new SystemRandomSource());
+        // Until the title screen exists, every launch starts a new Game that saves to slot 1 each Night (BR-G5).
+        var store = new JsonSaveStore(ProjectSettings.GlobalizePath(SaveFolder));
+        Session = new GameSession(
+            NewGameFactory.Create(Data, DateTimeOffset.UtcNow),
+            Data,
+            new SystemRandomSource(),
+            store,
+            NewGameSlot,
+            TimeProvider.System);
+        Session.SaveFailed += OnSaveFailed;
     }
+
+    public override void _ExitTree()
+    {
+        if (Session is not null)
+        {
+            Session.SaveFailed -= OnSaveFailed;
+        }
+    }
+
+    private static void OnSaveFailed(string reason) => GD.PushError($"The game could not be saved: {reason}");
 
     private static string? ReadFile(string fileName, List<string> errors)
     {

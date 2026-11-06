@@ -1,5 +1,6 @@
 using LongWayHome.Application.Data;
 using LongWayHome.Application.Ports;
+using LongWayHome.Application.Saves;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
@@ -19,6 +20,14 @@ public sealed class GameSession
     /// <summary>The source of each Night's weather roll (BR-G4).</summary>
     private readonly IRandomSource _random;
 
+    /// <summary>Where each Night saves the Game (BR-G5), in slot <see cref="_slot"/>.</summary>
+    private readonly ISaveStore _store;
+
+    private readonly int _slot;
+
+    /// <summary>The clock the save step stamps <see cref="Game.SavedAt"/> from.</summary>
+    private readonly TimeProvider _time;
+
     /// <summary>
     /// A session whose Nights never roll rain: its random source always returns 99, the highest roll (BR-G4). For tests
     /// and other callers that need dry, predictable Nights; the game uses the three-argument constructor.
@@ -28,29 +37,35 @@ public sealed class GameSession
     {
     }
 
-    /// <summary>A session whose Nights roll the weather from the given random source (BR-G4).</summary>
+    /// <summary>A session whose Nights roll the weather from the given random source (BR-G4) and save nowhere.</summary>
     public GameSession(Game game, GameData data, IRandomSource random)
+        : this(game, data, random, NoSaveStore.Instance, 1, TimeProvider.System)
     {
-        ArgumentNullException.ThrowIfNull(game);
-        ArgumentNullException.ThrowIfNull(data);
-        ArgumentNullException.ThrowIfNull(random);
-
-        Game = game;
-        Data = data;
-        _random = random;
     }
 
     /// <summary>
     /// A session whose Nights roll the weather from the given random source (BR-G4) and end by marking the Game saved
     /// at <paramref name="time"/>'s current time and saving it to <paramref name="slot"/> of the store (BR-G5).
     /// </summary>
-    public GameSession(Game game, GameData data, IRandomSource random, ISaveStore store, int slot, TimeProvider time) =>
-        throw new NotImplementedException();
+    public GameSession(Game game, GameData data, IRandomSource random, ISaveStore store, int slot, TimeProvider time)
+    {
+        ArgumentNullException.ThrowIfNull(game);
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(random);
+        ArgumentNullException.ThrowIfNull(store);
+        ArgumentNullException.ThrowIfNull(time);
+        SaveSlots.ThrowIfOutOfRange(slot);
 
-#pragma warning disable CS0067 // Red stub: raised once the save step is built.
+        Game = game;
+        Data = data;
+        _random = random;
+        _store = store;
+        _slot = slot;
+        _time = time;
+    }
+
     /// <summary>Raised with a one-line reason when the Night's save fails, before NightCompleted.</summary>
     public event Action<string>? SaveFailed;
-#pragma warning restore CS0067
 
     /// <summary>Raised after a successful action changes a Tile.</summary>
     public event Action<GridPosition>? TileChanged;
@@ -380,14 +395,45 @@ public sealed class GameSession
             : Game.PlantRejection(position, cropTypeId, season: null);
 
     /// <summary>
-    /// Ends the Day (BR-G3): raises DayEnded, runs the Night, then raises NightCompleted. The part-minute carried by
-    /// the clock is dropped so the next Day starts at exactly DayStartMinutes.
+    /// Ends the Day (BR-G3): raises DayEnded, runs the Night ending with the save (BR-G5), then raises NightCompleted.
+    /// A failed save does not undo the Night: it raises SaveFailed with the reason, before NightCompleted. The
+    /// part-minute carried by the clock is dropped so the next Day starts at exactly DayStartMinutes.
     /// </summary>
     private void EndDay(DayEndReason reason)
     {
         _clockRemainderMinutes = 0;
         DayEnded?.Invoke(reason);
-        NightProcessor.Run(Game, Data, reason, _random);
+
+        string? saveFailure = null;
+        NightProcessor.Run(Game, Data, reason, _random, game => saveFailure = Save(game));
+
+        if (saveFailure is not null)
+        {
+            SaveFailed?.Invoke(saveFailure);
+        }
+
         NightCompleted?.Invoke();
+    }
+
+    /// <summary>
+    /// The Night's save step (BR-G5): marks the Game saved now and writes it to the session's slot. Returns the reason
+    /// when the store fails, or null when it saved.
+    /// </summary>
+    private string? Save(Game game)
+    {
+        game.MarkSaved(_time.GetUtcNow());
+        try
+        {
+            _store.Save(_slot, game);
+            return null;
+        }
+        catch (SaveStoreException exception)
+        {
+            return exception.Reason;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return exception.Message;
+        }
     }
 }

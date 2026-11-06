@@ -51,7 +51,8 @@ public sealed class Game
 
     public DateTimeOffset CreatedAt { get; }
 
-    public DateTimeOffset SavedAt { get; }
+    /// <summary>When the Game was last saved; the Night's save step sets it (BR-G5).</summary>
+    public DateTimeOffset SavedAt { get; private set; }
 
     public Player Player { get; }
 
@@ -61,7 +62,7 @@ public sealed class Game
     public ShippingBin ShippingBin { get; }
 
     /// <summary>Records when the Game was saved (BR-G5).</summary>
-    public void MarkSaved(DateTimeOffset at) => throw new NotImplementedException();
+    public void MarkSaved(DateTimeOffset at) => SavedAt = at;
 
     /// <summary>Adds game minutes to the clock, never past the day end (BR-G2). Negative minutes throw.</summary>
     public void AdvanceClock(int minutes, int dayEndMinutes)
