@@ -14,7 +14,7 @@ namespace LongWayHome.Game.Art;
 /// <item>the ground layers, flat and facing up, each a little above the last so they never z-fight: <c>Ground</c>
 /// (32 x 26 m, y 0), <c>ShadePatches</c> (y 0.003), <c>MownMargin</c> (the 1 m band around the plot, y 0.006) and
 /// <c>Path</c> (the 1.2 m strip from the door to the margin, y 0.008). Inside the plot only <c>Ground</c> lies, below
-/// the Tiles at y 0.015;</item>
+/// the plot base (y 0.002) and the Tile slabs (#78);</item>
 /// <item>the <c>PathStones</c> and the stone <c>Edging</c> around the plot, from
 /// <see cref="MeadowLayout.PathStones"/> and <see cref="MeadowLayout.EdgingStones"/>;</item>
 /// <item>the scattered props from <see cref="MeadowLayout.Generate(int)"/> with <see cref="MeadowLayout.FarmSeed"/>:

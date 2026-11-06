@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Godot;
+using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
@@ -9,36 +10,38 @@ using LongWayHome.Domain.Farming;
 namespace LongWayHome.Game.Farm;
 
 /// <summary>
-/// Draws one Tile of the Farm plot: a 1 x 1 quad level with the ground and a faint outline, so the 12 x 9 grid is
-/// visible, darker soil when watered, and any Planting on it as a low-poly model for its <see cref="GrowthStage"/>:
-/// a seed mound, a sprout, a young plant tinted toward its crop's colour, or a crop-specific ripe model (REQ-12).
-/// <see cref="Refresh"/> redraws it from the Tile's state. Each (stage, crop) model is built once, the first time it
-/// is shown, and then only shown or hidden. Holds no rules.
+/// Draws one Tile of the Farm plot as the 1 x 1 m slab of ART_DIRECTION §7.2 (#78), in the state
+/// <see cref="TileLook.For"/> picks: grass (a green slab with three small tufts and, on about one Tile in six, a native
+/// frond or puffball), tilled (a brown slab with three east–west furrows) or watered (the same, much darker, with the
+/// shader's wet sheen). The slab is 0.96 m square, so the dark plot base under the plot shows through the 4 cm gaps as
+/// grooves and the grid reads without drawn lines. Any Planting on it stands on the slab top as a low-poly model for
+/// its <see cref="GrowthStage"/>: a seed mound, a sprout, a young plant tinted toward its crop's colour, or a
+/// crop-specific ripe model (REQ-12).
+/// <para>
+/// The slab and furrows are built once when ready; the tufts and native plant on the first <see cref="Refresh"/>,
+/// which brings the Tile's grid position for their <see cref="TileDecoration"/>, and only if the Tile is still grass
+/// (a tilled Tile never reverts, BR-T8). After that <see cref="Refresh"/> only swaps palette roles, sets the
+/// <c>wet</c> instance parameter and shows or hides parts, and only when the look changes. Each (stage, crop) model is
+/// built once, the first time it is shown. Every lit tile mesh uses the one shared palette material. Holds no rules.
+/// </para>
 /// </summary>
 public partial class TileView : Node3D
 {
-    /// <summary>Height of the tile surface above the ground; just above the meadow's ground layers (the highest, the path, is at y 0.008).</summary>
-    private const float SurfaceHeight = 0.015f;
+    /// <summary>Height of the slab top, which Planting models stand on.</summary>
+    private const float SurfaceHeight = 0.06f;
 
-    /// <summary>Height of the outline, just above the surface so the two never z-fight.</summary>
-    private const float OutlineHeight = 0.02f;
+    private const float FurrowHeight = 0.015f;
 
-    private const float Size = 1f;
+    /// <summary>The furrows' z offsets from the Tile's centre: three ridges running east–west (along X).</summary>
+    private static readonly float[] FurrowRows = [-0.3f, 0f, 0.3f];
 
-    private static readonly Color GrassColor = new(0.45f, 0.62f, 0.3f);
-
-    private static readonly Color TilledColor = new(0.45f, 0.3f, 0.18f);
-
-    /// <summary>Watered tilled soil: clearly darker than dry soil, so the watered state is visible (REQ-12).</summary>
-    private static readonly Color WateredColor = new(0.25f, 0.16f, 0.1f);
+    private static readonly Vector3 FurrowSize = new(0.9f, FurrowHeight, 0.12f);
 
     /// <summary>
     /// The planting models are authored at about a tile's quarter and drawn larger, so each stage and crop reads from
     /// the default camera distance at 1280 x 800 (REQ-12).
     /// </summary>
     private static readonly Vector3 ModelScale = new(1.6f, 1.6f, 1.6f);
-
-    private static readonly Color OutlineColor = new(0.18f, 0.28f, 0.1f, 0.45f);
 
     private static readonly Color MoundColor = new(0.36f, 0.24f, 0.14f);
 
@@ -48,11 +51,19 @@ public partial class TileView : Node3D
 
     private static readonly Color StemColor = new(0.25f, 0.55f, 0.18f);
 
-    private readonly StandardMaterial3D _surfaceMaterial = new();
-
     private readonly Dictionary<(GrowthStage Stage, CropTypeId Crop), Node3D> _models = new();
 
-    private MeshInstance3D? _surface;
+    private MeshInstance3D? _slab;
+
+    private MeshInstance3D? _furrows;
+
+    private MeshInstance3D? _tufts;
+
+    private MeshInstance3D? _nativePlant;
+
+    private bool _decorated;
+
+    private TileLook? _look;
 
     private Node3D? _shown;
 
@@ -65,9 +76,9 @@ public partial class TileView : Node3D
     public void Refresh(Tile tile, GrowthStage? stage)
     {
         EnsureBuilt();
-        _surfaceMaterial.AlbedoColor = tile.State != TileState.Tilled
-            ? GrassColor
-            : tile.Watered ? WateredColor : TilledColor;
+        var look = TileLook.For(tile);
+        EnsureDecorated(tile.Position, look);
+        ApplyLook(look);
 
         var model = tile.Planting is { } planting && stage is { } shownStage
             ? ModelFor(shownStage, planting.CropTypeId)
@@ -88,6 +99,40 @@ public partial class TileView : Node3D
         }
 
         _shown = model;
+    }
+
+    /// <summary>Swaps the slab and furrow roles, the wet sheen and the parts shown, when the look has changed.</summary>
+    private void ApplyLook(TileLook look)
+    {
+        if (look == _look)
+        {
+            return;
+        }
+
+        if (look.SlabRole != _look?.SlabRole)
+        {
+            Art.ArtMaterials.Apply(_slab!, look.SlabRole);
+        }
+
+        if (look.FurrowRole != _look?.FurrowRole)
+        {
+            Art.ArtMaterials.Apply(_furrows!, look.FurrowRole);
+        }
+
+        _slab!.SetInstanceShaderParameter("wet", look.Wet);
+        _furrows!.SetInstanceShaderParameter("wet", look.Wet);
+        _furrows.Visible = look.ShowFurrows;
+        if (_tufts is not null)
+        {
+            _tufts.Visible = look.ShowTufts;
+        }
+
+        if (_nativePlant is not null)
+        {
+            _nativePlant.Visible = look.ShowTufts;
+        }
+
+        _look = look;
     }
 
     private Node3D ModelFor(GrowthStage stage, CropTypeId crop)
@@ -113,50 +158,182 @@ public partial class TileView : Node3D
         return model;
     }
 
+    /// <summary>Builds the slab, 0.96 x 0.06 x 0.96 m with its bottom at y 0, and the (hidden) furrows on its top.</summary>
     private void EnsureBuilt()
     {
-        if (_surface is not null)
+        if (_slab is not null)
         {
             return;
         }
 
-        _surface = new MeshInstance3D
+        _slab = new MeshInstance3D
         {
-            Name = "Surface",
-            Position = new Vector3(0f, SurfaceHeight, 0f),
-            Mesh = new PlaneMesh { Size = new Vector2(Size, Size), Material = _surfaceMaterial },
+            Name = "Slab",
+            Position = new Vector3(0f, SurfaceHeight / 2f, 0f),
+            Mesh = new BoxMesh { Size = new Vector3(0.96f, 0.06f, 0.96f) },
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
         };
-        _surfaceMaterial.AlbedoColor = GrassColor;
-        AddChild(_surface);
+        AddChild(_slab);
 
-        AddChild(new MeshInstance3D
+        var ridges = new List<Part>();
+        foreach (var z in FurrowRows)
         {
-            Name = "Outline",
-            Mesh = BuildOutline(),
+            ridges.Add(new Part(new BoxMesh { Size = FurrowSize }, At(0f, SurfaceHeight + (FurrowHeight / 2f), z)));
+        }
+
+        _furrows = new MeshInstance3D
+        {
+            Name = "Furrows",
+            Mesh = Merge(ridges),
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-        });
+            Visible = false,
+        };
+        AddChild(_furrows);
     }
 
-    private static ImmediateMesh BuildOutline()
+    /// <summary>
+    /// Builds the tufts and native plant of the Tile at <paramref name="position"/>, once. Skipped for a Tile first
+    /// seen tilled, which never shows them (BR-T8).
+    /// </summary>
+    private void EnsureDecorated(GridPosition position, TileLook look)
     {
-        var material = new StandardMaterial3D
+        if (_decorated)
         {
-            AlbedoColor = OutlineColor,
-            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
-        };
+            return;
+        }
 
-        const float half = Size / 2f;
-        var mesh = new ImmediateMesh();
-        mesh.SurfaceBegin(Mesh.PrimitiveType.LineStrip, material);
-        mesh.SurfaceAddVertex(new Vector3(-half, OutlineHeight, -half));
-        mesh.SurfaceAddVertex(new Vector3(half, OutlineHeight, -half));
-        mesh.SurfaceAddVertex(new Vector3(half, OutlineHeight, half));
-        mesh.SurfaceAddVertex(new Vector3(-half, OutlineHeight, half));
-        mesh.SurfaceAddVertex(new Vector3(-half, OutlineHeight, -half));
-        mesh.SurfaceEnd();
-        return mesh;
+        _decorated = true;
+        if (!look.ShowTufts)
+        {
+            return;
+        }
+
+        var decoration = TileDecoration.For(position);
+        var blades = new List<Part>();
+        foreach (var (x, z) in decoration.TuftOffsets)
+        {
+            blades.AddRange(Decorations.Tuft(x, z, SurfaceHeight));
+        }
+
+        _tufts = new MeshInstance3D
+        {
+            Name = "Tufts",
+            Mesh = Merge(blades),
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+            Visible = false,
+        };
+        Art.ArtMaterials.Apply(_tufts, "grass-lit");
+        AddChild(_tufts);
+
+        if (decoration.NativePlant == NativePlantKind.None)
+        {
+            return;
+        }
+
+        // Two colours in one mesh: each part's UVs point at its swatch and `swatch` stays unset, as on imported models.
+        _nativePlant = new MeshInstance3D
+        {
+            Name = "NativePlant",
+            Mesh = Merge(decoration.NativePlant == NativePlantKind.Frond
+                ? Decorations.Frond(SurfaceHeight)
+                : Decorations.Puffball(SurfaceHeight)),
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+            MaterialOverride = Art.ArtMaterials.Shared,
+            RotationDegrees = new Vector3(0f, TileDecoration.Hash(position) % 360, 0f),
+            Visible = false,
+        };
+        AddChild(_nativePlant);
+    }
+
+    private static Transform3D At(float x, float y, float z) => new(Basis.Identity, new Vector3(x, y, z));
+
+    /// <summary>
+    /// Merges the parts into one mesh, so each part of the tile is one draw. Normals go through the inverse transpose
+    /// of each part's basis, so they stay true under stepped shading. A part with a role has its UVs set to that
+    /// swatch's centre, for meshes that leave the <c>swatch</c> instance parameter unset.
+    /// </summary>
+    private static ArrayMesh Merge(IEnumerable<Part> parts)
+    {
+        var surface = new SurfaceTool();
+        surface.Begin(Mesh.PrimitiveType.Triangles);
+        var offset = 0;
+        foreach (var (mesh, at, role) in parts)
+        {
+            var arrays = mesh.SurfaceGetArrays(0);
+            var vertices = arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+            var normals = arrays[(int)Mesh.ArrayType.Normal].AsVector3Array();
+            var indices = arrays[(int)Mesh.ArrayType.Index].AsInt32Array();
+            var normalBasis = at.Basis.Inverse().Transposed();
+            var (u, v) = role is null ? (-1f, -1f) : ArtPalette.UvCentre(role);
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                if (role is not null)
+                {
+                    surface.SetUV(new Vector2(u, v));
+                }
+
+                surface.SetNormal((normalBasis * normals[i]).Normalized());
+                surface.AddVertex(at * vertices[i]);
+            }
+
+            foreach (var index in indices)
+            {
+                surface.AddIndex(offset + index);
+            }
+
+            offset += vertices.Length;
+        }
+
+        return surface.Commit();
+    }
+
+    /// <summary>One primitive placed in a merged mesh, with the palette role its UVs point at, if any.</summary>
+    private readonly record struct Part(Mesh Mesh, Transform3D At, string? Role = null);
+
+    /// <summary>The grass tile's tufts and native plants, each standing on the slab top at <c>top</c>.</summary>
+    private static class Decorations
+    {
+        /// <summary>Three thin blades, 0.08–0.12 m tall, fanned out and leaning away from the tuft's centre.</summary>
+        public static IEnumerable<Part> Tuft(float x, float z, float top)
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                var height = 0.08f + (0.02f * i);
+                yield return new Part(
+                    new PrismMesh { Size = new Vector3(0.03f, height, 0.008f) },
+                    Lean(x, top, z, (i * 120f) + 15f, 20f, height / 2f));
+            }
+        }
+
+        /// <summary>Two flat fronds leaning out on opposite sides, about 0.22 m tall.</summary>
+        public static IEnumerable<Part> Frond(float top) =>
+        [
+            new(new PrismMesh { Size = new Vector3(0.07f, 0.26f, 0.015f) }, Lean(0f, top, 0f, 0f, 30f, 0.13f), "foliage"),
+            new(new PrismMesh { Size = new Vector3(0.06f, 0.22f, 0.015f) }, Lean(0f, top, 0f, 160f, 36f, 0.11f), "foliage"),
+        ];
+
+        /// <summary>A thin stem with a round lilac head, about 0.22 m tall.</summary>
+        public static IEnumerable<Part> Puffball(float top) =>
+        [
+            new(
+                new CylinderMesh { TopRadius = 0.008f, BottomRadius = 0.012f, Height = 0.18f, RadialSegments = 5, Rings = 1 },
+                At(0f, top + 0.09f, 0f),
+                "grass-shade"),
+            new(
+                new SphereMesh { Radius = 0.05f, Height = 0.09f, RadialSegments = 6, Rings = 3 },
+                At(0f, top + 0.2f, 0f),
+                "leaf-underside"),
+        ];
+
+        /// <summary>
+        /// A part whose centre is <paramref name="lift"/> up its own length, standing at (<paramref name="x"/>,
+        /// <paramref name="y"/>, <paramref name="z"/>) and leaning <paramref name="tiltDegrees"/> from upright towards
+        /// the heading <paramref name="yawDegrees"/>.
+        /// </summary>
+        private static Transform3D Lean(float x, float y, float z, float yawDegrees, float tiltDegrees, float lift) =>
+            new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(yawDegrees)), new Vector3(x, y, z))
+            * new Transform3D(new Basis(Vector3.Right, Mathf.DegToRad(tiltDegrees)), Vector3.Zero)
+            * new Transform3D(Basis.Identity, new Vector3(0f, lift, 0f));
     }
 
     /// <summary>

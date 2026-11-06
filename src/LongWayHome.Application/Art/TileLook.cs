@@ -8,6 +8,18 @@ namespace LongWayHome.Application.Art;
 /// </summary>
 public sealed record TileLook(string SlabRole, bool ShowTufts, bool ShowFurrows, string FurrowRole, float Wet)
 {
-    /// <summary>The look for a Tile's current state and watered flag.</summary>
-    public static TileLook For(Tile tile) => throw new NotImplementedException();
+    private static readonly TileLook Grass = new("grass-lit", true, false, "soil-tilled", 0f);
+    private static readonly TileLook TilledDry = new("soil-tilled", false, true, "soil-tilled", 0f);
+    private static readonly TileLook TilledWatered = new("soil-watered", false, true, "soil-watered", 1f);
+
+    /// <summary>
+    /// The look for a Tile's current state and watered flag: grass is a green slab with tufts; tilled soil is a brown
+    /// furrowed slab, much darker and wet while watered. A tilled Tile never shows tufts again, as it never reverts
+    /// (BR-T8). A grass Tile's hidden furrows keep the dry soil role.
+    /// </summary>
+    public static TileLook For(Tile tile) => tile.State switch
+    {
+        TileState.Tilled => tile.Watered ? TilledWatered : TilledDry,
+        _ => Grass,
+    };
 }
