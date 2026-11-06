@@ -206,6 +206,8 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse pa
 
 A stone chimney sits on the back half of the roof in both states.
 
+**What restores it.** Decided: a house upgrade that becomes available once the carpenter (Tom) moves back to Ember Bay. Until then the house stays run-down, apart from the hull-panel patch. Ordering the upgrade from Tom switches it from run-down to restored. Cost and build time are a gameplay decision, still to set in the design doc.
+
 **Palette:** mauve timber `#9C7E8C` (side `#7E6474`, grain `#6E5664`, trim `#5A4458`), living trunks `#6B5A78`, run-down: wilted roof `#8A7A4A`, dry tips `#9A7E44`, grey trunks `#6E6670`, greyed walls `#8A7C80`; leaf roof `#3E8F82` (rows `#2F7266`, tips `#4FA294`, far side `#2F6B60`), ember door `#E9773A`, stone `#8F8A96`, window glow `#FFB04A`, leaf-tip glow `#6FF2E0`.
 
 **Fits the game:** the same 6 x 4 m footprint and 3 m walls as now, with the door on the side facing the plot, so the collision box and the sleep door point don't move. The roof is a little taller than the prototype's, and the posts and leaf fringe stick out by a few centimetres, which doesn't affect collision. The front step stays within about 0.3 m of the wall, clear of the shipping bin.
@@ -228,7 +230,8 @@ A stone chimney sits on the back half of the roof in both states.
 - [x] The farmer: fixed character for now; customisation is a future enhancement
 - [x] The farmer: his outfit changes with the story
 - [x] The farmer: chunky proportions, about 3 heads tall
-- [ ] The farmhouse: what restores it (a rebuild, a story beat or a house upgrade), and does it have more stages than run-down and restored?
+- [x] The farmhouse: restored by a house upgrade, available once the carpenter moves back
+- [ ] The farmhouse: any further upgrade stages after restored (e.g. a bigger house)?
 - [ ] Flat shading (sharp facets) or soft stepped shading (smoother, more painterly)?
 - [ ] Camera: the art should be checked from the camera the game ends up using (the design doc still has "fixed overhead or rotate and zoom" open).
 
