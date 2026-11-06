@@ -125,16 +125,7 @@ Each stage is taller or wider than the last, so stage reads from size as well as
 
 - **Trees:** three native species shaped like trees you know. See section 5.1.
 - **Grass and wild plants:** mostly familiar, with a few patches of native plants: curled fronds, round puffballs, tall bead-like stalks.
-- **Glowing plants** (from the Glowing plants starter set): dull and easy to miss by day, unmistakable at night.
-
-| Plant | By day | By night |
-| --- | --- | --- |
-| Dawnmoss | Pale green moss on rocks | Soft cyan carpet that fades at sunrise |
-| Firefrond | Curled red fern | Warm amber glow that lights its surroundings (its effect is "lights up dark places") |
-| Ashpetal | Grey-white flower | Glowing petals that drift down |
-| Frostlantern | Frosty bulb on a stalk | Cool blue lantern shape |
-| Snowwick | Thin white candle-like stem | A single bright flame-shaped tip; rare, so it should look special |
-| Glimmercap | Small mushroom cluster | Speckled cyan caps; common, so cheap to draw and place in numbers |
+- **Glowing plants:** see section 5.2.
 
 ### 5.1 Native trees (draft)
 
@@ -167,6 +158,27 @@ Three species, each with a familiar silhouette. They share a family look: violet
 | Stump | Cut face with growth rings that glow with sap, a dribble of sap, wood chips around it and a new shoot already sprouting. The iron axe clears it |
 
 **Night:** each species has its own glow (lilac cones, amber sap, cyan tips), so the forest path is lit and readable after dark and stumps show their glowing sap rings.
+
+### 5.2 Glowing wild plants (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Glowing plants page)
+
+The planet's signature. They're picked by hand and only at night (design doc), so they're dull and easy to miss by day and unmistakable after dark. Each has its own glow colour and silhouette, so they can be told apart in the dark and from any camera angle.
+
+| Plant | Season and place | By day | At night | Glow |
+| --- | --- | --- | --- | --- |
+| Dawnmoss | Spring; on rocks along the forest path | Pale green moss cushion on a lilac-grey rock | A soft cyan carpet over the rock; fades at sunrise | Cyan `#6FF2E0` |
+| Firefrond | Summer; forest path and riverbank | Curled dark-red fern fronds (fiddleheads) | The brightest glow of all: warm amber that pools light on the ground around it, matching its "lights up dark places" effect | Amber `#FFB04A`, the largest glow radius |
+| Ashpetal | Fall; meadow edges and riverbank | Grey-white five-petal flower, a few fallen petals | Petals glow peach-white and drift up into the air | Peach-white `#FFE6C8` |
+| Frostlantern | Winter; in the snow | A frosted bulb hanging from a curved stalk, like a lamp post | Glows cool blue from inside, like a lantern | Ice blue `#8FC8FF` |
+| Snowwick | Winter; rare | A thin white candle-like stem with a closed tip | A single bright violet-white flame at the tip | Violet `#B48CFF`, the "rare" glow (section 2) |
+| Glimmercap | All year; forest and mine | A cluster of grey-teal mushrooms | Caps turn teal with bright cyan speckles | Cyan; common, so cheap to draw and place in numbers |
+
+**Ready to pick.** At night, small motes in the plant's glow colour rise above it, so you can see from a distance which plants can be picked.
+
+**Picking.** The same target marker as the farm tiles (cream highlight, ember corners) sits under the plant the Use button will take, with a "Pick" prompt (section 7.2).
+
+**At night on the path.** Plants of different colours light the forest path together with the trees' night glows (lilac spirepine cones, amber sap, cyan coilwillow tips), so the path stays readable and inviting after dark (pillar 1). Sketched on the "forest path at night" board.
 
 ## 6. Creatures and people (draft)
 
