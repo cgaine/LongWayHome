@@ -89,20 +89,37 @@ Time of day is already a system (6:00 am to 2:00 am). The light should make each
 
 Night must never punish the player (pillar 1): it is darker and moodier, but tiles, crops and prompts stay readable.
 
-## 4. Crops
+## 4. Crops (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Crops page)
 
 Each crop: a familiar silhouette, one alien detail, and its own colour so it reads at a glance. The descriptions come from Seasons and crops in the design doc.
 
-| Crop | Familiar read | Alien detail | Colour |
-| --- | --- | --- | --- |
-| Emberroot | Carrot | The root's shoulder shows above the soil and has a faint warm inner glow ("warm to the touch"); a little heat shimmer on cold mornings | Ember orange |
-| Dusktuber | Potato or beet | Deep purple, smooth, with paler speckles like a night sky; leaves curl at the tips | Dusk purple |
-| Moonmelon | Pumpkin | Pale blue-white gourd with faint ribs; glows softly at night | Moon blue-white |
-| Sunbell | Tomato or pepper plant | Fruit hangs like bells and sways (and rings) in the wind | Sun yellow |
-| Starcorn | Corn | Kernels glitter in the light like tiny stars | Gold with sparkle |
-| Coilsquash | Squash | Grows in a spiral | Green and cream bands |
+| Crop | Familiar read | Alien detail | Colour | At night |
+| --- | --- | --- | --- | --- |
+| Emberroot (in game) | Carrot | Feathery fronds over an orange shoulder that shows above the soil; "warm to the touch", with a glowing core and a heat shimmer on cool mornings | Ember orange `#E9773A` | The core glows warm orange |
+| Dusktuber (in game) | Beet | A deep purple bulb half out of the soil, speckled like a night sky; its leaves curl into small violet spirals at the tips | Dusk purple `#4A2A66` | The speckles light up like stars |
+| Moonmelon (in game) | Pumpkin | A pale blue-white ribbed gourd on a trailing vine | Moon blue-white `#C9DCF5` | Glows softly; the biggest night glow on the farm |
+| Sunbell (planned) | Pepper plant | Yellow fruit hangs like bells, each with a clapper, and rings in the wind | Sun yellow `#F2C230` | No glow; you hear it |
+| Starcorn (planned) | Corn | A tall stalk with a golden cob whose kernels glitter like tiny stars | Gold `#E8B830` with white sparkles | The kernels sparkle |
+| Coilsquash (planned) | Squash | Green with a cream band that spirals around it, and a curling tail | Green `#6FA050`, cream `#F0E6C0` | No glow |
 
-Growth stages (seed, sprout, young, ripe) keep the readable stage shapes already in the game (REQ-12). The art upgrade changes how they look, not what stage they show.
+**Silhouettes:** ripe crops differ in shape as well as colour, so they read from the camera even in poor light: low and round (dusktuber, moonmelon, coilsquash), a frond tuft (emberroot), a bush (sunbell) and tall (starcorn).
+
+**Growth stages.** Seed, sprout, young and ripe, as in the game now (REQ-12). The art upgrade changes how they look, not what stage they show:
+
+| Stage | Look |
+| --- | --- |
+| Seed | A small soil mound with a seed on top in the crop's colour |
+| Sprout | Two seed leaves on a short stem, with a bud in the crop's colour |
+| Young | Crop-specific foliage at about half height: emberroot fronds, dusktuber's curled rosette, moonmelon's vine with a pale bud, a sunbell bush with a green bell, a short starcorn stalk, coilsquash's tendrils |
+| Ripe | The full crop, as in the table above |
+
+Each stage is taller or wider than the last, so stage reads from size as well as shape.
+
+**Soil (pillar 4):** dry tilled soil `#8A5A3C` with furrows; watered soil `#4A3226`, much darker with a wet sheen, so the watered state reads at every stage and under every crop.
+
+**Night:** four of the six crops have a night detail (glow or sparkle), which rewards going out after dark and ties the farm to the glowing plants. Night stays readable: crops are darker, but every crop and stage is still recognisable.
 
 ## 5. Plants, trees and glowing plants (draft)
 
