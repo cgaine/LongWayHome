@@ -74,4 +74,19 @@ public sealed class Player
         // BR-P5: an overflowing sum throws before Gold is assigned, so gold is unchanged.
         Gold = new Gold(checked(Gold.Value + amount));
     }
+
+    /// <summary>Spends gold; returns false and changes nothing when less than the amount is held (BR-L2, BR-P5).</summary>
+    public bool TrySpendGold(int amount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+
+        // BR-L2, BR-P5: a purchase is refused rather than taking gold below 0.
+        if (Gold.Value < amount)
+        {
+            return false;
+        }
+
+        Gold = new Gold(Gold.Value - amount);
+        return true;
+    }
 }

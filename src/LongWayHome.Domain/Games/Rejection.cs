@@ -17,4 +17,6 @@ public enum Rejection
     TooLate,
     OutOfSeason,
     NothingToShip,
+    NotOffered,
+    NotEnoughGold,
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3]
+[gd_scene load_steps=44 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://ui/NightTransition.tscn" id="9_nighttransition"]
 [ext_resource type="Script" path="res://scripts/World/RainView.cs" id="10_rainview"]
 [ext_resource type="Script" path="res://scripts/World/BinShip.cs" id="11_binship"]
+[ext_resource type="PackedScene" path="res://ui/ShopMenu.tscn" id="12_shopmenu"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -296,5 +297,7 @@ draw_pass_1 = SubResource("BoxMesh_raindrop")
 script = ExtResource("6_dayclock")
 
 [node name="PauseMenu" parent="." instance=ExtResource("7_pausemenu")]
+
+[node name="ShopMenu" parent="." instance=ExtResource("12_shopmenu")]
 
 [node name="NightTransition" parent="." instance=ExtResource("9_nighttransition")]
