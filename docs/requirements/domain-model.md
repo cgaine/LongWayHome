@@ -300,7 +300,9 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 | CropType, ShopListing | Reference data shipped with the game build, not part of a save. A save stores only `CropTypeId` values, so later builds can retune prices without breaking saves. |
 | Past Days | Not kept. Only the current state is saved; there is no history of earlier Days. |
 
-Future: a save-format version so later phases (backpack slots, buildings) can migrate Phase 1 saves; Steam Cloud sync of save slots.
+Each save file carries a save-format version (`saveVersion`, currently 1), so later phases (backpack slots, buildings) can migrate Phase 1 saves.
+
+Future: Steam Cloud sync of save slots.
 
 ## Example Payloads
 
