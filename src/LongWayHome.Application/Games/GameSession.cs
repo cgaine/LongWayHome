@@ -40,6 +40,18 @@ public sealed class GameSession
         _random = random;
     }
 
+    /// <summary>
+    /// A session whose Nights roll the weather from the given random source (BR-G4) and end by marking the Game saved
+    /// at <paramref name="time"/>'s current time and saving it to <paramref name="slot"/> of the store (BR-G5).
+    /// </summary>
+    public GameSession(Game game, GameData data, IRandomSource random, ISaveStore store, int slot, TimeProvider time) =>
+        throw new NotImplementedException();
+
+#pragma warning disable CS0067 // Red stub: raised once the save step is built.
+    /// <summary>Raised with a one-line reason when the Night's save fails, before NightCompleted.</summary>
+    public event Action<string>? SaveFailed;
+#pragma warning restore CS0067
+
     /// <summary>Raised after a successful action changes a Tile.</summary>
     public event Action<GridPosition>? TileChanged;
 

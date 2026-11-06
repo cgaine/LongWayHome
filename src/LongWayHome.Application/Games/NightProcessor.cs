@@ -22,6 +22,13 @@ public static class NightProcessor
     /// Runs the Night steps on a Game whose Day ended for the given reason, rolling the next Day's weather once from
     /// the random source (BR-G4).
     /// </summary>
+    /// <summary>
+    /// As <see cref="Run(Game, GameData, DayEndReason, IRandomSource)"/>, then calls <paramref name="save"/> once as
+    /// the very last step, after every other Night step (BR-G5).
+    /// </summary>
+    public static void Run(Game game, GameData data, DayEndReason reason, IRandomSource random, Action<Game> save) =>
+        throw new NotImplementedException();
+
     public static void Run(Game game, GameData data, DayEndReason reason, IRandomSource random)
     {
         ArgumentNullException.ThrowIfNull(game);

@@ -60,6 +60,9 @@ public sealed class Game
     /// <summary>The crops shipped today, paid for in the Night (BR-S1, BR-S2).</summary>
     public ShippingBin ShippingBin { get; }
 
+    /// <summary>Records when the Game was saved (BR-G5).</summary>
+    public void MarkSaved(DateTimeOffset at) => throw new NotImplementedException();
+
     /// <summary>Adds game minutes to the clock, never past the day end (BR-G2). Negative minutes throw.</summary>
     public void AdvanceClock(int minutes, int dayEndMinutes)
     {
