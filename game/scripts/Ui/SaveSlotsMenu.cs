@@ -24,8 +24,9 @@ namespace LongWayHome.Game.Ui;
 /// Starting or loading goes through <see cref="GameRoot.StartNewGame"/> or <see cref="GameRoot.LoadGame"/>, then
 /// changes to <c>Farm.tscn</c>. When either throws a save store, IO or access error the screen stays, rebuilds the
 /// slot list and shows <see cref="SaveSlotText.LoadFailed"/> or <see cref="SaveSlotText.SaveFailed"/>. Opening a view
-/// gives focus to its first enabled button, so <c>ui_up</c>/<c>ui_down</c> move and <c>ui_accept</c> presses;
-/// <c>ui_cancel</c> is Back in the slot list and Cancel in the confirmation. Every text is 22 px or larger with a
+/// gives focus to its first enabled button, so <c>ui_up</c>/<c>ui_down</c> move and <c>ui_accept</c> presses; when
+/// nothing has focus (e.g. a mouse click on empty space cleared it), a navigation or accept press gives that button
+/// focus back through <see cref="MenuFocusRecovery"/> and is consumed. <c>ui_cancel</c> is Back in the slot list and Cancel in the confirmation. Every text is 22 px or larger with a
 /// black outline of 4, as the shop menu. Holds no rules.
 /// </summary>
 public partial class SaveSlotsMenu : Control
@@ -66,11 +67,20 @@ public partial class SaveSlotsMenu : Control
         if (_root.Session is null)
         {
             // GameRoot has already reported the data errors and is quitting.
+            SetProcessInput(false);
             SetProcessUnhandledInput(false);
             return;
         }
 
         ShowTitle();
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (!_leaving)
+        {
+            MenuFocusRecovery.TryRecover(GetViewport(), @event, FocusFirstEnabledButton);
+        }
     }
 
     public override void _UnhandledInput(InputEvent @event)

@@ -2,21 +2,17 @@
 
 using System;
 using Godot;
+using LongWayHome.Application.Games;
 
 namespace LongWayHome.Game.Ui;
-
-/// <summary>The kind of device the Player last touched.</summary>
-public enum InputDevice
-{
-    KeyboardMouse,
-    Controller,
-}
 
 /// <summary>
 /// Tracks the device the Player last used, registered as an autoload: key, mouse button and mouse motion events
 /// mean keyboard and mouse; joypad buttons and stick motion beyond the deadzone mean a controller. Starts on keyboard
 /// and mouse. Raises <see cref="DeviceChanged"/> when it changes, and gives the button glyph of an action for the
-/// current device, so prompts follow the device in use (REQ-13). Holds no rules.
+/// current device from <see cref="InputGlyphs"/>, so prompts follow the device in use (REQ-13). When the device
+/// changes it also shows or hides the mouse cursor as <see cref="MouseCursor.IsVisible"/> says (hidden during
+/// controller play); it always processes, so this works while a menu has paused the tree. Holds no rules.
 /// </summary>
 public partial class LastInputDevice : Node
 {
@@ -30,7 +26,7 @@ public partial class LastInputDevice : Node
     public event Action? DeviceChanged;
 
     /// <summary>The device the Player last used.</summary>
-    public InputDevice Current { get; private set; } = InputDevice.KeyboardMouse;
+    public InputDeviceKind Current { get; private set; } = InputDeviceKind.KeyboardMouse;
 
     public override void _Ready()
     {
@@ -38,17 +34,9 @@ public partial class LastInputDevice : Node
         ProcessMode = ProcessModeEnum.Always;
     }
 
-    /// <summary>The glyph of <paramref name="action"/> on <paramref name="device"/>, e.g. "[Space]" or "(A)".</summary>
-    public static string GlyphFor(string action, InputDevice device) => (action, device) switch
-    {
-        ("use_tool", InputDevice.KeyboardMouse) => "[Space]",
-        ("use_tool", InputDevice.Controller) => "(A)",
-        ("interact", InputDevice.KeyboardMouse) => "[F]",
-        ("interact", InputDevice.Controller) => "(X)",
-        ("pause", InputDevice.KeyboardMouse) => "[Esc]",
-        ("pause", InputDevice.Controller) => "(Start)",
-        _ => throw new ArgumentOutOfRangeException(nameof(action), action, "No glyph for this action."),
-    };
+    /// <summary>The glyph of <paramref name="action"/> on <paramref name="device"/>, e.g. "[Space]" or "(A)"; see
+    /// <see cref="InputGlyphs.For"/>.</summary>
+    public static string GlyphFor(string action, InputDeviceKind device) => InputGlyphs.For(action, device);
 
     /// <summary>The glyph of <paramref name="action"/> on the device the Player last used.</summary>
     public string GlyphFor(string action) => GlyphFor(action, Current);
@@ -57,22 +45,28 @@ public partial class LastInputDevice : Node
     /// The glyph of <paramref name="action"/> on <paramref name="tracker"/>'s current device, or on keyboard and mouse
     /// when there is no tracker (e.g. a scene run without the autoload).
     /// </summary>
-    public static string GlyphFor(string action, LastInputDevice? tracker) =>
-        GlyphFor(action, tracker?.Current ?? InputDevice.KeyboardMouse);
+    public static string GlyphFor(string action, LastInputDevice? tracker) => GlyphFor(action, DeviceOf(tracker));
+
+    /// <summary>
+    /// <paramref name="tracker"/>'s current device, or keyboard and mouse when there is no tracker (e.g. a scene run
+    /// without the autoload).
+    /// </summary>
+    public static InputDeviceKind DeviceOf(LastInputDevice? tracker) => tracker?.Current ?? InputDeviceKind.KeyboardMouse;
 
     public override void _Input(InputEvent @event)
     {
-        InputDevice? device = @event switch
+        InputDeviceKind? device = @event switch
         {
-            InputEventKey or InputEventMouseButton or InputEventMouseMotion => InputDevice.KeyboardMouse,
-            InputEventJoypadButton => InputDevice.Controller,
-            InputEventJoypadMotion motion when Mathf.Abs(motion.AxisValue) > JoypadDeadzone => InputDevice.Controller,
+            InputEventKey or InputEventMouseButton or InputEventMouseMotion => InputDeviceKind.KeyboardMouse,
+            InputEventJoypadButton => InputDeviceKind.Controller,
+            InputEventJoypadMotion motion when Mathf.Abs(motion.AxisValue) > JoypadDeadzone => InputDeviceKind.Controller,
             _ => null,
         };
 
         if (device is { } used && used != Current)
         {
             Current = used;
+            Input.MouseMode = MouseCursor.IsVisible(used) ? Input.MouseModeEnum.Visible : Input.MouseModeEnum.Hidden;
             DeviceChanged?.Invoke();
         }
     }

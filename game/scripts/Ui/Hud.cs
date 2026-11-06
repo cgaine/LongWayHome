@@ -18,12 +18,14 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="CropsText"/> ("Crops: Emberroot × 9" or "Crops: none") and the held item's label (with the seed count
 /// when a seed is held). Along the bottom centre, the hotbar: one slot per entry of <see cref="GameSession.Hotbar"/>,
 /// the selected one bordered in ember orange. Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
-/// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Bottom
-/// centre, above the <see cref="UsePrompt"/>, a "&lt;interact glyph&gt; Refill can" hint shows while the Player is in
-/// range of the pond's <see cref="InteractionPoint"/>, and a "&lt;interact glyph&gt; Sleep" hint in the same place
+/// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Just
+/// above the hotbar, a <see cref="InputGlyphs.ChangeItemHint"/> line ("[Q] [E] Change item" / "(LB) (RB) Change item")
+/// names the buttons that cycle the held item. Bottom centre, above the <see cref="UsePrompt"/>, a
+/// "&lt;interact glyph&gt; Refill can" hint shows while the Player is in range of the pond's
+/// <see cref="InteractionPoint"/>, and a "&lt;interact glyph&gt; Sleep" hint in the same place
 /// while in range of the house door's, and a "&lt;interact glyph&gt; Ship crops" hint in the same place while in range
 /// of the shipping bin's, and a "&lt;interact glyph&gt; Shop" hint in the same place while in range of the shop's;
-/// their glyph follows <see cref="LastInputDevice"/>. Top right, the clock as
+/// their glyph, and the change-item hint's, follows <see cref="LastInputDevice"/>. Top right, the clock as
 /// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>, with the Day's weather as
 /// <see cref="WeatherText"/> ("Clear", "Rain") under it and the date as <see cref="DateText"/> ("Spring 1, Year 1")
 /// under that. Everything is redrawn on
@@ -96,6 +98,8 @@ public partial class Hud : CanvasLayer
 
     private Label _shopHint = null!;
 
+    private Label _changeItemHint = null!;
+
     private Label _clockLabel = null!;
 
     private Label _weatherLabel = null!;
@@ -117,6 +121,7 @@ public partial class Hud : CanvasLayer
         _sleepHint = GetNode<Label>("SleepHint");
         _shipHint = GetNode<Label>("ShipHint");
         _shopHint = GetNode<Label>("ShopHint");
+        _changeItemHint = GetNode<Label>("ChangeItemHint");
         _clockLabel = GetNode<Label>("ClockLabel");
         _weatherLabel = GetNode<Label>("WeatherLabel");
         _dateLabel = GetNode<Label>("DateLabel");
@@ -257,6 +262,7 @@ public partial class Hud : CanvasLayer
         _sleepHint.Text = $"{glyph} Sleep";
         _shipHint.Text = $"{glyph} Ship crops";
         _shopHint.Text = $"{glyph} Shop";
+        _changeItemHint.Text = InputGlyphs.ChangeItemHint(LastInputDevice.DeviceOf(_device));
     }
 
     private void RefreshAll()
