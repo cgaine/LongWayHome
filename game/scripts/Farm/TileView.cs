@@ -17,7 +17,7 @@ namespace LongWayHome.Game.Farm;
 /// </summary>
 public partial class TileView : Node3D
 {
-    /// <summary>Height of the tile surface above the ground; just above the plot area mesh (y 0.01) in Farm.tscn.</summary>
+    /// <summary>Height of the tile surface above the ground; just above the meadow's ground layers (the highest, the path, is at y 0.008).</summary>
     private const float SurfaceHeight = 0.015f;
 
     /// <summary>Height of the outline, just above the surface so the two never z-fight.</summary>

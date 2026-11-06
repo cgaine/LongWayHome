@@ -40,14 +40,24 @@ public static class MeadowLayout
     private const float BandX = 12f;
     private const float BandZ = 9f;
 
-    // The plot, x -6..6, z -4.5..4.5, and the edging line 0.15 m outside it.
-    private const float PlotHalfX = 6f;
-    private const float PlotHalfZ = 4.5f;
+    /// <summary>Half the plot's width: the plot is x −6..6.</summary>
+    public const float PlotHalfX = 6f;
+
+    /// <summary>Half the plot's depth: the plot is z −4.5..4.5.</summary>
+    public const float PlotHalfZ = 4.5f;
+
+    /// <summary>The mown margin's width around the plot.</summary>
+    public const float MarginWidth = 1f;
+
+    /// <summary>Half the dirt path's width: the path is x −0.6..0.6.</summary>
+    public const float PathHalfWidth = 0.6f;
+
+    // The edging line 0.15 m outside the plot.
     private const float EdgingOffset = 0.15f;
     private const float EdgingSpacing = 0.3f;
 
     /// <summary>Half the north edging gap where the path meets the plot: no stone centre within this of x = 0.</summary>
-    private const float PathGapHalf = 0.6f;
+    private const float PathGapHalf = PathHalfWidth;
 
     private readonly record struct Rect(float MinX, float MaxX, float MinZ, float MaxZ)
     {
@@ -68,7 +78,8 @@ public static class MeadowLayout
     }
 
     /// <summary>The plot plus its mown margin, x −7..7, z −5.5..5.5.</summary>
-    private static readonly Rect PlotPlusMargin = new(-7f, 7f, -5.5f, 5.5f);
+    private static readonly Rect PlotPlusMargin = new(
+        -(PlotHalfX + MarginWidth), PlotHalfX + MarginWidth, -(PlotHalfZ + MarginWidth), PlotHalfZ + MarginWidth);
 
     private static readonly Rect[] ExclusionRects =
     [
@@ -148,13 +159,7 @@ public static class MeadowLayout
                         continue;
                     }
 
-                    var yaw = (float)(random.NextDouble() * 360.0);
-                    if (yaw >= 360f)
-                    {
-                        yaw = 0f; // a double just under 360 can round up to 360 as a float
-                    }
-
-                    props.Add(new MeadowProp(kind, x, z, yaw, Between(random, MinScale, MaxScale)));
+                    props.Add(new MeadowProp(kind, x, z, Yaw(random), Between(random, MinScale, MaxScale)));
                     break;
                 }
             }
@@ -200,7 +205,7 @@ public static class MeadowLayout
         var random = new Random(FarmSeed);
         var stones = new List<MeadowProp>();
         void Add(float x, float z) => stones.Add(new MeadowProp(
-            "EdgingStone", x, z, (float)(random.NextDouble() * 360.0) % 360f, Between(random, 0.9f, 1.1f)));
+            "EdgingStone", x, z, Yaw(random), Between(random, 0.9f, 1.1f)));
 
         // North and south, corner to corner.
         for (var i = 0; i <= alongX; i++)
@@ -250,6 +255,9 @@ public static class MeadowLayout
 
         return !ExclusionRects.Any(r => r.Contains(x, z)) && !ExclusionCircles.Any(c => c.Contains(x, z));
     }
+
+    /// <summary>A yaw in [0, 360): a double just under 360 can round up to 360 as a float, so that wraps to 0.</summary>
+    private static float Yaw(Random random) => (float)(random.NextDouble() * 360.0) % 360f;
 
     private static float Between(Random random, float min, float max) =>
         min + (float)random.NextDouble() * (max - min);

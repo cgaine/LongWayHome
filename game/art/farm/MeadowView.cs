@@ -29,11 +29,11 @@ public partial class MeadowView : Node3D
 {
     private const float GroundHalfX = 16f;
     private const float GroundHalfZ = 13f;
-    private const float PlotHalfX = 6f;
-    private const float PlotHalfZ = 4.5f;
-    private const float MarginHalfX = 7f;
-    private const float MarginHalfZ = 5.5f;
-    private const float PathHalfWidth = 0.6f;
+    private const float PlotHalfX = MeadowLayout.PlotHalfX;
+    private const float PlotHalfZ = MeadowLayout.PlotHalfZ;
+    private const float MarginHalfX = PlotHalfX + MeadowLayout.MarginWidth;
+    private const float MarginHalfZ = PlotHalfZ + MeadowLayout.MarginWidth;
+    private const float PathHalfWidth = MeadowLayout.PathHalfWidth;
     private const float DoorZ = -7f;
 
     private const float PatchY = 0.003f;
@@ -42,32 +42,30 @@ public partial class MeadowView : Node3D
 
     public override void _Ready()
     {
-        var props = MeadowLayout.Generate(MeadowLayout.FarmSeed);
+        var props = MeadowLayout.Generate(MeadowLayout.FarmSeed).ToLookup(p => p.Kind);
+        List<MeadowProp> Of(string kind) => props[kind].ToList();
 
         Ground("Ground", new PlaneMesh { Size = new Vector2(2f * GroundHalfX, 2f * GroundHalfZ) });
-        Ground("ShadePatches", ShadePatches(props.Where(p => p.Kind == "ShadePatch")));
+        Ground("ShadePatches", ShadePatches(props["ShadePatch"]));
         Ground("MownMargin", MownMargin());
         Ground("Path", Flat(PathY, (-PathHalfWidth, DoorZ, PathHalfWidth, -MarginHalfZ)));
 
         Fill("PathStones", Shapes.PathStone(), MeadowLayout.PathStones(), shadows: false);
         Fill("Edging", Shapes.EdgingStone(), MeadowLayout.EdgingStones(), shadows: false);
 
-        Fill("TuftBlades", Shapes.TuftBlades(), Of(props, "Tuft"), shadows: false);
-        Fill("FrondFrond", Shapes.FrondFrond(), Of(props, "Frond"), shadows: false);
-        Fill("FrondCurl", Shapes.FrondCurl(), Of(props, "Frond"), shadows: false);
-        Fill("PuffballStem", Shapes.PuffballStem(), Of(props, "Puffball"), shadows: false);
-        Fill("PuffballHead", Shapes.PuffballHead(), Of(props, "Puffball"), shadows: false);
-        Fill("BeadStalkStalk", Shapes.BeadStalkStalk(), Of(props, "BeadStalk"), shadows: false);
-        Fill("BeadStalkBeads", Shapes.BeadStalkBeads(), Of(props, "BeadStalk"), shadows: false);
-        Fill("RockRock", Shapes.Rock(), Of(props, "Rock"), shadows: true);
-        Fill("StumpBark", Shapes.StumpBark(), Of(props, "Stump"), shadows: true);
-        Fill("StumpTop", Shapes.StumpTop(), Of(props, "Stump"), shadows: true);
-        Fill("SaplingStem", Shapes.SaplingStem(), Of(props, "Sapling"), shadows: true);
-        Fill("SaplingCrown", Shapes.SaplingCrown(), Of(props, "Sapling"), shadows: true);
+        Fill("TuftBlades", Shapes.TuftBlades(), Of("Tuft"), shadows: false);
+        Fill("FrondFrond", Shapes.FrondFrond(), Of("Frond"), shadows: false);
+        Fill("FrondCurl", Shapes.FrondCurl(), Of("Frond"), shadows: false);
+        Fill("PuffballStem", Shapes.PuffballStem(), Of("Puffball"), shadows: false);
+        Fill("PuffballHead", Shapes.PuffballHead(), Of("Puffball"), shadows: false);
+        Fill("BeadStalkStalk", Shapes.BeadStalkStalk(), Of("BeadStalk"), shadows: false);
+        Fill("BeadStalkBeads", Shapes.BeadStalkBeads(), Of("BeadStalk"), shadows: false);
+        Fill("RockRock", Shapes.Rock(), Of("Rock"), shadows: true);
+        Fill("StumpBark", Shapes.StumpBark(), Of("Stump"), shadows: true);
+        Fill("StumpTop", Shapes.StumpTop(), Of("Stump"), shadows: true);
+        Fill("SaplingStem", Shapes.SaplingStem(), Of("Sapling"), shadows: true);
+        Fill("SaplingCrown", Shapes.SaplingCrown(), Of("Sapling"), shadows: true);
     }
-
-    private static List<MeadowProp> Of(IEnumerable<MeadowProp> props, string kind) =>
-        props.Where(p => p.Kind == kind).ToList();
 
     private void Ground(string name, Mesh mesh)
     {
@@ -154,7 +152,6 @@ public partial class MeadowView : Node3D
     {
         var surface = new SurfaceTool();
         surface.Begin(Mesh.PrimitiveType.Triangles);
-        surface.SetNormal(Vector3.Up);
         return surface;
     }
 
@@ -286,12 +283,34 @@ public partial class MeadowView : Node3D
                 * new Transform3D(new Basis(Vector3.Right, Mathf.Pi / 2f), tip);
         }
 
+        /// <summary>
+        /// Merges the parts into one mesh. Normals go through the inverse transpose of each part's basis and are
+        /// re-normalised, so squashed shapes (the edging stones, rocks) keep true normals for stepped shading.
+        /// </summary>
         private static Mesh Merge(params (Mesh Mesh, Transform3D At)[] parts)
         {
             var surface = new SurfaceTool();
+            surface.Begin(Mesh.PrimitiveType.Triangles);
+            var offset = 0;
             foreach (var (mesh, at) in parts)
             {
-                surface.AppendFrom(mesh, 0, at);
+                var arrays = mesh.SurfaceGetArrays(0);
+                var vertices = arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+                var normals = arrays[(int)Mesh.ArrayType.Normal].AsVector3Array();
+                var indices = arrays[(int)Mesh.ArrayType.Index].AsInt32Array();
+                var normalBasis = at.Basis.Inverse().Transposed();
+                for (var i = 0; i < vertices.Length; i++)
+                {
+                    surface.SetNormal((normalBasis * normals[i]).Normalized());
+                    surface.AddVertex(at * vertices[i]);
+                }
+
+                foreach (var index in indices)
+                {
+                    surface.AddIndex(offset + index);
+                }
+
+                offset += vertices.Length;
             }
 
             return surface.Commit();
