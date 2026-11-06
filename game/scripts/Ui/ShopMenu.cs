@@ -16,9 +16,9 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="GameSession.ShopOffers"/> labelled <see cref="ShopText.Row"/> (the seed rows, then the Watering can
 /// upgrade while it is offered; a <see cref="ShopText.NoSeeds"/> line stands in for the seed rows when there are none),
 /// a "Close" button, and a message line. The first button takes focus, so <c>ui_up</c>/<c>ui_down</c> move between
-/// rows and <c>ui_accept</c> presses one. Pressing a listing asks the session to buy one; a rejection
-/// shows <see cref="ShopText.Rejection"/>. The Close button, or a press of <c>ui_cancel</c>, <c>interact</c> or
-/// <c>pause</c>, closes the panel and resumes the tree; those presses are handled in <c>_Input</c> while open, so the
+/// rows and <c>ui_accept</c> presses one. Pressing a listing asks the session to buy one; a rejection shows
+/// <see cref="ShopText.Rejection"/>, and buying the Watering can upgrade rebuilds the rows so its row goes. The Close
+/// button, or a press of <c>ui_cancel</c>, <c>interact</c> or <c>pause</c>, closes the panel and resumes the tree; those presses are handled in <c>_Input</c> while open, so the
 /// <see cref="PauseMenu"/> never also toggles. Opening is in <c>_UnhandledInput</c>, after <c>_Input</c>, so the
 /// press that opens the menu cannot also close it, and it sits before <see cref="NightTransition"/> in the Farm
 /// scene so the night fade still swallows <c>interact</c> first. Always processes. Holds no rules: what is offered,
@@ -107,11 +107,7 @@ public partial class ShopMenu : CanvasLayer
         _messageLabel.Text = "";
         GetTree().Paused = true;
         _panel.Visible = true;
-
-        // The first button takes focus (skipping the "No seeds" line) so a controller can move with ui_up / ui_down
-        // and buy with ui_accept.
-        var first = _items.GetChildren().OfType<Button>().FirstOrDefault() ?? _closeButton;
-        first.GrabFocus();
+        FocusFirstButton();
     }
 
     private void Close()
@@ -155,6 +151,21 @@ public partial class ShopMenu : CanvasLayer
 
         RefreshGold();
         _messageLabel.Text = "";
+
+        // BR-L1: the Can upgrade is offered only until bought, so its row goes once it is.
+        if (listing.Kind == ShopItemKind.CanUpgrade)
+        {
+            RebuildItems();
+            FocusFirstButton();
+        }
+    }
+
+    private void FocusFirstButton()
+    {
+        // The first button takes focus (skipping the "No seeds" line) so a controller can move with ui_up / ui_down
+        // and buy with ui_accept.
+        var first = _items.GetChildren().OfType<Button>().FirstOrDefault() ?? _closeButton;
+        first.GrabFocus();
     }
 
     private void RefreshGold() => _goldLabel.Text = ShopText.Gold(_session!.Game.Player.Gold.Value);

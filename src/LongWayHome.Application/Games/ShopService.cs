@@ -75,6 +75,9 @@ public static class ShopService
 
         var player = game.Player;
 
+        // The upgrade is checked before any gold is taken, so a can that cannot be raised never costs gold.
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(data.Tuning.CanUpgradedCapacity, player.WateringCan.Capacity);
+
         // BR-L2, BR-P5: the gold is taken and the can upgraded in the same step, or nothing changes.
         if (!player.TrySpendGold(offered.Price.Value))
         {

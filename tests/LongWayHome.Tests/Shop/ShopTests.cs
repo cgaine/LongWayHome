@@ -665,4 +665,14 @@ public class ShopTests
         Assert.Equal(ActionResult.Ok, ShopService.Buy(game, data, CanUpgrade));
         Assert.Equal((55, 55, true), CanState(game));
     }
+
+    [Fact]
+    public void BR_L2_an_upgrade_that_cannot_raise_the_capacity_throws_before_taking_gold()
+    {
+        var game = TestGames.WithGold(1000, can: new WateringCan(40, 10, false));
+        var before = (Snapshot(game), CanState(game));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => ShopService.Buy(game, TestGames.Shipped, CanUpgrade));
+        Assert.Equal(before, (Snapshot(game), CanState(game)));
+    }
 }
