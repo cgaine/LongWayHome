@@ -45,6 +45,13 @@ public partial class LastInputDevice : Node
     /// <summary>The glyph of <paramref name="action"/> on the device the Player last used.</summary>
     public string GlyphFor(string action) => GlyphFor(action, Current);
 
+    /// <summary>
+    /// The glyph of <paramref name="action"/> on <paramref name="tracker"/>'s current device, or on keyboard and mouse
+    /// when there is no tracker (e.g. a scene run without the autoload).
+    /// </summary>
+    public static string GlyphFor(string action, LastInputDevice? tracker) =>
+        GlyphFor(action, tracker?.Current ?? InputDevice.KeyboardMouse);
+
     public override void _Input(InputEvent @event)
     {
         InputDevice? device = @event switch

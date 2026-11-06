@@ -137,7 +137,7 @@ public partial class Hud : CanvasLayer
 
     private void RefreshRefillHint()
     {
-        var glyph = _device?.GlyphFor("interact") ?? LastInputDevice.GlyphFor("interact", InputDevice.KeyboardMouse);
+        var glyph = LastInputDevice.GlyphFor("interact", _device);
         _refillHint.Text = $"{glyph} Refill can";
     }
 

@@ -3,6 +3,7 @@
 using System.Linq;
 using Godot;
 using LongWayHome.Application.Games;
+using LongWayHome.Domain.Catalog;
 using LongWayHome.Game.Core;
 using LongWayHome.Game.Player;
 
@@ -28,6 +29,9 @@ public partial class UsePrompt : Label
 
     private HeldItemSelection? _selection;
 
+    /// <summary>What the prompt was last drawn from, or null to force a redraw.</summary>
+    private (UsePreview Preview, HeldItem Held, CropTypeId? Crop, InputDevice Device)? _last;
+
     public override void _Ready()
     {
         Visible = false;
@@ -44,8 +48,9 @@ public partial class UsePrompt : Label
 
     public override void _Process(double delta)
     {
-        if (_targeting is null || _selection is null)
+        if (_targeting is null || _selection is null || !IsInstanceValid(_targeting) || !IsInstanceValid(_selection))
         {
+            _last = null;
             var player = GetTree().GetFirstNodeInGroup(PlayerController.Group);
             _targeting = player?.GetChildren().OfType<ToolTargeting>().FirstOrDefault();
             _selection = player?.GetChildren().OfType<HeldItemSelection>().FirstOrDefault();
@@ -61,23 +66,23 @@ public partial class UsePrompt : Label
         var preview = _session!.PreviewUse(target, held);
         var planting = target is { } position ? _session.Game.FarmPlot[position].Planting : null;
 
+        // Only redraw when what the prompt is drawn from changes, so an unchanged prompt costs no allocation per frame.
+        var device = _device?.Current ?? InputDevice.KeyboardMouse;
+        var inputs = (preview, held, planting?.CropTypeId, device);
+        if (_last == inputs)
+        {
+            return;
+        }
+
+        _last = inputs;
         if (UsePromptText.For(preview, held, planting, _session.Data.CropTypes) is not { } prompt)
         {
             Visible = false;
             return;
         }
 
-        var text = prompt.IsAction ? $"{Glyph()} {prompt.Text}" : prompt.Text;
-        if (Text != text)
-        {
-            // Only on change, so an unchanged prompt doesn't re-shape its text every frame.
-            Text = text;
-        }
-
+        Text = prompt.IsAction ? $"{LastInputDevice.GlyphFor("use_tool", device)} {prompt.Text}" : prompt.Text;
         Modulate = new Color(1f, 1f, 1f, prompt.IsAction ? 1f : RejectionAlpha);
         Visible = true;
     }
-
-    private string Glyph() =>
-        _device?.GlyphFor("use_tool") ?? LastInputDevice.GlyphFor("use_tool", InputDevice.KeyboardMouse);
 }
