@@ -7,6 +7,7 @@ using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
+using LongWayHome.Game.Art;
 
 namespace LongWayHome.Game.Farm;
 
@@ -116,12 +117,12 @@ public partial class TileView : Node3D
 
         if (look.SlabRole != _look?.SlabRole)
         {
-            Art.ArtMaterials.Apply(_slab!, look.SlabRole);
+            ArtMaterials.Apply(_slab!, look.SlabRole);
         }
 
         if (look.FurrowRole != _look?.FurrowRole)
         {
-            Art.ArtMaterials.Apply(_furrows!, look.FurrowRole);
+            ArtMaterials.Apply(_furrows!, look.FurrowRole);
         }
 
         _slab!.SetInstanceShaderParameter("wet", look.Wet);
@@ -208,7 +209,7 @@ public partial class TileView : Node3D
         }
 
         var decoration = TileDecoration.For(position);
-        var blades = new List<Art.MeshPart>();
+        var blades = new List<MeshPart>();
         foreach (var (x, z) in decoration.TuftOffsets)
         {
             blades.AddRange(Decorations.Tuft(x, z, SurfaceHeight));
@@ -217,11 +218,11 @@ public partial class TileView : Node3D
         _tufts = new MeshInstance3D
         {
             Name = "Tufts",
-            Mesh = Art.ArtMeshes.Merge(blades),
+            Mesh = ArtMeshes.Merge(blades),
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
             Visible = false,
         };
-        Art.ArtMaterials.Apply(_tufts, "grass-lit");
+        ArtMaterials.Apply(_tufts, "grass-lit");
         AddChild(_tufts);
 
         if (decoration.NativePlant == NativePlantKind.None)
@@ -233,11 +234,11 @@ public partial class TileView : Node3D
         _nativePlant = new MeshInstance3D
         {
             Name = "NativePlant",
-            Mesh = Art.ArtMeshes.Merge(decoration.NativePlant == NativePlantKind.Frond
+            Mesh = ArtMeshes.Merge(decoration.NativePlant == NativePlantKind.Frond
                 ? Decorations.Frond(SurfaceHeight)
                 : Decorations.Puffball(SurfaceHeight)),
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-            MaterialOverride = Art.ArtMaterials.Shared,
+            MaterialOverride = ArtMaterials.Shared,
             RotationDegrees = new Vector3(0f, TileDecoration.Hash(position) % 360, 0f),
             Visible = false,
         };
@@ -250,33 +251,33 @@ public partial class TileView : Node3D
     private static BoxMesh SlabMesh => _slabMesh ??= new BoxMesh { Size = new Vector3(0.96f, 0.06f, 0.96f) };
 
     /// <summary>The three furrow ridges in one mesh, the same on every Tile, so all 108 share one resource.</summary>
-    private static ArrayMesh FurrowMesh => _furrowMesh ??= Art.ArtMeshes.Merge(FurrowRows.Select(z =>
-        new Art.MeshPart(new BoxMesh { Size = FurrowSize }, At(0f, SurfaceHeight + (FurrowHeight / 2f), z))));
+    private static ArrayMesh FurrowMesh => _furrowMesh ??= ArtMeshes.Merge(FurrowRows.Select(z =>
+        new MeshPart(new BoxMesh { Size = FurrowSize }, At(0f, SurfaceHeight + (FurrowHeight / 2f), z))));
 
     /// <summary>The grass tile's tufts and native plants, each standing on the slab top at <c>top</c>.</summary>
     private static class Decorations
     {
         /// <summary>Three thin blades, 0.08–0.12 m tall, fanned out and leaning away from the tuft's centre.</summary>
-        public static IEnumerable<Art.MeshPart> Tuft(float x, float z, float top)
+        public static IEnumerable<MeshPart> Tuft(float x, float z, float top)
         {
             for (var i = 0; i < 3; i++)
             {
                 var height = 0.08f + (0.02f * i);
-                yield return new Art.MeshPart(
+                yield return new MeshPart(
                     new PrismMesh { Size = new Vector3(0.03f, height, 0.008f) },
                     Lean(x, top, z, (i * 120f) + 15f, 20f, height / 2f));
             }
         }
 
         /// <summary>Two flat fronds leaning out on opposite sides, about 0.22 m tall.</summary>
-        public static IEnumerable<Art.MeshPart> Frond(float top) =>
+        public static IEnumerable<MeshPart> Frond(float top) =>
         [
             new(new PrismMesh { Size = new Vector3(0.07f, 0.26f, 0.015f) }, Lean(0f, top, 0f, 0f, 30f, 0.13f), "foliage"),
             new(new PrismMesh { Size = new Vector3(0.06f, 0.22f, 0.015f) }, Lean(0f, top, 0f, 160f, 36f, 0.11f), "foliage"),
         ];
 
         /// <summary>A thin stem with a round lilac head, about 0.22 m tall.</summary>
-        public static IEnumerable<Art.MeshPart> Puffball(float top) =>
+        public static IEnumerable<MeshPart> Puffball(float top) =>
         [
             new(
                 new CylinderMesh { TopRadius = 0.008f, BottomRadius = 0.012f, Height = 0.18f, RadialSegments = 5, Rings = 1 },

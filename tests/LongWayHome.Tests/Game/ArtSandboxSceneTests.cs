@@ -1,9 +1,11 @@
+using System.Text.RegularExpressions;
+
 namespace LongWayHome.Tests.Game;
 
 /// <summary>
 /// Reads the real game files to check the art sandbox (#75) is reached only through the title menu's
 /// <c>--art-sandbox</c> flag, that gameplay scenes never reference <c>game/art/sandbox/</c>, and that gameplay scripts
-/// stay apart from <c>game/art/</c>.
+/// use nothing from <c>game/art/</c> but the shared material helpers.
 /// </summary>
 public class ArtSandboxSceneTests
 {
@@ -57,10 +59,18 @@ public class ArtSandboxSceneTests
             Assert.False(text.Contains("res://art/"), $"{path} references res://art/");
         }
 
+        // Gameplay scripts may use the shared material helpers from game/art/ (ArtMaterials, ArtMeshes; #78 colours the
+        // tile slabs with them), but never the sandbox's types, which share the LongWayHome.Game.Art namespace.
+        string[] sandboxTypes = ["ArtSandbox", "SandboxLook", "SandboxCamera"];
         foreach (var path in scripts)
         {
             var text = File.ReadAllText(path);
-            Assert.False(text.Contains("LongWayHome.Game.Art"), $"{path} uses the LongWayHome.Game.Art namespace");
+            foreach (var type in sandboxTypes)
+            {
+                Assert.False(
+                    Regex.IsMatch(text, $@"\b{type}\b"),
+                    $"{path} uses the art sandbox's {type}");
+            }
         }
     }
 }

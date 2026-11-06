@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Godot;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Farming;
+using LongWayHome.Game.Art;
 using LongWayHome.Game.Core;
 
 namespace LongWayHome.Game.Farm;
@@ -65,7 +66,7 @@ public partial class FarmPlotView : Node3D
             Position = ((first + last) / 2f) with { Y = PlotBaseHeight },
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
         };
-        Art.ArtMaterials.Apply(plotBase, "soil-watered");
+        ArtMaterials.Apply(plotBase, "soil-watered");
         AddChild(plotBase);
     }
 
