@@ -23,6 +23,12 @@ public sealed class FarmPlot
         }
     }
 
+    /// <summary>Restores a Farm plot from exactly one Tile per grid position (BR-T1).</summary>
+    public FarmPlot(IEnumerable<Tile> tiles)
+    {
+        throw new NotImplementedException();
+    }
+
     /// <summary>All Tiles in row-major order (Y then X).</summary>
     public IReadOnlyList<Tile> Tiles => Array.AsReadOnly(_tiles);
 

@@ -7,4 +7,9 @@ public enum Rejection
     AlreadyTilled,
     TooTired,
     NothingToDo,
+    NotTilled,
+    TileOccupied,
+    NoSeed,
+    NoPlanting,
+    NotRipe,
 }

@@ -1,4 +1,5 @@
 using LongWayHome.Application.Data;
+using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
@@ -22,6 +23,11 @@ public sealed class GameSession
 
     /// <summary>Raised after a successful action changes the Player (energy, can or tools).</summary>
     public event Action? PlayerChanged;
+
+#pragma warning disable CS0067 // Raised once Plant and Harvest are implemented.
+    /// <summary>Raised after a successful action changes the inventory.</summary>
+    public event Action? InventoryChanged;
+#pragma warning restore CS0067
 
     public Game Game { get; }
 
@@ -88,6 +94,15 @@ public sealed class GameSession
 
         return result;
     }
+
+    /// <summary>Plants one Seed of a Crop type (BR-T3). Raises InventoryChanged and TileChanged on success.</summary>
+    public ActionResult Plant(GridPosition position, CropTypeId cropTypeId) => throw new NotImplementedException();
+
+    /// <summary>Harvests the ripe Planting on a Tile (BR-T6). Raises InventoryChanged and TileChanged on success.</summary>
+    public ActionResult Harvest(GridPosition position) => throw new NotImplementedException();
+
+    /// <summary>The HUD label for a held item: "Hoe", "Watering can", or "Emberroot seeds × 9".</summary>
+    public string HeldLabel(HeldItem held) => throw new NotImplementedException();
 
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
 }

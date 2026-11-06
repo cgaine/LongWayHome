@@ -1,3 +1,4 @@
+using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
 
@@ -76,4 +77,18 @@ public sealed class Game
         Player.TrySpendEnergy(toolEnergyCost);
         return FarmPlot[position].Till();
     }
+
+    /// <summary>Why planting would be refused, or null: NotTilled, then TileOccupied, then NoSeed (BR-T3).</summary>
+    public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId) =>
+        throw new NotImplementedException();
+
+    /// <summary>Plants one Seed on a Tile (BR-T3). Costs no energy (BR-P2).</summary>
+    public ActionResult Plant(GridPosition position, CropTypeId cropTypeId) => throw new NotImplementedException();
+
+    /// <summary>Why harvesting would be refused, or null: NoPlanting, then NotRipe (BR-T6).</summary>
+    public Rejection? HarvestRejection(GridPosition position, CropType cropType) =>
+        throw new NotImplementedException();
+
+    /// <summary>Harvests a ripe Planting into one Crop (BR-T6). Costs no energy (BR-P2).</summary>
+    public ActionResult Harvest(GridPosition position, CropType cropType) => throw new NotImplementedException();
 }
