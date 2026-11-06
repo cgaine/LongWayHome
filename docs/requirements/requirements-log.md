@@ -662,7 +662,141 @@ and roadmap issues.
 - **Rule changes**: none
 - **Ready**: all REQs in Phase 1. Handed to epic-planning.
 
-### REQ-44 — Rotate and zoom camera
+### REQ-44 — Gathering
+- **Date**: 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 171. Source wording: "Trees along the forest path and farm edges give about 5 wood and 2 sap each... trees and rocks respawn every couple of days, including in the meadow, but never on tilled soil or within 2–3 tiles of it"
+- **Kind**: capability
+- **Statement**: The Player chops trees for wood and sap with the axe (about 5 wood and 2 sap a tree), and breaks rocks for stone with the pickaxe (about 3 stone a rock). Each swing costs energy. Trees and rocks respawn every couple of days, including in the meadow, but never on tilled soil or within 2–3 tiles of it. Out of scope: stumps and large trees before the matching tool tier.
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-15 entry; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: The exact no-respawn distance around tilled soil (2 or 3 tiles).
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-15
+
+### REQ-45 — Rebuilding buildings
+- **Date**: 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 171. Source wording: "How a rebuild works: each building has a sign out front. You drop off the wood, stone and gold it needs, and once everything is in, the building is rebuilt overnight. This works before Tom arrives."
+- **Kind**: capability
+- **Statement**: Each town building has a sign out front. The Player drops off the wood, stone and gold its next stage needs (later stages also need planks and ore); once everything is in, the building is rebuilt overnight, restoring its look and unlocking new goods, services or residents. This works before the carpenter reopens. Out of scope: the Player designing building layouts.
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-18 entry; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-18
+
+### REQ-46 — General store
+- **Date**: 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 171. Source wording: "Selling: until store level 4 you carry crops to the store and sell them to Maggie. At level 4 she gives you a shipping bin for the farm, which sells overnight. (Early playtest builds can keep the bin from the start.)"
+- **Kind**: capability
+- **Statement**: The Player can shop at Maggie's corner of the general store from day one for seeds, the axe (50 gold) and the pickaxe (75 gold), and sells harvested crops to Maggie at the store. Rebuilding it through stages 2 to 4 adds more seeds, backpack upgrades, farm chests and, at stage 4, a shipping bin on the farm that sells overnight. Out of scope: seasonal stock and opening hours (undecided).
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-19 entry; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: The Phase 1 build has a farm shipping bin from the start (REQ-8). When Phase 2 adds the store, does that bin stay (the design doc allows it in early playtest builds) or arrive only at store stage 4?
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-19
+
+### REQ-47 — Slot backpack and hotbar
+- **Date**: 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 171. Source wording: "The hotbar is one 6-slot row of the backpack shown on screen; a key or controller button cycles which row is the hotbar. With a full backpack, extra items drop on the ground and stay until the next morning."
+- **Kind**: capability
+- **Statement**: The Player carries items in a 12-slot backpack where each slot holds a stack of up to 99 of one item, and the tools take slots. Store stage 2 upgrades it to 24 slots and stage 3 to 36. The hotbar is one 6-slot row of the backpack shown on screen; a key or controller button cycles which row is the hotbar. When the backpack is full, extra items drop on the ground and stay there until the next morning. Out of scope: item weight.
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-20 entry; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-20
+
+### REQ-48 — Carpenter
+- **Date**: 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 171. Source wording: "Across the river: Old ranch (empty at first: a new area with trees and rocks to gather)"; "Drop off materials and they're ready the next morning."
+- **Kind**: capability
+- **Statement**: Once the carpenter is rebuilt, the Player can have wood made into planks and planks plus sap made into sealed planks, ready the next morning, and buy fences and chests (stage 1). Stage 2 repairs the bridge, opening the area across the river (empty at first, with trees and rocks to gather), and offers farmhouse upgrades. Out of scope: rebuilding homes (REQ-32).
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-21 entry; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-21
+
+### REQ-49 — Early mine
+- **Date**: 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 171. Source wording: "Travel: a staircase built into the mine connects the levels; every fifth cleared level adds a shortcut from the entrance"; "Early Groth: a few small Groth deposits appear on levels 3–5"
+- **Kind**: capability
+- **Statement**: Buying the pickaxe opens the old mine, with Maggie telling its story. The Player clears debris on levels 1 to 4 and collects stone, Rosk ore, glimmercaps and a few small Groth deposits on levels 3 to 5. A staircase built into the mine connects the levels, and every fifth cleared level adds a shortcut from the entrance. Level 5 is drained with Mira's first pump. Out of scope: danger (creatures, collapses).
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-23 entry; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-23
+
+### REQ-50 — First residents return
+- **Date**: 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 171. Source wording: "She returns once that house is repaired and you have explored mine levels 1–5; once she moves in, she asks you to rebuild the blacksmith."
+- **Kind**: capability
+- **Statement**: The Player sees the Hollis family (Tom, June and Jesse) move in when the carpenter reopens. Mira moves in once her house is rebuilt and the Player has explored mine levels 1 to 5; she then asks the Player to rebuild the blacksmith. Out of scope: other households (REQ-32).
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-24 entry; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-24
+
+### REQ-51 — Refilling at any water
+- **Date**: 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 171. Source wording: "refills at any water: the pond on the farm, the river or the lake"
+- **Kind**: capability
+- **Statement**: The Player refills the watering can at any water: the pond on the farm, the river and the lake, as each area opens. Extends REQ-6. Out of scope: carrying water in other containers.
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: new
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: —
+
+### Design doc rev 171 sync — 2026-11-06
+- **Source**: docs/GAME_DESIGN.md rev 145 → rev 171
+- **Changed**: REQ-15 → REQ-44, REQ-18 → REQ-45, REQ-19 → REQ-46, REQ-20 → REQ-47, REQ-21 → REQ-48, REQ-23 → REQ-49, REQ-24 → REQ-50; REQ-51 new (extends REQ-6).
+- **No change**:
+  - REQ-1: the design doc now settles its two open questions as already written: crops keep growing past a season change (REQ-10) and tilled tiles never revert to grass (BR-T8).
+  - REQ-2: starting seeds already read emberroot and dusktuber.
+  - REQ-6: Phase 1 has only the farm pond; river and lake refills are REQ-51.
+  - REQ-8, REQ-9: Phase 1 keeps the farm shipping bin and shop menu. The design doc allows the bin from the start in early playtest builds; when it moves to store stage 4 is the REQ-46 open question.
+  - REQ-22: the watering can upgrade shapes (Groth 3 tiles in a row, Forgelight 3 x 3, one charge per tile) and early Groth on mine levels 3–5 fit "does more per action for the same 2 energy".
+  - Rebuild costs, Tom's conversion prices, sealed-plank counts and Mira's house cost are tuning numbers and stay in the design doc.
+- **Not in requirements**: the new design-doc Art direction section belongs in docs/ART_DIRECTION.md, which is being worked on the `Graphics` branch.
+- **Documents**: product-definition (Phase 2 entries replaced, REQ-51 added; 3 Phases); GAME_DESIGN.md snapshot (rev 171)
+- **Rule changes**: none
+
+### REQ-52 — Rotate and zoom camera
 - **Date**: 2026-11-06
 - **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "lets do a rotate and zoom camera"
 - **Kind**: capability
@@ -677,7 +811,7 @@ and roadmap issues.
 - **Roadmap**: Phase 1B entry on #2
 - **Supersedes**: —
 
-### REQ-45 — Farm ground art
+### REQ-53 — Farm ground art
 - **Date**: 2026-11-06
 - **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "ground tiles"
 - **Kind**: ui
@@ -692,7 +826,7 @@ and roadmap issues.
 - **Roadmap**: Phase 1B entry on #2
 - **Supersedes**: —
 
-### REQ-46 — Crop and seed art
+### REQ-54 — Crop and seed art
 - **Date**: 2026-11-06
 - **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "seeds & crops"
 - **Kind**: ui
@@ -707,7 +841,7 @@ and roadmap issues.
 - **Roadmap**: Phase 1B entry on #2
 - **Supersedes**: —
 
-### REQ-47 — Farmhouse art
+### REQ-55 — Farmhouse art
 - **Date**: 2026-11-06
 - **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "house"
 - **Kind**: ui
@@ -722,7 +856,7 @@ and roadmap issues.
 - **Roadmap**: Phase 1B entry on #2
 - **Supersedes**: —
 
-### REQ-48 — The farmer
+### REQ-56 — The farmer
 - **Date**: 2026-11-06
 - **Source**: chat, 2026-11-06 (roadmap #2 Phase 1B). Source wording: "main character"
 - **Kind**: ui
