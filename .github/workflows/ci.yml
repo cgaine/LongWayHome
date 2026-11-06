@@ -46,7 +46,7 @@ jobs:
         if: always()
         uses: danielpalme/ReportGenerator-GitHub-Action@5
         with:
-          reports: coverage/**/coverage.cobertura.xml
+          reports: coverage/*/coverage.cobertura.xml
           targetdir: coverage/report
           reporttypes: MarkdownSummaryGithub;Cobertura
 
