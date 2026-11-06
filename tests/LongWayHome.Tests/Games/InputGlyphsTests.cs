@@ -73,6 +73,12 @@ public class InputGlyphsTests
         Assert.Throws<ArgumentOutOfRangeException>(() => InputGlyphs.For(action, device));
     }
 
+    [Fact]
+    public void AC3_undefined_device_throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => InputGlyphs.For("use_tool", (InputDeviceKind)99));
+    }
+
     [Theory]
     [InlineData(InputDeviceKind.KeyboardMouse, "[Q] [E] Change item")]
     [InlineData(InputDeviceKind.Controller, "(LB) (RB) Change item")]

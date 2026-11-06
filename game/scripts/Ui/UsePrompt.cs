@@ -30,7 +30,7 @@ public partial class UsePrompt : Label
     private HeldItemSelection? _selection;
 
     /// <summary>What the prompt was last drawn from, or null to force a redraw.</summary>
-    private (UsePreview Preview, HeldItem Held, CropTypeId? Crop, InputDevice Device)? _last;
+    private (UsePreview Preview, HeldItem Held, CropTypeId? Crop, InputDeviceKind Device)? _last;
 
     public override void _Ready()
     {
@@ -67,7 +67,7 @@ public partial class UsePrompt : Label
         var planting = target is { } position ? _session.Game.FarmPlot[position].Planting : null;
 
         // Only redraw when what the prompt is drawn from changes, so an unchanged prompt costs no allocation per frame.
-        var device = _device?.Current ?? InputDevice.KeyboardMouse;
+        var device = _device?.Current ?? InputDeviceKind.KeyboardMouse;
         var inputs = (preview, held, planting?.CropTypeId, device);
         if (_last == inputs)
         {

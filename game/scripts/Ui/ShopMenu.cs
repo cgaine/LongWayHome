@@ -15,11 +15,14 @@ namespace LongWayHome.Game.Ui;
 /// BR-G2) and shows a centred "Shop" panel: "Gold &lt;n&gt;", one button per listing in
 /// <see cref="GameSession.ShopOffers"/> labelled <see cref="ShopText.Row"/> (the seed rows, then the Watering can
 /// upgrade while it is offered; a <see cref="ShopText.NoSeeds"/> line stands in for the seed rows when there are none),
-/// a "Close" button, and a message line. The first button takes focus, so <c>ui_up</c>/<c>ui_down</c> move between
-/// rows and <c>ui_accept</c> presses one. Pressing a listing asks the session to buy one; a rejection shows
+/// a Close button labelled <see cref="InputGlyphs.CloseLabel"/> ("[Esc] Close" / "(B) Close", following
+/// <see cref="LastInputDevice"/> while open), and a message line. The first button takes focus, so
+/// <c>ui_up</c>/<c>ui_down</c> move between rows and <c>ui_accept</c> presses one; when nothing has focus (e.g. a
+/// mouse click on empty panel space cleared it), a navigation or accept press gives the first button focus back
+/// through <see cref="MenuFocusRecovery"/> and is consumed, without touching the pause (BR-G2). Pressing a listing asks the session to buy one; a rejection shows
 /// <see cref="ShopText.Rejection"/>, and buying the Watering can upgrade rebuilds the rows so its row goes. The Close
-/// button, or a press of <c>ui_cancel</c>, <c>interact</c> or <c>pause</c>, closes the panel and resumes the tree; those presses are handled in <c>_Input</c> while open, so the
-/// <see cref="PauseMenu"/> never also toggles. Opening is in <c>_UnhandledInput</c>, after <c>_Input</c>, so the
+/// button, or a press of <c>ui_cancel</c>, <c>interact</c> or <c>pause</c>, closes the panel and resumes the tree;
+/// those presses are handled in <c>_Input</c> while open, so the <see cref="PauseMenu"/> never also toggles. Opening is in <c>_UnhandledInput</c>, after <c>_Input</c>, so the
 /// press that opens the menu cannot also close it, and it sits before <see cref="NightTransition"/> in the Farm
 /// scene so the night fade still swallows <c>interact</c> first. Always processes. Holds no rules: what is offered,
 /// the prices and whether a purchase happens are decided by <see cref="GameSession"/> (BR-L1, BR-L2).
@@ -29,6 +32,8 @@ public partial class ShopMenu : CanvasLayer
     private const string ShopPointId = "shop";
 
     private GameSession? _session;
+
+    private LastInputDevice? _device;
 
     private InteractionPoint? _shop;
 
@@ -53,6 +58,14 @@ public partial class ShopMenu : CanvasLayer
         _panel.Visible = false;
         _closeButton.Pressed += Close;
 
+        _device = GetNodeOrNull<LastInputDevice>(LastInputDevice.Path);
+        if (_device is not null)
+        {
+            _device.DeviceChanged += RefreshCloseLabel;
+        }
+
+        RefreshCloseLabel();
+
         _session = GetNode<GameRoot>("/root/GameRoot").Session;
         _shop = InteractionPoint.Find(GetTree().Root, ShopPointId);
         if (_session is null || _shop is null)
@@ -65,6 +78,11 @@ public partial class ShopMenu : CanvasLayer
 
     public override void _ExitTree()
     {
+        if (_device is not null && IsInstanceValid(_device))
+        {
+            _device.DeviceChanged -= RefreshCloseLabel;
+        }
+
         // Leaving the scene must not leave the tree paused with nothing to resume it.
         if (_panel.Visible)
         {
@@ -85,7 +103,10 @@ public partial class ShopMenu : CanvasLayer
         {
             Close();
             GetViewport().SetInputAsHandled();
+            return;
         }
+
+        MenuFocusRecovery.TryRecover(GetViewport(), @event, FocusFirstButton);
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -105,6 +126,7 @@ public partial class ShopMenu : CanvasLayer
         RebuildItems();
         RefreshGold();
         _messageLabel.Text = "";
+        RefreshCloseLabel();
         GetTree().Paused = true;
         _panel.Visible = true;
         FocusFirstButton();
@@ -166,6 +188,12 @@ public partial class ShopMenu : CanvasLayer
         // and buy with ui_accept.
         var first = _items.GetChildren().OfType<Button>().FirstOrDefault() ?? _closeButton;
         first.GrabFocus();
+    }
+
+    private void RefreshCloseLabel()
+    {
+        // Refreshed on every device change, open or not, so the label is right whenever the panel shows.
+        _closeButton.Text = InputGlyphs.CloseLabel(LastInputDevice.DeviceOf(_device));
     }
 
     private void RefreshGold() => _goldLabel.Text = ShopText.Gold(_session!.Game.Player.Gold.Value);

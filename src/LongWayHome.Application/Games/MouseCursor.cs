@@ -4,5 +4,5 @@ namespace LongWayHome.Application.Games;
 public static class MouseCursor
 {
     /// <summary>False for <see cref="InputDeviceKind.Controller"/>, true for <see cref="InputDeviceKind.KeyboardMouse"/>.</summary>
-    public static bool IsVisible(InputDeviceKind device) => throw new NotImplementedException();
+    public static bool IsVisible(InputDeviceKind device) => device != InputDeviceKind.Controller;
 }
