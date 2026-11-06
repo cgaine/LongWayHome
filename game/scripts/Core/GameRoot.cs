@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Godot;
 using LongWayHome.Application.Data;
 using LongWayHome.Application.Games;
+using LongWayHome.Application.Saves;
 using LongWayHome.Infrastructure.Data;
 using LongWayHome.Infrastructure.Random;
 using LongWayHome.Infrastructure.Saves;
@@ -14,10 +15,12 @@ namespace LongWayHome.Game.Core;
 /// <summary>
 /// The composition root, registered as an autoload. Loads the reference data when the game starts and
 /// quits with exit code 1 if it is missing or invalid: a game with broken data must not start. With the data
-/// loaded it starts a new Game and holds it in <see cref="Session"/> (there is no title screen yet), with a
-/// <see cref="SystemRandomSource"/> for each Night's weather roll and a <see cref="JsonSaveStore"/> on
-/// <c>user://saves</c> that each Night saves the Game to (slot 1). A failed save is pushed to the error log.
-/// Holds no rules.
+/// loaded it holds a fallback new-Game <see cref="Session"/> that saves nowhere, so <c>Farm.tscn</c> runs on its own.
+/// The title screen lists the save slots with <see cref="SaveSlots"/> from a <see cref="JsonSaveStore"/> on
+/// <c>user://saves</c>, then replaces <see cref="Session"/> through <see cref="StartNewGame"/> or
+/// <see cref="LoadGame"/> (via <see cref="GameStarter"/>, with a <see cref="SystemRandomSource"/> for each Night's
+/// weather roll) before changing to the farm; that session saves to its slot each Night (BR-G5). A failed nightly
+/// save is pushed to the error log. Holds no rules.
 /// </summary>
 public partial class GameRoot : Node
 {
@@ -26,8 +29,7 @@ public partial class GameRoot : Node
     /// <summary>The save folder; only this composition root knows the <c>user://</c> path.</summary>
     private const string SaveFolder = "user://saves";
 
-    /// <summary>The slot the new Game saves to, until a title screen lets the Player choose one.</summary>
-    private const int NewGameSlot = 1;
+    private JsonSaveStore _store = null!;
 
     public GameData Data { get; private set; } = null!;
 
@@ -66,16 +68,10 @@ public partial class GameRoot : Node
 
         GD.Print($"Loaded {Data.CropTypes.Count} crop types, {Data.ShopListings.Count} shop listings and tuning");
 
-        // Until the title screen exists, every launch starts a new Game that saves to slot 1 each Night (BR-G5).
-        var store = new JsonSaveStore(ProjectSettings.GlobalizePath(SaveFolder));
-        Session = new GameSession(
-            NewGameFactory.Create(Data, DateTimeOffset.UtcNow),
-            Data,
-            new SystemRandomSource(),
-            store,
-            NewGameSlot,
-            TimeProvider.System);
-        Session.SaveFailed += OnSaveFailed;
+        _store = new JsonSaveStore(ProjectSettings.GlobalizePath(SaveFolder));
+
+        // The fallback for running Farm.tscn on its own: a new Game that saves nowhere. The title screen replaces it.
+        UseSession(new GameSession(NewGameFactory.Create(Data, DateTimeOffset.UtcNow), Data, new SystemRandomSource()));
     }
 
     public override void _ExitTree()
@@ -84,6 +80,34 @@ public partial class GameRoot : Node
         {
             Session.SaveFailed -= OnSaveFailed;
         }
+    }
+
+    /// <summary>The save slots, 1 to 3, as the store lists them.</summary>
+    public IReadOnlyList<SaveSlotInfo> SaveSlots() => _store.List();
+
+    /// <summary>
+    /// Starts a new Game in the slot, saving it there at once, and makes it the <see cref="Session"/>. A store
+    /// exception propagates and leaves the session unchanged.
+    /// </summary>
+    public void StartNewGame(int slot) =>
+        UseSession(GameStarter.StartNew(Data, _store, slot, new SystemRandomSource(), TimeProvider.System));
+
+    /// <summary>
+    /// Loads the slot's Game and makes it the <see cref="Session"/>, saving to that slot. A store exception
+    /// propagates and leaves the session unchanged.
+    /// </summary>
+    public void LoadGame(int slot) =>
+        UseSession(GameStarter.Load(Data, _store, slot, new SystemRandomSource(), TimeProvider.System));
+
+    private void UseSession(GameSession session)
+    {
+        if (Session is not null)
+        {
+            Session.SaveFailed -= OnSaveFailed;
+        }
+
+        Session = session;
+        Session.SaveFailed += OnSaveFailed;
     }
 
     private static void OnSaveFailed(string reason) => GD.PushError($"The game could not be saved: {reason}");
