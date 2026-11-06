@@ -67,7 +67,7 @@ public partial class UsePrompt : Label
         var planting = target is { } position ? _session.Game.FarmPlot[position].Planting : null;
 
         // Only redraw when what the prompt is drawn from changes, so an unchanged prompt costs no allocation per frame.
-        var device = _device?.Current ?? InputDeviceKind.KeyboardMouse;
+        var device = LastInputDevice.DeviceOf(_device);
         var inputs = (preview, held, planting?.CropTypeId, device);
         if (_last == inputs)
         {

@@ -21,7 +21,13 @@ public static class MenuFocusRecovery
     /// </summary>
     public static bool TryRecover(Viewport viewport, InputEvent @event, Action focusFirst)
     {
+        // Checked first so the common case (a button has focus) costs no action lookups on every input event.
         var somethingFocused = viewport.GuiGetFocusOwner() is not null;
+        if (somethingFocused)
+        {
+            return false;
+        }
+
         var recovers = MenuFocus.RecoveryActions.Any(action =>
             @event.IsActionPressed(action, allowEcho: false) && MenuFocus.ShouldRecover(somethingFocused, action));
         if (!recovers)

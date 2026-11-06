@@ -21,7 +21,7 @@
   <ItemGroup>
     <None Include="..\..\game\data\*.json" Link="data\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\game\project.godot" Link="game\project.godot" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\smoke-checklist.md" Link="docs\smoke-checklist.md" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\docs\smoke-checklist.md')" />
+    <None Include="..\..\docs\smoke-checklist.md" Link="docs\smoke-checklist.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\requirements\technical-blueprint.md" Link="docs\requirements\technical-blueprint.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
