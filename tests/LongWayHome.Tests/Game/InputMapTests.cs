@@ -15,6 +15,7 @@ public class InputMapTests
     [
         "move_up", "move_down", "move_left", "move_right", "run", "use_tool",
         "interact", "tool_prev", "tool_next", "open_menu", "pause",
+        "camera_rotate_left", "camera_rotate_right", "camera_zoom_in", "camera_zoom_out",
     ];
 
     private static readonly string[] MoveActionNames = ["move_up", "move_down", "move_left", "move_right"];
@@ -96,6 +97,32 @@ public class InputMapTests
         Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
 
         Assert.Matches($@"InputEventJoypadButton,(?:(?!Object\().)*""button_index"":{buttonIndex},", Actions[action].Body);
+    }
+
+    [Theory]
+    [InlineData("camera_rotate_left", 90, 2, "-1.0")]
+    [InlineData("camera_rotate_right", 67, 2, "1.0")]
+    [InlineData("camera_zoom_in", 82, 3, "-1.0")]
+    [InlineData("camera_zoom_out", 86, 3, "1.0")]
+    public void AC2_camera_action_is_bound_to_its_key_and_right_stick_direction_with_deadzone_0_2(
+        string action, int physicalKeycode, int axis, string axisValue)
+    {
+        Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+        var body = Actions[action].Body;
+
+        Assert.Matches($@"InputEventKey,(?:(?!Object\().)*""physical_keycode"":{physicalKeycode},", body);
+        Assert.Contains($"\"axis\":{axis},\"axis_value\":{axisValue},", body);
+        Assert.Equal(0.2, Actions[action].Deadzone, precision: 3);
+    }
+
+    [Fact]
+    public void Camera_actions_leave_the_mouse_wheel_on_the_held_item_cycle()
+    {
+        foreach (var action in new[] { "camera_rotate_left", "camera_rotate_right", "camera_zoom_in", "camera_zoom_out" })
+        {
+            Assert.True(Actions.ContainsKey(action), $"project.godot has no input action '{action}'");
+            Assert.DoesNotContain("InputEventMouseButton", Actions[action].EventTypes);
+        }
     }
 
     private sealed record InputAction(double Deadzone, IReadOnlyList<string> EventTypes, string Body);

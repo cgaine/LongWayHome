@@ -21,6 +21,10 @@ public static class InputGlyphs
             "open_menu" => ("[Tab]", "(Y)"),
             "pause" => ("[Esc]", "(Start)"),
             "ui_cancel" => ("[Esc]", "(B)"),
+            "camera_rotate_left" => ("[Z]", "(R stick)"),
+            "camera_rotate_right" => ("[C]", "(R stick)"),
+            "camera_zoom_in" => ("[R]", "(R stick)"),
+            "camera_zoom_out" => ("[V]", "(R stick)"),
             _ => throw new ArgumentOutOfRangeException(nameof(action), action, "No glyph for this action."),
         };
 
