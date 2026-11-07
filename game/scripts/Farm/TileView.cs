@@ -18,9 +18,8 @@ namespace LongWayHome.Game.Farm;
 /// puffball), tilled (a brown slab with three east–west furrows) or watered (the same, much darker, with the shader's
 /// wet sheen); tilled and watered look the same all year (ART_DIRECTION §7.2, BR-T8). The slab is 0.96 m square, so
 /// the dark plot base under the plot shows through the 4 cm gaps as grooves and the grid reads without drawn lines. Any Planting on it stands on the slab top as a low-poly model for
-/// its <see cref="GrowthStage"/> (REQ-12): for emberroot, dusktuber, sunbell and starcorn the art-direction model of
-/// <see cref="CropArt"/>, one mesh from <see cref="CropModels"/> under the shared palette material (#90, #91); for
-/// moonmelon, not drawn yet, the prototype models of <see cref="PrototypeCropModels"/>.
+/// its <see cref="GrowthStage"/> (REQ-12): the art-direction model of <see cref="CropArt"/>, one mesh from
+/// <see cref="CropModels"/> under the shared palette material (#90, #91, #92).
 /// <para>
 /// The slab and furrows are built once when ready; the tufts and native plant on the first <see cref="Refresh"/>,
 /// which brings the Tile's grid position for their <see cref="TileDecoration"/>, and only if the Tile is still grass
@@ -167,29 +166,14 @@ public partial class TileView : Node3D
             return model;
         }
 
-        // A crop drawn to the art direction is one merged mesh, shared by every Tile at that (crop, stage), in world
-        // metres and coloured by its UVs under the shared material: one draw (#90).
-        if (CropModels.MeshFor(crop, stage) is { } mesh)
+        // Every crop model is one merged mesh, shared by every Tile at that (crop, stage), in world metres and coloured
+        // by its UVs under the shared material: one draw (#90).
+        model = new MeshInstance3D
         {
-            model = new MeshInstance3D
-            {
-                Mesh = mesh,
-                MaterialOverride = ArtMaterials.Shared,
-                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
-            };
-        }
-        else
-        {
-            model = stage switch
-            {
-                GrowthStage.Seed => PrototypeCropModels.Seed(),
-                GrowthStage.Sprout => PrototypeCropModels.Sprout(),
-                GrowthStage.Young => PrototypeCropModels.Young(crop),
-                _ => PrototypeCropModels.Ripe(crop),
-            };
-            model.Scale = PrototypeCropModels.ModelScale;
-        }
-
+            Mesh = CropModels.MeshFor(crop, stage),
+            MaterialOverride = ArtMaterials.Shared,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+        };
         model.Name = $"{stage}_{crop}";
         model.Visible = false;
         model.Position = new Vector3(0f, SurfaceHeight, 0f);

@@ -54,7 +54,7 @@ public sealed record CropPart(
 /// </para>
 /// <para>
 /// <b>The models.</b> "Colour" is the crop's own role: <c>ember</c> for emberroot, <c>dusktuber</c> for dusktuber,
-/// <c>sunbell-gold</c> for sunbell (#91) and <c>starcorn</c> for starcorn (#91). A part placed "at radius r, yawed a"
+/// <c>sunbell-gold</c> for sunbell (#91), <c>starcorn</c> for starcorn (#91) and <c>moonmelon</c> for moonmelon (#92). A part placed "at radius r, yawed a"
 /// is centred at Ry(a)·(0, y, r): yaw 0 is +Z, yaw 90 is +X.
 /// </para>
 /// <list type="table">
@@ -110,6 +110,22 @@ public sealed record CropPart(
 /// <c>starcorn-sparkle</c>; <c>Tassel0</c>–<c>Tassel2</c> Prisms 0.03 x 0.14 x 0.01 rising from (0, 0.935, 0) so
 /// they are centred at y 1.0, yawed i x 120°, pitched 20° outward, <c>sunbell-gold</c>. About 0.65 wide, 1.07
 /// tall.</description></item>
+/// <item><term>Moonmelon Young</term><description><c>Vine</c> Box 0.50 x 0.03 x 0.04 lying on the soil at (0.05,
+/// 0.015, 0.05), yawed 35°, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf2</c> Boxes 0.16 x 0.02 x 0.14 centred 0.15 m back,
+/// 0.02 m back and 0.11 m on along the vine from its centre and 0.07 m to alternate sides of it (+Z, −Z, +Z), at y
+/// 0.06, 0.08 and 0.10, yawed with the vine (turned round on the +Z side) and pitched 20° so the outer edge lifts,
+/// <c>foliage</c>; <c>LeafVein0</c>–<c>LeafVein2</c> Boxes 0.12 x 0.005 x 0.01 lying on each leaf's top face along
+/// its length, rotated with it, <c>leaf-underside</c>; <c>Bud</c> Sphere 0.10 x 0.09 at the vine's far end (y 0.05),
+/// <c>moonmelon</c>. About 0.47 wide, 0.13 tall.</description></item>
+/// <item><term>Moonmelon Ripe</term><description><c>Rib0</c>–<c>Rib5</c> Spheres 0.26 x 0.34 at radius 0.15, y
+/// 0.15, yawed i x 60°, <c>moonmelon</c> (a ribbed gourd, grooved where the ribs meet); <c>Crown</c> Sphere 0.18 x
+/// 0.08 at y 0.29, <c>moonmelon</c>; <c>Stalk</c> Cylinder bottom 0.04, top 0.03, height 0.08 at y 0.35, pitched
+/// 15°, <c>foliage</c>; <c>Vine</c> Box 0.30 x 0.03 x 0.04 lying at y 0.015 from 0.19 m out on the gourd's side,
+/// yawed 40° so it trails towards the slab's +X −Z corner, <c>foliage</c>; <c>Leaf0</c>/<c>Leaf1</c> Boxes 0.16 x
+/// 0.02 x 0.14 at y 0.05, 0.03 m back and 0.08 m on along the vine from its centre and 0.07 m to its +Z and −Z side,
+/// pitched 20° up as on the young vine, <c>foliage</c>; <c>Tendril</c> Cylinder bottom 0.015, top 0.01, height 0.12
+/// rising from the vine's end, pitched 50° on along the vine, <c>foliage</c>. About 0.76 wide, 0.39
+/// tall.</description></item>
 /// </list>
 /// <para>
 /// The Seed, Sprout and Young models of emberroot and dusktuber are up to 25% larger than #90's starting sizes (the
@@ -120,19 +136,34 @@ public sealed record CropPart(
 /// are not hidden by the bush from the game camera's 30–60° pitch.
 /// </para>
 /// <para>
-/// Moonmelon has no parts yet (<see cref="Parts"/> returns <c>null</c>); the game falls back to its prototype model
-/// until the fall feature (#92) draws it.
+/// Ripe moonmelon's ribs sit on a ring of radius 0.15, not #92's starting 0.12, and its vine starts 0.19 m out, not
+/// at the gourd's 0.18 m side, so the gourd is wider and more deeply grooved and the model is at least 0.1 m wider
+/// than ripe starcorn (AC4) with every corner still on the slab (AC3). A Sphere is drawn round on its diameter
+/// <c>SizeX</c>, so each rib is Sphere 0.26 x 0.34 (round lobes), not the issue's 0.26 x 0.34 x 0.20, and its yaw
+/// only turns its footprint box. Young moonmelon comes out about 0.47 wide, not the issue's estimated 0.55, at the
+/// issue's own sizes.
 /// </para>
 /// </summary>
 public static class CropArt
 {
+    // Ripe moonmelon's sizes (see the notes above): the rib diameter, the ring the ribs' centres sit on, and the vine's
+    // yaw, length and start (its distance out from the centre line).
+    private const float RibSize = 0.26f;
+    private const float RibRing = 0.15f;
+    private const float RipeVineYaw = 40f;
+    private const float RipeVineLength = 0.30f;
+    private const float RipeVineRoot = 0.19f;
+
     private static readonly Dictionary<(CropTypeId Crop, GrowthStage Stage), IReadOnlyList<CropPart>> Models = Build();
 
-    /// <summary>The parts of a crop's model at a growth stage.</summary>
+    /// <summary>
+    /// The parts of a crop's model at a growth stage. Every crop is drawn at every stage, so this throws
+    /// <see cref="ArgumentOutOfRangeException"/> only for a (crop, stage) with no model, an undefined enum value.
+    /// </summary>
     public static IReadOnlyList<CropPart> Parts(CropTypeId crop, GrowthStage stage) =>
         Models.TryGetValue((crop, stage), out var parts)
             ? parts
-            : throw new NotImplementedException($"{crop} {stage} is not drawn yet (#92).");
+            : throw new ArgumentOutOfRangeException(nameof(crop), (crop, stage), "No crop model for this crop and stage.");
 
     /// <summary>
     /// Width is the larger of the X and Z extents of the parts' axis-aligned bounds (each part's rotated box); Height
@@ -191,6 +222,7 @@ public static class CropArt
             (CropTypeId.Dusktuber, "dusktuber"),
             (CropTypeId.Sunbell, "sunbell-gold"),
             (CropTypeId.Starcorn, "starcorn"),
+            (CropTypeId.Moonmelon, "moonmelon"),
         };
         foreach (var (crop, colour) in colours)
         {
@@ -206,6 +238,8 @@ public static class CropArt
         models[(CropTypeId.Sunbell, GrowthStage.Ripe)] = SunbellRipe();
         models[(CropTypeId.Starcorn, GrowthStage.Young)] = StarcornYoung();
         models[(CropTypeId.Starcorn, GrowthStage.Ripe)] = StarcornRipe();
+        models[(CropTypeId.Moonmelon, GrowthStage.Young)] = MoonmelonYoung();
+        models[(CropTypeId.Moonmelon, GrowthStage.Ripe)] = MoonmelonRipe();
         return models;
     }
 
@@ -420,6 +454,92 @@ public static class CropArt
         }
 
         return parts;
+    }
+
+    /// <summary>A low vine trailing over the soil, three veined leaves along it and a pale bud at its far end.</summary>
+    private static List<CropPart> MoonmelonYoung()
+    {
+        const float vineYaw = 35f;
+        const float vineLength = 0.50f;
+        var vineCentre = new Vector3(0.05f, 0.015f, 0.05f);
+        var parts = new List<CropPart> { Lying("Vine", vineLength, 0.03f, 0.04f, vineCentre, vineYaw, roll: 0f, "foliage") };
+        for (var i = 0; i < 3; i++)
+        {
+            var leaf = VineLeaf(
+                $"Leaf{i}", vineCentre, vineYaw, along: -0.15f + (0.13f * i), side: i % 2 == 0 ? 1f : -1f, y: 0.06f + (0.02f * i));
+            parts.Add(leaf);
+            parts.Add(VeinOn($"LeafVein{i}", leaf));
+        }
+
+        var farEnd = vineCentre + Vector3.Transform(new Vector3(vineLength / 2f, 0f, 0f), Rotation(0f, vineYaw, 0f));
+        parts.Add(new CropPart("Bud", CropPartShape.Sphere, 0.10f, 0.09f, 0.10f, farEnd.X, 0.05f, farEnd.Z, 0f, 0f, 0f, "moonmelon"));
+        return parts;
+    }
+
+    /// <summary>
+    /// A pale blue-white pumpkin: six ribs round a crown, a short stalk on top, and a vine trailing from its side
+    /// towards a corner of the slab, with two leaves and a tendril curling up from its end.
+    /// </summary>
+    private static List<CropPart> MoonmelonRipe()
+    {
+        var parts = new List<CropPart>();
+        for (var i = 0; i < 6; i++)
+        {
+            parts.Add(Around($"Rib{i}", CropPartShape.Sphere, RibSize, 0.34f, RibSize, RibRing, 0.15f, yaw: i * 60f, pitch: 0f, "moonmelon"));
+        }
+
+        parts.Add(Upright("Crown", CropPartShape.Sphere, 0.18f, 0.08f, 0.18f, 0.29f, "moonmelon"));
+        parts.Add(new CropPart("Stalk", CropPartShape.Cylinder, 0.04f, 0.08f, 0.03f, 0f, 0.35f, 0f, 15f, 0f, 0f, "foliage"));
+
+        var direction = Vector3.Transform(Vector3.UnitX, Rotation(0f, RipeVineYaw, 0f));
+        var root = new Vector3(0f, 0.015f, 0f) + (direction * RipeVineRoot);
+        var vine = LyingFrom("Vine", RipeVineLength, 0.03f, 0.04f, root, RipeVineYaw, roll: 0f, "foliage");
+        var vineCentre = new Vector3(vine.X, vine.Y, vine.Z);
+        parts.Add(vine);
+        parts.Add(VineLeaf("Leaf0", vineCentre, RipeVineYaw, along: -0.03f, side: 1f, y: 0.05f));
+        parts.Add(VineLeaf("Leaf1", vineCentre, RipeVineYaw, along: 0.08f, side: -1f, y: 0.05f));
+
+        // The tendril curls up from the vine's end, leaning on along the vine: its +Z lean is yawed onto the vine's +X.
+        var end = root + (direction * RipeVineLength);
+        parts.Add(RisingFrom(
+            "Tendril", 0.015f, 0.12f, 0.01f, end, pitch: 50f, yaw: RipeVineYaw + 90f, "foliage", CropPartShape.Cylinder));
+        return parts;
+    }
+
+    /// <summary>
+    /// A leaf on a vine lying along X yawed to <paramref name="vineYaw"/>: centred <paramref name="along"/> m along it
+    /// from <paramref name="vineCentre"/> and 0.07 m to one <paramref name="side"/> (+1 the vine's +Z) at height
+    /// <paramref name="y"/>, its outer edge pitched 20° up.
+    /// </summary>
+    private static CropPart VineLeaf(string name, Vector3 vineCentre, float vineYaw, float along, float side, float y)
+    {
+        var at = vineCentre + Vector3.Transform(new Vector3(along, 0f, side * 0.07f), Rotation(0f, vineYaw, 0f));
+
+        // A positive pitch lifts a part's −Z edge, so the leaf on the vine's +Z side is turned round to face out.
+        var yaw = side > 0f ? vineYaw + 180f : vineYaw;
+        return new CropPart(name, CropPartShape.Box, 0.16f, 0.02f, 0.14f, at.X, y, at.Z, 20f, yaw, 0f, "foliage");
+    }
+
+    /// <summary>A thin violet vein lying on the top face of <paramref name="leaf"/>, along its length.</summary>
+    private static CropPart VeinOn(string name, CropPart leaf)
+    {
+        const float thickness = 0.005f;
+        var at = new Vector3(leaf.X, leaf.Y, leaf.Z) + Vector3.Transform(
+            new Vector3(0f, (leaf.SizeY + thickness) / 2f, 0f),
+            Rotation(leaf.PitchDegrees, leaf.YawDegrees, leaf.RollDegrees));
+        return new CropPart(
+            name,
+            CropPartShape.Box,
+            0.12f,
+            thickness,
+            0.01f,
+            at.X,
+            at.Y,
+            at.Z,
+            leaf.PitchDegrees,
+            leaf.YawDegrees,
+            leaf.RollDegrees,
+            "leaf-underside");
     }
 
     private static CropPart Speckle(string name, float radius, float y, float yaw)

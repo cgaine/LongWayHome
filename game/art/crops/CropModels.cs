@@ -18,30 +18,20 @@ namespace LongWayHome.Game.Art;
 /// </summary>
 public static class CropModels
 {
-    private static readonly Dictionary<(CropTypeId Crop, GrowthStage Stage), ArrayMesh?> Meshes = new();
+    private static readonly Dictionary<(CropTypeId Crop, GrowthStage Stage), ArrayMesh> Meshes = new();
 
     /// <summary>
-    /// The merged mesh of a crop's model at a growth stage, standing on y 0 (the slab top), or <c>null</c> when
-    /// <see cref="CropArt.Parts"/> has no parts for that crop yet.
+    /// The merged mesh of a crop's model at a growth stage, standing on y 0 (the slab top). Every crop is drawn at
+    /// every stage (#92), so there is always one.
     /// </summary>
-    public static ArrayMesh? MeshFor(CropTypeId crop, GrowthStage stage)
+    public static ArrayMesh MeshFor(CropTypeId crop, GrowthStage stage)
     {
-        if (Meshes.TryGetValue((crop, stage), out var cached))
-        {
-            return cached;
-        }
-
-        ArrayMesh? mesh;
-        try
+        if (!Meshes.TryGetValue((crop, stage), out var mesh))
         {
             mesh = ArtMeshes.Merge(CropArt.Parts(crop, stage).Select(ToMeshPart));
-        }
-        catch (System.NotImplementedException)
-        {
-            mesh = null;
+            Meshes[(crop, stage)] = mesh;
         }
 
-        Meshes[(crop, stage)] = mesh;
         return mesh;
     }
 
