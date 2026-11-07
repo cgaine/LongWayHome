@@ -451,7 +451,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings p
 
 **At night.** Amber windows and string lights are the town's warm light (section 2). The forge glows orange, sap barrels glow amber and the leaf tips glow cyan. Homes show **friendship lanterns** in the window, one per friendship step, as the design doc proposes, so the town visibly gets brighter as friendships grow.
 
-**Still to design:** the ranch house, the museum, the dock houses for Clyde's family, the bridge, and the town square (paving, well, lamp posts).
+**Still to design:** the ranch house, the museum, the dock houses for Clyde's family, and the bridge (only sketched in the town square's mood sketch). The town square is section 7.5.
 
 ### 7.4 The pond and the shipping bin (draft)
 
@@ -481,6 +481,49 @@ The two things beside the plot that the farmer uses every day. Each shows where 
 **Fits the game:** about 1 m across and 0.8 m tall, so its collision becomes a short cylinder instead of today's 1.2 x 0.8 m box. The 1.7 m range stays.
 
 **Palette:** water `#7CC2B4`, `#3F8E98`, `#245E7A`, `#173F58`; bank `#5A4A3A`; stone `#9A95A2`; bin staves `#AC939E` to `#755C6A`, leaf lid `#3E8F82`, band and flag `#E9773A`, sign `#F0E6C0`, lantern light `#FFB04A`.
+
+### 7.5 The town square (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town square page: the concept, day one vs restored vs night, and the square's props)
+
+**The heart of the town, and where progress shows.** The square is round, like the town's round buildings, with a well at its centre and every building facing in, so each rebuild can be seen from one spot (section 7, "Progress is visible from the square").
+
+**Layout** (draft; follows the design doc's world layout):
+
+| Side | What's there |
+| --- | --- |
+| North | The general store at the head of the square; the forest path to the farm leaves beside it |
+| West | The carpenter, then the homes |
+| East | The blacksmith, then the path to the bridge over the river to the ranch |
+| South-east | June's café, by the lake |
+| South | The path to the dock, with the drowned rooftops in the shallows |
+
+**The plaza.** Lilac-grey paving `#B3ADB8` laid in rings around the well, with darker joints `#9A94A2`. An ember sandstone spiral `#D49A6E` winds out from the centre: the planet's spiral motif, set in stone. Paths out of the square are packed dirt `#B8946C`, like the farm path. **Second look:** moss in the spiral's joints glows faint cyan after dark.
+
+**Props.** Grown like the buildings, so each one comes back to life with the town:
+
+| Prop | Restored | Day one |
+| --- | --- | --- |
+| Well | A low stone drum; two living trunk posts arch over it to a small leaf cone with a sprouting crown; a rope and a timber bucket; clear blue water `#2D6A86`. **Second look:** the water glows cyan `#6FF2E0` at night | Wilted roof with gaps, grey posts, no bucket, dark still water, weeds |
+| Lamp posts (7, around the rim) | A living trunk that curls at the top like a fern frond, with a cream lantern and an ember cap hanging from the curl; amber light `#FFB04A` at night | Grey post, cracked dark lantern. Only the lamp by Maggie's corner works |
+| Rebuild signs | Each building's sign out front (design doc, Restoration order): a grown board with leaf trim and three pips for wood, stone and gold that fill as each is delivered. A thin amber outline at night keeps it findable. Gone once the building is rebuilt | One in front of every empty building |
+| Benches | Curved timber seat and back on two trunk legs, with a sprout at one end | Faded grey timber |
+| Flower beds | Round stone beds of native flowers that glow violet at night | Not there yet |
+| String lights | From the store to the café; ready for the Ember Festival | Not there yet |
+
+**Day one to restored:**
+
+| State | Look |
+| --- | --- |
+| Day one | Every building wilted, with a rebuild sign out front, except Maggie's corner of the store (section 7.3). Cracked paving with weeds and fallen leaves, stones missing from the spiral, the well dry and dark, the bridge broken. At night only Maggie's window and one lamp give warm light |
+| Restored | Every building grown back. The spiral whole, benches and flower beds back, string lights up, the bridge mended, residents out |
+| Restored at night | The brightest place on the map: amber windows, lanterns and string lights, cyan leaf tips, the glowing well and spiral. Residents are told apart by their glow (section 6.2) |
+
+**Lamps show progress (draft).** Each rebuild relights the lamp nearest that building, so the rim of the square fills with light as the town comes back.
+
+**Fits the game (draft):** a plaza about 24 m across, a 3 m well and 3 m lamp posts. The well's collision is a short cylinder; benches and beds stay off the walking lines between the paths. Everything must read from the overhead camera and from every rotation (section 9, Camera).
+
+**Still open:** whether the well can refill the watering can in town, and how the square is dressed for the Ember Festival.
 
 ## 8. Style and technical direction (draft)
 
