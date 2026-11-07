@@ -58,8 +58,10 @@ public class SandboxPanTests
     public void The_centre_stays_over_the_ground()
     {
         var (x, z) = SandboxPan.Moved((11f, -11f), 1f, -1f, CameraView.Default, 10f);
+        var (_, front) = SandboxPan.Moved((0f, 30f), 0f, 1f, CameraView.Default, 10f);
+        Assert.Equal(SandboxPan.MaxZ, front, Eps);
 
-        Assert.Equal(SandboxPan.Limit, x, Eps);
-        Assert.Equal(-SandboxPan.Limit, z, Eps);
+        Assert.Equal(SandboxPan.LimitX, x, Eps);
+        Assert.Equal(SandboxPan.MinZ, z, Eps);
     }
 }

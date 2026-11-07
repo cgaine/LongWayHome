@@ -12,7 +12,7 @@ namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// The art sandbox (#75), the script of <c>res://art/sandbox/ArtSandbox.tscn</c>, opened from the title screen with
-/// the <c>--art-sandbox</c> launch flag. Builds, on a 40 x 40 m ground slab (the <c>wall-grey</c> swatch, the
+/// the <c>--art-sandbox</c> launch flag. Builds, on a 52 x 60 m ground slab (x ±26, z −22..38) (the <c>wall-grey</c> swatch, the
 /// palette's closest neutral):
 /// <list type="bullet">
 /// <item>the palette rows at the back: one 0.8 m cube per <see cref="ArtPalette"/> swatch, in texture order (11 to a
@@ -40,7 +40,12 @@ namespace LongWayHome.Game.Art;
 /// <item>the <c>GatherTools</c> row at the front: four farmers holding the Phase 2 axe and pickaxe
 /// (<see cref="HeldItemArt.PartsFor(GatherTool)"/>), one standing and one looping the hoe swing with each, a display model of
 /// each tool at 2.5 times its size, side-on, at the row's ends (axe left, pickaxe right), and in front
-/// of them the <c>Icons</c> row: the axe, pickaxe and material icons (<see cref="ItemIcons"/>) as labelled billboards.</item>
+/// of them the <c>Icons</c> row: the axe, pickaxe and material icons (<see cref="ItemIcons"/>) as labelled billboards;</item>
+/// <item>the <c>Town</c> row furthest to the front: the general store (<see cref="GeneralStoreArt"/>, built by
+/// <see cref="TownModels"/>) at each <see cref="StoreStage"/>, left to right, each labelled, with its rebuild sign
+/// (<see cref="RebuildSignArt"/>) in front for the next stage: wood and stone delivered at Maggie's corner, nothing yet
+/// once reopened, wood at the storeroom, and none once fully expanded. The store's lit windows and the signs' amber
+/// outlines show only under the Night preset.</item>
 /// </list>
 /// Every mesh takes its colour from the shared palette material through <see cref="ArtMaterials.Apply"/> (#76).
 /// Flat only or Stepped only sets the global shader uniform <c>art_stepped_shading</c>, so every mesh shows that
@@ -65,7 +70,15 @@ public partial class ArtSandbox : Node3D
 
     private const string TitleScene = "res://scenes/Main.tscn";
 
-    private const float GroundSize = 40f;
+    private const float GroundWidth = 52f;
+
+    private const float GroundDepth = 60f;
+
+    /// <summary>The ground's centre z: it runs from z −22 at the back to z 38 at the front.</summary>
+    private const float GroundCentreZ = 8f;
+
+    /// <summary>The z of the Town row, furthest to the front.</summary>
+    private const float TownZ = 29f;
 
     private const float CubeSize = 0.8f;
 
@@ -188,8 +201,8 @@ public partial class ArtSandbox : Node3D
 
     private Label3D _rightStyleLabel = null!;
 
-    /// <summary>The restored farmhouse's lit window panes, visible only under the Night preset.</summary>
-    private MeshInstance3D _farmhouseNightLights = null!;
+    /// <summary>The meshes shown only under the Night preset: lit windows and the rebuild signs' outlines.</summary>
+    private readonly List<GeometryInstance3D> _nightOnly = new();
 
     private bool _leaving;
 
@@ -225,6 +238,7 @@ public partial class ArtSandbox : Node3D
         BuildRocks();
         BuildGatherTools();
         BuildIcons();
+        BuildTown();
         BuildLabel();
 
         Camera = new SandboxCamera { Name = "SandboxCamera", Current = true, Centre = CameraCentre };
@@ -299,7 +313,10 @@ public partial class ArtSandbox : Node3D
     {
         ApplyLight(Presets[_look.Preset]);
         RenderingServer.GlobalShaderParameterSet(NightGlobal, _look.ArtNight);
-        _farmhouseNightLights.Visible = _look.Preset == LightPreset.Night;
+        foreach (var node in _nightOnly)
+        {
+            node.Visible = _look.Preset == LightPreset.Night;
+        }
 
         var leftStepped = SteppedIn(_look.Mode, inBoth: _look.SidesSwapped);
         var rightStepped = SteppedIn(_look.Mode, inBoth: !_look.SidesSwapped);
@@ -419,8 +436,8 @@ public partial class ArtSandbox : Node3D
         // wall-grey, the palette's closest neutral, so the tiles and samples are judged against no strong colour.
         AddMesh(
             "Ground",
-            new BoxMesh { Size = new Vector3(GroundSize, 0.1f, GroundSize) },
-            new Vector3(0f, -0.05f, 0f),
+            new BoxMesh { Size = new Vector3(GroundWidth, 0.1f, GroundDepth) },
+            new Vector3(0f, -0.05f, GroundCentreZ),
             "wall-grey");
     }
 
@@ -693,7 +710,7 @@ public partial class ArtSandbox : Node3D
             });
             if (restored)
             {
-                _farmhouseNightLights = new MeshInstance3D
+                var nightLights = new MeshInstance3D
                 {
                     Name = "RoundFarmhouseRestoredNightLights",
                     Mesh = RoundFarmhouseModels.NightLights(),
@@ -702,7 +719,8 @@ public partial class ArtSandbox : Node3D
                     Position = position,
                     Visible = false,
                 };
-                farmhouses.AddChild(_farmhouseNightLights);
+                farmhouses.AddChild(nightLights);
+                _nightOnly.Add(nightLights);
             }
         }
     }
@@ -849,6 +867,74 @@ public partial class ArtSandbox : Node3D
             OutlineSize = 8,
             PixelSize = 0.004f,
         });
+    }
+
+    /// <summary>
+    /// The general store at each stage in a row at the front, left to right, each labelled and with the rebuild sign
+    /// for its next stage out front. Lit windows and sign outlines join the night-only meshes.
+    /// </summary>
+    private void BuildTown()
+    {
+        var town = new Node3D { Name = "Town" };
+        AddChild(town);
+        (StoreStage Stage, float X, string Label, (bool Wood, bool Stone, bool Gold)? Sign)[] stores =
+        [
+            (StoreStage.MaggiesCorner, -20f, "General store · 1. Maggie's corner", (true, true, false)),
+            (StoreStage.Reopened, -7f, "General store · 2. Reopened", (false, false, false)),
+            (StoreStage.Storeroom, 6f, "General store · 3. Storeroom", (true, false, false)),
+            (StoreStage.ExpandedShop, 18.5f, "General store · 4. Expanded shop", null),
+        ];
+        foreach (var (stage, x, label, sign) in stores)
+        {
+            var position = new Vector3(x, 0f, TownZ);
+            town.AddChild(new MeshInstance3D
+            {
+                Name = $"Store{stage}",
+                Mesh = TownModels.Store(stage),
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+                Position = position,
+            });
+            AddNightOnly(town, $"Store{stage}NightLights", TownModels.StoreNightLights(stage), position);
+            town.AddChild(new Label3D
+            {
+                Name = $"Store{stage}Label",
+                Text = label,
+                Position = position + new Vector3(0f, 8.2f, 0f),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                FontSize = 48,
+                OutlineSize = 10,
+                PixelSize = 0.006f,
+            });
+
+            if (sign is not { } pips) continue;
+            var signAt = position + new Vector3(2.6f, 0f, 5.4f);
+            town.AddChild(new MeshInstance3D
+            {
+                Name = $"Store{stage}RebuildSign",
+                Mesh = TownModels.RebuildSign(pips.Wood, pips.Stone, pips.Gold),
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+                Position = signAt,
+            });
+            AddNightOnly(town, $"Store{stage}RebuildSignOutline", TownModels.RebuildSignOutline(), signAt);
+        }
+    }
+
+    /// <summary>A mesh under the shared material that shows only under the Night preset, casting no shadow.</summary>
+    private void AddNightOnly(Node3D parent, string name, Mesh mesh, Vector3 position)
+    {
+        var node = new MeshInstance3D
+        {
+            Name = name,
+            Mesh = mesh,
+            MaterialOverride = ArtMaterials.Shared,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+            Position = position,
+            Visible = false,
+        };
+        parent.AddChild(node);
+        _nightOnly.Add(node);
     }
 
     /// <summary>The axe, pickaxe and material icons in a row of billboards at the front, each with its name under it.</summary>
