@@ -12,7 +12,7 @@ namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// The art sandbox (#75), the script of <c>res://art/sandbox/ArtSandbox.tscn</c>, opened from the title screen with
-/// the <c>--art-sandbox</c> launch flag. Builds, on a 20 x 20 m ground slab (the <c>wall-grey</c> swatch, the
+/// the <c>--art-sandbox</c> launch flag. Builds, on a 26 x 26 m ground slab (the <c>wall-grey</c> swatch, the
 /// palette's closest neutral):
 /// <list type="bullet">
 /// <item>the palette rows at the back: one 0.8 m cube per <see cref="ArtPalette"/> swatch, in texture order (11 to a
@@ -28,7 +28,10 @@ namespace LongWayHome.Game.Art;
 /// <item>the <c>Animations</c> row between the sample shapes and the tile slabs (#103): eleven farmers, one per
 /// <see cref="FarmerClip"/>, each looping its clip with a billboard label naming it;</item>
 /// <item>the four sample shapes (low-poly sphere, 6-sided trunk, house, cone tree), once on the left and once on the
-/// right, with a label over each set naming the style it shows.</item>
+/// right, with a label over each set naming the style it shows;</item>
+/// <item>the <c>Farmhouses</c> at the front corners: the round farmhouse of the concept art
+/// (<see cref="RoundFarmhouseArt"/>, built by <see cref="RoundFarmhouseModels"/>), run-down on the left and restored on
+/// the right, each with a label. The restored house's warm window panes show only under the Night preset.</item>
 /// </list>
 /// Every mesh takes its colour from the shared palette material through <see cref="ArtMaterials.Apply"/> (#76).
 /// Flat only or Stepped only sets the global shader uniform <c>art_stepped_shading</c>, so every mesh shows that
@@ -38,7 +41,8 @@ namespace LongWayHome.Game.Art;
 /// always follow the global. Leaving the sandbox restores the global to the project value.
 /// Controls, all Input Map actions (REQ-13): <c>tool_next</c>/<c>tool_prev</c> step through the light presets,
 /// <c>use_tool</c> swaps the sides, <c>interact</c> steps the style mode, <c>pause</c> returns to the title screen,
-/// and <see cref="SandboxCamera"/> turns and zooms on the <c>camera_*</c> actions. The top-left label shows
+/// and <see cref="SandboxCamera"/> turns and zooms on the <c>camera_*</c> actions and slides left, right, forward and back
+/// on the <c>move_*</c> actions (the left stick, the D-pad, WASD and the arrow keys). The top-left label shows
 /// <see cref="SandboxLook.Label"/>; with <c>--show-fps</c> the <see cref="FpsCounter"/> shows top right. Reads and
 /// changes no game state.
 /// </summary>
@@ -52,7 +56,7 @@ public partial class ArtSandbox : Node3D
 
     private const string TitleScene = "res://scenes/Main.tscn";
 
-    private const float GroundSize = 20f;
+    private const float GroundSize = 26f;
 
     private const float CubeSize = 0.8f;
 
@@ -92,6 +96,12 @@ public partial class ArtSandbox : Node3D
 
     /// <summary>The z of the Animations row: between the sample shapes (z 1.2) and the tile slabs (z 4.5).</summary>
     private const float AnimationsZ = 2.9f;
+
+    /// <summary>The x of the two farmhouses, run-down at −x and restored at +x, clear of the crops and the Farmer row.</summary>
+    private const float FarmhousesX = 8.2f;
+
+    /// <summary>The z of the two farmhouses, level with the crop rows and in front of the Animations row.</summary>
+    private const float FarmhousesZ = 8f;
 
     /// <summary>How long a one-shot clip rests on its last pose before the sandbox plays it again, in seconds.</summary>
     private const double OneShotRestartSeconds = 0.5;
@@ -151,6 +161,9 @@ public partial class ArtSandbox : Node3D
 
     private Label3D _rightStyleLabel = null!;
 
+    /// <summary>The restored farmhouse's lit window panes, visible only under the Night preset.</summary>
+    private MeshInstance3D _farmhouseNightLights = null!;
+
     private bool _leaving;
 
     /// <summary>The project's <c>art_stepped_shading</c>, read once in <see cref="_Ready"/>.</summary>
@@ -180,6 +193,7 @@ public partial class ArtSandbox : Node3D
         BuildFarmers();
         BuildAnimations();
         BuildShapes();
+        BuildFarmhouses();
         BuildLabel();
 
         Camera = new SandboxCamera { Name = "SandboxCamera", Current = true, Centre = CameraCentre };
@@ -254,6 +268,7 @@ public partial class ArtSandbox : Node3D
     {
         ApplyLight(Presets[_look.Preset]);
         RenderingServer.GlobalShaderParameterSet(NightGlobal, _look.ArtNight);
+        _farmhouseNightLights.Visible = _look.Preset == LightPreset.Night;
 
         var leftStepped = SteppedIn(_look.Mode, inBoth: _look.SidesSwapped);
         var rightStepped = SteppedIn(_look.Mode, inBoth: !_look.SidesSwapped);
@@ -612,6 +627,53 @@ public partial class ArtSandbox : Node3D
         };
         set.AddChild(label);
         return label;
+    }
+
+    /// <summary>
+    /// The round farmhouse of the concept art, run-down on the left and restored on the right, each facing the camera
+    /// with a label over it, one merged mesh under the shared material that casts shadows. The restored house's night
+    /// window panes are a second mesh that <see cref="Apply"/> shows only under the Night preset.
+    /// </summary>
+    private void BuildFarmhouses()
+    {
+        var farmhouses = new Node3D { Name = "Farmhouses" };
+        AddChild(farmhouses);
+        foreach (var (restored, sign) in new[] { (false, -1f), (true, 1f) })
+        {
+            var state = restored ? "Restored" : "RunDown";
+            var position = new Vector3(sign * FarmhousesX, 0f, FarmhousesZ);
+            farmhouses.AddChild(new MeshInstance3D
+            {
+                Name = $"RoundFarmhouse{state}",
+                Mesh = RoundFarmhouseModels.MeshFor(restored),
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+                Position = position,
+            });
+            farmhouses.AddChild(new Label3D
+            {
+                Name = $"RoundFarmhouse{state}Label",
+                Text = restored ? "Round farmhouse · Restored" : "Round farmhouse · Run-down",
+                Position = position + new Vector3(0f, 7.9f, 0f),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                FontSize = 48,
+                OutlineSize = 10,
+                PixelSize = 0.006f,
+            });
+            if (restored)
+            {
+                _farmhouseNightLights = new MeshInstance3D
+                {
+                    Name = "RoundFarmhouseRestoredNightLights",
+                    Mesh = RoundFarmhouseModels.NightLights(),
+                    MaterialOverride = ArtMaterials.Shared,
+                    CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+                    Position = position,
+                    Visible = false,
+                };
+                farmhouses.AddChild(_farmhouseNightLights);
+            }
+        }
     }
 
     private void BuildLabel()

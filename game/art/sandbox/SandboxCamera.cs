@@ -8,7 +8,9 @@ namespace LongWayHome.Game.Art;
 /// <summary>
 /// The art sandbox's camera (#75): orbits <see cref="Centre"/> on the same <c>camera_rotate_*</c> and
 /// <c>camera_zoom_*</c> actions and the same <see cref="CameraView"/> maths as the farm's follow camera, so the art is
-/// judged from the view the game ships with (REQ-52). It follows nothing: the centre stays put.
+/// judged from the view the game ships with (REQ-52). It follows nothing, but the <c>move_*</c> actions (the left
+/// stick, the D-pad, WASD and the arrow keys) slide its centre over the ground through <see cref="SandboxPan"/>, so the
+/// view can travel left and right (and forward and back) along the rows.
 /// </summary>
 public partial class SandboxCamera : Camera3D
 {
@@ -26,6 +28,9 @@ public partial class SandboxCamera : Camera3D
         View = View
             .Turned(Input.GetAxis("camera_rotate_left", "camera_rotate_right"), seconds)
             .Zoomed(Input.GetAxis("camera_zoom_in", "camera_zoom_out"), seconds);
+        var move = Input.GetVector("move_left", "move_right", "move_up", "move_down");
+        var (x, z) = SandboxPan.Moved((Centre.X, Centre.Z), move.X, move.Y, View, seconds);
+        Centre = new Vector3(x, Centre.Y, z);
         PlaceAroundCentre();
     }
 
