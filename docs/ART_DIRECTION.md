@@ -486,17 +486,20 @@ The two things beside the plot that the farmer uses every day. Each shows where 
 
 Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town square page: the concept, day one vs restored vs night, and the square's props)
 
-**The heart of the town, and where progress shows.** The square is round, like the town's round buildings, with a well at its centre and every building facing in, so each rebuild can be seen from one spot (section 7, "Progress is visible from the square").
+**The heart of the town, and where progress shows.** The plaza is round, like the town's round buildings, with a well at its centre. Progress can be seen from the square (section 7), but the town around it is not a neat ring: buildings are spread loosely at different distances and angles, some up short paths of their own, so it reads as a village that grew over time rather than a planned layout.
+
+**Set back from the water.** The town sits a short walk from the lake and the river, not on their banks. Belts of native trees (spirepine and twinbough) lie between the town and the water, and winding dirt paths lead through them to the dock and the bridge.
 
 **Layout** (draft; follows the design doc's world layout):
 
-| Side | What's there |
+| Direction | What's there |
 | --- | --- |
-| North | The general store at the head of the square; the forest path to the farm leaves beside it |
-| West | The carpenter, then the homes |
-| East | The blacksmith, then the path to the bridge over the river to the ranch |
-| South-east | June's café, by the lake |
-| South | The path to the dock, with the drowned rooftops in the shallows |
+| North | The general store at the head of the square; the forest path to the farm leaves to its north-west |
+| West | The carpenter, set back from the plaza; homes scattered along the path west |
+| North-east | The blacksmith, up its own short path; the path to the bridge over the river to the ranch winds past it through the trees |
+| East | June's café, on the way down to the dock |
+| South-west and south | More homes, at the ends of short paths |
+| South-east | The path through the trees to the dock on the lake, with a drowned rooftop in the shallows |
 
 **The plaza.** Lilac-grey paving `#B3ADB8` laid in rings around the well, with darker joints `#9A94A2`. An ember sandstone spiral `#D49A6E` winds out from the centre: the planet's spiral motif, set in stone. Paths out of the square are packed dirt `#B8946C`, like the farm path. **Second look:** moss in the spiral's joints glows faint cyan after dark.
 
@@ -505,7 +508,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town square page
 | Prop | Restored | Day one |
 | --- | --- | --- |
 | Well | A low stone drum; two living trunk posts arch over it to a small leaf cone with a sprouting crown; a rope and a timber bucket; clear blue water `#2D6A86`. **Second look:** the water glows cyan `#6FF2E0` at night | Wilted roof with gaps, grey posts, no bucket, dark still water, weeds |
-| Lamp posts (7, around the rim) | A living trunk that curls at the top like a fern frond, with a cream lantern and an ember cap hanging from the curl; amber light `#FFB04A` at night | Grey post, cracked dark lantern. Only the lamp by Maggie's corner works |
+| Lamp posts (an uneven ring at the plaza's edge, then more along the paths to the dock, bridge, farm and homes) | A living trunk that curls at the top like a fern frond, with a cream lantern and an ember cap hanging from the curl; amber light `#FFB04A` at night | Grey post, cracked dark lantern. Only the lamp by Maggie's corner works |
 | Rebuild signs | Each building's sign out front (design doc, Restoration order): a grown board with leaf trim and three pips for wood, stone and gold that fill as each is delivered. A thin amber outline at night keeps it findable. Gone once the building is rebuilt | One in front of every empty building |
 | Benches | Curved timber seat and back on two trunk legs, with a sprout at one end | Faded grey timber |
 | Flower beds | Round stone beds of native flowers that glow violet at night | Not there yet |
@@ -515,11 +518,11 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town square page
 
 | State | Look |
 | --- | --- |
-| Day one | Every building wilted, with a rebuild sign out front, except Maggie's corner of the store (section 7.3). Cracked paving with weeds and fallen leaves, stones missing from the spiral, the well dry and dark, the bridge broken. At night only Maggie's window and one lamp give warm light |
+| Day one | Every building wilted, with a rebuild sign out front, except Maggie's corner of the store (section 7.3). Cracked paving with weeds and fallen leaves, stones missing from the spiral, the well dry and dark, the path lanterns dead, the bridge broken. At night only Maggie's window and one lamp give warm light |
 | Restored | Every building grown back. The spiral whole, benches and flower beds back, string lights up, the bridge mended, residents out |
 | Restored at night | The brightest place on the map: amber windows, lanterns and string lights, cyan leaf tips, the glowing well and spiral. Residents are told apart by their glow (section 6.2) |
 
-**Lamps show progress (draft).** Each rebuild relights the lamp nearest that building, so the rim of the square fills with light as the town comes back.
+**Lamps show progress (draft).** Each rebuild relights the lamps nearest that building, so the square and then the paths out of it fill with light as the town comes back. Restored, the lanterns lead the way to the dock and the bridge after dark.
 
 **Fits the game (draft):** a plaza about 24 m across, a 3 m well and 3 m lamp posts. The well's collision is a short cylinder; benches and beds stay off the walking lines between the paths. Everything must read from the overhead camera and from every rotation (section 9, Camera).
 
