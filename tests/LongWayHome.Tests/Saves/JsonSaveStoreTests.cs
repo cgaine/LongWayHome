@@ -62,6 +62,24 @@ public sealed class JsonSaveStoreTests : IDisposable
         Assert.Equal(game.FarmPlot[SaveGames.Growing].Planting, loaded.FarmPlot[SaveGames.Growing].Planting);
     }
 
+    // ---- #130: dropped items are never saved ----
+
+    [Fact]
+    public void AC10_saved_game_has_no_dropped_items_field_and_loads_with_none()
+    {
+        var game = TestGames.WithBackpack(TestGames.FullBackpack());
+        game.Gain(ItemRef.Crop(CropTypeId.Emberroot), 120, new Domain.Farming.GridPosition(4, 4));
+        Assert.Equal(2, game.DroppedItems.Count);
+
+        Store().Save(1, game);
+        var text = File.ReadAllText(_folder.SlotFile(1));
+        var loaded = new JsonSaveStore(_folder.Path).Load(1);
+
+        Assert.DoesNotContain("dropped", text, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(loaded.DroppedItems);
+        Assert.Equal(TestGames.Describe(game.Player.Backpack), TestGames.Describe(loaded.Player.Backpack));
+    }
+
     // ---- #129: the hotbar row ----
 
     [Fact]

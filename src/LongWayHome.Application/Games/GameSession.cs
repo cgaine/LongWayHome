@@ -76,6 +76,25 @@ public sealed class GameSession
     /// <summary>Raised after a successful action changes the inventory.</summary>
     public event Action? InventoryChanged;
 
+    /// <summary>Raised after items drop on the ground or are picked up (BR-K3, BR-K4).</summary>
+    public event Action? DroppedItemsChanged
+    {
+        add => throw new NotImplementedException();
+        remove => throw new NotImplementedException();
+    }
+
+    /// <summary>Whether the last successful purchase dropped anything at the farmer's feet.</summary>
+    public bool LastBuyDropped => throw new NotImplementedException();
+
+    /// <summary>Whether any DroppedItem lies at <paramref name="feet"/>.</summary>
+    public bool HasDroppedItemsAt(GridPosition feet) => throw new NotImplementedException();
+
+    /// <summary>
+    /// Picks up the DroppedItems at the farmer's feet (BR-K4). Raises InventoryChanged and DroppedItemsChanged when
+    /// anything moved. Costs no energy (BR-P2).
+    /// </summary>
+    public bool PickUp(GridPosition feet) => throw new NotImplementedException();
+
     /// <summary>Raised after <see cref="AdvanceClock"/> moves the clock by at least one minute.</summary>
     public event Action? ClockChanged;
 
@@ -201,7 +220,7 @@ public sealed class GameSession
     /// Performs what <see cref="PreviewUse(GridPosition?, int)"/> names from the held slot, or its rejection. Planting
     /// takes the Seed from that Slot.
     /// </summary>
-    public ActionResult Use(GridPosition? target, int heldPosition)
+    public ActionResult Use(GridPosition? target, int heldPosition, GridPosition? feet = null)
     {
         var slot = HotbarSlotAt(heldPosition);
         var preview = PreviewUse(target, HeldItemOf(slot), slot.Index);
@@ -225,7 +244,7 @@ public sealed class GameSession
     /// Performs what <see cref="PreviewUse(GridPosition?, HeldItem)"/> names, or returns its rejection; a seed is taken
     /// from the highest-index Slot holding it.
     /// </summary>
-    internal ActionResult Use(GridPosition? target, HeldItem held)
+    internal ActionResult Use(GridPosition? target, HeldItem held, GridPosition? feet = null)
     {
         var preview = PreviewUse(target, held);
         return Perform(target, preview, position => Plant(position, held.Seed!.Value));
@@ -375,7 +394,7 @@ public sealed class GameSession
     /// Harvests the ripe Planting on a Tile (BR-T6), looking up its Crop type in <see cref="GameData.CropTypes"/>.
     /// Raises InventoryChanged and TileChanged on success. A Planting whose Crop type has no data is NotRipe.
     /// </summary>
-    public ActionResult Harvest(GridPosition position)
+    public ActionResult Harvest(GridPosition position, GridPosition? feet = null)
     {
         if (Game.FarmPlot[position].Planting is not { } planting)
         {
@@ -416,7 +435,7 @@ public sealed class GameSession
     /// Buys a Shop listing (BR-L2) through <see cref="ShopService.Buy"/>. Raises PlayerChanged and InventoryChanged on
     /// success and nothing on a rejection.
     /// </summary>
-    public ActionResult Buy(string listingId, int quantity = 1)
+    public ActionResult Buy(string listingId, int quantity = 1, GridPosition? feet = null)
     {
         var result = ShopService.Buy(Game, Data, listingId, quantity);
         if (result.IsOk)

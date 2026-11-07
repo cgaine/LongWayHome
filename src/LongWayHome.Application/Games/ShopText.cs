@@ -37,6 +37,12 @@ public static class ShopText
         return $"{name} seeds — {listing.Price.Value}g";
     }
 
+    /// <summary>The line shown after a purchase that dropped seeds at the farmer's feet (BR-K3).</summary>
+    public const string SeedsDropped = "Some seeds dropped at your feet";
+
+    /// <summary>The message after a successful purchase: <see cref="SeedsDropped"/> when any dropped, else "".</summary>
+    public static string AfterBuy(bool dropped) => throw new NotImplementedException();
+
     /// <summary>"Gold 100".</summary>
     public static string Gold(int gold) => GoldText.For(gold);
 

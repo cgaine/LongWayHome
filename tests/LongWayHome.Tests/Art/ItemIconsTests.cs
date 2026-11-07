@@ -252,6 +252,23 @@ public class ItemIconsTests
     private static string IconPath(string kind, string code) =>
         Path.Combine(RepoRoot(), "game", "art", "icons", $"{kind}_{code}.svg");
 
+    // ---- #130, AC12: a dropped seed or crop shows its icon ----
+
+    [Theory]
+    [InlineData(CropTypeId.Emberroot)]
+    [InlineData(CropTypeId.Starcorn)]
+    public void AC12_dropped_seed_and_crop_use_their_icons(CropTypeId crop)
+    {
+        Assert.Equal(ItemIcons.SeedIcon(crop), ItemIcons.For(ItemRef.Seed(crop)));
+        Assert.Equal(ItemIcons.CropIcon(crop), ItemIcons.For(ItemRef.Crop(crop)));
+    }
+
+    [Fact]
+    public void AC12_a_tool_item_has_no_dropped_icon()
+    {
+        Assert.Null(ItemIcons.For(ItemRef.Tool(ToolId.Hoe)));
+    }
+
     private static string ResToRepoPath(string resPath)
     {
         Assert.StartsWith("res://", resPath);

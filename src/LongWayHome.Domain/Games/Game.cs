@@ -61,6 +61,24 @@ public sealed class Game
     /// <summary>The crops shipped today, paid for in the Night (BR-S1, BR-S2).</summary>
     public ShippingBin ShippingBin { get; }
 
+    /// <summary>The items on the ground, oldest first (BR-K3, BR-K4). Never saved; a loaded Game has none.</summary>
+    public IReadOnlyList<DroppedItem> DroppedItems => throw new NotImplementedException();
+
+    /// <summary>
+    /// Gains a non-tool item: what fits goes in the Backpack (BR-K3), the rest drops at <paramref name="feet"/> as
+    /// DroppedItems of at most 99 each (BR-K2). A tool throws (BR-K6).
+    /// </summary>
+    public GainResult Gain(ItemRef item, int quantity, GridPosition feet) => throw new NotImplementedException();
+
+    /// <summary>
+    /// Picks up the DroppedItems at <paramref name="position"/>, oldest first, as much as fits (BR-K4). Returns whether
+    /// anything moved. Costs no energy (BR-P2).
+    /// </summary>
+    public bool PickUp(GridPosition position) => throw new NotImplementedException();
+
+    /// <summary>The Night's dropped-items step (BR-K4): every DroppedItem is removed.</summary>
+    public void ClearDroppedItems() => throw new NotImplementedException();
+
     /// <summary>Records when the Game was saved (BR-G5).</summary>
     public void MarkSaved(DateTimeOffset at) => SavedAt = at;
 
@@ -309,7 +327,7 @@ public sealed class Game
     }
 
     /// <summary>Harvests a ripe Planting into one Crop (BR-T6). Costs no energy (BR-P2).</summary>
-    public ActionResult Harvest(GridPosition position, CropType cropType)
+    public ActionResult Harvest(GridPosition position, CropType cropType, GridPosition? feet = null)
     {
         if (HarvestRejection(position, cropType) is { } rejection)
         {

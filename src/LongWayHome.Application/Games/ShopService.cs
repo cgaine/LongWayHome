@@ -1,5 +1,6 @@
 using LongWayHome.Application.Data;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
 
@@ -32,7 +33,8 @@ public static class ShopService
     /// NotOffered; seeds that don't all fit in the Backpack are BackpackFull; less gold than the total is NotEnoughGold.
     /// A rejection or an overflowing total changes nothing, and buying costs no energy (BR-P2).
     /// </summary>
-    public static ActionResult Buy(Game game, GameData data, string listingId, int quantity = 1)
+    public static ActionResult Buy(
+        Game game, GameData data, string listingId, int quantity = 1, GridPosition? feet = null)
     {
         ArgumentNullException.ThrowIfNull(game);
         ArgumentNullException.ThrowIfNull(data);
