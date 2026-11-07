@@ -29,7 +29,7 @@ public class HotbarTextTests
         session.Game.Player.Backpack.Add(ItemRef.Seed(CropTypeId.Moonmelon), 99);
         var seed = HeldItem.SeedOf(CropTypeId.Moonmelon);
 
-        var full = session.Hotbar(seed).Single(slot => slot.Item == seed).Label;
+        var full = session.Hotbar(0).Single(slot => slot.Item == seed).Label;
         var compact = HotbarText.Compact(seed, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Moonmelon)));
 
         Assert.Equal(full.Replace(" seeds", ""), compact);
@@ -39,4 +39,12 @@ public class HotbarTextTests
     [Fact]
     public void AC8_compact_label_of_a_null_item_throws() =>
         Assert.Throws<ArgumentNullException>(() => HotbarText.Compact(null!, 1));
+
+    [Theory]
+    [InlineData(0, 12, "Row 1/2")]
+    [InlineData(1, 12, "Row 2/2")]
+    [InlineData(0, 24, "Row 1/4")]
+    [InlineData(5, 36, "Row 6/6")]
+    public void AC10_row_label_is_the_1_based_row_of_capacity_over_6(int hotbarRow, int capacity, string expected) =>
+        Assert.Equal(expected, HotbarText.Row(hotbarRow, capacity));
 }

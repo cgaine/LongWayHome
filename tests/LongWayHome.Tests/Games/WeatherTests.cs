@@ -452,7 +452,7 @@ public class WeatherTests
         Unchanged();
         session.RefillCan();
         Unchanged();
-        foreach (var held in session.HeldItems())
+        foreach (var held in Enumerable.Range(0, Backpack.RowLength))
         {
             session.PreviewUse(new GridPosition(7, 2), held);
             session.Use(new GridPosition(7, 3), held);

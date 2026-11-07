@@ -45,6 +45,29 @@ public partial class HudSceneTests
         Assert.DoesNotContain(nodes, n => n.Name == "CropsLabel" && n.Parent == "Panel/Rows");
     }
 
+    /// <summary>#129 AC10: the "Row 1/2" label beside the hotbar.</summary>
+    [Fact]
+    public void AC10_hud_has_a_RowLabel_Label_for_the_hotbar_row()
+    {
+        var label = Nodes().SingleOrDefault(n => n.Name == "RowLabel");
+
+        Assert.True(label is not null, "Hud.tscn has no RowLabel node");
+        Assert.Equal("Label", label!.Type);
+    }
+
+    /// <summary>#129 AC9: the "[X] Next row" hint beside the change-item hint.</summary>
+    [Fact]
+    public void AC9_hud_has_a_CycleRowHint_Label_beside_the_ChangeItemHint()
+    {
+        var nodes = Nodes();
+        var hint = nodes.SingleOrDefault(n => n.Name == "CycleRowHint");
+        var changeItem = nodes.SingleOrDefault(n => n.Name == "ChangeItemHint");
+
+        Assert.True(hint is not null, "Hud.tscn has no CycleRowHint node");
+        Assert.Equal("Label", hint!.Type);
+        Assert.Equal(changeItem?.Parent, hint.Parent);
+    }
+
     private sealed record SceneNode(string Name, string? Type, string? Parent, string Body);
 
     private static List<SceneNode> Nodes()

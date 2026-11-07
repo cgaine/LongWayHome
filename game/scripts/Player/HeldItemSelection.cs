@@ -1,46 +1,31 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Godot;
 using LongWayHome.Application.Games;
-using LongWayHome.Domain.Players;
 using LongWayHome.Game.Core;
 
 namespace LongWayHome.Game.Player;
 
 /// <summary>
-/// Which item the Player holds: a position in <see cref="GameSession.HeldItems"/>. Starts on the hoe;
-/// <c>tool_next</c> / <c>tool_prev</c> move forward / back and wrap around. When the held item is no longer in the
-/// list, the hoe is held. A child of the Player. Holds no rules: the list comes from the session.
+/// Which hotbar position the Player holds: 0–5 within the current Backpack row, starting at 0 (not saved).
+/// <c>tool_next</c> / <c>tool_prev</c> step it by <see cref="HotbarPosition.Step"/>, wrapping within the row and
+/// landing on empty slots too; <c>hotbar_cycle</c> moves the hotbar to the next row through
+/// <see cref="GameSession.CycleHotbar"/> and keeps the position. A child of the Player. Holds no rules: what the
+/// position holds comes from <see cref="GameSession.HeldItemAt"/>.
 /// </summary>
 public partial class HeldItemSelection : Node
 {
-    private static readonly HeldItem Hoe = HeldItem.Of(ToolId.Hoe);
-
     private GameSession? _session;
 
-    private HeldItem _held = Hoe;
-
-    /// <summary>Raised when the held item changes.</summary>
+    /// <summary>Raised when the held position changes.</summary>
     public event Action? SelectionChanged;
 
-    /// <summary>The held item; the hoe when the last selected item has left the list.</summary>
-    public HeldItem Held
-    {
-        get
-        {
-            // Once the held item leaves the list the hoe is held for good, so a seed type bought again later is not
-            // silently re-selected.
-            if (_session is null || !_session.HeldItems().Contains(_held))
-            {
-                _held = Hoe;
-            }
+    /// <summary>The held hotbar position, 0–5.</summary>
+    public int Position { get; private set; }
 
-            return _held;
-        }
-    }
+    /// <summary>What the held position holds, or null when it is empty, holds a crop, or there is no session.</summary>
+    public HeldItem? Held => _session?.HeldItemAt(Position);
 
     public override void _Ready()
     {
@@ -56,34 +41,25 @@ public partial class HeldItemSelection : Node
     {
         if (@event.IsActionPressed("tool_next", allowEcho: false))
         {
-            Cycle(1);
+            Step(1);
             GetViewport().SetInputAsHandled();
         }
         else if (@event.IsActionPressed("tool_prev", allowEcho: false))
         {
-            Cycle(-1);
+            Step(-1);
+            GetViewport().SetInputAsHandled();
+        }
+        else if (@event.IsActionPressed("hotbar_cycle", allowEcho: false))
+        {
+            // Raises InventoryChanged, which redraws the hotbar and the item in hand; the position stays.
+            _session!.CycleHotbar();
             GetViewport().SetInputAsHandled();
         }
     }
 
-    private void Cycle(int step)
+    private void Step(int delta)
     {
-        var items = _session!.HeldItems();
-        var current = IndexOf(items, Held);
-        _held = items[(current + step + items.Count) % items.Count];
+        Position = HotbarPosition.Step(Position, delta);
         SelectionChanged?.Invoke();
-    }
-
-    private static int IndexOf(IReadOnlyList<HeldItem> items, HeldItem item)
-    {
-        for (var i = 0; i < items.Count; i++)
-        {
-            if (items[i] == item)
-            {
-                return i;
-            }
-        }
-
-        return 0;
     }
 }

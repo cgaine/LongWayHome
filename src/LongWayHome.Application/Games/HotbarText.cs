@@ -1,3 +1,5 @@
+using LongWayHome.Domain.Players;
+
 namespace LongWayHome.Application.Games;
 
 /// <summary>
@@ -16,4 +18,7 @@ public static class HotbarText
         ArgumentNullException.ThrowIfNull(item);
         return item.Seed is { } seed ? $"{CropLabels.For(seed)} × {quantity}" : item.DisplayLabel;
     }
+
+    /// <summary>The hotbar row, 1-based, of the rows a Backpack of <paramref name="capacity"/> has: "Row 1/2".</summary>
+    public static string Row(int hotbarRow, int capacity) => $"Row {hotbarRow + 1}/{capacity / Backpack.RowLength}";
 }

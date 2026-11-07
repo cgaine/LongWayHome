@@ -8,7 +8,7 @@ using LongWayHome.Domain.Players;
 namespace LongWayHome.Tests.Games;
 
 /// <summary>What Use does with the held item: <see cref="GameSession.PreviewUse"/>, <see cref="GameSession.Use"/>,
-/// <see cref="GameSession.HeldItems"/> and the change events.</summary>
+/// <see cref="GameSession.HeldItemAt"/> and the change events.</summary>
 public class UseTests
 {
     private static readonly GridPosition Target = new(5, 2);
@@ -126,7 +126,7 @@ public class UseTests
     {
         var session = TestGames.NewSession();
 
-        var held = session.HeldItems();
+        var held = TestGames.HeldItemsInHotbar(session);
 
         Assert.Equal(
             [
@@ -274,7 +274,7 @@ public class UseTests
         inventory.Add(ItemRef.Crop(CropTypeId.Moonmelon), 1);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
 
-        var held = session.HeldItems();
+        var held = TestGames.HeldItemsInHotbar(session);
 
         Assert.Equal(
             [HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan), HeldItem.SeedOf(CropTypeId.Dusktuber)],
@@ -282,23 +282,24 @@ public class UseTests
     }
 
     [Fact]
-    public void Held_items_list_seed_stacks_in_crop_type_order()
+    public void Held_items_list_seed_stacks_in_slot_order()
     {
+        // #129: the hotbar is the Backpack row, so seeds come in Slot order, no longer in CropTypeId order.
         var inventory = TestGames.ToolsOnly();
         inventory.Add(ItemRef.Seed(CropTypeId.Starcorn), 1);
         inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 2);
         inventory.Add(ItemRef.Seed(CropTypeId.Moonmelon), 3);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
 
-        var held = session.HeldItems();
+        var held = TestGames.HeldItemsInHotbar(session);
 
         Assert.Equal(
             [
                 HeldItem.Of(ToolId.Hoe),
                 HeldItem.Of(ToolId.WateringCan),
+                HeldItem.SeedOf(CropTypeId.Starcorn),
                 HeldItem.SeedOf(CropTypeId.Emberroot),
                 HeldItem.SeedOf(CropTypeId.Moonmelon),
-                HeldItem.SeedOf(CropTypeId.Starcorn),
             ],
             held);
     }
@@ -308,7 +309,7 @@ public class UseTests
     {
         var session = new GameSession(TestGames.WithEnergy(150), TestGames.Shipped);
 
-        Assert.Equal([HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan)], session.HeldItems());
+        Assert.Equal([HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan)], TestGames.HeldItemsInHotbar(session));
     }
 
     // ---- #24: planting and harvesting ----
@@ -563,7 +564,7 @@ public class UseTests
         Assert.All(results, result => Assert.Equal(ActionResult.Ok, result));
         Assert.Equal(
             [HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan), HeldItem.SeedOf(CropTypeId.Dusktuber)],
-            session.HeldItems());
+            TestGames.HeldItemsInHotbar(session));
     }
 
     [Fact]
@@ -945,4 +946,248 @@ public class UseTests
 
     private static GameData WithToolEnergyCost(int cost) =>
         TestGames.Shipped with { Tuning = TestGames.Shipped.Tuning with { ToolEnergyCost = cost } };
+
+    // ---- #129: Use acts from the held hotbar position ----
+
+    private static readonly ItemRef EmberrootSeed = ItemRef.Seed(CropTypeId.Emberroot);
+
+    /// <summary>Emberroot seeds in Slots 2 and 3, 5 each; the domain's Remove takes from the highest index first.</summary>
+    private static GameSession TwoEmberrootSlots(params Tile[] tiles) =>
+        TestGames.SessionWithBackpack(
+            TestGames.RestoredBackpack(
+                new BackpackSlot(2, EmberrootSeed, 5, null),
+                new BackpackSlot(3, EmberrootSeed, 5, null)),
+            tiles);
+
+    [Fact]
+    public void AC5_Using_a_held_seed_slot_on_tilled_empty_soil_in_season_plants_that_seed()
+    {
+        var session = TwoEmberrootSlots(TestGames.TilledWith(Target, null));
+
+        var result = session.Use(Target, 2);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(CropTypeId.Emberroot, session.Game.FarmPlot[Target].Planting?.CropTypeId);
+    }
+
+    [Fact]
+    public void AC5_Planting_takes_the_seed_from_the_held_slot_not_another_slot_of_the_same_seed()
+    {
+        var session = TwoEmberrootSlots(TestGames.TilledWith(Target, null));
+
+        session.Use(Target, 2);
+
+        var slots = session.Game.Player.Backpack.Slots;
+        Assert.Equal((EmberrootSeed, 4), (slots[2].Item!.Value, slots[2].Quantity));
+        Assert.Equal((EmberrootSeed, 5), (slots[3].Item!.Value, slots[3].Quantity));
+    }
+
+    [Fact]
+    public void AC5_Preview_from_a_seed_slot_on_tilled_empty_soil_is_Plant_and_changes_nothing()
+    {
+        var session = TwoEmberrootSlots(TestGames.TilledWith(Target, null));
+        var before = TestGames.FullSnapshot(session.Game);
+
+        var preview = session.PreviewUse(Target, 2);
+
+        Assert.Equal(new UsePreview(UseActionKind.Plant, null), preview);
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+    }
+
+    [Fact]
+    public void AC5_Planting_from_a_seed_slot_costs_no_energy_and_raises_InventoryChanged()
+    {
+        var session = TwoEmberrootSlots(TestGames.TilledWith(Target, null));
+        var inventory = 0;
+        session.InventoryChanged += () => inventory++;
+
+        session.Use(Target, 3);
+
+        Assert.Equal(150, session.Game.Player.Energy);
+        Assert.Equal(1, inventory);
+    }
+
+    [Fact]
+    public void BR_T3_A_seed_slot_on_untilled_grass_is_NotTilled_as_before_and_changes_nothing()
+    {
+        var session = TwoEmberrootSlots();
+        var before = TestGames.FullSnapshot(session.Game);
+        var asBefore = session.PreviewUse(Target, HeldItem.SeedOf(CropTypeId.Emberroot));
+
+        var preview = session.PreviewUse(Target, 2);
+        var result = session.Use(Target, 2);
+
+        Assert.Equal(new UsePreview(null, Rejection.NotTilled), asBefore);
+        Assert.Equal(asBefore, preview);
+        Assert.Equal(ActionResult.Rejected(Rejection.NotTilled), result);
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+    }
+
+    [Fact]
+    public void BR_T3_A_seed_slot_out_of_season_is_OutOfSeason_as_before_and_changes_nothing()
+    {
+        var session = TestGames.SessionWithBackpack(
+            TestGames.RestoredBackpack(new BackpackSlot(2, ItemRef.Seed(CropTypeId.Moonmelon), 5, null)),
+            TestGames.TilledWith(Target, null));
+        var before = TestGames.FullSnapshot(session.Game);
+        var asBefore = session.PreviewUse(Target, HeldItem.SeedOf(CropTypeId.Moonmelon));
+
+        var preview = session.PreviewUse(Target, 2);
+        var result = session.Use(Target, 2);
+
+        Assert.Equal(new UsePreview(null, Rejection.OutOfSeason), asBefore);
+        Assert.Equal(asBefore, preview);
+        Assert.Equal(ActionResult.Rejected(Rejection.OutOfSeason), result);
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+    }
+
+    [Fact]
+    public void BR_T3_A_seed_slot_on_an_occupied_tile_is_TileOccupied()
+    {
+        var session = TwoEmberrootSlots(TestGames.TilledWith(Target, TestGames.PlantingOf(CropTypeId.Dusktuber, 1)));
+        var before = TestGames.FullSnapshot(session.Game);
+
+        var result = session.Use(Target, 2);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.TileOccupied), result);
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+    }
+
+    [Fact]
+    public void Planting_the_last_seed_in_the_held_slot_empties_it_and_HeldItemAt_is_then_null()
+    {
+        var session = TestGames.SessionWithBackpack(
+            TestGames.RestoredBackpack(new BackpackSlot(2, EmberrootSeed, 1, null)),
+            TestGames.TilledWith(Target, null));
+
+        Assert.Equal(ActionResult.Ok, session.Use(Target, 2));
+
+        Assert.Null(session.Game.Player.Backpack.Slots[2].Item);
+        Assert.Null(session.HeldItemAt(2));
+        var held = session.Hotbar(2)[2];
+        Assert.Equal(("", true), (held.Label, held.Selected));
+    }
+
+    [Fact]
+    public void AC6_Holding_the_hoe_slot_tills_grass()
+    {
+        var session = TestGames.NewSession();
+
+        var result = session.Use(Target, 0);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(TileState.Tilled, session.Game.FarmPlot[Target].State);
+    }
+
+    [Fact]
+    public void AC6_Holding_the_can_slot_waters_tilled_soil()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, null));
+
+        var result = session.Use(Target, 1);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.True(session.Game.FarmPlot[Target].Watered);
+        Assert.Equal(19, session.Game.Player.WateringCan.Charges);
+    }
+
+    [Fact]
+    public void BR_P2_Tilling_from_the_hoe_slot_costs_2_energy()
+    {
+        var session = TestGames.NewSession();
+
+        session.Use(Target, 0);
+
+        Assert.Equal(148, session.Game.Player.Energy);
+    }
+
+    [Fact]
+    public void BR_P2_Watering_from_the_can_slot_costs_2_energy()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, null));
+
+        session.Use(Target, 1);
+
+        Assert.Equal(148, session.Game.Player.Energy);
+    }
+
+    [Fact]
+    public void BR_P2_The_hoe_slot_below_2_energy_is_TooTired_and_changes_nothing()
+    {
+        var session = TestGames.SessionWithEnergy(1);
+        var before = TestGames.FullSnapshot(session.Game);
+
+        Assert.Equal(new UsePreview(null, Rejection.TooTired), session.PreviewUse(Target, 0));
+        Assert.Equal(ActionResult.Rejected(Rejection.TooTired), session.Use(Target, 0));
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+    }
+
+    [Fact]
+    public void AC7_An_empty_slot_on_a_growing_planting_is_NothingToDo_and_changes_nothing()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, TestGames.PlantingOf(CropTypeId.Emberroot, 1)));
+        var before = TestGames.FullSnapshot(session.Game);
+
+        Assert.Equal(new UsePreview(null, Rejection.NothingToDo), session.PreviewUse(Target, 4));
+        Assert.Equal(ActionResult.Rejected(Rejection.NothingToDo), session.Use(Target, 4));
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+    }
+
+    [Fact]
+    public void AC7_An_empty_slot_on_grass_is_NothingToDo()
+    {
+        var session = TestGames.NewSession();
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NothingToDo), session.Use(Target, 5));
+        Assert.Equal(TileState.Grass, session.Game.FarmPlot[Target].State);
+    }
+
+    [Fact]
+    public void AC7_A_crop_slot_on_tilled_empty_soil_is_NothingToDo_and_changes_nothing()
+    {
+        var session = TestGames.SessionWithBackpack(
+            TestGames.RestoredBackpack(new BackpackSlot(2, ItemRef.Crop(CropTypeId.Emberroot), 3, null)),
+            TestGames.TilledWith(Target, null));
+        var before = TestGames.FullSnapshot(session.Game);
+
+        Assert.Equal(new UsePreview(null, Rejection.NothingToDo), session.PreviewUse(Target, 2));
+        Assert.Equal(ActionResult.Rejected(Rejection.NothingToDo), session.Use(Target, 2));
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+    }
+
+    [Fact]
+    public void AC7_A_crop_slot_on_a_ripe_planting_harvests_it()
+    {
+        var session = TestGames.SessionWithBackpack(
+            TestGames.RestoredBackpack(new BackpackSlot(2, ItemRef.Crop(CropTypeId.Dusktuber), 3, null)),
+            TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));
+
+        Assert.Equal(new UsePreview(UseActionKind.Harvest, null), session.PreviewUse(Target, 2));
+        Assert.Equal(ActionResult.Ok, session.Use(Target, 2));
+        Assert.Null(session.Game.FarmPlot[Target].Planting);
+        Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+    }
+
+    [Fact]
+    public void BR_T6_An_empty_slot_on_a_ripe_planting_harvests_it_and_leaves_the_tile_tilled()
+    {
+        var session = TestGames.SessionWithTiles(TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot), watered: true));
+
+        var result = session.Use(Target, 4);
+
+        Assert.Equal(ActionResult.Ok, result);
+        var tile = session.Game.FarmPlot[Target];
+        Assert.Equal((TileState.Tilled, true, (Planting?)null), (tile.State, tile.Watered, tile.Planting));
+        Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+    }
+
+    [Fact]
+    public void BR_T6_A_seed_slot_on_a_ripe_planting_harvests_rather_than_planting()
+    {
+        var session = TwoEmberrootSlots(TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));
+
+        Assert.Equal(new UsePreview(UseActionKind.Harvest, null), session.PreviewUse(Target, 2));
+        Assert.Equal(ActionResult.Ok, session.Use(Target, 2));
+        Assert.Equal(10, session.Game.Player.Backpack.Quantity(EmberrootSeed));
+    }
 }

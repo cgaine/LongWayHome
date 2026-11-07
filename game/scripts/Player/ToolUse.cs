@@ -8,8 +8,8 @@ using LongWayHome.Game.Core;
 namespace LongWayHome.Game.Player;
 
 /// <summary>
-/// On each <c>use_tool</c> press (not repeated while held), asks the session to use the held item on the target
-/// tile. A child of the Player, beside <see cref="ToolTargeting"/> and <see cref="HeldItemSelection"/>. Holds no
+/// On each <c>use_tool</c> press (not repeated while held), asks the session to use the held hotbar position on the
+/// target tile. A child of the Player, beside <see cref="ToolTargeting"/> and <see cref="HeldItemSelection"/>. Holds no
 /// rules: what Use does, and whether it is allowed, is decided by <see cref="GameSession.Use"/>; a rejection
 /// changes nothing on screen. The action happens on the press; when its result <c>IsOk</c>, the farmer then plays the
 /// action's clip (<see cref="FarmerAnimationState.ForUse"/> of the previewed action, #103). While the
@@ -54,7 +54,7 @@ public partial class ToolUse : Node
         }
 
         var target = _targeting.Target;
-        var held = _selection.Held;
+        var held = _selection.Position;
         // What Use will do, read first: after a successful Use the preview has moved on (a tilled tile previews Plant).
         var action = _session!.PreviewUse(target, held).Action;
         var result = _session.Use(target, held);

@@ -8,11 +8,12 @@ using LongWayHome.Game.Core;
 namespace LongWayHome.Game.Player;
 
 /// <summary>
-/// Keeps the held item in the farmer's right hand (#102): shows <see cref="HeldItemSelection.Held"/> on the
-/// <see cref="FarmerModel"/> under the Player's <c>Model</c> on start, when the selection changes and on
-/// <see cref="GameSession.InventoryChanged"/>, which covers planting the last seed of the held stack (the selection
-/// then falls back to the hoe without raising <see cref="HeldItemSelection.SelectionChanged"/>). A child of the
-/// Player, after <c>HeldItemSelection</c>. Holds no rules.
+/// Keeps the held item in the farmer's right hand (#102): shows <see cref="HeldItemSelection.Held"/> (what the held
+/// hotbar position holds; nothing for an empty or crop slot) on the <see cref="FarmerModel"/> under the Player's
+/// <c>Model</c> on start, when the selection changes and on <see cref="GameSession.InventoryChanged"/>, which covers
+/// planting the last seed of the held slot and cycling the hotbar row (neither raises
+/// <see cref="HeldItemSelection.SelectionChanged"/>). A child of the Player, after <c>HeldItemSelection</c>. Holds no
+/// rules.
 /// </summary>
 public partial class HeldItemView : Node
 {
@@ -59,7 +60,17 @@ public partial class HeldItemView : Node
         }
     }
 
-    private void Refresh() => _farmer?.ShowHeld(_selection.Held);
+    private void Refresh()
+    {
+        if (_selection.Held is { } held)
+        {
+            _farmer?.ShowHeld(held);
+        }
+        else
+        {
+            _farmer?.ShowEmptyHand();
+        }
+    }
 
     private static FarmerModel? FindFarmer(Node model)
     {

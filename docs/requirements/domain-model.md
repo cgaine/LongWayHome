@@ -40,7 +40,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Gold** | The Player's money. Never negative. |
 | **Backpack** | What the Player carries in Phase 2: 12, 24 or 36 Slots. Replaces the unlimited Phase 1 Inventory. |
 | **Slot** | One place in the Backpack or a Chest, holding 1 to 99 of one item, or exactly one tool. |
-| **Hotbar row** | *(planned, REQ-47)* The 6-Slot row of the Backpack shown on screen. The Player cycles which row it is. |
+| **Hotbar row** | The 6-Slot row of the Backpack shown on screen. The Player cycles which row it is. |
 | **Material** | *(planned, REQ-44)* A gathered or made item used for rebuilds, orders and pumps: wood, sap, stone, Rosk ore, Groth ore, glimmercap, plank, sealed plank, Rosk pump. |
 | **Resource node** | *(planned, REQ-44)* A tree, stump, rock, ore deposit, glimmercap or debris pile the Player breaks with the axe or pickaxe for materials. |
 | **Spawn point** | *(planned, REQ-44)* A fixed place in an Area where a tree, rock, deposit or glimmercap grows back after it is cleared. |
@@ -576,7 +576,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-K2: A Slot is empty or holds 1 to 99 of one item. A tool is always alone in its Slot, with its tier. The same item may fill several Slots.
 - BR-K3: An item the Player gains goes first onto a Slot of the same item below 99, then into the lowest free Slot. What fits nowhere drops at the farmer's feet as a DroppedItem. *(planned, REQ-47)*
 - BR-K4: A DroppedItem can be picked up again while there is room; every DroppedItem left is removed in the Night. *(planned, REQ-47)*
-- BR-K5: The hotbar is the 6 Slots of `hotbarRow`. Cycling moves to the next row and wraps back to row 0. *(planned, REQ-47)*
+- BR-K5: The hotbar is the 6 Slots of `hotbarRow`. Cycling moves to the next row and wraps back to row 0.
 - BR-K6: Tools can't be dropped, sold, shipped, stored in a chest or lost; they leave the Backpack only while an upgrade Order holds them (BR-O4). *(planned, REQ-57: the upgrade Order)*
 
 ### Resource nodes *(planned, REQ-44, REQ-16, REQ-49)*

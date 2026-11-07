@@ -200,13 +200,13 @@ public class ShopTests
     public void BR_P7_buying_a_seed_type_not_held_creates_a_new_stack_that_becomes_holdable()
     {
         var session = new GameSession(TestGames.WithGold(100, SeasonDay(Season.Summer)), TestGames.Shipped);
-        Assert.DoesNotContain(HeldItem.SeedOf(CropTypeId.Sunbell), session.HeldItems());
+        Assert.DoesNotContain(HeldItem.SeedOf(CropTypeId.Sunbell), TestGames.HeldItemsInHotbar(session));
 
         var result = session.Buy("seed_sunbell");
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Sunbell)));
-        Assert.Contains(HeldItem.SeedOf(CropTypeId.Sunbell), session.HeldItems());
+        Assert.Contains(HeldItem.SeedOf(CropTypeId.Sunbell), TestGames.HeldItemsInHotbar(session));
     }
 
     [Fact]

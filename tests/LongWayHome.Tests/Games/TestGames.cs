@@ -216,6 +216,45 @@ internal static class TestGames
         return backpack;
     }
 
+    /// <summary>
+    /// A 12-Slot Backpack restored through its constructor on hotbar row 0: the Basic hoe in Slot 0, the Basic Watering
+    /// can in Slot 1, the given Slots, the rest empty. Lets a test put the same item in chosen Slots.
+    /// </summary>
+    public static Backpack RestoredBackpack(params BackpackSlot[] slots)
+    {
+        var given = slots.ToDictionary(slot => slot.Index);
+        var all = Enumerable.Range(0, Backpack.StartingCapacity).Select(index => index switch
+        {
+            0 => new BackpackSlot(0, ItemRef.Tool(ToolId.Hoe), 1, ToolTier.Basic),
+            1 => new BackpackSlot(1, ItemRef.Tool(ToolId.WateringCan), 1, ToolTier.Basic),
+            _ => given.TryGetValue(index, out var slot) ? slot : new BackpackSlot(index, null, 0, null),
+        });
+        return new Backpack(Backpack.StartingCapacity, 0, all);
+    }
+
+    /// <summary>
+    /// A 12-Slot Backpack whose Slots are all told apart: the tools in 0 and 1, then the five seeds (1 to 5 each, in
+    /// CropTypeId order) in 2 to 6 and the five crops (6 to 10 each) in 7 to 11.
+    /// </summary>
+    public static Backpack DistinctBackpack() => BackpackWith(
+        (ItemRef.Seed(CropTypeId.Emberroot), 1),
+        (ItemRef.Seed(CropTypeId.Dusktuber), 2),
+        (ItemRef.Seed(CropTypeId.Moonmelon), 3),
+        (ItemRef.Seed(CropTypeId.Sunbell), 4),
+        (ItemRef.Seed(CropTypeId.Starcorn), 5),
+        (ItemRef.Crop(CropTypeId.Emberroot), 6),
+        (ItemRef.Crop(CropTypeId.Dusktuber), 7),
+        (ItemRef.Crop(CropTypeId.Moonmelon), 8),
+        (ItemRef.Crop(CropTypeId.Sunbell), 9),
+        (ItemRef.Crop(CropTypeId.Starcorn), 10));
+
+    /// <summary>
+    /// The tools and seeds the current hotbar row holds, in slot order; empty and crop slots hold none (#129: replaces
+    /// the removed <c>GameSession.HeldItems()</c>).
+    /// </summary>
+    public static IReadOnlyList<HeldItem> HeldItemsInHotbar(GameSession session) =>
+        session.Hotbar(0).Select(slot => slot.Item).OfType<HeldItem>().ToList();
+
     /// <summary>The two tools then the shipped starting seeds: 10 emberroot (Slot 2) and 5 dusktuber (Slot 3).</summary>
     public static Backpack StartingBackpack() =>
         BackpackWith((ItemRef.Seed(CropTypeId.Emberroot), 10), (ItemRef.Seed(CropTypeId.Dusktuber), 5));

@@ -231,28 +231,27 @@ public sealed class Game
     /// <see cref="PlantRejection(GridPosition, CropType)"/>. A null <paramref name="season"/> is a Crop type with no
     /// data row: it has no Season to be planted in, so a plant that passes the other checks is OutOfSeason.
     /// </summary>
-    public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId, Season? season)
+    public Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId, Season? season) =>
+        PlantRejection(position, season, hasSeed: Player.Backpack.Quantity(ItemRef.Seed(cropTypeId)) >= 1);
+
+    /// <summary>
+    /// Why planting the Seed in one Backpack Slot would be refused, or null, in the order of
+    /// <see cref="PlantRejection(GridPosition, CropType)"/>; NoSeed when that Slot does not hold this Crop type's Seed.
+    /// A <paramref name="slotIndex"/> outside the Backpack throws.
+    /// </summary>
+    public Rejection? PlantFromSlotRejection(GridPosition position, CropType cropType, int slotIndex)
     {
-        // BR-T3
-        var tile = FarmPlot[position];
-        if (tile.State != TileState.Tilled)
-        {
-            return Rejection.NotTilled;
-        }
-
-        if (tile.Planting is not null)
-        {
-            return Rejection.TileOccupied;
-        }
-
-        if (Player.Backpack.Quantity(ItemRef.Seed(cropTypeId)) < 1)
-        {
-            return Rejection.NoSeed;
-        }
-
-        // BR-T3, BR-C1: a Seed plants only in its Crop type's Season.
-        return season == Date.Season ? null : Rejection.OutOfSeason;
+        ArgumentNullException.ThrowIfNull(cropType);
+        return PlantFromSlotRejection(position, cropType.Id, cropType.Season, slotIndex);
     }
+
+    /// <summary>
+    /// <see cref="PlantFromSlotRejection(GridPosition, CropType, int)"/> for a Crop type that may have no data row: a
+    /// null <paramref name="season"/> has no Season to be planted in, so a plant that passes the other checks is
+    /// OutOfSeason.
+    /// </summary>
+    public Rejection? PlantFromSlotRejection(GridPosition position, CropTypeId cropTypeId, Season? season, int slotIndex) =>
+        PlantRejection(position, season, hasSeed: SlotHoldsSeed(slotIndex, cropTypeId));
 
     /// <summary>Plants one Seed on a Tile (BR-T3). Costs no energy (BR-P2).</summary>
     public ActionResult Plant(GridPosition position, CropType cropType)
@@ -268,6 +267,22 @@ public sealed class Game
         // BR-T3: planting uses one Seed; BR-K2: a Slot that reaches 0 is emptied.
         Player.Backpack.Remove(ItemRef.Seed(cropTypeId), 1);
         return FarmPlot[position].Plant(new Planting(cropTypeId, Date, 0));
+    }
+
+    /// <summary>
+    /// Plants one Seed taken from one Backpack Slot (BR-T3), with the rejections of
+    /// <see cref="PlantFromSlotRejection"/>. Costs no energy (BR-P2).
+    /// </summary>
+    public ActionResult PlantFromSlot(GridPosition position, CropType cropType, int slotIndex)
+    {
+        if (PlantFromSlotRejection(position, cropType, slotIndex) is { } rejection)
+        {
+            return ActionResult.Rejected(rejection);
+        }
+
+        // BR-T3: planting uses one Seed, from this Slot only; BR-K2: a Slot that reaches 0 is emptied.
+        Player.Backpack.RemoveFrom(slotIndex, 1);
+        return FarmPlot[position].Plant(new Planting(cropType.Id, Date, 0));
     }
 
     /// <summary>
@@ -374,5 +389,35 @@ public sealed class Game
         // BR-P5: the gold the payout would leave must fit too.
         _ = checked(Player.Gold.Value + total);
         return total;
+    }
+
+    // BR-T3, BR-C1: the checks in order: tilled, empty, a Seed held, then its Crop type's Season.
+    private Rejection? PlantRejection(GridPosition position, Season? season, bool hasSeed)
+    {
+        var tile = FarmPlot[position];
+        if (tile.State != TileState.Tilled)
+        {
+            return Rejection.NotTilled;
+        }
+
+        if (tile.Planting is not null)
+        {
+            return Rejection.TileOccupied;
+        }
+
+        if (!hasSeed)
+        {
+            return Rejection.NoSeed;
+        }
+
+        // BR-T3, BR-C1: a Seed plants only in its Crop type's Season.
+        return season == Date.Season ? null : Rejection.OutOfSeason;
+    }
+
+    private bool SlotHoldsSeed(int slotIndex, CropTypeId cropTypeId)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(slotIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slotIndex, Player.Backpack.Capacity);
+        return Player.Backpack.Slots[slotIndex].Item == ItemRef.Seed(cropTypeId);
     }
 }
