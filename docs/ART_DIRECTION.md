@@ -526,7 +526,16 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (HUD and menus pa
 | Pause | "Paused" with the date and time. Proposal: adds Controls and Quit to title to today's Resume, and a line saying the farm was saved last night |
 | Night | The two moons over the lake, "You slept." or "You passed out…", the new date. Proposal: a summary of what sold overnight and the gold earned, then Saved, or the save-failed line in ember |
 
-**Still to design:** the backpack screen (REQ-47), the save slot list and overwrite question, settings, and talking to residents (dialogue boxes and the friendship lanterns).
+**The backpack (REQ-47).** Concept art on the Backpack page. Opened with the menu button; the clock stops while it's open.
+
+- **Slots:** a grid of six columns, one row per 6 slots, each slot drawn exactly like a hotbar slot (icon, count in the corner, ember border when focused). It starts with 12 slots, with the hoe, can, axe and pickaxe taking four of them.
+- **The hotbar row** has an ember band and a "Hotbar" tag, so you can see which row the HUD shows. (X) makes the focused row the hotbar. The in-game button that cycles the row is still to be chosen.
+- **Locked rows:** rows you don't have yet show as dashed and locked, labelled with the store stage that opens them (24 slots at stage 2, 36 at stage 3), so the upgrade is a goal you can see.
+- **Item details:** a panel beside the grid shows the focused item's kind and Season, how full its stack is (out of 99), and for crops what it sells for, each and for the whole stack.
+- **Moving:** (A) lifts a stack, which floats over the slot you're aiming at while its old slot stays dashed in ember; (A) places it, merging onto a stack of the same item, and (B) puts it back. A mouse can drag.
+- **Full:** the slot count turns ember and a banner says what was left on the ground and where. Left-over items drop in a small cloth bundle with a soft amber glint, picked up by walking over it once there's room, and cleared the next morning.
+
+**Still to design:** the save slot list and overwrite question, settings, and talking to residents (dialogue boxes and the friendship lanterns).
 
 ## 9. Open questions
 
