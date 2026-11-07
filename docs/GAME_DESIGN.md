@@ -2,7 +2,7 @@
 
 Nov 5, 2026 · @Chris Gaine
 
-> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 171). The live doc is the source of truth; re-export here as it evolves.
+> This file is the living design doc and the source of truth. Edit it here; it replaces the earlier Claude Doc, whose last revision (rev 173) was merged in on 2026-11-07.
 
 Long Way Home is a cozy 3D farming game (working title chosen 2026-11-05; the browser prototype is still called Little Acre, v0.1). This doc tracks how its systems connect, the numbers behind them, and what to build next. The title may change before release: three space-themed games on Steam already use "A Long Way Home" or "The Long Way Home", one of them with farming, so a subtitle or different name may be needed.
 
@@ -17,7 +17,21 @@ These are proposed starting points. Rewrite them until they feel right, then use
 
 ## Systems map
 
-> *Interactive diagram (6-step core loop, 4 supporting systems) — view it in the [live doc](https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN).*
+Gold drives the loop; energy, water and sleep gate how fast it turns. Square boxes are the six-step core daily loop; rounded boxes are the four supporting systems.
+
+```mermaid
+flowchart LR
+    gold["<b>Gold</b><br/>Starts at 100g"] --> shop["<b>Shop</b><br/>Seeds and the can upgrade"]
+    shop --> plot["<b>Farm plot</b><br/>Till, then plant seeds"]
+    plot --> growth["<b>Crop growth</b><br/>1 stage per watered night"]
+    growth --> basket["<b>Harvest to basket</b><br/>Ripe crops"]
+    basket --> bin["<b>Shipping bin</b><br/>Sells at base price"]
+    bin --> gold
+    energy(["<b>Energy</b><br/>150 a day, refills on sleep"]) -- limits tilling and watering --> plot
+    can(["<b>Watering can</b><br/>20 uses, refill at any water"]) -- watered tiles grow --> growth
+    weather(["<b>Weather</b><br/>22% rain waters every tile"]) -- rain --> can
+    sleep(["<b>Sleep</b><br/>Ends the day at the door"]) -- pays out overnight --> bin
+```
 
 Gold buys seeds, seeds become crops, and crops ship for gold. Energy and the watering can cap how much of the plot you can work each day, and nothing grows or sells until you sleep. When you add a system, add its box and arrows here first.
 
