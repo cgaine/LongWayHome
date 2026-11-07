@@ -528,6 +528,46 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town square page
 
 **Still open:** whether the well can refill the watering can in town, and how the square is dressed for the Ember Festival.
 
+### 7.6 The early mine, levels 1 to 5 (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Early mine page: level 1, the entrance, level 5 flooded and drained, and the mine's props)
+
+**The old miners' tunnels.** The mine opens when you buy the pickaxe (design doc, Early mine). The upper levels are timber and lantern light (section 7): warm pools of light in the dark, with the planet's glow showing in the corners. They feel quiet and a little eerie, never threatening; there's no danger in this version.
+
+**Shape.** Rounded chambers joined by short tunnels, seen from above like the farm. Packed-earth floor `#7A685E`, rock walls `#6E6070` with strata and, on a second look, a faint teal band in the rock. Rails and an old ore cart run through.
+
+**Timber frames.** The miners' supports are square, braced frames of mauve native timber `#9C7E8C`. They were cut, not grown, because people made them (section 1, "Mostly familiar"). A frame marks every tunnel mouth, so the way on reads from overhead.
+
+**Light.** It's dark between lanterns. Old lanterns hang from the frames and wall hooks, and the farmer carries a small belt lantern that lights a pool around him. Glimmercaps glow cyan in the corners, so nothing is pure black. Draft: a level's lanterns relight once it's cleared, so cleared levels are warm and new ones are dark (the same idea as the town square's lamps, section 7.5).
+
+**Roots from above.** Twinbough roots break through the ceiling with glowing amber sap seams: the forest overhead, and a hint of the sap that seals the planks for the deeper levels.
+
+**What's in it:**
+
+| Thing | Look | Notes |
+| --- | --- | --- |
+| Rock | Faceted lilac-grey `#8F8A96` | Gives stone |
+| Rosk ore | A rock with rose-copper veins `#C77A52` that curl into little spirals, with bright flecks | Levels 1 to 15 |
+| Groth ore | A rock with blocky dark blue-grey crystals `#59627A` | Small deposits from level 3 (design doc, Early Groth) |
+| Debris | Rubble with broken old beams | Blocks tunnels and hides the way down; cleared with the pickaxe |
+| Glimmercaps | Grey-teal caps that glow cyan (section 5.2) | Forage; small light sources |
+| Relic | A miner's old lunch tin with the town's spiral stamped on the lid, half-buried, with a glint | For the museum |
+| Stairs down | A round stone shaft with steps spiralling down: the spiral motif | Every fifth cleared level adds a shortcut from the entrance (design doc) |
+
+Each ore reads by shape as well as colour (pillar 4).
+
+**The entrance.** A heavy timber portal in the lilac-grey mountainside among spirepines, near the crash site, with a pick in a circle carved on the lintel and rails running out. Before you buy the pickaxe, it's boarded up, with a creeper and weeds. When Maggie tells the mine's story, the boards come down and are stacked beside the mouth, lanterns hang on either side, and warm light shows from inside.
+
+**How levels 1 to 5 change:**
+
+| Levels | Feel | Second look |
+| --- | --- | --- |
+| 1 and 2 | Dry, warm, the most lanterns; daylight down the entrance steps on level 1 | Twinbough roots with glowing sap; a teal band in the rock |
+| 3 and 4 | Damper and darker: drips, puddles, fewer working lanterns, more glimmercaps; the first Groth | Glimmercaps in clusters |
+| 5 | The first flooded level. The low chamber is under still, dark water, with Harlan's rusted, broken pump on the shore. Once drained with Mira's first pump (bright rose copper on a sealed-plank base, with a lit gauge and a pipe up the wall), a few puddles stay and the stairs down are uncovered | A faint violet light `#B48CFF` far down under the water: the "lights in the deep levels that weren't lanterns" from Maggie's story |
+
+**Fits the game (draft):** each level is a small map read from the overhead camera. Walls on the camera side are low and show only their tops, so the farmer is never hidden; frames and lanterns sit on the back walls. Whether level 5 is a plain pump or the first water-flow puzzle is still open (design doc, open question 4).
+
 ## 8. Style and technical direction (draft)
 
 - **Style:** stylised 3D, a step up from the choppy low-poly prototype: cozy, readable and light enough for the Steam Deck. Simple shapes, with colour doing most of the work, and no realistic textures. This builds on what the prototype already uses (REQ-12 "low-poly"), so the upgrade is a better version of the same direction, not a change.
