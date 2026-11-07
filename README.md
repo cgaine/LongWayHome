@@ -12,7 +12,7 @@ A cozy 3D farming game (working title) built with Godot 4 (.NET / C#) for Window
 **Tools**
 
 - **Godot 4.7.2 .NET** (the "Godot Engine - .NET" download, not the standard build). The version is pinned: `game/LongWayHome.Game.csproj` references `Godot.NET.Sdk/4.7.2` and `game/project.godot` records `4.7`. Upgrading Godot is its own change.
-- **.NET SDK 9** (pinned in `global.json`; any 9.0 feature band rolls forward). The projects target `net8.0`, the framework Godot 4.7 uses.
+- **.NET SDK 10** (pinned in `global.json`; any 10.0 feature band rolls forward). The projects target `net8.0`, the framework Godot 4.7 uses.
 - Any C# IDE (Rider, VS Code with the C# extension, or Visual Studio).
 
 **Layout**
