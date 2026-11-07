@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Sap</title>
+  <path d="M32 6 C 23 21 15 30 15 41 A 17 17 0 0 0 49 41 C 49 30 41 21 32 6 Z" fill="#FFB04A" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M32 26 C 39 33 44 37 44 43 A 12 12 0 0 1 34 55 C 40 49 41 39 32 26 Z" fill="#E9821A"/>
+  <path d="M23 40 q0 -7 5 -12" fill="none" stroke="#FFF6E0" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="24" cy="47" r="2" fill="#FFF6E0"/>
+</svg>

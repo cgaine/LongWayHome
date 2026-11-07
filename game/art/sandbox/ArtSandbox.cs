@@ -36,7 +36,11 @@ namespace LongWayHome.Game.Art;
 /// Twinbough stages in summer (sapling, full tree, old giant, stump) and behind it a row of full Twinboughs, one per
 /// season, each with a label. The sap seams and the stump's rings glow under the Night preset;</item>
 /// <item>the <c>Rocks</c> down the left edge (<see cref="RockArt"/>): a rock, a boulder, Rosk ore and Groth ore, each
-/// with a label.</item>
+/// with a label;</item>
+/// <item>the <c>GatherTools</c> row at the front: four farmers holding the Phase 2 axe and pickaxe
+/// (<see cref="HeldItemArt.PartsFor(GatherTool)"/>), one standing and one looping the hoe swing with each, a display model of
+/// each tool at 2.5 times its size, side-on, at the row's ends (axe left, pickaxe right), and in front
+/// of them the <c>Icons</c> row: the axe, pickaxe and material icons (<see cref="ItemIcons"/>) as labelled billboards.</item>
 /// </list>
 /// Every mesh takes its colour from the shared palette material through <see cref="ArtMaterials.Apply"/> (#76).
 /// Flat only or Stepped only sets the global shader uniform <c>art_stepped_shading</c>, so every mesh shows that
@@ -116,6 +120,15 @@ public partial class ArtSandbox : Node3D
 
     /// <summary>The x of the rocks, down the left edge clear of the run-down farmhouse.</summary>
     private const float RocksX = -16f;
+
+    /// <summary>The z of the gathering-tool farmers, in front of the crops and the farmhouses.</summary>
+    private const float GatherToolsZ = 15.5f;
+
+    /// <summary>How much bigger than in the hand the gathering-tool display models are.</summary>
+    private const float ToolDisplayScale = 2.5f;
+
+    /// <summary>The z of the icon row, in front of the gathering-tool farmers.</summary>
+    private const float IconsZ = 18f;
 
     /// <summary>How long a one-shot clip rests on its last pose before the sandbox plays it again, in seconds.</summary>
     private const double OneShotRestartSeconds = 0.5;
@@ -210,6 +223,8 @@ public partial class ArtSandbox : Node3D
         BuildFarmhouses();
         BuildTrees();
         BuildRocks();
+        BuildGatherTools();
+        BuildIcons();
         BuildLabel();
 
         Camera = new SandboxCamera { Name = "SandboxCamera", Current = true, Centre = CameraCentre };
@@ -747,6 +762,144 @@ public partial class ArtSandbox : Node3D
             AddNature(rocks, $"Rock{kind}", NatureModels.Rock(kind), new Vector3(RocksX, 0f, z), label, labelY);
         }
     }
+
+    /// <summary>
+    /// Four farmers on a <c>grass-lit</c> slab at the front, facing the camera: standing with the axe, swinging the axe,
+    /// standing with the pickaxe and swinging the pickaxe (the hoe swing, the nearest clip the game has), each labelled.
+    /// </summary>
+    private void BuildGatherTools()
+    {
+        var row = new Node3D { Name = "GatherTools" };
+        AddChild(row);
+        (GatherTool Tool, bool Swing, string Label)[] farmers =
+        [
+            (GatherTool.Axe, false, "Axe"),
+            (GatherTool.Axe, true, "Axe · swing"),
+            (GatherTool.Pickaxe, false, "Pickaxe"),
+            (GatherTool.Pickaxe, true, "Pickaxe · swing"),
+        ];
+        AddMesh("GatherToolsSlab", new BoxMesh { Size = new Vector3(farmers.Length * 1.6f, 0.05f, 1.4f) },
+            new Vector3(0f, 0.025f, GatherToolsZ), "grass-lit", parent: row);
+
+        AddToolDisplay(row, GatherTool.Axe, -(farmers.Length * 0.8f + 1.0f));
+        AddToolDisplay(row, GatherTool.Pickaxe, farmers.Length * 0.8f + 1.0f);
+
+        var scene = GD.Load<PackedScene>(FarmerScene);
+        var swing = FarmerAnimations.ClipName(FarmerClip.HoeSwing);
+        for (var i = 0; i < farmers.Length; i++)
+        {
+            var (tool, swings, label) = farmers[i];
+            var x = (i - (farmers.Length - 1) / 2f) * 1.6f;
+            var farmer = scene.Instantiate<FarmerModel>();
+            farmer.Name = $"Farmer_{tool}{(swings ? "Swing" : "")}";
+            farmer.Position = new Vector3(x, 0.05f, GatherToolsZ);
+            row.AddChild(farmer);
+            farmer.ShowGatherTool(tool);
+
+            row.AddChild(new Label3D
+            {
+                Name = $"Label_{farmer.Name}",
+                Text = label,
+                Position = new Vector3(x, 2.1f, GatherToolsZ),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                FontSize = 32,
+                OutlineSize = 8,
+                PixelSize = 0.004f,
+            });
+
+            if (!swings) continue;
+            var player = farmer.GetNode<AnimationPlayer>("Animations");
+            player.Play(swing);
+            player.AnimationFinished += _ => GetTree().CreateTimer(OneShotRestartSeconds).Timeout += () =>
+            {
+                if (IsInstanceValid(player) && player.IsInsideTree())
+                {
+                    player.Play(swing);
+                    player.Seek(0, update: true);
+                }
+            };
+        }
+    }
+
+    /// <summary>
+    /// A tool at <see cref="ToolDisplayScale"/> times its size, standing on its grip at the end of the gathering-tool row,
+    /// turned side-on (its head pointing along +X) so the head's profile faces the camera.
+    /// </summary>
+    private static void AddToolDisplay(Node3D parent, GatherTool tool, float x)
+    {
+        // The grip (the hand's origin) sits 0.22 m above the handle's butt, so lift it that far, scaled.
+        var position = new Vector3(x, 0.05f + 0.24f * ToolDisplayScale, GatherToolsZ);
+        parent.AddChild(new MeshInstance3D
+        {
+            Name = $"Display_{tool}",
+            Mesh = PartMeshes.Merge(HeldItemArt.PartsFor(tool)),
+            MaterialOverride = ArtMaterials.Shared,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+            Position = position,
+            RotationDegrees = new Vector3(0f, 90f, 0f),
+            Scale = Vector3.One * ToolDisplayScale,
+        });
+        parent.AddChild(new Label3D
+        {
+            Name = $"DisplayLabel_{tool}",
+            Text = $"{tool} ×{ToolDisplayScale:0.#}",
+            Position = new Vector3(x, 2.4f, GatherToolsZ),
+            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+            FontSize = 32,
+            OutlineSize = 8,
+            PixelSize = 0.004f,
+        });
+    }
+
+    /// <summary>The axe, pickaxe and material icons in a row of billboards at the front, each with its name under it.</summary>
+    private void BuildIcons()
+    {
+        var row = new Node3D { Name = "Icons" };
+        AddChild(row);
+        var icons = new List<(string Path, string Label)>
+        {
+            (ItemIcons.ToolIcon(GatherTool.Axe), "Axe"),
+            (ItemIcons.ToolIcon(GatherTool.Pickaxe), "Pickaxe"),
+        };
+        foreach (var material in System.Enum.GetValues<MaterialKind>())
+        {
+            icons.Add((ItemIcons.MaterialIcon(material), MaterialLabel(material)));
+        }
+
+        for (var i = 0; i < icons.Count; i++)
+        {
+            var x = (i - (icons.Count - 1) / 2f) * 1.5f;
+            var (path, label) = icons[i];
+            row.AddChild(new Sprite3D
+            {
+                Name = $"Icon_{label.Replace(' ', '_')}",
+                Texture = GD.Load<Texture2D>(path),
+                Position = new Vector3(x, 1.0f, IconsZ),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                PixelSize = 0.016f,
+                Shaded = false,
+            });
+            row.AddChild(new Label3D
+            {
+                Name = $"IconLabel_{label.Replace(' ', '_')}",
+                Text = label,
+                Position = new Vector3(x, 0.25f, IconsZ),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                FontSize = 32,
+                OutlineSize = 8,
+                PixelSize = 0.004f,
+            });
+        }
+    }
+
+    private static string MaterialLabel(MaterialKind material) => material switch
+    {
+        MaterialKind.RoskOre => "Rosk ore",
+        MaterialKind.GrothOre => "Groth ore",
+        MaterialKind.SealedPlank => "Sealed planks",
+        MaterialKind.Plank => "Planks",
+        _ => material.ToString(),
+    };
 
     /// <summary>One merged tree or rock mesh under the shared material, casting shadows, with a billboard label over it.</summary>
     private static void AddNature(Node3D parent, string name, Mesh mesh, Vector3 position, string label, float labelHeight)

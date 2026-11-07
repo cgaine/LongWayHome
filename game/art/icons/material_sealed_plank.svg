@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Sealed planks</title>
+  <g transform="rotate(-18 32 32)">
+    <rect x="4" y="34" width="56" height="13" rx="2" fill="#9C7E8C" stroke="#34405E" stroke-width="2"/>
+    <rect x="5" y="43" width="54" height="3" fill="#7E6474"/>
+    <rect x="52" y="35" width="7" height="11" fill="#FFB04A"/>
+    <rect x="5" y="35" width="47" height="3" fill="#FFB04A"/>
+    <rect x="4" y="18" width="56" height="13" rx="2" fill="#9C7E8C" stroke="#34405E" stroke-width="2"/>
+    <rect x="5" y="27" width="54" height="3" fill="#7E6474"/>
+    <rect x="52" y="19" width="7" height="11" fill="#FFB04A"/>
+    <rect x="5" y="19" width="47" height="3" fill="#FFB04A"/>
+    <path d="M12 25 L22 25 M30 41 L40 41" fill="none" stroke="#FFF6E0" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <path d="M52 44 C 49 49 47 51 47 54 A 5 5 0 0 0 57 54 C 57 51 55 49 52 44 Z" fill="#FFB04A" stroke="#34405E" stroke-width="1.6" stroke-linejoin="round"/>
+</svg>

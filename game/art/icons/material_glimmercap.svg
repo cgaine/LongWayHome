@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Glimmercap</title>
+  <rect x="21" y="32" width="9" height="24" rx="3.5" fill="#E4ECF0" stroke="#34405E" stroke-width="2"/>
+  <rect x="39" y="40" width="7" height="16" rx="3" fill="#E4ECF0" stroke="#34405E" stroke-width="2"/>
+  <path d="M5 35 Q25 4 46 35 Z" fill="#3E8F82" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M30 42 Q43 24 59 42 Z" fill="#3E8F82" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M26 35 Q36 22 46 35 Z" fill="#3F7A6C"/>
+  <g fill="#6FF2E0" stroke="#34405E" stroke-width="0.8">
+    <circle cx="16" cy="26" r="2.8"/><circle cx="27" cy="20" r="2.4"/><circle cx="34" cy="28" r="2.2"/>
+    <circle cx="42" cy="35" r="2"/><circle cx="50" cy="35" r="1.8"/>
+  </g>
+  <path d="M5 58 L59 58" fill="none" stroke="#3F7A6C" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Groth ore</title>
+  <path d="M8 50 L13 36 L26 30 L44 31 L57 40 L52 55 L22 58 Z" fill="#9A95A2" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M41 46 L57 40 L52 55 Z" fill="#6E6670"/>
+  <path d="M24 38 L20 14 L27 6 L34 13 L31 38 Z" fill="#59627A" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M27 6 L34 13 L31 38 L27 37 Z" fill="#A3AEC8"/>
+  <path d="M34 40 L40 20 L47 17 L50 24 L41 42 Z" fill="#59627A" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M47 17 L50 24 L41 42 L39 41 Z" fill="#A3AEC8"/>
+  <path d="M13 42 L9 30 L14 26 L19 32 L18 42 Z" fill="#59627A" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M14 26 L19 32 L18 42 L16 42 Z" fill="#A3AEC8"/>
+</svg>

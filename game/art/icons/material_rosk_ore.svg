@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Rosk ore</title>
+  <path d="M8 46 L15 25 L30 14 L47 18 L57 35 L51 52 L24 57 Z" fill="#9A95A2" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M15 25 L30 14 L47 18 L34 30 Z" fill="#E4ECF0"/>
+  <path d="M34 30 L57 35 L51 52 Z" fill="#6E6670"/>
+  <path d="M33 37 m-2 0 a2 2 0 1 1 4 0 a4.5 4.5 0 1 1 -9 0 a7 7 0 1 1 14 0 a9.5 9.5 0 0 1 -6 9" fill="none" stroke="#C77A52" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M16 38 q4 -4 9 -3" fill="none" stroke="#C77A52" stroke-width="3" stroke-linecap="round"/>
+  <path d="M44 22 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 l4 -1.5 Z" fill="#FFFFFF" stroke="#34405E" stroke-width="0.8"/>
+  <circle cx="21" cy="46" r="1.8" fill="#FFFFFF"/>
+</svg>
