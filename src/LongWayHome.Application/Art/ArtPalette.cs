@@ -81,6 +81,8 @@ public static class ArtPalette
         new("skin-shade", "#B57E5F"),
         new("hair", "#5A3E2E"),
         new("seed-pouch", "#D9C39A"),
+        new("door-faded", "#B88464"),
+        new("glass-dull", "#8C97A3"),
     ];
 
     /// <summary>The centre of <paramref name="role"/>'s swatch in 0–1 texture space (U right, V down).</summary>
