@@ -31,7 +31,9 @@ public sealed record CropPart(
     float PitchDegrees,
     float YawDegrees,
     float RollDegrees,
-    string Role);
+    string Role,
+    float Glow = 0f,
+    bool Twinkle = false);
 
 /// <summary>
 /// The parts of each (crop, stage) model drawn to ART_DIRECTION §4 (#90). Pure C#, no Godot: the Godot builder
