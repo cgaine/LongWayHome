@@ -20,6 +20,9 @@ public class FarmerArtTests
     /// <summary>The palette's length on main before #102 appended the farmer's swatches.</summary>
     private const int SwatchesBefore102 = 46;
 
+    /// <summary>The swatches appended after #102: #104's <c>door-faded</c> and <c>glass-dull</c>.</summary>
+    private const int SwatchesAfter102 = 2;
+
     // ---- AC1: the skeleton ----
 
     [Fact]
@@ -90,8 +93,8 @@ public class FarmerArtTests
             new("seed-pouch", "#D9C39A"),
         ];
 
-        Assert.Equal(SwatchesBefore102 + appended.Length, ArtPalette.Swatches.Count);
-        Assert.Equal(appended, ArtPalette.Swatches.Skip(SwatchesBefore102).ToArray());
+        Assert.Equal(SwatchesBefore102 + appended.Length + SwatchesAfter102, ArtPalette.Swatches.Count);
+        Assert.Equal(appended, ArtPalette.Swatches.Skip(SwatchesBefore102).Take(appended.Length).ToArray());
     }
 
     // ---- AC3: proportions ----

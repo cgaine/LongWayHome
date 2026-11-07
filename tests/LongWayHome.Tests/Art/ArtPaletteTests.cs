@@ -77,6 +77,8 @@ public class ArtPaletteTests
         ("skin-shade", "#B57E5F"),
         ("hair", "#5A3E2E"),
         ("seed-pouch", "#D9C39A"),
+        ("door-faded", "#B88464"),
+        ("glass-dull", "#8C97A3"),
     ];
 
     /// <summary>The swatches the encoder is given, for the PNG layout tests, which hold for any list length.</summary>
@@ -86,11 +88,11 @@ public class ArtPaletteTests
     // ---- AC1: the swatch list ----
 
     [Fact]
-    public void AC3_palette_lists_the_50_swatches_in_order()
+    public void AC3_palette_lists_the_52_swatches_in_order()
     {
         var actual = ArtPalette.Swatches.Select(s => (s.Role, s.Hex)).ToArray();
 
-        Assert.Equal(50, actual.Length);
+        Assert.Equal(52, actual.Length);
         Assert.Equal(ExpectedSwatches, actual);
     }
 
