@@ -189,7 +189,7 @@ Maggie's mine story (draft, told when you buy the pickaxe): the mine was the hea
 - Each level: clear debris with the pickaxe, then shore up the walls with planks and stone
 - Travel: a staircase built into the mine connects the levels; every fifth cleared level adds a shortcut from the entrance
 - No danger in this version, only energy cost; danger (creatures, collapses) is a future enhancement
-- Level 5: the first flooded level, drained with Mira's first pump, so the deeper mine is gated behind the blacksmith
+- Level 5: the first flooded level and the first water-flow puzzle, a short tutorial solved with Mira's first pump, so the deeper mine is gated behind the blacksmith (see Water-flow puzzles)
 
 Ore and tool upgrades: tool upgrades are earned by collecting materials in the mine.
 
@@ -206,7 +206,7 @@ Pumps (draft): Mira forges each pump overnight from materials you bring. Rosk pu
 
 Pacing: no hard gate on how fast you go down; the mine is free to explore at any pace, as in Stardew. The cost is the brake: every level needs wood supports to shore it up, and pumps (every fifth level) are expensive, getting much more so deeper down, so reaching the bottom takes real time and resources. No company or faction choice.
 
-Shoring (draft): levels 1–4 are above the water and only need debris cleared with the pickaxe. Level 5 is the first flooded level and needs the first pump. From level 6 on, each level is shored up with sealed planks: planks treated with sap from native trees, which glows and hardens waterproof. Sap comes from chopping trees, so going deeper also means more time in the forest. Sealed planks per level:
+Shoring (draft): levels 1–4 are above the water and only need debris cleared with the pickaxe. Level 5 is the first flooded level and the first water-flow puzzle. From level 6 on, each level is a water-flow puzzle whose walls are sealed planks: planks treated with sap from native trees, which glows and hardens waterproof. Sap comes from chopping trees, so going deeper also means more time in the forest. The table is each level's plank budget: its tidy solution uses about this many, and a cleverer one uses fewer (see Water-flow puzzles):
 
 | Levels | Sealed planks per level |
 | --- | --- |
@@ -234,14 +234,46 @@ Why: the core loop feels too close to Stardew, so we're mixing in other genres. 
 
 ### Water-flow puzzles in the flooded mine
 
-Water-flow puzzles are the main way through the flooded mine:
+Water-flow puzzles are the main way through the flooded mine. Decided 2026-11-07: level 5 is the first one, a short tutorial. The rules below are a draft; they were checked with a small tile simulation, which also drew the level 5 concept art (ART_DIRECTION.md 7.7).
 
-- Each flooded level is a small puzzle map where water pools in low spots.
-- You place pumps, sealed-plank walls and channels to drain it or send it somewhere else.
-- Levels get harder deeper down, with more than one water source and channels that can flood other rooms.
-- A solved level stays solved.
-- No failure: if the water goes the wrong way, you just try again until you solve it.
-- How it works in detail still needs more thought.
+**The map.** Each flooded level is a small map on the same 1 m tile grid as the farm. Floor tiles sit at height tiers (0, 1 and 2 in the early levels; more deeper down), and solid rock fills the rest. Stone lips block some tile edges. Silt tiles are soft and can be dug.
+
+**Four rules.** The water always plays out the same way:
+
+1. **Water levels out.** It runs downhill, fills the lowest basin evenly and spills over the lowest lip into the next. It never crosses a blocked edge.
+2. **Drains swallow it.** Cracks in the floor take any water that reaches them, for good.
+3. **Pumps lift it.** A pump moves water from the tile it stands in to its outlet tile, uphill. It can only lift so high: one tier for Rosk, two for Groth, three for Forgelight. So the water needs a way on from the outlet, or the pump stops. The pump's housing seals the gap it sits in, so lifted water can't run straight back.
+4. **Walls block and digging lowers.** A sealed-plank wall blocks one tile edge, one tier high; water deeper than that spills over. The pickaxe digs a silt tile one tier lower, to cut a channel.
+
+**Pieces.** Placed by you: pumps (Mira; one new pump every fifth level, as before), sealed-plank walls (Tom), sluice gates (Mira, from blacksmith stage 2: a wall you can open and shut), and channels dug with the pickaxe. Fixed in the level: drains, springs (water that keeps coming), sumps (dry pockets that hold only so much), stone lips and silt.
+
+**How a puzzle plays:**
+
+- **Look.** Harlan's old depth marker, a post with three bands, stands in every flooded level. Water shows its depth by colour, and tier edges have lips, so heights read from the overhead camera.
+- **Place.** Pieces go down from the backpack like seeds: on the target tile, or on the edge you face for walls and gates. Holding a piece shows a dotted preview of where the water will go. Placing and picking up pieces is free; digging costs pickaxe energy (2 a swing).
+- **Watch.** The water settles in a few seconds. The game clock keeps running, and you can leave and come back; the level stays as you left it.
+- **Solve.** The goal is to get the stairs down dry. Then the marker turns green and the level sets: the pieces you used stay for good (solved levels stay solved), and unused ones go back to the backpack.
+- **Reset.** Touching the marker puts the water and every piece back as they started, for free. The result depends only on which pieces are in place, not the order, so taking a piece back is always a full undo. There's no failure (pillar 1).
+- **Cost.** You only pay for the pieces in your final answer. Each level is built so its tidy answer uses about its plank budget (Shoring table); a cleverer answer saves planks. A new pump every fifth level stays the big cost.
+
+**Level 5, the tutorial.** The low chamber (tier 0) is flooded to tier 1½, over the stairs down. The miners' old trough (tier 1, behind stone lips) runs from Harlan's broken pump toward a drain in a side alcove, but a slump of silt blocks it.
+
+1. Dig the slump with the pickaxe. Everything above tier 1 runs along the trough to the drain on its own: water runs downhill, and drains take it.
+2. Set Mira's Rosk pump on Harlan's base. It lifts the rest one tier into the trough and on to the drain. The stairs are dry and the level sets: pumps lift water uphill.
+
+If the pump goes in first, nothing happens: the trough is already full, and a Rosk pump can't lift any higher. Digging the slump starts it. Level 5 needs no sealed planks.
+
+**One new idea at a time:**
+
+| Levels | New idea | New pieces | Example |
+| --- | --- | --- | --- |
+| 5 | Water runs downhill to a drain; a pump lifts it one tier | Rosk pump, digging | The tutorial above |
+| 6–7 | Walls keep water where you put it | Sealed-plank walls | The pump's outlet ledge leaks back into the chamber; two walls close it |
+| 8–9 | Sumps hold only so much | | No drain: split the water between two sumps so neither overflows onto the stairs |
+| 10 | Springs keep coming | A second Rosk pump | Route a spring to a drain for good, not just once |
+| 11–15 | Rooms that flood each other | | Draining one room floods the next unless the walls go in first |
+| 16–30 | Solving in stages | Sluice gates, Groth pumps | Drain the left room, shut the gate, then turn the spring to the right |
+| 31–60 | Long routes, and using water | Forgelight pumps | Idea: fill a basin on purpose to float an ore cart across, or turn a wheel that opens the way |
 
 ### Ship-tech exploration
 
@@ -269,10 +301,10 @@ Decided 2026-11-07: the expedition goes under the lake, not behind the mountain.
 
 These clash with what the doc already says. The rest of the doc hasn't been changed yet.
 
-1. **Mine progression.** Backstory says each level is shored up with a fixed mix of materials, levels 6 and deeper each cost a set number of sealed planks (10 to 40, Shoring table), and every fifth level needs a pump. The puzzles place pumps, walls and channels instead. Do the per-level plank counts and the "pump every fifth level" pattern stay as the cost of the puzzle pieces, or go? Still open: the cost needs revisiting. REQ-33 describes the old model.
+1. **Mine progression.** ~~Do the per-level plank counts and the "pump every fifth level" pattern stay as the cost of the puzzle pieces, or go?~~ Resolved (draft): both stay. The plank counts become each level's plank budget for its walls, and a new pump every fifth level stays the big cost (Water-flow puzzles). Still open: REQ-33 describes the old model and needs updating, and the budgets need playtesting.
 2. **"As in Stardew".** The mine's Pacing line says it is "free to explore at any pace, as in Stardew", which is the comparison this change moves away from.
 3. **Getting it wrong.** ~~What happens when water goes the wrong way?~~ Resolved: there is no failure. You try again as many times as you need until the level is solved, which keeps "no danger in this version" (pillar 1).
-4. **Mine levels 1–5.** Levels 1–4 are above the water and only need debris cleared, and level 5 is drained with Mira's first pump. Is level 5 the first puzzle (a tutorial), or a plain pump as written?
+4. **Mine levels 1–5.** ~~Is level 5 the first puzzle (a tutorial), or a plain pump as written?~~ Resolved 2026-11-07: level 5 is the first water-flow puzzle, a two-step tutorial with Mira's first pump. Levels 1–4 stay dry.
 5. **Parts in the ship or on you.** The crash site has four slots, and installing a part lights up a section of the ship. If the part stays in the ship, how does the farmer carry its ability? The farmer's wrist unit (ART_DIRECTION.md 6.1, "the only ship tech that still works") is one way to hold them.
 6. **Hull alloy.** ~~Does its suit gate mine levels 46–60 or the lake?~~ Resolved: no cold areas in the mine, and the diving suit is the farmer's coverall plus Mira's helmet. Still open: what ability the hull alloy gives instead (the earlier idea of Mira forging it into plating for the ship still stands).
 7. **The mountaintop comes too late.** The engine core is on level 60, the bottom of the mine, so the jet boost and "the best mining spot in the game" open only after all mining is done. Embrite, used for Forgelight tools and pumps, already comes from the deeper levels, so the mountaintop adds little unless the order changes.

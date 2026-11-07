@@ -564,9 +564,35 @@ Each ore reads by shape as well as colour (pillar 4).
 | --- | --- | --- |
 | 1 and 2 | Dry, warm, the most lanterns; daylight down the entrance steps on level 1 | Twinbough roots with glowing sap; a teal band in the rock |
 | 3 and 4 | Damper and darker: drips, puddles, fewer working lanterns, more glimmercaps; the first Groth | Glimmercaps in clusters |
-| 5 | The first flooded level. The low chamber is under still, dark water, with Harlan's rusted, broken pump on the shore. Once drained with Mira's first pump (bright rose copper on a sealed-plank base, with a lit gauge and a pipe up the wall), a few puddles stay and the stairs down are uncovered | A faint violet light `#B48CFF` far down under the water: the "lights in the deep levels that weren't lanterns" from Maggie's story |
+| 5 | The first flooded level and the first water-flow puzzle (section 7.7). The low chamber is under still, dark water, with Harlan's rusted, broken pump on the shore. Once drained with Mira's first pump (bright rose copper on a sealed-plank base, with a lit gauge and a pipe up the wall), a few puddles stay and the stairs down are uncovered | A faint violet light `#B48CFF` far down under the water: the "lights in the deep levels that weren't lanterns" from Maggie's story |
 
-**Fits the game (draft):** each level is a small map read from the overhead camera. Walls on the camera side are low and show only their tops, so the farmer is never hidden; frames and lanterns sit on the back walls. Whether level 5 is a plain pump or the first water-flow puzzle is still open (design doc, open question 4).
+**Fits the game (draft):** each level is a small map read from the overhead camera. Walls on the camera side are low and show only their tops, so the farmer is never hidden; frames and lanterns sit on the back walls. Level 5 is the first water-flow puzzle (section 7.7).
+
+### 7.7 Water-flow puzzles (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Water-flow puzzles page: the rules in side view, the pieces, and the level 5 tutorial in four steps)
+
+The rules are in the design doc (Water-flow puzzles). This section covers how the puzzle reads on screen (pillar 4).
+
+**Heights.** Floor tiers read as stepped terraces: each tier is lighter than the one below (`#5A4A44`, `#7A685E`, `#9E8C7E`), with a darker front face and stone lips `#9A94A2` along blocked edges. Solid rock is the dark mass `#3A3640` around them.
+
+**Water.** Depth shows by colour, from turquoise shallows `#5FB3AA` to deep blue `#245E7A`, with a front face where water stands above the tile in front. Light streaks on the surface move along channels while water flows and stop when it settles.
+
+**Pieces:**
+
+| Piece | Look |
+| --- | --- |
+| Rosk pump | Rose copper `#C77A52` with one band and an ember gauge that lights while it pumps; a pipe to its outlet |
+| Groth pump | Dark blue-grey `#59627A` with two bands |
+| Forgelight pump | Pale steel `#C9D2E0` with three Embrite bands `#B48CFF` that glow |
+| Sealed-plank wall | Planks `#B08A6A` with a soft amber sap glow, like the sealed planks elsewhere |
+| Sluice gate | A sealed-plank gate between Groth posts, with a rose-copper hand wheel on top |
+| Silt | Soft brown `#A88660` with a wavy texture, so you can see what can be dug |
+| Spring | Water welling up in turquoise plumes |
+| Drain | A dark crack with a faint violet glow: the water runs down toward the deep lights |
+| Harlan's depth marker | A timber post with three bands (ember, gold, green) that light green when the stairs are dry |
+
+**Preview.** Holding a piece shows a dotted outline where it would go (cream `#FFF6E0`, like the target marker) and a dotted path for where the water would run.
 
 ## 8. Style and technical direction (draft)
 
