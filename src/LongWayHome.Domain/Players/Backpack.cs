@@ -104,6 +104,17 @@ public sealed class Backpack
     /// <summary>The six Slots of the current hotbar row: indexes HotbarRow × 6 to HotbarRow × 6 + 5 (BR-K5).</summary>
     public IReadOnlyList<BackpackSlot> HotbarSlots => _slots.GetRange(HotbarRow * RowLength, RowLength).AsReadOnly();
 
+    /// <summary>
+    /// The Slot at <paramref name="position"/> (0–5) of the current hotbar row (BR-K5), without copying the row; a
+    /// position outside 0–5 throws.
+    /// </summary>
+    public BackpackSlot HotbarSlotAt(int position)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(position);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(position, RowLength);
+        return _slots[(HotbarRow * RowLength) + position];
+    }
+
     /// <summary>Moves the hotbar to the next row, wrapping back to row 0 after row Capacity / 6 − 1 (BR-K5).</summary>
     public void CycleHotbar() => HotbarRow = (HotbarRow + 1) % (Capacity / RowLength);
 

@@ -205,9 +205,10 @@ public sealed class GameSession
     {
         var slot = HotbarSlotAt(heldPosition);
         var preview = PreviewUse(target, HeldItemOf(slot), slot.Index);
-        return preview.Action == UseActionKind.Plant
-            ? PlantFromSlot(target!.Value, slot.Item!.Value.CropTypeId!.Value, slot.Index)
-            : Perform(target, preview, held: null);
+        return Perform(
+            target,
+            preview,
+            position => PlantFromSlot(position, slot.Item!.Value.CropTypeId!.Value, slot.Index));
     }
 
     /// <summary>
@@ -227,7 +228,7 @@ public sealed class GameSession
     internal ActionResult Use(GridPosition? target, HeldItem held)
     {
         var preview = PreviewUse(target, held);
-        return Perform(target, preview, held);
+        return Perform(target, preview, position => Plant(position, held.Seed!.Value));
     }
 
     // The Use decision: harvest first (BR-T6), then the held item. With a slotIndex, a seed plants from that Slot only.
@@ -282,15 +283,16 @@ public sealed class GameSession
         return Rejected(Rejection.NothingToDo);
     }
 
-    // Runs a previewed action; a Plant here plants the held seed through Plant (the int overload plants from its Slot).
-    private ActionResult Perform(GridPosition? target, UsePreview preview, HeldItem? held) => preview.Action switch
-    {
-        UseActionKind.Till => Till(target!.Value),
-        UseActionKind.Water => Water(target!.Value),
-        UseActionKind.Plant => Plant(target!.Value, held!.Seed!.Value),
-        UseActionKind.Harvest => Harvest(target!.Value),
-        _ => ActionResult.Rejected(preview.Rejection!.Value),
-    };
+    // Runs a previewed action; each Use overload says how it plants (from the held Slot, or the held seed type).
+    private ActionResult Perform(GridPosition? target, UsePreview preview, Func<GridPosition, ActionResult> plant) =>
+        preview.Action switch
+        {
+            UseActionKind.Till => Till(target!.Value),
+            UseActionKind.Water => Water(target!.Value),
+            UseActionKind.Plant => plant(target!.Value),
+            UseActionKind.Harvest => Harvest(target!.Value),
+            _ => ActionResult.Rejected(preview.Rejection!.Value),
+        };
 
     /// <summary>Tills a Tile, spending the tuning's tool energy cost (BR-P2). Raises the change events on success.</summary>
     public ActionResult Till(GridPosition position)
@@ -493,11 +495,8 @@ public sealed class GameSession
         _ => "",
     };
 
-    private BackpackSlot HotbarSlotAt(int heldPosition)
-    {
-        ThrowIfNotAPosition(heldPosition);
-        return Game.Player.Backpack.HotbarSlots[heldPosition];
-    }
+    // Called every frame by the Use prompt, so it reads the one Slot rather than copying the row.
+    private BackpackSlot HotbarSlotAt(int heldPosition) => Game.Player.Backpack.HotbarSlotAt(heldPosition);
 
     /// <summary>
     /// Ends the Day (BR-G3): raises DayEnded, runs the Night ending with the save (BR-G5), then raises NightCompleted.

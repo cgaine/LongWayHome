@@ -117,6 +117,18 @@ public class PlantFromSlotTests
     }
 
     [Fact]
+    public void BR_K5_HotbarSlotAt_is_the_slot_at_that_position_of_the_current_row()
+    {
+        var backpack = TestGames.DistinctBackpack();
+
+        Assert.Equal(backpack.Slots[3], backpack.HotbarSlotAt(3));
+        backpack.CycleHotbar();
+        Assert.Equal(backpack.Slots[9], backpack.HotbarSlotAt(3));
+        Assert.Throws<ArgumentOutOfRangeException>(() => backpack.HotbarSlotAt(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => backpack.HotbarSlotAt(6));
+    }
+
+    [Fact]
     public void RemoveFrom_a_slot_index_outside_the_backpack_or_a_quantity_below_1_throws()
     {
         var backpack = TestGames.RestoredBackpack(new BackpackSlot(2, EmberrootSeed, 5, null));
