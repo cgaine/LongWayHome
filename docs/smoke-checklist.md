@@ -13,7 +13,7 @@ Steam Deck).
 ## Controller-only pass
 
 Buttons: move `(L stick)` (or D-pad), run `(B)`, use `(A)`, interact `(X)`, previous item `(LB)`, next item `(RB)`,
-pause `(Start)`, close a menu `(B)`, turn the camera `(R stick)` left and right, zoom the camera `(R stick)` up
+next hotbar row `(View)`, pause `(Start)`, close a menu `(B)`, turn the camera `(R stick)` left and right, zoom the camera `(R stick)` up
 (in) and down (out); menus move with the D-pad or `(L stick)` and press with `(A)`.
 
 - [ ] Before you begin, the mouse cursor is hidden once the controller is used, and stays hidden for the whole pass.
@@ -22,6 +22,7 @@ pause `(Start)`, close a menu `(B)`, turn the camera `(R stick)` left and right,
 - [ ] Turn the camera all the way round with `(R stick)` left and right, and zoom to the nearest and farthest limits with `(R stick)` up and down; zoomed out looks steeply down, zoomed in looks lower. The prompts keep showing controller buttons.
 - [ ] With the camera turned to face east, south, west and a diagonal, push forward: the farmer walks away from the camera. Stop: the farmer faces the outlined tile, the outline is visible even behind the farmer when zoomed in, and the Use prompt names what Use does to that tile; press use and it does that.
 - [ ] Cycle the held item with `(LB)` and `(RB)`; the hotbar hint reads `(LB) (RB) Change item`.
+- [ ] Cycle the hotbar row with `(View)`; the hotbar shows slots 7–12, then 1–6 again; the hint reads `(View) Next row` and the row label `Row 2/2`, then `Row 1/2`.
 - [ ] Till a Tile with the Hoe, plant a seed and water it, each with `(A)`; the prompt reads `(A) Till`, `(A) Plant …` and `(A) Water`; the farmer plays the matching animation for each (the hoe swing for till, then the plant and water animations), and a rejected Use (watering with an empty can) plays no animation.
 - [ ] Refill the can at the pond with `(X)`; the hint reads `(X) Refill can`; the farmer plays the refill animation.
 - [ ] Harvest a ripe crop with `(A)`; the prompt reads `(A) Harvest …`; the farmer plays the harvest animation.
@@ -38,7 +39,7 @@ pause `(Start)`, close a menu `(B)`, turn the camera `(R stick)` left and right,
 ## Keyboard-and-mouse-only pass
 
 Buttons: move `[WASD]` (or the arrow keys), run `[Shift]`, use `[Space]` (or left click), interact `[F]` (or right
-click), previous item `[Q]` (or wheel up), next item `[E]` (or wheel down), pause `[Esc]`, close a menu `[Esc]`,
+click), previous item `[Q]` (or wheel up), next item `[E]` (or wheel down), next hotbar row `[X]`, pause `[Esc]`, close a menu `[Esc]`,
 turn the camera left `[Z]` and right `[C]`, zoom the camera in `[R]` and out `[V]`; menus move with the arrow keys and
 press with `[Enter]`, or are clicked with the mouse.
 
@@ -48,6 +49,7 @@ press with `[Enter]`, or are clicked with the mouse.
 - [ ] Turn the camera all the way round with `[Z]` (left) and `[C]` (right), and zoom to the nearest and farthest limits with `[R]` (in) and `[V]` (out); zoomed out looks steeply down, zoomed in looks lower. The prompts keep showing keyboard keys.
 - [ ] With the camera turned to face east, south, west and a diagonal, push forward: the farmer walks away from the camera. Stop: the farmer faces the outlined tile, the outline is visible even behind the farmer when zoomed in, and the Use prompt names what Use does to that tile; press use and it does that.
 - [ ] Cycle the held item with `[Q]` and `[E]` and with the mouse wheel; the hotbar hint reads `[Q] [E] Change item`.
+- [ ] Cycle the hotbar row with `[X]`; the hotbar shows slots 7–12, then 1–6 again; the hint reads `[X] Next row` and the row label `Row 2/2`, then `Row 1/2`.
 - [ ] Till a Tile with the Hoe, plant a seed and water it, each with `[Space]` or left click; the prompt reads `[Space] Till`, `[Space] Plant …` and `[Space] Water`; the farmer plays the matching animation for each (the hoe swing for till, then the plant and water animations), and a rejected Use (watering with an empty can) plays no animation.
 - [ ] Refill the can at the pond with `[F]`; the hint reads `[F] Refill can`; the farmer plays the refill animation.
 - [ ] Harvest a ripe crop with `[Space]`; the prompt reads `[Space] Harvest …`; the farmer plays the harvest animation.
@@ -64,8 +66,8 @@ press with `[Enter]`, or are clicked with the mouse.
 ## Steam Deck (Game Mode) pass
 
 Run the release build from Steam in Game Mode, with the Deck's built-in controls only (Steam Input's default gamepad
-layout, so the buttons match the controller glyphs: `(A)`, `(B)`, `(X)`, `(LB)` is L1, `(RB)` is R1, `(Start)` is
-the ☰ button). The right stick turns the camera left and right and zooms it in (up) and out (down). Frame rate and
+layout, so the buttons match the controller glyphs: `(A)`, `(B)`, `(X)`, `(LB)` is L1, `(RB)` is R1, `(View)` is
+the ⧉ button, `(Start)` is the ☰ button). The right stick turns the camera left and right and zooms it in (up) and out (down). Frame rate and
 text size are checked in epic #12's Steam Deck pass, not here; the frame-rate reading at the farthest zoom is
 requested on issue #71's pull request.
 
@@ -74,6 +76,7 @@ requested on issue #71's pull request.
 - [ ] Walk with the left stick, and run by holding `(B)`; the farmer plays the walk animation, the run animation while running, and the idle animation when he stops.
 - [ ] Turn the camera all the way round and zoom it to the nearest and farthest limits with the right stick; the prompts keep showing controller glyphs. With the camera turned, push the left stick forward: the farmer walks away from the camera. Stop: the farmer faces the outlined tile, and the outline is visible even behind the farmer when zoomed in.
 - [ ] Cycle the held item with L1 and R1; the hotbar hint reads `(LB) (RB) Change item`.
+- [ ] Cycle the hotbar row with `(View)` (the ⧉ button); the hotbar shows slots 7–12, then 1–6 again; the hint reads `(View) Next row`.
 - [ ] Till a Tile, plant a seed and water it, each with `(A)`; every prompt shows a controller glyph; the farmer plays the matching animation for each (the hoe swing for till, then the plant and water animations), and a rejected Use (watering with an empty can) plays no animation.
 - [ ] Refill the can at the pond with `(X)`; the farmer plays the refill animation.
 - [ ] Harvest a ripe crop with `(A)`; the farmer plays the harvest animation.

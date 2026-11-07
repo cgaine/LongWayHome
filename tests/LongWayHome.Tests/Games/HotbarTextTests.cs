@@ -29,7 +29,7 @@ public class HotbarTextTests
         session.Game.Player.Backpack.Add(ItemRef.Seed(CropTypeId.Moonmelon), 99);
         var seed = HeldItem.SeedOf(CropTypeId.Moonmelon);
 
-        var full = session.Hotbar(seed).Single(slot => slot.Item == seed).Label;
+        var full = session.Hotbar(0).Single(slot => slot.Item == seed).Label;
         var compact = HotbarText.Compact(seed, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Moonmelon)));
 
         Assert.Equal(full.Replace(" seeds", ""), compact);

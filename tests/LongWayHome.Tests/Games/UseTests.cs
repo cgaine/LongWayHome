@@ -8,7 +8,7 @@ using LongWayHome.Domain.Players;
 namespace LongWayHome.Tests.Games;
 
 /// <summary>What Use does with the held item: <see cref="GameSession.PreviewUse"/>, <see cref="GameSession.Use"/>,
-/// <see cref="GameSession.HeldItems"/> and the change events.</summary>
+/// <see cref="GameSession.HeldItemAt"/> and the change events.</summary>
 public class UseTests
 {
     private static readonly GridPosition Target = new(5, 2);
@@ -126,7 +126,7 @@ public class UseTests
     {
         var session = TestGames.NewSession();
 
-        var held = session.HeldItems();
+        var held = TestGames.HeldItemsInHotbar(session);
 
         Assert.Equal(
             [
@@ -274,7 +274,7 @@ public class UseTests
         inventory.Add(ItemRef.Crop(CropTypeId.Moonmelon), 1);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
 
-        var held = session.HeldItems();
+        var held = TestGames.HeldItemsInHotbar(session);
 
         Assert.Equal(
             [HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan), HeldItem.SeedOf(CropTypeId.Dusktuber)],
@@ -282,23 +282,24 @@ public class UseTests
     }
 
     [Fact]
-    public void Held_items_list_seed_stacks_in_crop_type_order()
+    public void Held_items_list_seed_stacks_in_slot_order()
     {
+        // #129: the hotbar is the Backpack row, so seeds come in Slot order, no longer in CropTypeId order.
         var inventory = TestGames.ToolsOnly();
         inventory.Add(ItemRef.Seed(CropTypeId.Starcorn), 1);
         inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 2);
         inventory.Add(ItemRef.Seed(CropTypeId.Moonmelon), 3);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
 
-        var held = session.HeldItems();
+        var held = TestGames.HeldItemsInHotbar(session);
 
         Assert.Equal(
             [
                 HeldItem.Of(ToolId.Hoe),
                 HeldItem.Of(ToolId.WateringCan),
+                HeldItem.SeedOf(CropTypeId.Starcorn),
                 HeldItem.SeedOf(CropTypeId.Emberroot),
                 HeldItem.SeedOf(CropTypeId.Moonmelon),
-                HeldItem.SeedOf(CropTypeId.Starcorn),
             ],
             held);
     }
@@ -308,7 +309,7 @@ public class UseTests
     {
         var session = new GameSession(TestGames.WithEnergy(150), TestGames.Shipped);
 
-        Assert.Equal([HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan)], session.HeldItems());
+        Assert.Equal([HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan)], TestGames.HeldItemsInHotbar(session));
     }
 
     // ---- #24: planting and harvesting ----
@@ -563,7 +564,7 @@ public class UseTests
         Assert.All(results, result => Assert.Equal(ActionResult.Ok, result));
         Assert.Equal(
             [HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan), HeldItem.SeedOf(CropTypeId.Dusktuber)],
-            session.HeldItems());
+            TestGames.HeldItemsInHotbar(session));
     }
 
     [Fact]

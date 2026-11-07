@@ -98,19 +98,39 @@ public sealed class Backpack
     /// <summary>Exactly <see cref="Capacity"/> Slots, by index.</summary>
     public IReadOnlyList<BackpackSlot> Slots => _slots.AsReadOnly();
 
-    public int HotbarRow { get; }
+    /// <summary>The row of <see cref="RowLength"/> Slots shown as the hotbar; changes only through <see cref="CycleHotbar"/>.</summary>
+    public int HotbarRow { get; private set; }
 
     /// <summary>The six Slots of the current hotbar row: indexes HotbarRow × 6 to HotbarRow × 6 + 5 (BR-K5).</summary>
-    public IReadOnlyList<BackpackSlot> HotbarSlots => throw new NotImplementedException();
+    public IReadOnlyList<BackpackSlot> HotbarSlots => _slots.GetRange(HotbarRow * RowLength, RowLength).AsReadOnly();
 
     /// <summary>Moves the hotbar to the next row, wrapping back to row 0 after row Capacity / 6 − 1 (BR-K5).</summary>
-    public void CycleHotbar() => throw new NotImplementedException();
+    public void CycleHotbar() => HotbarRow = (HotbarRow + 1) % (Capacity / RowLength);
 
     /// <summary>
     /// Removes <paramref name="quantity"/> from one Slot, emptying it when it reaches 0; false and no change when the
     /// Slot holds fewer, or holds a tool (BR-K6).
     /// </summary>
-    public bool RemoveFrom(int slotIndex, int quantity) => throw new NotImplementedException();
+    public bool RemoveFrom(int slotIndex, int quantity)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(slotIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slotIndex, Capacity);
+        ArgumentOutOfRangeException.ThrowIfLessThan(quantity, 1);
+
+        var slot = _slots[slotIndex];
+
+        // BR-K6: a tool never leaves the Backpack; an empty Slot or one holding fewer gives nothing.
+        if (slot.Item is not { } item || item.Kind == ItemKind.Tool || slot.Quantity < quantity)
+        {
+            return false;
+        }
+
+        // BR-K2: a Slot at 0 is empty.
+        _slots[slotIndex] = slot.Quantity == quantity
+            ? EmptySlot(slotIndex)
+            : slot with { Quantity = slot.Quantity - quantity };
+        return true;
+    }
 
     /// <summary>
     /// Adds a non-tool item: tops up Slots holding it below 99 in index order, then fills free Slots in index order

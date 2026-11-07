@@ -151,64 +151,88 @@ public sealed class GameSession
     }
 
     /// <summary>
-    /// The held-item cycle: Hoe, Watering can, then one entry per Seed type held anywhere in the Backpack, in CropTypeId
-    /// order.
+    /// Moves the hotbar to the next Backpack row (BR-K5) and raises InventoryChanged. Costs no energy; nothing else
+    /// changes.
     /// </summary>
-    public IReadOnlyList<HeldItem> HeldItems()
+    public void CycleHotbar()
     {
-        var items = new List<HeldItem> { HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan) };
-
-        // BR-P7, BR-K2: a Seed type split over several Slots is one entry; Totals is in CropTypeId order.
-        items.AddRange(Game.Player.Backpack.Totals(ItemKind.Seed)
-            .Select(total => HeldItem.SeedOf(total.CropTypeId)));
-
-        return items.AsReadOnly();
+        Game.Player.Backpack.CycleHotbar();
+        InventoryChanged?.Invoke();
     }
 
     /// <summary>
-    /// The HUD hotbar: one slot per item in <see cref="HeldItems"/>, labelled as <see cref="HeldLabel"/>, with the held
-    /// item selected (the Hoe when the held item is not in the cycle).
+    /// The six slots of the current hotbar row (BR-K5), position 0–5, with <paramref name="heldPosition"/> selected.
+    /// Labels: "Hoe", "Watering can", "Emberroot seeds × 12" and "Emberroot × 7" with that Slot's quantity, and "" for
+    /// an empty Slot. A position outside 0–5 throws.
     /// </summary>
-    public IReadOnlyList<HotbarSlot> Hotbar(HeldItem held)
+    public IReadOnlyList<HotbarSlot> Hotbar(int heldPosition)
     {
-        ArgumentNullException.ThrowIfNull(held);
+        ThrowIfNotAPosition(heldPosition);
 
-        var items = HeldItems();
-        var selected = items.Contains(held) ? held : HeldItem.Of(ToolId.Hoe);
-        return items
-            .Select(item => new HotbarSlot(
-                item,
-                item.Seed is { } seed ? ItemRef.Seed(seed) : ItemRef.Tool(item.Tool!.Value),
-                item.Seed is { } held ? Game.Player.Backpack.Quantity(ItemRef.Seed(held)) : 1,
-                HeldLabel(item),
-                item == selected))
+        return Game.Player.Backpack.HotbarSlots
+            .Select((slot, position) => new HotbarSlot(
+                HeldItemOf(slot),
+                slot.Item,
+                slot.Quantity,
+                SlotLabel(slot),
+                position == heldPosition))
             .ToList()
             .AsReadOnly();
     }
 
     /// <summary>
-    /// Moves the hotbar to the next Backpack row (BR-K5) and raises InventoryChanged. Costs no energy; nothing else
-    /// changes.
+    /// What the held position of the current row holds, or null when it is empty or holds a crop. A position outside
+    /// 0–5 throws.
     /// </summary>
-    public void CycleHotbar() => throw new NotImplementedException();
+    public HeldItem? HeldItemAt(int heldPosition) => HeldItemOf(HotbarSlotAt(heldPosition));
 
-    /// <summary>The six slots of the current hotbar row, position 0–5, with <paramref name="heldPosition"/> selected.</summary>
-    public IReadOnlyList<HotbarSlot> Hotbar(int heldPosition) => throw new NotImplementedException();
+    /// <summary>
+    /// Decides what Use from the held position would do, without changing state: harvest a Ripe Planting whatever is
+    /// held (BR-T6), else plant from a seed Slot (BR-T3), till with the hoe, water with the can; an empty or crop Slot
+    /// is NothingToDo. A position outside 0–5 throws.
+    /// </summary>
+    public UsePreview PreviewUse(GridPosition? target, int heldPosition)
+    {
+        var slot = HotbarSlotAt(heldPosition);
+        return PreviewUse(target, HeldItemOf(slot), slot.Index);
+    }
 
-    /// <summary>What the held position of the current row holds, or null when it is empty or holds a crop.</summary>
-    public HeldItem? HeldItemAt(int heldPosition) => throw new NotImplementedException();
+    /// <summary>
+    /// Performs what <see cref="PreviewUse(GridPosition?, int)"/> names from the held slot, or its rejection. Planting
+    /// takes the Seed from that Slot.
+    /// </summary>
+    public ActionResult Use(GridPosition? target, int heldPosition)
+    {
+        var slot = HotbarSlotAt(heldPosition);
+        var preview = PreviewUse(target, HeldItemOf(slot), slot.Index);
+        return preview.Action == UseActionKind.Plant
+            ? PlantFromSlot(target!.Value, slot.Item!.Value.CropTypeId!.Value, slot.Index)
+            : Perform(target, preview, held: null);
+    }
 
-    /// <summary>Decides what Use from the held position would do, without changing state.</summary>
-    public UsePreview PreviewUse(GridPosition? target, int heldPosition) => throw new NotImplementedException();
-
-    /// <summary>Performs what <see cref="PreviewUse(GridPosition?, int)"/> names from the held slot, or its rejection.</summary>
-    public ActionResult Use(GridPosition? target, int heldPosition) => throw new NotImplementedException();
-
-    /// <summary>Decides what Use would do, without changing state.</summary>
-    public UsePreview PreviewUse(GridPosition? target, HeldItem held)
+    /// <summary>
+    /// Decides what Use would do with a held item, without changing state; a seed counts every Slot of it. The game
+    /// uses <see cref="PreviewUse(GridPosition?, int)"/>; this stays for tests that compare against it.
+    /// </summary>
+    internal UsePreview PreviewUse(GridPosition? target, HeldItem held)
     {
         ArgumentNullException.ThrowIfNull(held);
+        return PreviewUse(target, held, slotIndex: null);
+    }
 
+    /// <summary>
+    /// Performs what <see cref="PreviewUse(GridPosition?, HeldItem)"/> names, or returns its rejection; a seed is taken
+    /// from the highest-index Slot holding it.
+    /// </summary>
+    internal ActionResult Use(GridPosition? target, HeldItem held)
+    {
+        var preview = PreviewUse(target, held);
+        return Perform(target, preview, held);
+    }
+
+    // The Use decision: harvest first (BR-T6), then the held item. With a slotIndex, a seed plants from that Slot only.
+    private UsePreview PreviewUse(GridPosition? target, HeldItem? held, int? slotIndex)
+    {
         if (target is not { } position)
         {
             return Rejected(Rejection.NoTarget);
@@ -225,15 +249,18 @@ public sealed class GameSession
                 : new UsePreview(UseActionKind.Harvest, null);
         }
 
-        if (held.Seed is { } seed)
+        if (held?.Seed is { } seed)
         {
             // BR-T3: the domain decides, so the preview and Game.Plant cannot drift apart.
-            return PlantRejection(position, seed) is { } rejection
+            var plantRejection = slotIndex is { } index
+                ? PlantFromSlotRejection(position, seed, index)
+                : PlantRejection(position, seed);
+            return plantRejection is { } rejection
                 ? Rejected(rejection)
                 : new UsePreview(UseActionKind.Plant, null);
         }
 
-        if (held.Tool == ToolId.Hoe)
+        if (held?.Tool == ToolId.Hoe)
         {
             // BR-T2, then BR-P2: the domain decides, so the preview and Game.Till cannot drift apart.
             if (Game.TillRejection(position, Data.Tuning.ToolEnergyCost) is { } rejection)
@@ -244,7 +271,7 @@ public sealed class GameSession
             return new UsePreview(UseActionKind.Till, null);
         }
 
-        if (held.Tool == ToolId.WateringCan)
+        if (held?.Tool == ToolId.WateringCan)
         {
             // BR-T9, BR-W2, then BR-P2: the domain decides, so the preview and Game.Water cannot drift apart.
             return Game.WaterRejection(position, Data.Tuning.ToolEnergyCost) is { } rejection
@@ -255,19 +282,15 @@ public sealed class GameSession
         return Rejected(Rejection.NothingToDo);
     }
 
-    /// <summary>Performs what <see cref="PreviewUse"/> names, or returns its rejection.</summary>
-    public ActionResult Use(GridPosition? target, HeldItem held)
+    // Runs a previewed action; a Plant here plants the held seed through Plant (the int overload plants from its Slot).
+    private ActionResult Perform(GridPosition? target, UsePreview preview, HeldItem? held) => preview.Action switch
     {
-        var preview = PreviewUse(target, held);
-        return preview.Action switch
-        {
-            UseActionKind.Till => Till(target!.Value),
-            UseActionKind.Water => Water(target!.Value),
-            UseActionKind.Plant => Plant(target!.Value, held.Seed!.Value),
-            UseActionKind.Harvest => Harvest(target!.Value),
-            _ => ActionResult.Rejected(preview.Rejection!.Value),
-        };
-    }
+        UseActionKind.Till => Till(target!.Value),
+        UseActionKind.Water => Water(target!.Value),
+        UseActionKind.Plant => Plant(target!.Value, held!.Seed!.Value),
+        UseActionKind.Harvest => Harvest(target!.Value),
+        _ => ActionResult.Rejected(preview.Rejection!.Value),
+    };
 
     /// <summary>Tills a Tile, spending the tuning's tool energy cost (BR-P2). Raises the change events on success.</summary>
     public ActionResult Till(GridPosition position)
@@ -318,6 +341,25 @@ public sealed class GameSession
         var result = Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
             ? Game.Plant(position, cropType)
             : ActionResult.Rejected(PlantRejection(position, cropTypeId)!.Value);
+        if (result.IsOk)
+        {
+            TileChanged?.Invoke(position);
+            InventoryChanged?.Invoke();
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Plants one Seed taken from one Backpack Slot (BR-T3, BR-C1), with the rejections of <see cref="Plant"/>.
+    /// Raises InventoryChanged and TileChanged on success.
+    /// </summary>
+    private ActionResult PlantFromSlot(GridPosition position, CropTypeId cropTypeId, int slotIndex)
+    {
+        // A Crop type with no data row always has a rejection (OutOfSeason at the latest), so it is never planted.
+        var result = Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
+            ? Game.PlantFromSlot(position, cropType, slotIndex)
+            : ActionResult.Rejected(PlantFromSlotRejection(position, cropTypeId, slotIndex)!.Value);
         if (result.IsOk)
         {
             TileChanged?.Invoke(position);
@@ -423,6 +465,39 @@ public sealed class GameSession
         Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
             ? Game.PlantRejection(position, cropType)
             : Game.PlantRejection(position, cropTypeId, season: null);
+
+    // BR-T3, BR-C1: as PlantRejection, with the Seed taken from one Slot. A Crop type with no data row has no Season.
+    private Rejection? PlantFromSlotRejection(GridPosition position, CropTypeId cropTypeId, int slotIndex) =>
+        Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
+            ? Game.PlantFromSlotRejection(position, cropType, slotIndex)
+            : Game.PlantFromSlotRejection(position, cropTypeId, season: null, slotIndex);
+
+    private static void ThrowIfNotAPosition(int heldPosition)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(heldPosition);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(heldPosition, Backpack.RowLength);
+    }
+
+    // A tool or a seed is held; a crop (or any other item) and an empty Slot hold nothing.
+    private static HeldItem? HeldItemOf(BackpackSlot slot) => slot.Item switch
+    {
+        { Kind: ItemKind.Tool, ToolId: { } tool } => HeldItem.Of(tool),
+        { Kind: ItemKind.Seed, CropTypeId: { } seed } => HeldItem.SeedOf(seed),
+        _ => null,
+    };
+
+    private static string SlotLabel(BackpackSlot slot) => slot.Item switch
+    {
+        { Kind: ItemKind.Crop, CropTypeId: { } crop } => $"{CropLabels.For(crop)} × {slot.Quantity}",
+        _ when HeldItemOf(slot) is { } held => held.Seed is null ? held.DisplayLabel : $"{held.DisplayLabel} × {slot.Quantity}",
+        _ => "",
+    };
+
+    private BackpackSlot HotbarSlotAt(int heldPosition)
+    {
+        ThrowIfNotAPosition(heldPosition);
+        return Game.Player.Backpack.HotbarSlots[heldPosition];
+    }
 
     /// <summary>
     /// Ends the Day (BR-G3): raises DayEnded, runs the Night ending with the save (BR-G5), then raises NightCompleted.

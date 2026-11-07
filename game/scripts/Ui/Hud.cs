@@ -18,20 +18,23 @@ namespace LongWayHome.Game.Ui;
 /// The heads-up display, top-left: the energy bar with "Energy &lt;n&gt; / 150", the Watering can's
 /// "Can &lt;charges&gt; / &lt;capacity&gt;", the gold as <see cref="GoldText"/> ("Gold 100"), the carried crops as
 /// <see cref="CropsText"/> ("Crops:" then each carried crop's icon and "Emberroot × 9", or "Crops: none") and the
-/// held item's label (with the seed count when a seed is held). Along the bottom centre, the hotbar: one slot per
-/// entry of <see cref="GameSession.Hotbar"/>, a seed slot showing its <see cref="ItemIcons.SeedIcon"/> left of its
-/// label, the selected one bordered in ember orange. When those full slots would not fit the visible width (less a
-/// <see cref="HotbarMargin"/> each side; both tools and five seed types at × 99 on a 1280 px screen), the seed slots
-/// switch to <see cref="HotbarText.Compact"/> labels ("Emberroot × 99", the packet icon saying it is a seed; the held
-/// label keeps the full name), re-checked when the viewport resizes. Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
+/// held slot's label (with that slot's seed count when a seed is held; empty for an empty slot). Along the bottom
+/// centre, the hotbar: the six slot frames of <see cref="GameSession.Hotbar"/>, the current Backpack row (#129), a seed
+/// slot showing its <see cref="ItemIcons.SeedIcon"/> and a crop slot its <see cref="ItemIcons.CropIcon"/> left of its
+/// label, an empty slot an empty frame of the same minimum size, the held position bordered in ember orange, and
+/// beside them the <see cref="HotbarText.Row"/> label ("Row 1/2"). When those full slots would not fit the visible
+/// width (less a <see cref="HotbarMargin"/> each side), the seed slots switch to <see cref="HotbarText.Compact"/>
+/// labels ("Emberroot × 99", the packet icon saying it is a seed; the held label keeps the full name), re-checked when
+/// the viewport resizes. Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
 /// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Just
 /// above the hotbar, a <see cref="InputGlyphs.ChangeItemHint"/> line ("[Q] [E] Change item" / "(LB) (RB) Change item")
-/// names the buttons that cycle the held item. Bottom centre, above the <see cref="UsePrompt"/>, a
+/// names the buttons that move the held position, and beside it a <see cref="InputGlyphs.CycleRowHint"/> line
+/// ("[X] Next row" / "(View) Next row") the button that cycles the hotbar row. Bottom centre, above the <see cref="UsePrompt"/>, a
 /// "&lt;interact glyph&gt; Refill can" hint shows while the Player is in range of the pond's
 /// <see cref="InteractionPoint"/>, and a "&lt;interact glyph&gt; Sleep" hint in the same place
 /// while in range of the house door's, and a "&lt;interact glyph&gt; Ship crops" hint in the same place while in range
 /// of the shipping bin's, and a "&lt;interact glyph&gt; Shop" hint in the same place while in range of the shop's;
-/// their glyph, and the change-item hint's, follows <see cref="LastInputDevice"/>. Top right, the clock as
+/// their glyph, and the change-item and next-row hints', follows <see cref="LastInputDevice"/>. Top right, the clock as
 /// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>, with the Day's weather as
 /// <see cref="WeatherText"/> ("Clear", "Rain") under it and the date as <see cref="DateText"/> ("Spring 1, Year 1")
 /// under that, and, only when the game is started with <c>--show-fps</c>, the <see cref="FpsCounter"/> under the date.
@@ -107,6 +110,9 @@ public partial class Hud : CanvasLayer
 
     private HBoxContainer _hotbar = null!;
 
+    /// <summary>"Row 1/2", the first child of the hotbar so the fit check counts it; kept across rebuilds.</summary>
+    private Label _rowLabel = null!;
+
     private StyleBoxFlat _slotStyle = null!;
 
     private StyleBoxFlat _selectedSlotStyle = null!;
@@ -122,6 +128,8 @@ public partial class Hud : CanvasLayer
     private Label _shopHint = null!;
 
     private Label _changeItemHint = null!;
+
+    private Label _cycleRowHint = null!;
 
     private Label _clockLabel = null!;
 
@@ -139,6 +147,7 @@ public partial class Hud : CanvasLayer
         _cropsLabel = GetNode<Label>("Panel/Rows/CropsRow/CropsLabel");
         _heldLabel = GetNode<Label>("Panel/Rows/HeldLabel");
         _hotbar = GetNode<HBoxContainer>("Hotbar");
+        _rowLabel = GetNode<Label>("Hotbar/RowLabel");
         _slotStyle = SlotStyle(borderWidth: 0);
         _selectedSlotStyle = SlotStyle(borderWidth: SelectedBorderWidth);
         _refillHint = GetNode<Label>("RefillHint");
@@ -146,6 +155,7 @@ public partial class Hud : CanvasLayer
         _shipHint = GetNode<Label>("ShipHint");
         _shopHint = GetNode<Label>("ShopHint");
         _changeItemHint = GetNode<Label>("ChangeItemHint");
+        _cycleRowHint = GetNode<Label>("CycleRowHint");
         _clockLabel = GetNode<Label>("ClockLabel");
         _weatherLabel = GetNode<Label>("WeatherLabel");
         _dateLabel = GetNode<Label>("DateLabel");
@@ -296,7 +306,9 @@ public partial class Hud : CanvasLayer
         _sleepHint.Text = $"{glyph} Sleep";
         _shipHint.Text = $"{glyph} Ship crops";
         _shopHint.Text = $"{glyph} Shop";
-        _changeItemHint.Text = InputGlyphs.ChangeItemHint(LastInputDevice.DeviceOf(_device));
+        var device = LastInputDevice.DeviceOf(_device);
+        _changeItemHint.Text = InputGlyphs.ChangeItemHint(device);
+        _cycleRowHint.Text = InputGlyphs.CycleRowHint(device);
     }
 
     private void RefreshAll()
@@ -321,9 +333,11 @@ public partial class Hud : CanvasLayer
         _canLabel.Text = $"Can {player.WateringCan.Charges} / {player.WateringCan.Capacity}";
         _goldLabel.Text = GoldText.For(player.Gold.Value);
         RefreshCrops(player);
-        var held = _selection?.Held ?? HeldItem.Of(ToolId.Hoe);
-        _heldLabel.Text = _session.HeldLabel(held);
-        RefreshHotbar(held);
+        var position = _selection?.Position ?? 0;
+        var slots = _session.Hotbar(position);
+        _heldLabel.Text = slots[position].Label;
+        _rowLabel.Text = HotbarText.Row(player.Backpack.HotbarRow, player.Backpack.Capacity);
+        RefreshHotbar(slots);
     }
 
     private void RefreshCrops(PlayerState player)
@@ -356,10 +370,9 @@ public partial class Hud : CanvasLayer
         }
     }
 
-    private void RefreshHotbar(HeldItem held)
+    private void RefreshHotbar(IReadOnlyList<HotbarSlot> slots)
     {
         // Refresh runs on every energy and can change; rebuild the slot nodes only when the slots themselves change.
-        var slots = _session!.Hotbar(held);
         if (slots.SequenceEqual(_hotbarSlots))
         {
             return;
@@ -383,22 +396,35 @@ public partial class Hud : CanvasLayer
     {
         foreach (var child in _hotbar.GetChildren())
         {
-            _hotbar.RemoveChild(child);
-            child.QueueFree();
+            if (child != _rowLabel)
+            {
+                _hotbar.RemoveChild(child);
+                child.QueueFree();
+            }
         }
 
-        var backpack = _session!.Game.Player.Backpack;
         foreach (var slot in _hotbarSlots)
         {
-            var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-            panel.AddThemeStyleboxOverride("panel", slot.Selected ? _selectedSlotStyle : _slotStyle);
-            var text = compact && slot.Item is { Seed: { } seed } seedItem
-                ? HotbarText.Compact(seedItem, backpack.Quantity(ItemRef.Seed(seed)))
-                : slot.Label;
-            var label = OutlinedLabel(text, SlotFontSize);
-            if (slot.Item is { } item && ItemIcons.For(item) is { } icon)
+            // Every slot frame is at least an icon's size, so an empty slot is an empty frame of the same size.
+            var panel = new PanelContainer
             {
-                // A seed slot: its seed icon left of the unchanged label. Tool slots stay text only.
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                CustomMinimumSize = new Vector2(HotbarIconSize + (2 * SlotPaddingX), HotbarIconSize + (2 * SlotPaddingY)),
+            };
+            panel.AddThemeStyleboxOverride("panel", slot.Selected ? _selectedSlotStyle : _slotStyle);
+            var text = compact && slot.Item is { Seed: not null } seedItem
+                ? HotbarText.Compact(seedItem, slot.Quantity)
+                : slot.Label;
+            if (text.Length == 0)
+            {
+                _hotbar.AddChild(panel);
+                continue;
+            }
+
+            var label = OutlinedLabel(text, SlotFontSize);
+            if (SlotIcon(slot) is { } icon)
+            {
+                // A seed or crop slot: its icon left of the unchanged label. Tool slots stay text only.
                 var content = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
                 content.AddChild(IconTextures.Rect(icon, HotbarIconSize));
                 content.AddChild(label);
@@ -412,6 +438,12 @@ public partial class Hud : CanvasLayer
             _hotbar.AddChild(panel);
         }
     }
+
+    /// <summary>A seed slot's seed icon, a crop slot's crop icon, or null (tools and empty slots).</summary>
+    private static string? SlotIcon(HotbarSlot slot) =>
+        slot.Item is { } item
+            ? ItemIcons.For(item)
+            : slot.SlotItem is { Kind: ItemKind.Crop, CropTypeId: { } crop } ? ItemIcons.CropIcon(crop) : null;
 
     /// <summary>A HUD label: <paramref name="fontSize"/> with a black outline of 4, centred vertically on its row.</summary>
     private static Label OutlinedLabel(string text, int fontSize)

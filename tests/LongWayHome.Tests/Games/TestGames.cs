@@ -248,6 +248,13 @@ internal static class TestGames
         (ItemRef.Crop(CropTypeId.Sunbell), 9),
         (ItemRef.Crop(CropTypeId.Starcorn), 10));
 
+    /// <summary>
+    /// The tools and seeds the current hotbar row holds, in slot order; empty and crop slots hold none (#129: replaces
+    /// the removed <c>GameSession.HeldItems()</c>).
+    /// </summary>
+    public static IReadOnlyList<HeldItem> HeldItemsInHotbar(GameSession session) =>
+        session.Hotbar(0).Select(slot => slot.Item).OfType<HeldItem>().ToList();
+
     /// <summary>The two tools then the shipped starting seeds: 10 emberroot (Slot 2) and 5 dusktuber (Slot 3).</summary>
     public static Backpack StartingBackpack() =>
         BackpackWith((ItemRef.Seed(CropTypeId.Emberroot), 10), (ItemRef.Seed(CropTypeId.Dusktuber), 5));

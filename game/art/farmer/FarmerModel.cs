@@ -76,13 +76,13 @@ public partial class FarmerModel : Node3D
     private BoneAttachment3D? _hand;
 
     /// <summary>What to hold once built: <see cref="ShowHeld"/> may be called before <see cref="_Ready"/>.</summary>
-    private HeldItem _held = HeldItem.Of(ToolId.Hoe);
+    private HeldItem? _held = HeldItem.Of(ToolId.Hoe);
 
     /// <summary>The farmer's skeleton, for the animation feature to drive.</summary>
     public Skeleton3D Skeleton { get; private set; } = null!;
 
-    /// <summary>The item now in his right hand.</summary>
-    public HeldItem Held => _held;
+    /// <summary>The item now in his right hand, or null when his hand is empty.</summary>
+    public HeldItem? Held => _held;
 
     public override void _Ready()
     {
@@ -112,7 +112,7 @@ public partial class FarmerModel : Node3D
         Skeleton.AddChild(_hand);
 
         var gather = _gather;
-        ShowHeld(_held);
+        Hold(_held);
         if (gather is { } tool)
         {
             ShowGatherTool(tool);
@@ -127,7 +127,12 @@ public partial class FarmerModel : Node3D
     }
 
     /// <summary>Shows <paramref name="held"/> in his right hand and hides the rest.</summary>
-    public void ShowHeld(HeldItem held)
+    public void ShowHeld(HeldItem held) => Hold(held);
+
+    /// <summary>Leaves his right hand empty (#129: an empty or crop hotbar slot is held).</summary>
+    public void ShowEmptyHand() => Hold(null);
+
+    private void Hold(HeldItem? held)
     {
         _held = held;
         _gather = null;
@@ -141,7 +146,7 @@ public partial class FarmerModel : Node3D
             view.Visible = false;
         }
 
-        if (!_heldViews.ContainsKey(held))
+        if (held is not null && !_heldViews.ContainsKey(held))
         {
             var view = new MeshInstance3D
             {

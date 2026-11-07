@@ -11,7 +11,7 @@ namespace LongWayHome.Game.Ui;
 
 /// <summary>
 /// The Use prompt, bottom centre of the HUD: each frame asks <see cref="GameSession.PreviewUse"/> what Use would do on
-/// the targeted tile with the held item and shows <see cref="UsePromptText"/>'s words for it. An action shows the
+/// the targeted tile from the held hotbar position and shows <see cref="UsePromptText"/>'s words for it. An action shows the
 /// <c>use_tool</c> glyph of the last-used device then the text, in full white ("[Space] Till"); a rejection shows only
 /// the reason, dimmed ("Already watered"); nothing to say hides it (REQ-12). Holds no rules: the decision is
 /// <see cref="GameSession.PreviewUse"/>'s, so the prompt and the action can't disagree.
@@ -30,7 +30,7 @@ public partial class UsePrompt : Label
     private HeldItemSelection? _selection;
 
     /// <summary>What the prompt was last drawn from, or null to force a redraw.</summary>
-    private (UsePreview Preview, HeldItem Held, CropTypeId? Crop, InputDeviceKind Device)? _last;
+    private (UsePreview Preview, HeldItem? Held, CropTypeId? Crop, InputDeviceKind Device)? _last;
 
     public override void _Ready()
     {
@@ -62,8 +62,8 @@ public partial class UsePrompt : Label
         }
 
         var target = _targeting.Target;
-        var held = _selection.Held;
-        var preview = _session!.PreviewUse(target, held);
+        var held = _session!.HeldItemAt(_selection.Position);
+        var preview = _session.PreviewUse(target, _selection.Position);
         var planting = target is { } position ? _session.Game.FarmPlot[position].Planting : null;
 
         // Only redraw when what the prompt is drawn from changes, so an unchanged prompt costs no allocation per frame.

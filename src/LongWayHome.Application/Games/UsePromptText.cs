@@ -9,15 +9,14 @@ public static class UsePromptText
 {
     /// <summary>
     /// The prompt text and whether it names an action (true) or a rejection reason (false), or null to show no
-    /// prompt.
+    /// prompt. <paramref name="held"/> is null when the held hotbar slot is empty or holds a crop.
     /// </summary>
     public static (string Text, bool IsAction)? For(
         UsePreview preview,
-        HeldItem held,
+        HeldItem? held,
         Planting? targetPlanting,
         IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
     {
-        ArgumentNullException.ThrowIfNull(held);
         ArgumentNullException.ThrowIfNull(cropTypes);
 
         if (preview.Action is { } action)
@@ -26,7 +25,7 @@ public static class UsePromptText
             {
                 UseActionKind.Till => ("Till", true),
                 UseActionKind.Water => ("Water", true),
-                UseActionKind.Plant when held.Seed is { } seed => ($"Plant {CropName(seed, cropTypes)}", true),
+                UseActionKind.Plant when held?.Seed is { } seed => ($"Plant {CropName(seed, cropTypes)}", true),
                 UseActionKind.Harvest when targetPlanting is not null =>
                     ($"Harvest {CropName(targetPlanting.CropTypeId, cropTypes)}", true),
                 _ => null,
@@ -52,8 +51,8 @@ public static class UsePromptText
     }
 
     // BR-C1: names the Season of the held Seed's Crop type; a Seed with no data row has no Season to name.
-    private static string OutOfSeason(HeldItem held, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
-        held.Seed is { } seed && cropTypes.TryGetValue(seed, out var cropType)
+    private static string OutOfSeason(HeldItem? held, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        held?.Seed is { } seed && cropTypes.TryGetValue(seed, out var cropType)
             ? $"Out of season — plant in {SeasonLabels.For(cropType.Season)}"
             : "Out of season";
 

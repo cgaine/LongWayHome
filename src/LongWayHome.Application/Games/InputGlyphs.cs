@@ -25,6 +25,7 @@ public static class InputGlyphs
             "camera_rotate_right" => ("[C]", "(R stick)"),
             "camera_zoom_in" => ("[R]", "(R stick)"),
             "camera_zoom_out" => ("[V]", "(R stick)"),
+            "hotbar_cycle" => ("[X]", "(View)"),
             _ => throw new ArgumentOutOfRangeException(nameof(action), action, "No glyph for this action."),
         };
 
@@ -41,7 +42,7 @@ public static class InputGlyphs
         $"{For("tool_prev", device)} {For("tool_next", device)} Change item";
 
     /// <summary>The hotbar row hint: "&lt;hotbar_cycle glyph&gt; Next row", e.g. "[X] Next row".</summary>
-    public static string CycleRowHint(InputDeviceKind device) => throw new NotImplementedException();
+    public static string CycleRowHint(InputDeviceKind device) => $"{For("hotbar_cycle", device)} Next row";
 
     /// <summary>The shop's Close button: "&lt;ui_cancel glyph&gt; Close", e.g. "[Esc] Close".</summary>
     public static string CloseLabel(InputDeviceKind device) => $"{For("ui_cancel", device)} Close";
