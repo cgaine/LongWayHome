@@ -19,7 +19,7 @@ The rule sets how far each kind of thing can go:
 | How far from Earth | What it covers | Why |
 | --- | --- | --- |
 | **Mostly familiar** | Tools, furniture, boats, roads, the residents' clothes | These carry the cozy cabin-country feel. They are made by people, so they can look like home. |
-| **Familiar shapes, alien materials** | Buildings and fences | Decided: buildings are "grown, not built" (section 7.1). They keep cabin shapes and doors you recognise, but are made from living native timber and leaves. |
+| **Familiar shapes, alien materials** | Buildings and fences | Decided: buildings are "grown, not built" (section 7.1). Decided 2026-11-07: they are round, drums under a cone of leaves, with doors and windows you recognise, made from living native timber and leaves. |
 | **Clearly alien, still readable** | Plants, crops, animals, the sky, the light at night | This is where the planet shows itself. Each thing keeps an Earth shape you can recognise, so it stays readable. |
 | **Really foreign** | The crashed ship, the strange metal from the deep mine, the lights in the deep levels | These things don't belong to Ember Bay either, so they should look out of place on this planet too. |
 
@@ -370,21 +370,23 @@ The head grows with what the tool covers: the hoe blade widens from 1 tile to 5 
 
 ### 7.1 The farmhouse: grown, not built
 
-Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse page: the run-down, restored and night board, and the "A little more alien" board)
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse page: the round farmhouse, and its run-down, restored and night board)
 
 **Decided direction: "Grown, not built".** Four directions were compared: the Earth-style cabin, grown, a toadstool-cap roof and a lake-shell roof. Grown was chosen. Ember Bay's people don't just cut timber; they grow their buildings, coaxing living native trees into posts and roofs. It sets the look for the whole town, not just the farmhouse.
 
+**Decided: round** (2026-11-07). Like every building in town, the farmhouse is a round drum of living timber under a cone of leaves, like a hollow tree grown into a home. Round reads as more grown and more alien than a gabled cabin, and looks the same from every camera angle. The gabled drawings have been removed from the canvas.
+
 **What it is:** an old Ember Bay home in the meadow, left empty when families moved away. Maggie shows the farmer to it on day one, and it becomes his first home on the planet.
 
-**Familiar shape, alien material.** It still reads as a cabin from across the farm: a gabled roof, a door in the middle facing the plot, two windows and a stone base. Up close, it's grown:
+**Familiar shape, alien material.** It still reads as a home from across the farm: a round drum under a cone of leaves, a door in the middle facing the plot, two windows and a stone base. Up close, it's grown:
 
-- **Living corner posts:** twisted violet trunks that are still alive, branching at the top into small blue-green leaf clusters with violet undersides.
-- **Leaf roof:** giant overlapping teal leaves in rows instead of shingles, with a fringe of leaf tips hanging over the eaves and the gable edges, and a new frond sprouting from the ridge.
-- **Mauve timber walls:** planks of native wood with a wavy grain.
-- **Arched windows and door,** and a leaf-shaped attic window in the gable.
+- **Living trunk ribs:** twisted violet trunks that are still alive climb the walls and run up the roof to the crown, with small blue-green leaf clusters with violet undersides where they meet the eaves.
+- **Leaf roof:** a cone of giant overlapping teal leaves in rings instead of shingles, with a fringe of leaf tips hanging over the eaves, and a new frond sprouting from the crown.
+- **Mauve timber walls:** curved staves of native wood with a wavy grain.
+- **Arched windows and door.**
 - **Ember-orange door with a spiral carving:** the town's warm accent and the planet's spiral motif.
 
-**At night:** the leaf tips along the eaves and on the posts glow cyan, and the windows glow warm amber with light spilling onto the ground: the town's warm light against the planet's cool glow (section 2).
+**At night:** the leaf tips along the eaves and the frond at the crown glow cyan, and the windows glow warm amber with light spilling onto the ground: the town's warm light against the planet's cool glow (section 2).
 
 **A piece of the ship.** His first repair is to patch the worst gap in the leaf roof with a hull panel from the crash: pale blue-silver, riveted, with a navy stripe. It stays when the house is restored, and new leaves grow up around its edges, so a little of the ship is always part of his home.
 
@@ -395,13 +397,13 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (The Farmhouse pa
 | Run-down (day one) | Wilted olive-brown leaf roof with thinning rows and several gaps; drooping, dry leaf tips; bare grey trunks with dead twigs instead of leaf clusters; greyed walls with missing planks; one window boarded up and one cracked; the faded door left ajar; weeds and a creeper at the base; fallen leaves on the ground. No glow at night. |
 | Restored | Green leaf roof in full rows, with the hull-panel patch; fresh teal leaf tips; living violet trunks with leaf clusters and new shoots; mauve walls; arched windows with clean glass; the ember-orange door with its spiral carving; a flower box of native plants; a lantern by the door; a stone chimney with smoke. |
 
-A stone chimney sits on the back half of the roof in both states.
+A stone chimney rises behind the cone in both states.
 
 **What restores it.** Decided: a house upgrade that becomes available once the carpenter (Tom) moves back to Ember Bay. Until then the house stays run-down, apart from the hull-panel patch. Ordering the upgrade from Tom switches it from run-down to restored. Cost and build time are a gameplay decision, still to set in the design doc.
 
 **Palette:** mauve timber `#9C7E8C` (side `#7E6474`, grain `#6E5664`, trim `#5A4458`), living trunks `#6B5A78`, run-down: wilted roof `#8A7A4A`, dry tips `#9A7E44`, grey trunks `#6E6670`, greyed walls `#8A7C80`; leaf roof `#3E8F82` (rows `#2F7266`, tips `#4FA294`, far side `#2F6B60`), ember door `#E9773A`, stone `#8F8A96`, window glow `#FFB04A`, leaf-tip glow `#6FF2E0`.
 
-**Fits the game:** the same 6 x 4 m footprint and 3 m walls as now, with the door on the side facing the plot, so the collision box and the sleep door point don't move. The roof is a little taller than the prototype's, and the posts and leaf fringe stick out by a few centimetres, which doesn't affect collision. The front step stays within about 0.3 m of the wall, clear of the shipping bin.
+**Fits the game:** a drum about 5 m across with 3 m walls, centred where today's 6 x 4 m box is, with the door in the same place on the side facing the plot, so the sleep door point doesn't move. The collision becomes a short cylinder (about 2.5 m radius) instead of the box. The cone roof is taller than the prototype's, and the ribs and leaf fringe stick out by a few centimetres, which doesn't affect collision. The front step stays within about 0.3 m of the wall, clear of the shipping bin.
 
 **For the town:** every rebuilt building is grown the same way, and the grown look is how restoration shows: a building that comes back to life sprouts new leaves.
 
@@ -436,7 +438,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 
 Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings page)
 
-**Grown, like the farmhouse.** Every town building uses the farmhouse's language (section 7.1): living violet trunk posts, leaf roofs, mauve timber, arched windows and an ember-orange door. Buildings are told apart by silhouette and props, so each one reads from across the square and from any camera angle.
+**Grown and round, like the farmhouse.** Every town building uses the farmhouse's language (section 7.1): a round drum of mauve timber under a cone of leaves, living violet trunk ribs, arched windows and an ember-orange door. Buildings are told apart by silhouette and props, so each one reads from across the square and from any camera angle.
 
 **Restoration is visible.** Before a rebuild, a building looks like the run-down farmhouse: wilted leaves, gaps in the roof, boarded windows and weeds. Each rebuild stage makes it more alive: fresh leaves first, then new growth and extensions grown onto the side. This follows "a building that comes back to life sprouts new leaves" (section 7.1).
 
@@ -468,7 +470,7 @@ The two things beside the plot that the farmer uses every day. Each shows where 
 - **Night:** Hearth and Wisp reflect gold and blue, and the coilwillow's strand tips glow cyan over the water.
 - **Fits the game:** 5 m across with a 3 m deep centre, as now. The bank follows the existing collision edge.
 
-**The shipping bin.** Round, like the round buildings explored on the Town page: a squat drum of mauve timber staves under a small cone of leaves, with a leaf-tip fringe and a sprout for a handle. Two living violet trunk ribs climb its sides, an ember-orange band runs under the lid, and Maggie's round sprout sign on the front marks it as the store's bin.
+**The shipping bin.** Round, like the town's buildings: a squat drum of mauve timber staves under a small cone of leaves, with a leaf-tip fringe and a sprout for a handle. Two living violet trunk ribs climb its sides, an ember-orange band runs under the lid, and Maggie's round sprout sign on the front marks it as the store's bin.
 
 | State | Look |
 | --- | --- |
@@ -540,7 +542,8 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (HUD and menus pa
 
 ## 9. Open questions
 
-- [x] How alien overall? Decided: a little further than the first draft for buildings, which are "grown, not built" (section 7.1). The rest keeps "familiar at first, different on a second look".
+- [x] How alien overall? Decided: a little further than the first draft for buildings, which are "grown, not built" (section 7.1).
+- [x] Building shape: decided 2026-11-07, round for every building, the farmhouse included (section 7.1). The rest keeps "familiar at first, different on a second look".
 - [ ] Moon names: Hearth and Wisp, or something else?
 - [x] Townsfolk differences: pointed ears, a cool undertone in the shadows, cheek marks unique to each person, non-Earth hair colours, and hair and marks that glow in each person's own colour after dark (section 6.2)
 - [x] The farmer: fixed character for now; customisation is a future enhancement
