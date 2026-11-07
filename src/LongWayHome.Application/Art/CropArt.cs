@@ -128,9 +128,11 @@ public static class CropArt
 {
     private static readonly Dictionary<(CropTypeId Crop, GrowthStage Stage), IReadOnlyList<CropPart>> Models = Build();
 
-    /// <summary>The parts of a crop's model at a growth stage, or <c>null</c> for a crop not drawn to the art yet.</summary>
-    public static IReadOnlyList<CropPart>? Parts(CropTypeId crop, GrowthStage stage) =>
-        Models.TryGetValue((crop, stage), out var parts) ? parts : null;
+    /// <summary>The parts of a crop's model at a growth stage.</summary>
+    public static IReadOnlyList<CropPart> Parts(CropTypeId crop, GrowthStage stage) =>
+        Models.TryGetValue((crop, stage), out var parts)
+            ? parts
+            : throw new NotImplementedException($"{crop} {stage} is not drawn yet (#92).");
 
     /// <summary>
     /// Width is the larger of the X and Z extents of the parts' axis-aligned bounds (each part's rotated box); Height

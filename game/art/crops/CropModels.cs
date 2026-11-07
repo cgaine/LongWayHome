@@ -31,8 +31,16 @@ public static class CropModels
             return cached;
         }
 
-        var parts = CropArt.Parts(crop, stage);
-        var mesh = parts is null ? null : ArtMeshes.Merge(parts.Select(ToMeshPart));
+        ArrayMesh? mesh;
+        try
+        {
+            mesh = ArtMeshes.Merge(CropArt.Parts(crop, stage).Select(ToMeshPart));
+        }
+        catch (System.NotImplementedException)
+        {
+            mesh = null;
+        }
+
         Meshes[(crop, stage)] = mesh;
         return mesh;
     }
