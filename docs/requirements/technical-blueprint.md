@@ -1,6 +1,6 @@
 # Long Way Home — Technical Blueprint
 
-How the game is built. Inputs: [product-definition.md](product-definition.md) (phases, constraints, §9 deferred technology points), [domain-model.md](domain-model.md) (single-context, Phase 1, rules `BR-G*`, `BR-P*`, `BR-W*`, `BR-T*`, `BR-C*`, `BR-S*`, `BR-L*`) and [canonical-values.md](canonical-values.md).
+How the game is built. Inputs: [product-definition.md](product-definition.md) (phases, constraints, §9 deferred technology points), [domain-model.md](domain-model.md) (single-context, Phase 1 rules `BR-G*`, `BR-P*`, `BR-W*`, `BR-T*`, `BR-C*`, `BR-S*`, `BR-L*`; Phase 2 adds `BR-K*`, `BR-N*`, `BR-F*`, `BR-B*`, `BR-O*`, `BR-U*`, `BR-M*`, `BR-A*`, `BR-R*`, `BR-I*`) and [canonical-values.md](canonical-values.md).
 
 **Scope.** Phase 1 — Godot rebuild, built so later phases add to it without restructuring. This is a single-player desktop game, not a web app, so the team's standard web choices (Minimal API, React SPA, Azure hosting, Aspire, PostgreSQL, JWT auth) **do not apply** and are not used.
 
@@ -87,6 +87,7 @@ Folders: `Games/` (Game, GameDate, ClockMinutes, Weather, DayEndReason), `Player
 - `NightProcessor` runs the Night steps in the fixed order from the domain model: growth (BR-T4) → payout (BR-S2) → date (BR-G1) → weather (BR-G4) → watering reset and rain (BR-T7) → energy (BR-P3, BR-P4) → save (BR-G5). It is one method so the order is tested in one place.
 - `NewGameFactory` builds the starting state (BR-P6, BR-T1).
 - `ShopService` lists today's offers (BR-L1) and buys (BR-L2).
+- **Phase 2** *(planned, REQ-44 to REQ-51, REQ-57, REQ-58)*: `GameSession` gains `Swing` (axe or pickaxe on a node), `PickUp`, `CycleHotbar`, `Place`/`PickUpPlaced`, `SellToMaggie`, `Deliver` (rebuild sign), `PlaceOrder`/`CollectOrder`, `UsePump`, `EnterArea`/`EnterMineLevel` and the Opening steps. `NightProcessor` takes the Phase 2 order from the domain model: growth → payout (once the bin exists) → rebuilds → orders → residents → dropped items cleared → node regrowth → date → weather → watering reset → energy → save, still one method with one order test. `NewGameFactory` places the meadow's starting nodes from `NodeSpawn` (BR-N7). Node regrowth (BR-N4) uses no randomness: it is a fixed 2-Night wait, so it's testable without `IRandomSource`.
 - Ports: `IGameDataSource` (crop types, shop listings, tuning), `ISaveStore` (list, load, save slots), `IRandomSource` (weather roll; seeded in tests).
 - Events out to the presentation layer: `GameSession` raises C# events (`TileChanged`, `InventoryChanged`, `DayEnded`, `NightCompleted`). The Godot layer subscribes; the core never calls into Godot.
 
@@ -95,6 +96,8 @@ Folders: `Games/` (Game, GameDate, ClockMinutes, Weather, DayEndReason), `Player
 - `JsonGameDataSource` parses `crops.json`, `shop.json` and `tuning.json` **from strings**. The Godot layer reads the files with `Godot.FileAccess`, because `res://` files are packed into the `.pck` in exported builds and `System.IO` can't open them. Validation on load enforces BR-C2 and that every reference resolves.
 - `JsonSaveStore` writes one file per slot under a folder path it's given (the Godot layer passes the globalized `user://saves` path). Writes go to a temp file and are then renamed, so a crash mid-save never corrupts the slot.
 - Save files carry `saveVersion`. `SaveMigrator` upgrades older versions step by step when later phases add data (backpack slots, buildings), so Phase 1 saves keep loading.
+- *(planned, REQ-47)* Phase 2 writes `saveVersion` 2. The 1 → 2 step follows the domain model's migration note (12 x 9 tiles into the cleared start region, `openingDone` true, stacks into slots, can upgrade → Rosk can, store at stage 1), with its own migration test.
+- *(planned, REQ-44, REQ-45, REQ-48, REQ-49, REQ-57)* New reference data files beside `crops.json`: `materials.json`, `nodes.json` (spawn points per area and mine level), `buildings.json` (stage costs and unlocks), `orders.json` (recipes) and `tools.json` (tier effects); `shop.json` gains vendor and stage columns. All parsed from strings and validated on load like the crop table.
 
 ### Presentation (the Godot project)
 
@@ -172,6 +175,12 @@ game/
 - **Art sandbox:** starting with the user argument `--art-sandbox` (`godot --path game -- --art-sandbox` from source, `<exported binary> -- --art-sandbox` on the Deck; combinable with `--show-fps`) makes the title screen open `art/sandbox/ArtSandbox.tscn` instead of the save slots, once per run. It is where shading and colour are judged on the Deck before art reaches the farm, and `pause` returns to the title screen. Its camera turns and zooms like the follow camera, and the `move_*` actions (left stick, D-pad, WASD, arrow keys) slide it left, right, forward and back. It also shows the concept art's round farmhouse (`RoundFarmhouseArt`, run-down and restored), the Twinbough at each stage and season (`TreeArt`), the rocks the pickaxe breaks (`RockArt`), the farmer holding the Phase 2 axe and pickaxe (`HeldItemArt.PartsFor(GatherTool)`, through `FarmerModel.ShowGatherTool`) the tool and material icons (`ItemIcons.ToolIcon`, `ItemIcons.MaterialIcon`), the general store and the carpenter at each rebuild stage with their rebuild signs (`GeneralStoreArt`, `CarpenterArt`, `RebuildSignArt`), none of which the game uses yet. Gameplay scenes adopt approved art by instancing scenes and materials from `art/` (the meadow, #77; the farmhouse, #104; the player scene's `Model` instances `art/farmer/Farmer.tscn`, #102), never anything under `art/sandbox/`; scripts other than `SaveSlotsMenu` reference nothing in `art/` except the shared material helpers `ArtMaterials` and `ArtMeshes` (the tile slabs, #78) and the crop builder `CropModels` (#90), the farmer's `FarmerModel` (found by type under the Player's `Model` by `HeldItemView`, #102) and the farmer's clip names from `FarmerAnimations` (used by `FarmerAnimator`, #103), and the seed and crop icons in `art/icons/` (#95; their paths come from `ItemIcons` in `LongWayHome.Application/Art/`, so no script names an `art/` path), and never the sandbox.
 - **Renderer:** Forward+ by default. The Steam Deck target is a steady 30 fps at 1280 × 800 (REQ-14); if it's missed, the fallback is the Mobile renderer with a lower resolution scale, and the frame rate is capped at 30 on Deck to save battery.
 
+### Areas and scenes *(planned, REQ-16, REQ-48, REQ-49, REQ-17)*
+
+- Each Area (`farm`, `forest_path`, `town`, `lakeshore`, `across_river`) is its own scene, and each mine level 1–5 is one scene, loaded one at a time. Walking off an Area's edge or taking the mine stairs swaps the scene; `GameSession` keeps the whole `Game`, so leaving an Area loses nothing. Only the current Area is in memory and drawn.
+- The farm scene grows to the 72 x 36 meadow (BR-T1). Resource nodes are drawn as one `MultiMeshInstance3D` per node kind and stage, built from the core's node list, the same way the meadow props are, so hundreds of trees and rocks stay a handful of draw calls.
+- The Opening and Maggie's mine story are scripted sequences in the presentation layer that call `GameSession` commands for each step; the core only records `openingDone` and the story having been told. Dialogue boxes are menus, so the clock pauses (BR-G2).
+
 ## 4. Key patterns
 
 | Pattern | Where | Why |
@@ -238,6 +247,7 @@ There is no database and no server. Upgrade path: only `ISaveStore` changes if t
 | Later phases change the save shape | `saveVersion` plus `SaveMigrator`, with a migration test per version | Developer |
 | Rules leak into node scripts over time | Review rule: scripts call `GameSession` only; any `BR-` logic belongs in the core and its tests | Developer |
 | Steam Deck frame rate or legibility falls short | Low-poly art, renderer and resolution fallback, Deck testing in every phase | Developer |
+| The 72 x 36 meadow and its nodes push the Steam Deck under 30 fps *(planned, REQ-16)* | One area loaded at a time; MultiMesh per node kind; the farm tile slabs batched per row or chunk; measure on the Deck with `--show-fps` when the meadow lands, and shrink the draft size (a tuning number) if it can't hold | Developer |
 | Godot or .NET version upgrades break the build | Pin both; upgrade on a branch with a CI export | Developer |
 | Solo scope pressure | Phases follow the product definition's promises; the core/presentation split keeps rule changes cheap | Product owner |
 
