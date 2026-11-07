@@ -288,6 +288,13 @@ public sealed class Backpack
         _slots[index] = slot with { ToolTier = tier };
     }
 
+    /// <summary>
+    /// Moves the contents of Slot <paramref name="from"/> onto Slot <paramref name="to"/>: into an empty Slot (move),
+    /// onto the same non-tool item up to 99 (merge), or else swapping the two (BR-K2, BR-K6). False and no change when
+    /// nothing moved; an index outside 0..Capacity − 1 throws.
+    /// </summary>
+    public bool Move(int from, int to) => throw new NotImplementedException();
+
     /// <summary>Raises the capacity to 24 or 36, appending empty Slots; never down (BR-K1).</summary>
     public void RaiseCapacity(int capacity)
     {

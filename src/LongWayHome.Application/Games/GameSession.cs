@@ -186,6 +186,15 @@ public sealed class GameSession
     }
 
     /// <summary>
+    /// Moves Backpack Slot <paramref name="from"/> onto <paramref name="to"/> through <see cref="Backpack.Move"/> and
+    /// raises InventoryChanged when something moved. Costs no energy; nothing else changes.
+    /// </summary>
+    public bool MoveSlot(int from, int to) => throw new NotImplementedException();
+
+    /// <summary>Every Backpack Slot in index order with its label and icon, plus the hotbar row and the capacity.</summary>
+    public BackpackView BackpackView() => throw new NotImplementedException();
+
+    /// <summary>
     /// The six slots of the current hotbar row (BR-K5), position 0–5, with <paramref name="heldPosition"/> selected.
     /// Labels: "Hoe", "Watering can", "Emberroot seeds × 12" and "Emberroot × 7" with that Slot's quantity, and "" for
     /// an empty Slot. A position outside 0–5 throws.
