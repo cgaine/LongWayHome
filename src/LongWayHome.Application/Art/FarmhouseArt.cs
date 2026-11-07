@@ -339,7 +339,7 @@ public static class FarmhouseArt
         const float archDiameter = 1.155f;
         const float archCentre = 1.83f;
         var hinge = new Vector3(hingeX, 0f, hingeZ);
-        Vector3 OnDoor(float along, float y, float outward) => hinge + Rotate(new Vector3(along, 0f, outward), 0f, DoorYaw, 0f) + new Vector3(0f, y, 0f);
+        Vector3 OnDoor(float along, float y, float outward) => hinge + PartBox.Rotate(new Vector3(along, 0f, outward), 0f, DoorYaw, 0f) + new Vector3(0f, y, 0f);
 
         var leaf = OnDoor(width / 2f, (PlinthTop + archCentre) / 2f, 0f);
         parts.Add(Box("Door", width, archCentre - PlinthTop, thickness, leaf, "door-faded", yaw: DoorYaw));
@@ -364,7 +364,7 @@ public static class FarmhouseArt
         {
             // Lower edge from the shoulder (side·run, shoulder) to the apex (0, shoulder + rise); the board above it.
             var mid = new Vector3(side * run / 2f, shoulder + rise / 2f, frameZ + 0.002f);
-            var up = Rotate(new Vector3(0f, boardHeight / 2f, 0f), 0f, 0f, -side * angle);
+            var up = PartBox.Rotate(new Vector3(0f, boardHeight / 2f, 0f), 0f, 0f, -side * angle);
             parts.Add(Box(side < 0 ? "DoorArchBoardWest" : "DoorArchBoardEast", length, boardHeight, 0.03f, mid + up, "timber-trim", roll: -side * angle));
         }
     }
@@ -479,7 +479,7 @@ public static class FarmhouseArt
                     var lift = 0.05f + 0.008f * (i % 2);
                     var centre = OnSlope(side, x, s, lift);
                     parts.Add(Box($"RoofLeaf{slope}{row}_{i}", w, LeafLength, 0.04f, centre, role, pitch: pitch, roll: roll));
-                    var tip = centre + Rotate(new Vector3(0f, LeafLength / 2f + TipLength / 2f, 0f), pitch, 0f, roll);
+                    var tip = centre + PartBox.Rotate(new Vector3(0f, LeafLength / 2f + TipLength / 2f, 0f), pitch, 0f, roll);
                     parts.Add(new CropPart($"RoofTip{slope}{row}_{i}", CropPartShape.Prism, w, TipLength, 0.04f,
                         tip.X, tip.Y, tip.Z, pitch, 0f, roll, "tips-dry"));
                 }
@@ -550,7 +550,7 @@ public static class FarmhouseArt
         {
             var part = Rising($"RoofFrond{i}", frond[i].Width, segment, 0.02f, at0, frond[i].Tilt, 0f, "tips-dry");
             parts.Add(part);
-            at0 += Rotate(new Vector3(0f, segment, 0f), frond[i].Tilt, 0f, 0f);
+            at0 += PartBox.Rotate(new Vector3(0f, segment, 0f), frond[i].Tilt, 0f, 0f);
         }
     }
 
@@ -563,7 +563,7 @@ public static class FarmhouseArt
         var pitch = SlopePitch(1, 0f);
         var normal = new Vector3(0f, SlopeCos, SlopeSin);
         var centre = OnSlope(1, x, s, lift);
-        Vector3 OnPanel(float across, float down, float above) => centre + Rotate(new Vector3(across, down, 0f), pitch, 0f, roll) + normal * above;
+        Vector3 OnPanel(float across, float down, float above) => centre + PartBox.Rotate(new Vector3(across, down, 0f), pitch, 0f, roll) + normal * above;
 
         parts.Add(Box("PatchPanel", 1.2f, 0.9f, 0.03f, centre, "ship-metal", pitch: pitch, roll: roll));
         parts.Add(Box("PatchStripe", 1.2f, 0.14f, 0.012f, OnPanel(0f, 0.12f, 0.018f), "navy", pitch: pitch, roll: roll));
@@ -609,7 +609,7 @@ public static class FarmhouseArt
         for (var i = 0; i < 5; i++)
         {
             var roll = i % 2 == 0 ? 20f : -20f;
-            var dir = Rotate(new Vector3(0f, strand, 0f), 0f, 0f, roll);
+            var dir = PartBox.Rotate(new Vector3(0f, strand, 0f), 0f, 0f, roll);
             var centre = at + dir / 2f;
             parts.Add(Box($"Creeper{i}", 0.035f, strand, 0.015f, centre, "foliage", roll: roll));
             if (i > 0) parts.Add(Box($"CreeperLeaf{i}", 0.09f, 0.06f, 0.015f, at + new Vector3(i % 2 == 0 ? 0.07f : 0.03f, 0f, 0.004f), "foliage", roll: 30f));
@@ -620,7 +620,7 @@ public static class FarmhouseArt
         for (var i = 0; i < 3; i++)
         {
             var roll = -55f + 15f * i;
-            var dir = Rotate(new Vector3(0f, 0.36f, 0f), 0f, 0f, roll);
+            var dir = PartBox.Rotate(new Vector3(0f, 0.36f, 0f), 0f, 0f, roll);
             parts.Add(Box($"CreeperWall{i}", 0.03f, 0.36f, 0.012f, wall + dir / 2f, "foliage", roll: roll));
             wall += dir;
         }
@@ -643,13 +643,7 @@ public static class FarmhouseArt
     /// <summary>A box rising from <paramref name="from"/>: tilted <paramref name="tilt"/>° from upright towards its yaw.</summary>
     private static CropPart Rising(string name, float sizeX, float length, float sizeZ, Vector3 from, float tilt, float yaw, string role)
     {
-        var centre = from + Rotate(new Vector3(0f, length / 2f, 0f), tilt, yaw, 0f);
+        var centre = from + PartBox.Rotate(new Vector3(0f, length / 2f, 0f), tilt, yaw, 0f);
         return new CropPart(name, CropPartShape.Box, sizeX, length, sizeZ, centre.X, centre.Y, centre.Z, tilt, yaw, 0f, role);
     }
-
-    /// <summary>Godot's Euler YXZ rotation, Ry(yaw)·Rx(pitch)·Rz(roll), applied to a vector.</summary>
-    private static Vector3 Rotate(Vector3 v, float pitchDegrees, float yawDegrees, float rollDegrees) =>
-        Vector3.Transform(v, Quaternion.CreateFromYawPitchRoll(Radians(yawDegrees), Radians(pitchDegrees), Radians(rollDegrees)));
-
-    private static float Radians(float degrees) => degrees * MathF.PI / 180f;
 }

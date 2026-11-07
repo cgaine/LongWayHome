@@ -53,5 +53,10 @@ internal static class PartBox
         return any ? (min, max) : (Vector3.Zero, Vector3.Zero);
     }
 
+    /// <summary>Godot's Euler YXZ rotation, Ry(yaw)·Rx(pitch)·Rz(roll), applied to a vector.</summary>
+    public static Vector3 Rotate(Vector3 v, float pitchDegrees, float yawDegrees, float rollDegrees) =>
+        Vector3.Transform(v, Quaternion.CreateFromYawPitchRoll(
+            Radians(yawDegrees), Radians(pitchDegrees), Radians(rollDegrees)));
+
     private static float Radians(float degrees) => degrees * MathF.PI / 180f;
 }

@@ -14,14 +14,16 @@ namespace LongWayHome.Game.Art;
 /// <see cref="ArtMeshes.Merge"/> merges them into one mesh whose UVs point at each part's palette swatch, so the whole
 /// house is one opaque draw under <see cref="ArtMaterials.Shared"/>, casting shadows, with no glow (REQ-14). Its origin
 /// is the house's footprint centre on the ground. It has no collision (the farm's <c>House</c> body keeps its own box)
-/// and reads no game state.
+/// and reads no game state. The merged mesh is built once and shared, so loading the farm again does not rebuild it.
 /// </summary>
 public partial class FarmhouseView : Node3D
 {
+    private static ArrayMesh? _runDown;
+
     public override void _Ready()
     {
         var model = GetNode<MeshInstance3D>("Model");
-        model.Mesh = ArtMeshes.Merge(FarmhouseArt.RunDown.Select(ToMeshPart));
+        model.Mesh = _runDown ??= ArtMeshes.Merge(FarmhouseArt.RunDown.Select(ToMeshPart));
         model.MaterialOverride = ArtMaterials.Shared;
         model.CastShadow = GeometryInstance3D.ShadowCastingSetting.On;
     }
