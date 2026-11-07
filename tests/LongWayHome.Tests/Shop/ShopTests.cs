@@ -101,8 +101,8 @@ public class ShopTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(new Gold(85), game.Player.Gold);
-        Assert.Single(game.Player.Inventory.Stacks, stack => stack.Kind == ItemKind.Seed && stack.CropTypeId == CropTypeId.Emberroot);
-        Assert.Equal(11, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Single(TestGames.Stacks(game.Player.Backpack), stack => stack.Kind == ItemKind.Seed && stack.CropTypeId == CropTypeId.Emberroot);
+        Assert.Equal(11, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
     }
 
     /// <summary>Tools, 90 emberroot seeds in Slot 2, every other Slot full: room for exactly 9 more emberroot seeds.</summary>
@@ -190,10 +190,10 @@ public class ShopTests
 
         Assert.Equal(
             [
-                new InventoryStack(ItemKind.Seed, CropTypeId.Emberroot, 10),
-                new InventoryStack(ItemKind.Seed, CropTypeId.Dusktuber, 6),
+                (ItemKind.Seed, CropTypeId.Emberroot, 10),
+                (ItemKind.Seed, CropTypeId.Dusktuber, 6),
             ],
-            game.Player.Inventory.Stacks);
+            TestGames.Stacks(game.Player.Backpack));
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class ShopTests
         var result = session.Buy("seed_sunbell");
 
         Assert.Equal(ActionResult.Ok, result);
-        Assert.Equal(1, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Sunbell));
+        Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Sunbell)));
         Assert.Contains(HeldItem.SeedOf(CropTypeId.Sunbell), session.HeldItems());
     }
 
@@ -242,7 +242,7 @@ public class ShopTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(new Gold(0), game.Player.Gold);
-        Assert.Equal(6, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
+        Assert.Equal(6, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
     }
 
     [Fact]
@@ -290,7 +290,7 @@ public class ShopTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(new Gold(295), game.Player.Gold);
-        Assert.Equal(9, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
+        Assert.Equal(9, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
     }
 
     [Theory]
@@ -318,14 +318,17 @@ public class ShopTests
     }
 
     [Fact]
-    public void BR_L2_a_seed_stack_past_int_max_throws_overflow_and_takes_no_gold()
+    public void BR_L2_a_seed_stack_past_what_the_backpack_holds_is_refused_and_takes_no_gold()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, int.MaxValue);
+        // BR-K2: a Slot holds at most 99, so every Slot full of emberroot seeds is as many as can be carried.
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 10 * Backpack.MaxStack);
         var game = TestGames.WithGold(100, TestGames.FirstDay, inventory);
         var before = Snapshot(game);
 
-        Assert.Throws<OverflowException>(() => ShopService.Buy(game, TestGames.Shipped, "seed_emberroot"));
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot");
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
         Assert.Equal(before, Snapshot(game));
     }
 
@@ -364,7 +367,7 @@ public class ShopTests
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(["InventoryChanged", "PlayerChanged"], events.Order());
         Assert.Equal(new Gold(85), session.Game.Player.Gold);
-        Assert.Equal(11, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(11, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
     }
 
     [Fact]
@@ -402,7 +405,7 @@ public class ShopTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(new Gold(295), session.Game.Player.Gold);
-        Assert.Equal(9, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
+        Assert.Equal(9, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
     }
 
     [Theory]
@@ -594,12 +597,12 @@ public class ShopTests
     public void BR_L2_buying_the_upgrade_adds_nothing_to_the_inventory()
     {
         var game = TestGames.WithGold(1000);
-        var inventory = TestGames.FullSnapshot(game).Inventory;
+        var inventory = TestGames.Stacks(game.Player.Backpack);
 
         var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
 
         Assert.Equal(ActionResult.Ok, result);
-        Assert.Equal(inventory, TestGames.FullSnapshot(game).Inventory);
+        Assert.Equal(inventory, TestGames.Stacks(game.Player.Backpack));
     }
 
     [Fact]
@@ -743,7 +746,7 @@ public class ShopTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(new Gold(85), game.Player.Gold);
-        Assert.Equal(11, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(11, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
         Assert.Equal((20, 20, false), CanState(game));
     }
 

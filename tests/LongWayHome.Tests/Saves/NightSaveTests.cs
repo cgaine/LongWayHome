@@ -188,7 +188,7 @@ public sealed class NightSaveTests : IDisposable
         Assert.Equal(DayEndReason.PassedOut, passedOut.LastDayEnd);
         Assert.NotEqual(slept.Player.Energy, passedOut.Player.Energy);
         Assert.Equal(slept.Player.Gold, passedOut.Player.Gold);
-        Assert.Equal(slept.Player.Inventory.Stacks, passedOut.Player.Inventory.Stacks);
+        Assert.Equal(TestGames.Stacks(slept.Player.Backpack), TestGames.Stacks(passedOut.Player.Backpack));
         Assert.Equal(slept.ShippingBin.Items, passedOut.ShippingBin.Items);
         Assert.Equal(TestGames.FullSnapshot(slept).Tiles, TestGames.FullSnapshot(passedOut).Tiles);
         Assert.Equal(slept.Date, passedOut.Date);

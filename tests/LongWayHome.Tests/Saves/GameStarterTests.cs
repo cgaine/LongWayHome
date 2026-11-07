@@ -104,14 +104,15 @@ public sealed class GameStarterTests : IDisposable
         Assert.Equal(tuning.StartingGold, player.Gold.Value);
         Assert.Equal(150, player.Energy);
         Assert.Equal(tuning.MaxEnergy, player.Energy);
-        Assert.True(player.Tools.SetEquals([ToolId.Hoe, ToolId.WateringCan]));
+        Assert.Equal(ToolTier.Basic, player.Backpack.TierOf(ToolId.Hoe));
+        Assert.Equal(ToolTier.Basic, player.Backpack.TierOf(ToolId.WateringCan));
         Assert.Equal(20, player.WateringCan.Capacity);
         Assert.Equal(tuning.CanCapacity, player.WateringCan.Capacity);
         Assert.Equal(player.WateringCan.Capacity, player.WateringCan.Charges);
         Assert.False(player.WateringCan.Upgraded);
-        Assert.Equal(10, player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
-        Assert.Equal(5, player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
-        Assert.Equal(TestGames.StartingSeeds().Stacks, player.Inventory.Stacks);
+        Assert.Equal(10, player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
+        Assert.Equal(5, player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+        Assert.Equal(TestGames.Describe(TestGames.StartingSeeds()), TestGames.Describe(player.Backpack));
     }
 
     [Fact]
@@ -137,8 +138,8 @@ public sealed class GameStarterTests : IDisposable
         Assert.Equal(DayStart, game.ClockMinutes);
         Assert.Equal(Weather.Rain, game.Weather);
         Assert.Equal(4321, game.Player.Gold.Value);
-        Assert.Equal(4, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Sunbell));
-        Assert.Equal(7, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Emberroot));
+        Assert.Equal(4, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Sunbell)));
+        Assert.Equal(7, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
         Assert.Equal(13, game.Player.WateringCan.Charges);
         Assert.Equal(40, game.Player.WateringCan.Capacity);
         Assert.Equal(TileState.Tilled, game.FarmPlot[SaveGames.DryEmpty].State);

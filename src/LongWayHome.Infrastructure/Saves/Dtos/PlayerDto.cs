@@ -1,5 +1,3 @@
-using LongWayHome.Domain.Players;
-
 namespace LongWayHome.Infrastructure.Saves.Dtos;
 
 internal sealed record PlayerDto
@@ -8,9 +6,7 @@ internal sealed record PlayerDto
 
     public required int Energy { get; init; }
 
-    public required IReadOnlyList<ToolId> Tools { get; init; }
-
     public required WateringCanDto WateringCan { get; init; }
 
-    public required IReadOnlyList<InventoryStackDto> Inventory { get; init; }
+    public required BackpackDto Backpack { get; init; }
 }

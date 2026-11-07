@@ -18,8 +18,8 @@ namespace LongWayHome.Infrastructure.Saves;
 /// </summary>
 /// <remarks>
 /// Uses <see cref="JsonGameDataSource.SerializerOptions"/>, so every enum is written as its canonical code and an
-/// integer enum is refused. Loading rebuilds the Game through the domain constructors, so their checks (BR-T1, BR-P7,
-/// BR-W1, BR-G1) make a file that breaks a rule unreadable rather than loading a broken Game.
+/// integer enum is refused. Loading rebuilds the Game through the domain constructors, so their checks (BR-T1, BR-K1,
+/// BR-K2, BR-K6, BR-W1, BR-G1) make a file that breaks a rule unreadable rather than loading a broken Game.
 /// </remarks>
 public sealed class JsonSaveStore : ISaveStore
 {
@@ -179,21 +179,13 @@ public sealed class JsonSaveStore : ISaveStore
         {
             Gold = game.Player.Gold.Value,
             Energy = game.Player.Energy,
-            Tools = game.Player.Tools.Order().ToList(),
             WateringCan = new WateringCanDto
             {
                 Capacity = game.Player.WateringCan.Capacity,
                 Charges = game.Player.WateringCan.Charges,
                 Upgraded = game.Player.WateringCan.Upgraded,
             },
-            Inventory = game.Player.Inventory.Stacks
-                .Select(stack => new InventoryStackDto
-                {
-                    Kind = stack.Kind,
-                    CropTypeId = stack.CropTypeId,
-                    Quantity = stack.Quantity,
-                })
-                .ToList(),
+            Backpack = ToDto(game.Player.Backpack),
         },
         FarmPlot = new FarmPlotDto
         {
@@ -222,6 +214,28 @@ public sealed class JsonSaveStore : ISaveStore
                 .Select(item => new ShippedItemDto { CropTypeId = item.CropTypeId, Quantity = item.Quantity })
                 .ToList(),
         },
+    };
+
+    /// <summary>Every Slot is written, an empty one with a null item, quantity 0 and a null tier.</summary>
+    private static BackpackDto ToDto(Backpack backpack) => new()
+    {
+        Capacity = backpack.Capacity,
+        HotbarRow = backpack.HotbarRow,
+        Slots = backpack.Slots
+            .Select(slot => new BackpackSlotDto
+            {
+                Index = slot.Index,
+                Item = slot.Item is not { } item
+                    ? null
+                    : new ItemRefDto
+                    {
+                        Kind = item.Kind,
+                        Id = item.Kind == ItemKind.Tool ? Code(item.ToolId!.Value) : Code(item.CropTypeId!.Value),
+                    },
+                Quantity = slot.Quantity,
+                ToolTier = slot.ToolTier,
+            })
+            .ToList(),
     };
 
     private static GameDateDto ToDto(GameDate date) => new() { Year = date.Year, Season = date.Season, Day = date.Day };
@@ -256,38 +270,50 @@ public sealed class JsonSaveStore : ISaveStore
 
     private static Player ToPlayer(PlayerDto dto)
     {
-        var tools = new HashSet<ToolId>();
-        foreach (var tool in Required(dto.Tools, "player.tools"))
-        {
-            if (!tools.Add(Defined(tool, "player.tools")))
-            {
-                throw new InvalidDataException($"player.tools lists {tool} more than once.");
-            }
-        }
-
         var can = Required(dto.WateringCan, "player.wateringCan");
-
-        // BR-P7: at most one stack per (kind, Crop type), each of quantity ≥ 1 (Inventory.Add checks the quantity).
-        var inventory = new Inventory();
-        foreach (var stack in Required(dto.Inventory, "player.inventory"))
-        {
-            var item = Required(stack, "player.inventory[]");
-            var kind = Defined(item.Kind, "player.inventory[].kind");
-            var cropTypeId = Defined(item.CropTypeId, "player.inventory[].cropTypeId");
-            if (inventory.Quantity(kind, cropTypeId) > 0)
-            {
-                throw new InvalidDataException($"player.inventory has more than one {kind} stack of {cropTypeId} (BR-P7).");
-            }
-
-            inventory.Add(kind, cropTypeId, item.Quantity);
-        }
 
         return new Player(
             new Gold(dto.Gold),
             dto.Energy,
-            tools,
             new WateringCan(can.Capacity, can.Charges, can.Upgraded),
-            inventory);
+            ToBackpack(Required(dto.Backpack, "player.backpack")));
+    }
+
+    /// <summary>
+    /// Rebuilds the Backpack through its restore constructor, which refuses a capacity other than 12/24/36 (BR-K1), a
+    /// Slot count or index set that doesn't match it, a Slot that breaks BR-K2, a hotbar row out of range, and a
+    /// missing or repeated hoe or can (BR-K6). The message names <c>player.backpack</c>.
+    /// </summary>
+    private static Backpack ToBackpack(BackpackDto dto)
+    {
+        var slots = Required(dto.Slots, "player.backpack.slots")
+            .Select(slot => ToSlot(Required(slot, "player.backpack.slots[]")))
+            .ToList();
+        try
+        {
+            return new Backpack(dto.Capacity, dto.HotbarRow, slots);
+        }
+        catch (ArgumentException exception)
+        {
+            throw new InvalidDataException($"player.backpack is invalid: {exception.Message}", exception);
+        }
+    }
+
+    private static BackpackSlot ToSlot(BackpackSlotDto dto)
+    {
+        var field = $"player.backpack.slots[{dto.Index}]";
+        var tier = dto.ToolTier is { } toolTier ? Defined(toolTier, field + ".toolTier") : (ToolTier?)null;
+        if (dto.Item is not { } item)
+        {
+            return new BackpackSlot(dto.Index, null, dto.Quantity, tier);
+        }
+
+        var kind = Defined(item.Kind, field + ".item.kind");
+        var id = Required(item.Id, field + ".item.id");
+        var itemRef = kind == ItemKind.Tool
+            ? ItemRef.Tool(FromCode<ToolId>(id, field + ".item.id"))
+            : new ItemRef(kind, FromCode<CropTypeId>(id, field + ".item.id"), null);
+        return new BackpackSlot(dto.Index, itemRef, dto.Quantity, tier);
     }
 
     private static FarmPlot ToFarmPlot(FarmPlotDto dto)
@@ -340,6 +366,17 @@ public sealed class JsonSaveStore : ISaveStore
 
     private static GameDate ToGameDate(GameDateDto dto, string field) =>
         new(dto.Year, Defined(dto.Season, field + ".season"), dto.Day);
+
+    /// <summary>The canonical snake_case code of an enum value, as the serializer writes it.</summary>
+    private static string Code<TEnum>(TEnum value)
+        where TEnum : struct, Enum =>
+        JsonNamingPolicy.SnakeCaseLower.ConvertName(value.ToString());
+
+    /// <summary>The enum value whose canonical code is <paramref name="code"/>; any other code is unreadable.</summary>
+    private static TEnum FromCode<TEnum>(string code, string field)
+        where TEnum : struct, Enum =>
+        Enum.GetValues<TEnum>().Cast<TEnum?>().FirstOrDefault(value => Code(value!.Value) == code)
+            ?? throw new InvalidDataException($"{field} '{code}' is not a known {typeof(TEnum).Name} code.");
 
     /// <summary>A JSON null where an object or list is required is unreadable.</summary>
     private static T Required<T>(T? value, string field)

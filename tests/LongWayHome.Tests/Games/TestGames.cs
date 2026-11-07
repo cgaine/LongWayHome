@@ -25,8 +25,8 @@ internal static class TestGames
             .ToDictionary(pair => pair.Key, pair => pair.Value),
     };
 
-    /// <summary>A Game on a fresh plot whose Player has the given energy and inventory.</summary>
-    public static GameState WithEnergy(int energy, Inventory? inventory = null) =>
+    /// <summary>A Game on a fresh plot whose Player has the given energy and Backpack (the two tools only by default).</summary>
+    public static GameState WithEnergy(int energy, Backpack? backpack = null) =>
         new(
             Guid.NewGuid(),
             new GameDate(1, Season.Spring, 1),
@@ -35,20 +35,15 @@ internal static class TestGames
             null,
             Now,
             Now,
-            new Player(
-                new Gold(100),
-                energy,
-                new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
-                new WateringCan(20),
-                inventory ?? new Inventory()),
+            new Player(new Gold(100), energy, new WateringCan(20), backpack ?? ToolsOnly()),
             new FarmPlot());
 
     /// <summary>
     /// A Game on a fresh plot at 150 energy whose Player has the given gold, on the given date (Spring 1 by default),
-    /// holding the given inventory (the starting seeds by default) and the given Watering can (a full 20-charge can by
+    /// holding the given Backpack (the tools and starting seeds by default) and the given Watering can (a full 20-charge can by
     /// default).
     /// </summary>
-    public static GameState WithGold(int gold, GameDate? date = null, Inventory? inventory = null, WateringCan? can = null) =>
+    public static GameState WithGold(int gold, GameDate? date = null, Backpack? backpack = null, WateringCan? can = null) =>
         new(
             Guid.NewGuid(),
             date ?? FirstDay,
@@ -57,26 +52,21 @@ internal static class TestGames
             null,
             Now,
             Now,
-            new Player(
-                new Gold(gold),
-                Player.MaxEnergy,
-                new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
-                can ?? new WateringCan(20),
-                inventory ?? StartingSeeds()),
+            new Player(new Gold(gold), Player.MaxEnergy, can ?? new WateringCan(20), backpack ?? StartingSeeds()),
             new FarmPlot());
 
     /// <summary>
-    /// A Game on a fresh plot (Year 1, Spring, Day 1) with 100 gold, the given energy and inventory, and a Shipping
+    /// A Game on a fresh plot (Year 1, Spring, Day 1) with 100 gold, the given energy and Backpack, and a Shipping
     /// Bin holding the given items, passed through the Game constructor.
     /// </summary>
-    public static GameState WithShippingBin(int energy, Inventory? inventory, params (CropTypeId CropTypeId, int Quantity)[] items) =>
-        OnDateWithShippingBin(FirstDay, energy, inventory, [], items);
+    public static GameState WithShippingBin(int energy, Backpack? backpack, params (CropTypeId CropTypeId, int Quantity)[] items) =>
+        OnDateWithShippingBin(FirstDay, energy, backpack, [], items);
 
     /// <summary>As <see cref="WithShippingBin"/>, on the given date, grass except for the given Tiles.</summary>
     public static GameState OnDateWithShippingBin(
-        GameDate date, int energy, Inventory? inventory, Tile[] tiles, params (CropTypeId CropTypeId, int Quantity)[] items)
+        GameDate date, int energy, Backpack? backpack, Tile[] tiles, params (CropTypeId CropTypeId, int Quantity)[] items)
     {
-        var plot = OnDate(date, energy, new WateringCan(20), inventory ?? new Inventory(), tiles);
+        var plot = OnDate(date, energy, new WateringCan(20), backpack ?? ToolsOnly(), tiles);
         var bin = new ShippingBin();
         foreach (var (cropTypeId, quantity) in items)
         {
@@ -122,26 +112,20 @@ internal static class TestGames
     public static Tile TilledWith(GridPosition position, Planting? planting, bool watered = false) =>
         new(position, TileState.Tilled, watered, planting);
 
-    /// <summary>The shipped starting seeds: 10 emberroot and 5 dusktuber.</summary>
-    public static Inventory StartingSeeds()
-    {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 10);
-        inventory.Add(ItemKind.Seed, CropTypeId.Dusktuber, 5);
-        return inventory;
-    }
+    /// <summary>The two tools and the shipped starting seeds: 10 emberroot (Slot 2) and 5 dusktuber (Slot 3).</summary>
+    public static Backpack StartingSeeds() => StartingBackpack();
 
     /// <summary>A Game whose plot is grass except for the given Tiles (restored through FarmPlot(IEnumerable&lt;Tile&gt;)).</summary>
-    public static GameState WithTiles(int energy, Inventory? inventory, params Tile[] tiles) =>
-        WithCan(energy, new WateringCan(20), inventory, tiles);
+    public static GameState WithTiles(int energy, Backpack? backpack, params Tile[] tiles) =>
+        WithCan(energy, new WateringCan(20), backpack, tiles);
 
     /// <summary>A Game with the given energy and Watering can, grass except for the given Tiles.</summary>
-    public static GameState WithCan(int energy, WateringCan can, Inventory? inventory, params Tile[] tiles) =>
-        OnDate(FirstDay, energy, can, inventory, tiles);
+    public static GameState WithCan(int energy, WateringCan can, Backpack? backpack, params Tile[] tiles) =>
+        OnDate(FirstDay, energy, can, backpack, tiles);
 
     /// <summary>A Game on the given date at 150 energy, grass except for the given Tiles.</summary>
-    public static GameState OnDate(GameDate date, Inventory? inventory, params Tile[] tiles) =>
-        OnDate(date, 150, new WateringCan(20), inventory, tiles);
+    public static GameState OnDate(GameDate date, Backpack? backpack, params Tile[] tiles) =>
+        OnDate(date, 150, new WateringCan(20), backpack, tiles);
 
     /// <summary>
     /// The canonical Crop type rows (canonical-values.md), built here rather than read from the shipped data so domain
@@ -157,7 +141,7 @@ internal static class TestGames
     };
 
     /// <summary>A Game on the given date with the given energy and Watering can, grass except for the given Tiles.</summary>
-    public static GameState OnDate(GameDate date, int energy, WateringCan can, Inventory? inventory, params Tile[] tiles)
+    public static GameState OnDate(GameDate date, int energy, WateringCan can, Backpack? backpack, params Tile[] tiles)
     {
         var overrides = tiles.ToDictionary(tile => tile.Position);
         var all = new List<Tile>();
@@ -178,12 +162,7 @@ internal static class TestGames
             null,
             Now,
             Now,
-            new Player(
-                new Gold(100),
-                energy,
-                new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
-                can,
-                inventory ?? StartingSeeds()),
+            new Player(new Gold(100), energy, can, backpack ?? StartingSeeds()),
             new FarmPlot(all));
     }
 
@@ -201,14 +180,14 @@ internal static class TestGames
     /// <summary>A session at 150 energy with the starting seeds and the given Tiles.</summary>
     public static GameSession SessionWithTiles(params Tile[] tiles) => new(WithTiles(150, null, tiles), Shipped);
 
-    /// <summary>Energy, every Tile (state, watered, planting) and every inventory stack, to prove an action changed nothing.</summary>
+    /// <summary>Energy, every Tile (state, watered, planting) and every Backpack Slot, to prove an action changed nothing.</summary>
     public static (int Energy, string Tiles, string Inventory) FullSnapshot(GameState game) =>
         (game.Player.Energy,
             string.Join(
                 ",",
                 game.FarmPlot.Tiles.Select(tile =>
                     $"{tile.Position.X}:{tile.Position.Y}:{tile.State}:{tile.Watered}:{tile.Planting}")),
-            string.Join(",", game.Player.Inventory.Stacks.Select(stack => $"{stack.Kind}:{stack.CropTypeId}:{stack.Quantity}")));
+            Describe(game.Player.Backpack));
 
     /// <summary>The Crop that fills the free Slots of <see cref="FullBackpack"/>; tests using it avoid this Crop.</summary>
     public static readonly ItemRef Filler = ItemRef.Crop(CropTypeId.Starcorn);
@@ -294,6 +273,15 @@ internal static class TestGames
     /// <summary>A session at 150 energy whose Player carries the given Backpack, grass except for the given Tiles.</summary>
     public static GameSession SessionWithBackpack(Backpack backpack, params Tile[] tiles) =>
         new(WithBackpack(backpack, tiles: tiles), Shipped);
+
+    /// <summary>
+    /// The non-tool items carried, one per (kind, Crop type) with its total across Slots, ordered by kind then Crop
+    /// type: what the Phase 1 inventory's stacks were.
+    /// </summary>
+    public static IReadOnlyList<(ItemKind Kind, CropTypeId CropTypeId, int Quantity)> Stacks(Backpack backpack) =>
+        new[] { ItemKind.Seed, ItemKind.Crop }
+            .SelectMany(kind => backpack.Totals(kind).Select(total => (kind, total.CropTypeId, total.Quantity)))
+            .ToList();
 
     /// <summary>Every Slot as "index:kind:id:quantity:tier", to compare Backpacks or prove nothing changed.</summary>
     public static string Describe(Backpack backpack) =>

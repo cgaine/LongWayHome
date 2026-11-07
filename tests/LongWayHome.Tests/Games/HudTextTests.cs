@@ -22,7 +22,7 @@ public class HudTextTests
     {
         var session = TestGames.NewSession();
 
-        var text = CropsText.For(session.Game.Player.Inventory.Stacks, TestGames.Shipped.CropTypes);
+        var text = CropsText.For(session.Game.Player.Backpack, TestGames.Shipped.CropTypes);
 
         Assert.Equal("Crops: none", text);
     }
@@ -30,12 +30,12 @@ public class HudTextTests
     [Fact]
     public void AC3_Crops_are_listed_in_crop_type_order_without_seeds()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 2);
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 9);
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 10);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 2);
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 9);
+        inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 10);
 
-        var text = CropsText.For(inventory.Stacks, TestGames.Shipped.CropTypes);
+        var text = CropsText.For(inventory, TestGames.Shipped.CropTypes);
 
         Assert.Equal("Crops: Emberroot × 9, Dusktuber × 2", text);
     }
@@ -43,12 +43,10 @@ public class HudTextTests
     [Fact]
     public void AC3_Crops_are_listed_in_crop_type_order_whatever_order_the_stacks_come_in()
     {
-        var stacks = new List<InventoryStack>
-        {
-            new(ItemKind.Crop, CropTypeId.Dusktuber, 2),
-            new(ItemKind.Seed, CropTypeId.Emberroot, 10),
-            new(ItemKind.Crop, CropTypeId.Emberroot, 9),
-        };
+        var stacks = TestGames.BackpackWith(
+            (ItemRef.Crop(CropTypeId.Dusktuber), 2),
+            (ItemRef.Seed(CropTypeId.Emberroot), 10),
+            (ItemRef.Crop(CropTypeId.Emberroot), 9));
 
         var text = CropsText.For(stacks, TestGames.Shipped.CropTypes);
 
@@ -58,7 +56,7 @@ public class HudTextTests
     [Fact]
     public void Crop_without_data_row_uses_canonical_label()
     {
-        var stacks = new List<InventoryStack> { new(ItemKind.Crop, CropTypeId.Moonmelon, 3) };
+        var stacks = TestGames.BackpackWith((ItemRef.Crop(CropTypeId.Moonmelon), 3));
 
         var text = CropsText.For(stacks, TestGames.ShippedWithout(CropTypeId.Moonmelon).CropTypes);
 
@@ -68,7 +66,7 @@ public class HudTextTests
     [Fact]
     public void Crop_without_data_row_uses_canonical_label_with_no_rows_at_all()
     {
-        var stacks = new List<InventoryStack> { new(ItemKind.Crop, CropTypeId.Starcorn, 1) };
+        var stacks = TestGames.BackpackWith((ItemRef.Crop(CropTypeId.Starcorn), 1));
 
         var text = CropsText.For(stacks, new Dictionary<CropTypeId, CropType>());
 
@@ -77,12 +75,11 @@ public class HudTextTests
 
     // ---- #95 AC4: the crops row's entries ----
 
-    private static List<InventoryStack> DusktuberThenEmberrootWithSeeds() =>
-    [
-        new(ItemKind.Crop, CropTypeId.Dusktuber, 2),
-        new(ItemKind.Seed, CropTypeId.Emberroot, 10),
-        new(ItemKind.Crop, CropTypeId.Emberroot, 9),
-    ];
+    private static Backpack DusktuberThenEmberrootWithSeeds() =>
+        TestGames.BackpackWith(
+            (ItemRef.Crop(CropTypeId.Dusktuber), 2),
+            (ItemRef.Seed(CropTypeId.Emberroot), 10),
+            (ItemRef.Crop(CropTypeId.Emberroot), 9));
 
     [Fact]
     public void AC4_Crops_entries_are_one_per_crop_stack_in_crop_type_order_without_seeds()
@@ -96,12 +93,12 @@ public class HudTextTests
 
     [Fact]
     public void AC4_Crops_entries_are_empty_with_no_stacks() =>
-        Assert.Empty(CropsText.Entries([], TestGames.Shipped.CropTypes));
+        Assert.Empty(CropsText.Entries(TestGames.ToolsOnly(), TestGames.Shipped.CropTypes));
 
     [Fact]
     public void AC4_Crops_entries_are_empty_with_only_seeds()
     {
-        var stacks = new List<InventoryStack> { new(ItemKind.Seed, CropTypeId.Emberroot, 10) };
+        var stacks = TestGames.BackpackWith((ItemRef.Seed(CropTypeId.Emberroot), 10));
 
         Assert.Empty(CropsText.Entries(stacks, TestGames.Shipped.CropTypes));
     }
@@ -109,7 +106,7 @@ public class HudTextTests
     [Fact]
     public void AC4_Crops_entry_without_data_row_uses_canonical_label()
     {
-        var stacks = new List<InventoryStack> { new(ItemKind.Crop, CropTypeId.Moonmelon, 3) };
+        var stacks = TestGames.BackpackWith((ItemRef.Crop(CropTypeId.Moonmelon), 3));
 
         var entries = CropsText.Entries(stacks, TestGames.ShippedWithout(CropTypeId.Moonmelon).CropTypes);
 
@@ -122,7 +119,7 @@ public class HudTextTests
         Assert.Equal(
             "Crops: Emberroot × 9, Dusktuber × 2",
             CropsText.For(DusktuberThenEmberrootWithSeeds(), TestGames.Shipped.CropTypes));
-        Assert.Equal("Crops: none", CropsText.For([], TestGames.Shipped.CropTypes));
+        Assert.Equal("Crops: none", CropsText.For(TestGames.ToolsOnly(), TestGames.Shipped.CropTypes));
     }
 
     [Fact]
@@ -149,7 +146,7 @@ public class HudTextTests
 
     [Fact]
     public void AC7_Crops_heading_is_Crops_none_when_none_are_carried() =>
-        Assert.Equal("Crops: none", CropsText.Heading(CropsText.Entries([], TestGames.Shipped.CropTypes)));
+        Assert.Equal("Crops: none", CropsText.Heading(CropsText.Entries(TestGames.ToolsOnly(), TestGames.Shipped.CropTypes)));
 
     [Fact]
     public void AC7_Crops_row_entries_are_separated_by_a_comma_and_space() =>
@@ -158,8 +155,8 @@ public class HudTextTests
     [Fact]
     public void AC4_Crops_entries_null_arguments_throw()
     {
-        Assert.Throws<ArgumentNullException>(() => CropsText.Entries((IReadOnlyList<InventoryStack>)null!, TestGames.Shipped.CropTypes));
-        Assert.Throws<ArgumentNullException>(() => CropsText.Entries([], null!));
+        Assert.Throws<ArgumentNullException>(() => CropsText.Entries((Backpack)null!, TestGames.Shipped.CropTypes));
+        Assert.Throws<ArgumentNullException>(() => CropsText.Entries(TestGames.ToolsOnly(), null!));
         Assert.Throws<ArgumentNullException>(() => CropsText.Heading(null!));
     }
 
@@ -215,7 +212,7 @@ public class HudTextTests
     [Fact]
     public void Crops_text_rejects_null_arguments()
     {
-        Assert.Throws<ArgumentNullException>(() => CropsText.For((IReadOnlyList<InventoryStack>)null!, TestGames.Shipped.CropTypes));
-        Assert.Throws<ArgumentNullException>(() => CropsText.For([], null!));
+        Assert.Throws<ArgumentNullException>(() => CropsText.For((Backpack)null!, TestGames.Shipped.CropTypes));
+        Assert.Throws<ArgumentNullException>(() => CropsText.For(TestGames.ToolsOnly(), null!));
     }
 }

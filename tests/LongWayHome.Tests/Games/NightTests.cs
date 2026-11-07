@@ -321,9 +321,9 @@ public class NightTests
     [Fact]
     public void AC5_crops_shipped_through_the_session_are_paid_after_sleeping()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 9);
-        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 2);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 9);
+        inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 2);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
         Assert.Equal(ActionResult.Ok, session.ShipAll());
 

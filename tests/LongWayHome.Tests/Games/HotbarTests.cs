@@ -100,15 +100,15 @@ public class HotbarTests
     [Fact]
     public void AC5_Planting_the_last_seed_removes_its_slot_and_selects_the_hoe()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 1);
-        inventory.Add(ItemKind.Seed, CropTypeId.Dusktuber, 5);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 1);
+        inventory.Add(ItemRef.Seed(CropTypeId.Dusktuber), 5);
         var session = new GameSession(
             TestGames.WithTiles(150, inventory, TestGames.TilledWith(Target, null)),
             TestGames.Shipped);
 
         Assert.Equal(ActionResult.Ok, session.Plant(Target, CropTypeId.Emberroot));
-        Assert.Equal(0, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(0, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
 
         var slots = session.Hotbar(HeldItem.SeedOf(CropTypeId.Emberroot));
 
@@ -121,14 +121,14 @@ public class HotbarTests
     [Fact]
     public void BR_P7_One_slot_per_seed_stack()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Starcorn, 4);
-        inventory.Add(ItemKind.Seed, CropTypeId.Sunbell, 3);
-        inventory.Add(ItemKind.Seed, CropTypeId.Moonmelon, 2);
-        inventory.Add(ItemKind.Seed, CropTypeId.Dusktuber, 5);
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 10);
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 7);
-        inventory.Add(ItemKind.Crop, CropTypeId.Moonmelon, 1);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Starcorn), 4);
+        inventory.Add(ItemRef.Seed(CropTypeId.Sunbell), 3);
+        inventory.Add(ItemRef.Seed(CropTypeId.Moonmelon), 2);
+        inventory.Add(ItemRef.Seed(CropTypeId.Dusktuber), 5);
+        inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 10);
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 7);
+        inventory.Add(ItemRef.Crop(CropTypeId.Moonmelon), 1);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
 
         var slots = session.Hotbar(HeldItem.Of(ToolId.WateringCan));

@@ -84,7 +84,7 @@ public class HarvestingTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Null(game.FarmPlot[Target].Planting);
-        Assert.Contains(new InventoryStack(ItemKind.Crop, CropTypeId.Emberroot, 1), game.Player.Inventory.Stacks);
+        Assert.Contains((ItemKind.Crop, CropTypeId.Emberroot, 1), TestGames.Stacks(game.Player.Backpack));
         Assert.Equal(TileState.Tilled, game.FarmPlot[Target].State);
         Assert.Equal(150, game.Player.Energy);
     }
@@ -93,15 +93,15 @@ public class HarvestingTests
     public void AC5_harvesting_adds_one_to_an_existing_crop_stack()
     {
         var inventory = TestGames.StartingSeeds();
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 4);
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 4);
         var game = TestGames.WithTiles(150, inventory, TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));
 
         var result = game.Harvest(Target, Emberroot);
 
         Assert.Equal(ActionResult.Ok, result);
-        Assert.Equal(5, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Emberroot));
-        Assert.Single(game.Player.Inventory.Stacks, stack => stack.Kind == ItemKind.Crop);
-        Assert.Equal(10, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(5, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+        Assert.Single(TestGames.Stacks(game.Player.Backpack), stack => stack.Kind == ItemKind.Crop);
+        Assert.Equal(10, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
     }
 
     [Theory]
@@ -110,12 +110,12 @@ public class HarvestingTests
     [InlineData(CropTypeId.Moonmelon)]
     public void AC5_harvesting_adds_one_crop_of_the_planting_type(CropTypeId crop)
     {
-        var game = TestGames.WithTiles(150, new Inventory(), TestGames.TilledWith(Target, TestGames.Ripe(crop)));
+        var game = TestGames.WithTiles(150, TestGames.ToolsOnly(), TestGames.TilledWith(Target, TestGames.Ripe(crop)));
 
         var result = game.Harvest(Target, TestGames.Crop(crop));
 
         Assert.Equal(ActionResult.Ok, result);
-        Assert.Equal([new InventoryStack(ItemKind.Crop, crop, 1)], game.Player.Inventory.Stacks);
+        Assert.Equal([(ItemKind.Crop, crop, 1)], TestGames.Stacks(game.Player.Backpack));
     }
 
     [Theory]
@@ -242,7 +242,7 @@ public class HarvestingTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(0, game.Player.Energy);
-        Assert.Equal(1, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Emberroot));
+        Assert.Equal(1, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
     }
 
     [Fact]
@@ -252,14 +252,14 @@ public class HarvestingTests
         var second = new GridPosition(1, 0);
         var game = TestGames.WithTiles(
             150,
-            new Inventory(),
+            TestGames.ToolsOnly(),
             TestGames.TilledWith(first, TestGames.Ripe(CropTypeId.Emberroot)),
             TestGames.TilledWith(second, TestGames.Ripe(CropTypeId.Emberroot)));
 
         game.Harvest(first, Emberroot);
         game.Harvest(second, Emberroot);
 
-        Assert.Equal([new InventoryStack(ItemKind.Crop, CropTypeId.Emberroot, 2)], game.Player.Inventory.Stacks);
+        Assert.Equal([(ItemKind.Crop, CropTypeId.Emberroot, 2)], TestGames.Stacks(game.Player.Backpack));
     }
 
     [Fact]

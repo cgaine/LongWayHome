@@ -251,16 +251,24 @@ public sealed class JsonSaveStoreTests : IDisposable
 
         var document = _folder.ReadSlot(1);
 
-        Assert.Equal(1, document["saveVersion"]!.GetValue<int>());
+        Assert.Equal(2, document["saveVersion"]!.GetValue<int>());
         Assert.Equal("passed_out", document["lastDayEnd"]!.GetValue<string>());
         Assert.Equal("rain", document["weather"]!.GetValue<string>());
         Assert.Equal("spring", document["date"]!["season"]!.GetValue<string>());
-        var tools = document["player"]!["tools"]!.AsArray().Select(tool => tool!.GetValue<string>()).Order().ToList();
-        Assert.Equal(["hoe", "watering_can"], tools);
+        var filled = document["player"]!["backpack"]!["slots"]!.AsArray()
+            .Where(slot => slot!["item"] is not null)
+            .ToList();
+        var tools = filled
+            .Where(slot => slot!["item"]!["kind"]!.GetValue<string>() == "tool")
+            .Select(slot => $"{slot!["item"]!["id"]!.GetValue<string>()}:{slot["toolTier"]!.GetValue<string>()}")
+            .Order()
+            .ToList();
+        Assert.Equal(["hoe:basic", "watering_can:rosk"], tools);
         var states = Tiles(document).Select(tile => tile!["state"]!.GetValue<string>()).ToHashSet();
         Assert.Equal(new HashSet<string> { "grass", "tilled" }, states);
-        var stacks = document["player"]!["inventory"]!.AsArray()
-            .Select(stack => $"{stack!["kind"]!.GetValue<string>()}:{stack["cropTypeId"]!.GetValue<string>()}")
+        var stacks = filled
+            .Where(slot => slot!["item"]!["kind"]!.GetValue<string>() != "tool")
+            .Select(slot => $"{slot!["item"]!["kind"]!.GetValue<string>()}:{slot["item"]!["id"]!.GetValue<string>()}")
             .Order(StringComparer.Ordinal)
             .ToList();
         Assert.Equal(["crop:emberroot", "seed:starcorn", "seed:sunbell"], stacks);
@@ -405,7 +413,7 @@ public sealed class JsonSaveStoreTests : IDisposable
 
     public static TheoryData<string, JsonNode?> BadVersions => new()
     {
-        { "above current", JsonValue.Create(2) },
+        { "above current", JsonValue.Create(3) },
         { "below 1", JsonValue.Create(0) },
         { "missing", null },
         { "not an integer", JsonValue.Create("one") },
@@ -463,7 +471,8 @@ public sealed class JsonSaveStoreTests : IDisposable
     [Fact]
     public void BR_P7_zero_quantity_stack_is_unreadable()
     {
-        SaveThenEdit(document => document["player"]!["inventory"]![0]!["quantity"] = 0);
+        // BR-K2: a filled Slot holds 1 to 99; Slot 2 is the first item stack after the two tools.
+        SaveThenEdit(document => document["player"]!["backpack"]!["slots"]![2]!["quantity"] = 0);
 
         AssertUnreadable();
     }

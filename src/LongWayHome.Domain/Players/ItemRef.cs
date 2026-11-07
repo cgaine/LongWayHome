@@ -13,4 +13,12 @@ public readonly record struct ItemRef(ItemKind Kind, CropTypeId? CropTypeId, Too
     public static ItemRef Crop(CropTypeId cropTypeId) => new(ItemKind.Crop, cropTypeId, null);
 
     public static ItemRef Tool(ToolId toolId) => new(ItemKind.Tool, null, toolId);
+
+    /// <summary>Whether exactly one id is set and it matches the kind.</summary>
+    public bool IsValid => Kind switch
+    {
+        ItemKind.Seed or ItemKind.Crop => CropTypeId is not null && ToolId is null,
+        ItemKind.Tool => ToolId is not null && CropTypeId is null,
+        _ => false,
+    };
 }

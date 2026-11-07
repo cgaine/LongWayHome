@@ -25,8 +25,9 @@ public class NewGameFactoryTests
 
         Assert.Equal(new Gold(100), player.Gold);
         Assert.Equal(150, player.Energy);
-        Assert.True(player.Tools.SetEquals([ToolId.Hoe, ToolId.WateringCan]));
-        Assert.Equal(2, player.Tools.Count);
+        Assert.Equal(1, player.Backpack.Quantity(ItemRef.Tool(ToolId.Hoe)));
+        Assert.Equal(1, player.Backpack.Quantity(ItemRef.Tool(ToolId.WateringCan)));
+        Assert.Equal(2, player.Backpack.Slots.Count(slot => slot.Item?.Kind == ItemKind.Tool));
         Assert.Equal(20, player.WateringCan.Capacity);
         Assert.Equal(20, player.WateringCan.Charges);
         Assert.False(player.WateringCan.Upgraded);
@@ -35,12 +36,12 @@ public class NewGameFactoryTests
     [Fact]
     public void AC2_BR_P6_new_game_holds_10_emberroot_and_5_dusktuber_seeds_only()
     {
-        var inventory = NewGameFactory.Create(Shipped, Now).Player.Inventory;
+        var inventory = NewGameFactory.Create(Shipped, Now).Player.Backpack;
 
         Assert.Equal(
             [(ItemKind.Seed, CropTypeId.Emberroot, 10), (ItemKind.Seed, CropTypeId.Dusktuber, 5)],
-            inventory.Stacks.Select(stack => (stack.Kind, stack.CropTypeId, stack.Quantity)));
-        Assert.DoesNotContain(inventory.Stacks, stack => stack.Kind == ItemKind.Crop);
+            TestGames.Stacks(inventory));
+        Assert.DoesNotContain(TestGames.Stacks(inventory), stack => stack.Kind == ItemKind.Crop);
     }
 
     [Fact]
@@ -91,11 +92,11 @@ public class NewGameFactoryTests
         };
         var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
 
-        var inventory = NewGameFactory.Create(data, Now).Player.Inventory;
+        var inventory = NewGameFactory.Create(data, Now).Player.Backpack;
 
         Assert.Equal(
             [(ItemKind.Seed, CropTypeId.Emberroot, 7)],
-            inventory.Stacks.Select(stack => (stack.Kind, stack.CropTypeId, stack.Quantity)));
+            TestGames.Stacks(inventory));
     }
 
     [Fact]
@@ -144,6 +145,18 @@ public class NewGameFactoryTests
 
         Assert.Equal("2:Seed:Emberroot:7:-", TestGames.DescribeSlot(backpack.Slots[2]));
         Assert.Null(backpack.Slots[3].Item);
+    }
+
+    [Fact]
+    public void Starting_seeds_that_do_not_fit_in_the_backpack_are_refused_as_bad_tuning()
+    {
+        var tuning = Shipped.Tuning with
+        {
+            StartingSeeds = [new StartingStack(CropTypeId.Emberroot, (10 * Backpack.MaxStack) + 1)],
+        };
+        var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
+
+        Assert.Throws<InvalidOperationException>(() => NewGameFactory.Create(data, Now));
     }
 
     [Fact]

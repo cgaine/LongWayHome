@@ -211,8 +211,8 @@ public class UsePromptTextTests
     [Fact]
     public void AC8_moonmelon_seeds_held_in_spring_over_empty_tilled_soil_prompt_Out_of_season_plant_in_Fall()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Moonmelon, 2);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Moonmelon), 2);
         var session = new GameSession(
             TestGames.OnDate(new GameDate(1, Season.Spring, 5), inventory, TestGames.TilledWith(Target, null)),
             TestGames.Shipped);

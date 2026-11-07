@@ -16,25 +16,25 @@ public class ShippingTests
     private static readonly GridPosition Target = new(6, 3);
 
     /// <summary>9 emberroot crops, 2 dusktuber crops and 10 emberroot seeds.</summary>
-    private static Inventory Basket()
+    private static Backpack Basket()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 9);
-        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 2);
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 10);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 9);
+        inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 2);
+        inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 10);
         return inventory;
     }
 
-    private static Inventory SeedsOnly()
+    private static Backpack SeedsOnly()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 10);
-        inventory.Add(ItemKind.Seed, CropTypeId.Dusktuber, 5);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 10);
+        inventory.Add(ItemRef.Seed(CropTypeId.Dusktuber), 5);
         return inventory;
     }
 
     private static string Stacks(GameState game) =>
-        string.Join(",", game.Player.Inventory.Stacks.Select(stack => $"{stack.Kind}:{stack.CropTypeId}:{stack.Quantity}"));
+        string.Join(",", TestGames.Stacks(game.Player.Backpack).Select(stack => $"{stack.Kind}:{stack.CropTypeId}:{stack.Quantity}"));
 
     private static List<string> RecordEvents(GameSession session)
     {
@@ -109,8 +109,8 @@ public class ShippingTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(
-            [new InventoryStack(ItemKind.Seed, CropTypeId.Emberroot, 10)],
-            game.Player.Inventory.Stacks);
+            [(ItemKind.Seed, CropTypeId.Emberroot, 10)],
+            TestGames.Stacks(game.Player.Backpack));
         Assert.Equal(
             [new ShippedItem(CropTypeId.Emberroot, 9), new ShippedItem(CropTypeId.Dusktuber, 2)],
             game.ShippingBin.Items);
@@ -132,20 +132,20 @@ public class ShippingTests
     [Fact]
     public void AC2_ship_all_with_an_empty_inventory_is_nothing_to_ship_and_keeps_the_bin()
     {
-        var game = TestGames.WithShippingBin(150, new Inventory(), (CropTypeId.Emberroot, 3));
+        var game = TestGames.WithShippingBin(150, TestGames.ToolsOnly(), (CropTypeId.Emberroot, 3));
 
         var result = game.ShipAll();
 
         Assert.Equal(ActionResult.Rejected(Rejection.NothingToShip), result);
-        Assert.Empty(game.Player.Inventory.Stacks);
+        Assert.Empty(TestGames.Stacks(game.Player.Backpack));
         Assert.Equal([new ShippedItem(CropTypeId.Emberroot, 3)], game.ShippingBin.Items);
     }
 
     [Fact]
     public void AC3_shipping_twice_in_a_day_merges_into_one_bin_item()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 3);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 3);
         var game = TestGames.WithTiles(
             150,
             inventory,
@@ -204,14 +204,14 @@ public class ShippingTests
     public void BR_S1_shipping_leaves_seeds_in_the_inventory()
     {
         var inventory = SeedsOnly();
-        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 4);
+        inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 4);
         var game = TestGames.WithEnergy(150, inventory);
 
         game.ShipAll();
 
-        Assert.Equal(10, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
-        Assert.Equal(5, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
-        Assert.Equal(0, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Dusktuber));
+        Assert.Equal(10, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
+        Assert.Equal(5, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+        Assert.Equal(0, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Dusktuber)));
         Assert.Equal([new ShippedItem(CropTypeId.Dusktuber, 4)], game.ShippingBin.Items);
     }
 
@@ -234,7 +234,7 @@ public class ShippingTests
     public void BR_S2_pay_out_adds_quantity_times_sell_price_and_empties_the_bin()
     {
         var game = TestGames.WithShippingBin(
-            150, new Inventory(), (CropTypeId.Emberroot, 9), (CropTypeId.Dusktuber, 2));
+            150, TestGames.ToolsOnly(), (CropTypeId.Emberroot, 9), (CropTypeId.Dusktuber, 2));
 
         var paid = game.PayOutShippingBin(TestGames.CanonicalCrops);
 
@@ -259,7 +259,7 @@ public class ShippingTests
     public void BR_S2_pay_out_of_an_item_with_no_data_row_pays_zero_for_it_and_removes_it()
     {
         var game = TestGames.WithShippingBin(
-            150, new Inventory(), (CropTypeId.Emberroot, 2), (CropTypeId.Starcorn, 3));
+            150, TestGames.ToolsOnly(), (CropTypeId.Emberroot, 2), (CropTypeId.Starcorn, 3));
         var withoutStarcorn = TestGames.CanonicalCrops
             .Where(pair => pair.Key != CropTypeId.Starcorn)
             .ToDictionary(pair => pair.Key, pair => pair.Value);
@@ -323,9 +323,9 @@ public class ShippingTests
 
         game.ShipAll();
 
-        Assert.DoesNotContain(game.Player.Inventory.Stacks, stack => stack.Kind == ItemKind.Crop);
-        Assert.All(game.Player.Inventory.Stacks, stack => Assert.True(stack.Quantity >= 1));
-        Assert.NotEmpty(game.Player.Inventory.Stacks);
+        Assert.DoesNotContain(TestGames.Stacks(game.Player.Backpack), stack => stack.Kind == ItemKind.Crop);
+        Assert.All(TestGames.Stacks(game.Player.Backpack), stack => Assert.True(stack.Quantity >= 1));
+        Assert.NotEmpty(TestGames.Stacks(game.Player.Backpack));
     }
 
     [Fact]
@@ -368,33 +368,33 @@ public class ShippingTests
     [Fact]
     public void BR_S1_ship_all_that_overflows_the_bin_throws_and_loses_no_crop()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 1);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 1);
         var game = TestGames.WithShippingBin(150, inventory, (CropTypeId.Emberroot, int.MaxValue));
 
         Assert.Throws<OverflowException>(() => game.ShipAll());
-        Assert.Equal(1, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Emberroot));
+        Assert.Equal(1, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
         Assert.Equal([new ShippedItem(CropTypeId.Emberroot, int.MaxValue)], game.ShippingBin.Items);
     }
 
     [Fact]
     public void BR_S1_ship_all_whose_second_stack_overflows_the_bin_ships_nothing()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 3);
-        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 1);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 3);
+        inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 1);
         var game = TestGames.WithShippingBin(150, inventory, (CropTypeId.Dusktuber, int.MaxValue));
 
         Assert.Throws<OverflowException>(() => game.ShipAll());
-        Assert.Equal(3, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Emberroot));
-        Assert.Equal(1, game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Dusktuber));
+        Assert.Equal(3, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+        Assert.Equal(1, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Dusktuber)));
         Assert.Equal([new ShippedItem(CropTypeId.Dusktuber, int.MaxValue)], game.ShippingBin.Items);
     }
 
     [Fact]
     public void BR_P5_pay_out_that_overflows_gold_throws_and_leaves_gold_and_bin_unchanged()
     {
-        var game = TestGames.WithShippingBin(150, new Inventory(), (CropTypeId.Moonmelon, int.MaxValue / 190));
+        var game = TestGames.WithShippingBin(150, TestGames.ToolsOnly(), (CropTypeId.Moonmelon, int.MaxValue / 190));
 
         Assert.Throws<OverflowException>(() => game.PayOutShippingBin(TestGames.CanonicalCrops));
         Assert.Equal(new Gold(100), game.Player.Gold);
@@ -404,7 +404,7 @@ public class ShippingTests
     [Fact]
     public void BR_P5_pay_out_whose_line_total_overflows_throws_and_leaves_gold_and_bin_unchanged()
     {
-        var game = TestGames.WithShippingBin(150, new Inventory(), (CropTypeId.Moonmelon, int.MaxValue));
+        var game = TestGames.WithShippingBin(150, TestGames.ToolsOnly(), (CropTypeId.Moonmelon, int.MaxValue));
 
         Assert.Throws<OverflowException>(() => game.PayOutShippingBin(TestGames.CanonicalCrops));
         Assert.Equal(new Gold(100), game.Player.Gold);
@@ -414,7 +414,7 @@ public class ShippingTests
     [Fact]
     public void Pay_out_with_null_crop_types_throws_and_leaves_the_bin()
     {
-        var game = TestGames.WithShippingBin(150, new Inventory(), (CropTypeId.Emberroot, 2));
+        var game = TestGames.WithShippingBin(150, TestGames.ToolsOnly(), (CropTypeId.Emberroot, 2));
 
         Assert.Throws<ArgumentNullException>(() => game.PayOutShippingBin(null!));
         Assert.Equal([new ShippedItem(CropTypeId.Emberroot, 2)], game.ShippingBin.Items);

@@ -29,7 +29,8 @@ public static class ShopService
     /// <summary>
     /// Buys a quantity of an offered listing: takes the price and adds the seeds, or applies the Can upgrade, in one step
     /// (BR-L2, BR-W4). A quantity below 1, or other than 1 for the Can upgrade, throws; a listing not offered today is
-    /// NotOffered; less gold than the total is NotEnoughGold. A rejection or an overflowing total changes nothing, and
+    /// NotOffered; seeds that don't all fit in the Backpack are BackpackFull; less gold than the total is NotEnoughGold.
+    /// A rejection or an overflowing total changes nothing, and
     /// buying costs no energy (BR-P2).
     /// </summary>
     public static ActionResult Buy(Game game, GameData data, string listingId, int quantity = 1)
@@ -54,9 +55,16 @@ public static class ShopService
     {
         var player = game.Player;
 
-        // Both sums are checked before anything changes, so an overflow leaves gold and inventory as they were.
+        var seeds = ItemRef.Seed(cropTypeId);
+
+        // The price is checked before anything changes, so an overflow leaves gold and Backpack as they were.
         var total = checked(offered.Price.Value * quantity);
-        _ = checked(player.Inventory.Quantity(ItemKind.Seed, cropTypeId) + quantity);
+
+        // BR-K3, BR-L2: until dropped items exist, seeds that fit nowhere are refused before any gold is taken.
+        if (!player.Backpack.CanFit(seeds, quantity))
+        {
+            return ActionResult.Rejected(Rejection.BackpackFull);
+        }
 
         // BR-L2, BR-P5: the gold is taken and the seeds added in the same step, or nothing changes.
         if (!player.TrySpendGold(total))
@@ -64,7 +72,7 @@ public static class ShopService
             return ActionResult.Rejected(Rejection.NotEnoughGold);
         }
 
-        player.Inventory.Add(ItemKind.Seed, cropTypeId, quantity);
+        player.Backpack.Add(seeds, quantity);
         return ActionResult.Ok;
     }
 
@@ -84,8 +92,10 @@ public static class ShopService
             return ActionResult.Rejected(Rejection.NotEnoughGold);
         }
 
-        // BR-W4, BR-W1: capacity becomes the upgraded capacity and the can is filled.
+        // BR-W4, BR-W1: capacity becomes the upgraded capacity and the can is filled; the can's tier becomes Rosk, so
+        // the tier and the 40 capacity agree.
         player.WateringCan.Upgrade(data.Tuning.CanUpgradedCapacity);
+        player.Backpack.SetTier(ToolId.WateringCan, ToolTier.Rosk);
         return ActionResult.Ok;
     }
 
