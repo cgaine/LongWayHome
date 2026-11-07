@@ -1,8 +1,10 @@
 #nullable enable
 
 using Godot;
+using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Game.Core;
+using LongWayHome.Game.Player;
 
 namespace LongWayHome.Game.World;
 
@@ -10,6 +12,7 @@ namespace LongWayHome.Game.World;
 /// The pond's action: a child of the pond's <see cref="InteractionPoint"/>. On each <c>interact</c> press (not
 /// repeated while held) while the Player is in the point's range, asks the session to refill the Watering can.
 /// Holds no rules: the refill amount and its cost are decided by <see cref="GameSession.RefillCan"/>.
+/// On success (<c>IsOk</c>) the farmer plays his <c>refill</c> clip (#103), after the action has happened.
 /// </summary>
 public partial class PondRefill : Node
 {
@@ -33,8 +36,16 @@ public partial class PondRefill : Node
     {
         if (@event.IsActionPressed("interact", allowEcho: false) && _point.IsPlayerInRange)
         {
-            _session!.RefillCan();
+            var result = _session!.RefillCan();
             GetViewport().SetInputAsHandled();
+            if (result.IsOk && FindAnimator() is { } animator)
+            {
+                animator.PlayOneShot(FarmerClip.Refill);
+            }
         }
     }
+
+    /// <summary>The Player's <see cref="FarmerAnimator"/>, found through the Player group.</summary>
+    private FarmerAnimator? FindAnimator() =>
+        GetTree().GetFirstNodeInGroup(PlayerController.Group)?.GetNodeOrNull<FarmerAnimator>(nameof(FarmerAnimator));
 }

@@ -4,3 +4,5 @@
 
 [node name="Farmer" type="Node3D"]
 script = ExtResource("1_model")
+
+[node name="Animations" type="AnimationPlayer" parent="."]

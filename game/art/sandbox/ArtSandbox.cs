@@ -25,6 +25,8 @@ namespace LongWayHome.Game.Art;
 /// <item>the <c>Farmer</c> row beside the crops (#102): four farmers from <c>res://art/farmer/Farmer.tscn</c> on a
 /// <c>grass-lit</c> slab, turned to yaw 0, 90, 180 and 270 and holding the hoe, the watering can, emberroot seeds and
 /// the hoe, so the cap brim and the held item can be judged from every side;</item>
+/// <item>the <c>Animations</c> row between the sample shapes and the tile slabs (#103): eleven farmers, one per
+/// <see cref="FarmerClip"/>, each looping its clip with a billboard label naming it;</item>
 /// <item>the four sample shapes (low-poly sphere, 6-sided trunk, house, cone tree), once on the left and once on the
 /// right, with a label over each set naming the style it shows.</item>
 /// </list>
@@ -87,6 +89,12 @@ public partial class ArtSandbox : Node3D
 
     /// <summary>The farmers' spacing along the row, from the Ripe crop row's z towards the camera.</summary>
     private const float FarmerSpacing = 1.1f;
+
+    /// <summary>The z of the Animations row: between the sample shapes (z 1.2) and the tile slabs (z 4.5).</summary>
+    private const float AnimationsZ = 2.9f;
+
+    /// <summary>How long a one-shot clip rests on its last pose before the sandbox plays it again, in seconds.</summary>
+    private const double OneShotRestartSeconds = 0.5;
 
     /// <summary>The point the camera orbits by default: in front of the origin, so the crop rows are in view.</summary>
     private static readonly Vector3 CameraCentre = new(0f, 0f, 2.5f);
@@ -170,6 +178,7 @@ public partial class ArtSandbox : Node3D
         BuildTiles();
         BuildCrops();
         BuildFarmers();
+        BuildAnimations();
         BuildShapes();
         BuildLabel();
 
@@ -496,6 +505,73 @@ public partial class ArtSandbox : Node3D
             farmers.AddChild(farmer);
         }
     }
+
+    /// <summary>
+    /// The <c>Animations</c> row (#103): eleven farmers on one <c>grass-lit</c> slab between the sample shapes and the
+    /// tile slabs, one per <see cref="FarmerClip"/> in order from the left, facing the camera. Each loops its clip (a
+    /// one-shot plays again <see cref="OneShotRestartSeconds"/> after it ends), holds the item the clip uses (the hoe
+    /// for the swing, the can for watering and the refill, emberroot seeds for planting, the hoe otherwise) and has a
+    /// billboard label naming the clip.
+    /// </summary>
+    private void BuildAnimations()
+    {
+        var row = new Node3D { Name = "Animations" };
+        AddChild(row);
+        var clips = System.Enum.GetValues<FarmerClip>();
+        var width = clips.Length * FarmerSpacing;
+        AddMesh(
+            "AnimationsSlab",
+            new BoxMesh { Size = new Vector3(width, 0.05f, 1.2f) },
+            new Vector3(0f, 0.025f, AnimationsZ),
+            "grass-lit",
+            parent: row);
+
+        var scene = GD.Load<PackedScene>(FarmerScene);
+        for (var i = 0; i < clips.Length; i++)
+        {
+            var clip = clips[i];
+            var name = FarmerAnimations.ClipName(clip);
+            var x = (i - (clips.Length - 1) / 2f) * FarmerSpacing;
+            var farmer = scene.Instantiate<FarmerModel>();
+            farmer.Name = $"Farmer_{name}";
+            farmer.Position = new Vector3(x, 0.05f, AnimationsZ);
+            farmer.ShowHeld(HeldFor(clip));
+            row.AddChild(farmer);
+
+            row.AddChild(new Label3D
+            {
+                Name = $"Label_{name}",
+                Text = name,
+                Position = new Vector3(x, 1.95f, AnimationsZ),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                FontSize = 32,
+                OutlineSize = 8,
+                PixelSize = 0.004f,
+            });
+
+            var player = farmer.GetNode<AnimationPlayer>("Animations");
+            player.Play(name);
+            if (!FarmerMoves.For(clip).Loops)
+            {
+                player.AnimationFinished += _ => GetTree().CreateTimer(OneShotRestartSeconds).Timeout += () =>
+                {
+                    if (IsInstanceValid(player) && player.IsInsideTree())
+                    {
+                        player.Play(name);
+                        player.Seek(0, update: true);
+                    }
+                };
+            }
+        }
+    }
+
+    /// <summary>The item a clip's farmer holds in the Animations row.</summary>
+    private static HeldItem HeldFor(FarmerClip clip) => clip switch
+    {
+        FarmerClip.Water or FarmerClip.Refill => HeldItem.Of(ToolId.WateringCan),
+        FarmerClip.Plant => HeldItem.SeedOf(CropTypeId.Emberroot),
+        _ => HeldItem.Of(ToolId.Hoe),
+    };
 
     private void BuildShapes()
     {
