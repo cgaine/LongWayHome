@@ -12,7 +12,7 @@ namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// The art sandbox (#75), the script of <c>res://art/sandbox/ArtSandbox.tscn</c>, opened from the title screen with
-/// the <c>--art-sandbox</c> launch flag. Builds, on a 52 x 60 m ground slab (x ±26, z −22..38) (the <c>wall-grey</c> swatch, the
+/// the <c>--art-sandbox</c> launch flag. Builds, on a 52 x 72 m ground slab (x ±26, z −22..50) (the <c>wall-grey</c> swatch, the
 /// palette's closest neutral):
 /// <list type="bullet">
 /// <item>the palette rows at the back: one 0.8 m cube per <see cref="ArtPalette"/> swatch, in texture order (11 to a
@@ -45,7 +45,10 @@ namespace LongWayHome.Game.Art;
 /// <see cref="TownModels"/>) at each <see cref="StoreStage"/>, left to right, each labelled, with its rebuild sign
 /// (<see cref="RebuildSignArt"/>) in front for the next stage: wood and stone delivered at Maggie's corner, nothing yet
 /// once reopened, wood at the storeroom, and none once fully expanded. The store's lit windows and the signs' amber
-/// outlines show only under the Night preset.</item>
+/// outlines show only under the Night preset;</item>
+/// <item>in front of it the carpenter (<see cref="CarpenterArt"/>) at each <see cref="CarpenterStage"/>, left to right,
+/// each labelled, with a rebuild sign in front of the first three (wood in while empty, nothing once reopened, wood and
+/// stone at the workshop). Its lit windows show only at night; the sap barrels glow too.</item>
 /// </list>
 /// Every mesh takes its colour from the shared palette material through <see cref="ArtMaterials.Apply"/> (#76).
 /// Flat only or Stepped only sets the global shader uniform <c>art_stepped_shading</c>, so every mesh shows that
@@ -72,10 +75,13 @@ public partial class ArtSandbox : Node3D
 
     private const float GroundWidth = 52f;
 
-    private const float GroundDepth = 60f;
+    private const float GroundDepth = 72f;
 
-    /// <summary>The ground's centre z: it runs from z −22 at the back to z 38 at the front.</summary>
-    private const float GroundCentreZ = 8f;
+    /// <summary>The ground's centre z: it runs from z −22 at the back to z 50 at the front.</summary>
+    private const float GroundCentreZ = 14f;
+
+    /// <summary>The z of the Carpenter row, in front of the store row.</summary>
+    private const float CarpenterZ = 42.5f;
 
     /// <summary>The z of the Town row, furthest to the front.</summary>
     private const float TownZ = 29f;
@@ -918,6 +924,49 @@ public partial class ArtSandbox : Node3D
                 Position = signAt,
             });
             AddNightOnly(town, $"Store{stage}RebuildSignOutline", TownModels.RebuildSignOutline(), signAt);
+        }
+
+        (CarpenterStage Stage, float X, string Label, (bool Wood, bool Stone, bool Gold)? Sign)[] carpenters =
+        [
+            (CarpenterStage.Empty, -19.5f, "Carpenter · 0. Empty", (true, false, false)),
+            (CarpenterStage.Reopened, -6.5f, "Carpenter · 1. Reopened", (false, false, false)),
+            (CarpenterStage.Workshop, 6.5f, "Carpenter · 2. Workshop", (true, true, false)),
+            (CarpenterStage.Builder, 19.5f, "Carpenter · 3. Builder", null),
+        ];
+        foreach (var (stage, x, label, sign) in carpenters)
+        {
+            var position = new Vector3(x, 0f, CarpenterZ);
+            town.AddChild(new MeshInstance3D
+            {
+                Name = $"Carpenter{stage}",
+                Mesh = TownModels.Carpenter(stage),
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+                Position = position,
+            });
+            AddNightOnly(town, $"Carpenter{stage}NightLights", TownModels.CarpenterNightLights(stage), position);
+            town.AddChild(new Label3D
+            {
+                Name = $"Carpenter{stage}Label",
+                Text = label,
+                Position = position + new Vector3(0f, 8.8f, 0f),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                FontSize = 48,
+                OutlineSize = 10,
+                PixelSize = 0.006f,
+            });
+
+            if (sign is not { } pips) continue;
+            var signAt = position + new Vector3(-1.9f, 0f, 4.6f);
+            town.AddChild(new MeshInstance3D
+            {
+                Name = $"Carpenter{stage}RebuildSign",
+                Mesh = TownModels.RebuildSign(pips.Wood, pips.Stone, pips.Gold),
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+                Position = signAt,
+            });
+            AddNightOnly(town, $"Carpenter{stage}RebuildSignOutline", TownModels.RebuildSignOutline(), signAt);
         }
     }
 
