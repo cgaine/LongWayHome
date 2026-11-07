@@ -77,6 +77,10 @@ public static class ArtPalette
         new("grass-spring-mown", "#A6D07C"),
         new("grass-fall-mown", "#C0BC72"),
         new("starcorn-sparkle", "#FFFFFF"),
+        new("skin", "#D9A07A"),
+        new("skin-shade", "#B57E5F"),
+        new("hair", "#5A3E2E"),
+        new("seed-pouch", "#D9C39A"),
     ];
 
     /// <summary>The centre of <paramref name="role"/>'s swatch in 0–1 texture space (U right, V down).</summary>

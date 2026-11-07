@@ -63,13 +63,20 @@ public class ArtPaletteTests
         ("roof-far", "#2F6B60"),
     ];
 
-    /// <summary>The whole list: the baseline, the Season margins appended by #79, then starcorn's sparkle (#91).</summary>
+    /// <summary>
+    /// The whole list: the baseline, the Season margins appended by #79, starcorn's sparkle (#91), then the farmer's
+    /// skin, skin shade, hair and seed pouch (#102).
+    /// </summary>
     private static readonly (string Role, string Hex)[] ExpectedSwatches =
     [
         .. BaselineSwatches,
         ("grass-spring-mown", "#A6D07C"),
         ("grass-fall-mown", "#C0BC72"),
         ("starcorn-sparkle", "#FFFFFF"),
+        ("skin", "#D9A07A"),
+        ("skin-shade", "#B57E5F"),
+        ("hair", "#5A3E2E"),
+        ("seed-pouch", "#D9C39A"),
     ];
 
     /// <summary>The swatches the encoder is given, for the PNG layout tests, which hold for any list length.</summary>
@@ -79,11 +86,11 @@ public class ArtPaletteTests
     // ---- AC1: the swatch list ----
 
     [Fact]
-    public void AC3_palette_lists_the_46_swatches_in_order()
+    public void AC3_palette_lists_the_50_swatches_in_order()
     {
         var actual = ArtPalette.Swatches.Select(s => (s.Role, s.Hex)).ToArray();
 
-        Assert.Equal(46, actual.Length);
+        Assert.Equal(50, actual.Length);
         Assert.Equal(ExpectedSwatches, actual);
     }
 
