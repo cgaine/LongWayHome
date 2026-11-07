@@ -77,11 +77,13 @@ public sealed class Backpack
 
         _slots = byIndex.Select(slot => slot!).ToList();
 
-        // BR-K6: the hoe and the watering can never leave the Backpack, so each is held exactly once.
+        // BR-K6: the hoe and the watering can never leave the Backpack, so each is held exactly once; BR-K2: no tool
+        // is held twice.
         foreach (var tool in Enum.GetValues<ToolId>())
         {
             var held = _slots.Count(slot => slot.Item == ItemRef.Tool(tool));
-            if (held != 1)
+            var required = tool is ToolId.Hoe or ToolId.WateringCan;
+            if (held > 1 || (required && held != 1))
             {
                 throw new ArgumentException(
                     $"The Backpack must hold the {tool} exactly once, not {held} times (BR-K6).", nameof(slots));
@@ -145,9 +147,17 @@ public sealed class Backpack
         return room >= quantity;
     }
 
-    /// <summary>Puts a tool alone in the lowest free Slot; false and no change when there is none (BR-K2).</summary>
+    /// <summary>
+    /// Puts a tool alone in the lowest free Slot; false and no change when there is none (BR-K2). A tool already held
+    /// throws, so the Backpack never holds it twice.
+    /// </summary>
     public bool AddTool(ToolId tool, ToolTier tier)
     {
+        if (TierOf(tool) is not null)
+        {
+            throw new InvalidOperationException($"The {tool} is already in the Backpack.");
+        }
+
         // BR-K2: a tool is alone in its Slot, with quantity 1 and its tier.
         var free = _slots.FindIndex(slot => slot.Item is null);
         if (free < 0)
@@ -262,6 +272,11 @@ public sealed class Backpack
         if (item.Kind == ItemKind.Tool)
         {
             throw new ArgumentException("A tool goes in through AddTool, never as a stack (BR-K2).", nameof(item));
+        }
+
+        if (!item.IsValid)
+        {
+            throw new ArgumentException($"The item's id doesn't match its kind {item.Kind}.", nameof(item));
         }
 
         ArgumentOutOfRangeException.ThrowIfLessThan(quantity, 1);

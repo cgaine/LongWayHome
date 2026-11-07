@@ -180,6 +180,29 @@ public class BackpackRestoreTests
     }
 
     [Fact]
+    public void BR_K2_Adding_a_tool_already_held_throws_and_changes_nothing()
+    {
+        var backpack = TestGames.ToolsOnly();
+        var before = TestGames.Describe(backpack);
+
+        Assert.Throws<InvalidOperationException>(() => backpack.AddTool(ToolId.Hoe, ToolTier.Rosk));
+        Assert.Equal(before, TestGames.Describe(backpack));
+    }
+
+    [Fact]
+    public void An_item_ref_whose_id_does_not_match_its_kind_cannot_be_added_fitted_or_removed()
+    {
+        var backpack = TestGames.StartingBackpack();
+        var before = TestGames.Describe(backpack);
+        var broken = new ItemRef(ItemKind.Seed, null, null);
+
+        Assert.Throws<ArgumentException>(() => backpack.Add(broken, 1));
+        Assert.Throws<ArgumentException>(() => backpack.CanFit(broken, 1));
+        Assert.Throws<ArgumentException>(() => backpack.Remove(broken, 1));
+        Assert.Equal(before, TestGames.Describe(backpack));
+    }
+
+    [Fact]
     public void Totals_are_per_crop_type_across_slots_in_crop_type_order_for_one_kind()
     {
         var backpack = TestGames.BackpackWith(

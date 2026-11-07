@@ -30,8 +30,7 @@ public static class ShopService
     /// Buys a quantity of an offered listing: takes the price and adds the seeds, or applies the Can upgrade, in one step
     /// (BR-L2, BR-W4). A quantity below 1, or other than 1 for the Can upgrade, throws; a listing not offered today is
     /// NotOffered; seeds that don't all fit in the Backpack are BackpackFull; less gold than the total is NotEnoughGold.
-    /// A rejection or an overflowing total changes nothing, and
-    /// buying costs no energy (BR-P2).
+    /// A rejection or an overflowing total changes nothing, and buying costs no energy (BR-P2).
     /// </summary>
     public static ActionResult Buy(Game game, GameData data, string listingId, int quantity = 1)
     {

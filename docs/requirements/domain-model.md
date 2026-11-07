@@ -74,7 +74,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `GameDate` | `{ year: int ≥ 1, season: Season, day: 1–28 }` | Game |
 | `ClockMinutes` | integer, 360 (06:00) to 1560 (02:00 next morning) | Game |
 | `Gold` | integer ≥ 0 | Player, CropType, ShopListing, BuildingStage, Order |
-| `ToolTier` | *(planned, REQ-57)* `basic`, `rosk`, `groth` | ToolItem, Order |
+| `ToolTier` | `basic`, `rosk`, `groth` | ToolItem, Order |
 | `MaterialId` | *(planned, REQ-44)* `wood`, `sap`, `stone`, `rosk_ore`, `groth_ore`, `glimmercap`, `plank`, `sealed_plank`, `rosk_pump` | BackpackSlot, BuildingStage, Order |
 | `PlaceableId` | *(planned, REQ-48)* `fence`, `chest` | PlacedObject, BackpackSlot, ShopListing |
 | `ItemRef` | `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
