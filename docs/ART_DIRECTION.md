@@ -299,6 +299,8 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Tools in hand pa
 
 **Always in hand.** Whatever is selected in the hotbar is in the farmer's hand, so the next action reads at a glance (pillar 4). That includes seeds, which the game already lets him hold. He holds it in the hand without the wrist unit, so both stay visible. Long tools stand head up beside him; the watering can and the seed pouch hang below the hand, so they never read as long tools.
 
+**Short and stocky.** Tools follow the farmer's chunky build (section 6.1): short, thick handles and oversized heads, so a long tool stands only about chest high beside him and the head reads from the camera. The sheet shows him in his "at home" outfit (work shirt, teal overalls, sun hat), the look he farms in for most of the game.
+
 **Mostly familiar.** Tools are made by people, so they keep Earth shapes (section 1). The second look is in the materials: handles of native mauve timber with its wavy grain, and heads of the planet's own metals.
 
 | Item | Status | Silhouette |
