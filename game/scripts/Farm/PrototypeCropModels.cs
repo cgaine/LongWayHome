@@ -8,8 +8,8 @@ namespace LongWayHome.Game.Farm;
 /// <summary>
 /// The prototype's low-poly Planting models, built from primitive meshes with flat materials and standing on y = 0 of
 /// their own node. No imported art. <c>TileView</c> falls back to these for a crop that <c>CropModels</c> does not
-/// draw yet (moonmelon, sunbell and starcorn, #90); the summer and fall features replace them and the one that
-/// empties this class deletes the file.
+/// draw yet: only moonmelon, since #90 drew emberroot and dusktuber and #91 sunbell and starcorn. The fall feature
+/// (#92) replaces moonmelon and deletes the file.
 /// </summary>
 internal static class PrototypeCropModels
 {
@@ -70,20 +70,18 @@ internal static class PrototypeCropModels
         return model;
     }
 
-    /// <summary>The ripe model of each crop: clearly different from Young and from each other.</summary>
+    /// <summary>The ripe model of a crop not drawn to the art yet (only moonmelon), clearly different from Young.</summary>
     public static Node3D Ripe(CropTypeId crop) => crop switch
     {
         CropTypeId.Moonmelon => Moonmelon(),
-        CropTypeId.Sunbell => Sunbell(),
-        _ => Starcorn(),
+        _ => throw new System.ArgumentOutOfRangeException(nameof(crop), crop, "CropArt draws this crop; it has no prototype model."),
     };
 
-    /// <summary>The colour a crop is known by, used to tint its young plant.</summary>
+    /// <summary>The colour a crop not drawn yet is known by, used to tint its young plant.</summary>
     private static Color CropColor(CropTypeId crop) => crop switch
     {
         CropTypeId.Moonmelon => new Color(0.55f, 0.72f, 1f),
-        CropTypeId.Sunbell => new Color(0.98f, 0.85f, 0.2f),
-        _ => new Color(0.95f, 0.75f, 0.2f),
+        _ => throw new System.ArgumentOutOfRangeException(nameof(crop), crop, "CropArt draws this crop; it has no prototype model."),
     };
 
     /// <summary>A large pale blue-white round melon with a short vine.</summary>
@@ -93,38 +91,6 @@ internal static class PrototypeCropModels
         Add(model, "Melon", Sphere(0.38f, 0.36f, new Color(0.66f, 0.8f, 1f)), new Vector3(0f, 0.18f, 0f));
         Add(model, "Vine", Box(new Vector3(0.22f, 0.03f, 0.04f), StemColor), new Vector3(0.14f, 0.03f, 0.12f));
         Add(model, "Leaf", Box(new Vector3(0.12f, 0.02f, 0.1f), LeafColor), new Vector3(0.24f, 0.04f, 0.16f));
-        return model;
-    }
-
-    /// <summary>A leafy plant with yellow bell flowers hanging from it.</summary>
-    private static Node3D Sunbell()
-    {
-        var model = new Node3D();
-        Add(model, "Stem", Cylinder(0.025f, 0.03f, 0.44f, StemColor), new Vector3(0f, 0.22f, 0f));
-        var leaf = Prism(new Vector3(0.12f, 0.24f, 0.04f), LeafColor);
-        Add(model, "LeafA", leaf, new Vector3(-0.08f, 0.14f, 0f), new Vector3(0f, 0f, 40f));
-        Add(model, "LeafB", leaf, new Vector3(0.08f, 0.14f, 0f), new Vector3(0f, 0f, -40f));
-        var bell = Cylinder(0.02f, 0.09f, 0.12f, new Color(1f, 0.85f, 0.15f), 6);
-        Add(model, "BellA", bell, new Vector3(-0.12f, 0.38f, 0f));
-        Add(model, "BellB", bell, new Vector3(0.12f, 0.42f, 0.04f));
-        Add(model, "BellC", bell, new Vector3(0f, 0.48f, -0.1f));
-        return model;
-    }
-
-    /// <summary>A tall stalk with a golden cob.</summary>
-    private static Node3D Starcorn()
-    {
-        var model = new Node3D();
-        Add(model, "Stalk", Cylinder(0.035f, 0.045f, 0.8f, StemColor), new Vector3(0f, 0.4f, 0f));
-        var leaf = Box(new Vector3(0.32f, 0.02f, 0.06f), LeafColor);
-        Add(model, "LeafA", leaf, new Vector3(-0.14f, 0.3f, 0f), new Vector3(0f, 0f, -25f));
-        Add(model, "LeafB", leaf, new Vector3(0.14f, 0.5f, 0f), new Vector3(0f, 0f, 25f));
-        Add(
-            model,
-            "Cob",
-            Cylinder(0.06f, 0.07f, 0.26f, new Color(1f, 0.78f, 0.12f), 8),
-            new Vector3(0.09f, 0.62f, 0f),
-            new Vector3(0f, 0f, -15f));
         return model;
     }
 

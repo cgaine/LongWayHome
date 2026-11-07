@@ -53,13 +53,15 @@ public sealed record CropPart(
 /// along X.
 /// </para>
 /// <para>
-/// <b>The models.</b> "Colour" is the crop's own role: <c>ember</c> for emberroot, <c>dusktuber</c> for dusktuber.
+/// <b>The models.</b> "Colour" is the crop's own role: <c>ember</c> for emberroot, <c>dusktuber</c> for dusktuber,
+/// <c>sunbell-gold</c> for sunbell (#91) and <c>starcorn</c> for starcorn (#91). A part placed "at radius r, yawed a"
+/// is centred at Ry(a)·(0, y, r): yaw 0 is +Z, yaw 90 is +X.
 /// </para>
 /// <list type="table">
 /// <listheader><term>Model</term><description>Parts</description></listheader>
-/// <item><term>Seed (both)</term><description><c>Mound</c> Sphere 0.36 x 0.10 at y 0.02, <c>dirt-path</c>;
+/// <item><term>Seed (all four)</term><description><c>Mound</c> Sphere 0.36 x 0.10 at y 0.02, <c>dirt-path</c>;
 /// <c>Seed</c> Sphere 0.10 x 0.07 at y 0.09, colour. About 0.36 wide, 0.13 tall.</description></item>
-/// <item><term>Sprout (both)</term><description><c>Stem</c> Cylinder 0.035 x 0.19 x 0.035 at y 0.095,
+/// <item><term>Sprout (all four)</term><description><c>Stem</c> Cylinder 0.035 x 0.19 x 0.035 at y 0.095,
 /// <c>foliage</c>; <c>SeedLeafLeft</c>/<c>SeedLeafRight</c> Boxes 0.17 x 0.02 x 0.085 rising from the stem top
 /// (0, 0.18, 0) to the left and right, rolled so the outer ends lift 25° (a V), centres about (∓0.077, 0.22, 0),
 /// <c>grass-mown</c>; <c>Bud</c> Sphere 0.075 at y 0.22, colour. About 0.32 wide, 0.26 tall.</description></item>
@@ -79,14 +81,43 @@ public sealed record CropPart(
 /// radius 0.13 yawed 45° + i x 90°, <c>moonmelon</c>; <c>Leaf0</c>–<c>Leaf3</c> Boxes 0.26 x 0.02 x 0.09 rising
 /// from the bulb top (0, 0.26, 0), yawed i x 90° + 20°, rolled 35° up, <c>foliage</c>; <c>Curl0</c>–<c>Curl3</c>
 /// Spheres 0.06 at each leaf's outer tip, <c>leaf-underside</c>. About 0.46 wide, 0.44 tall.</description></item>
+/// <item><term>Sunbell Young</term><description><c>Cane0</c>–<c>Cane2</c> Cylinders bottom 0.025, top 0.015,
+/// height 0.22 rising from (0, 0, 0), yawed i x 120°, pitched 15° outward, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf5</c>
+/// Prisms 0.12 x 0.16 x 0.03 at radius 0.10, yawed i x 60°, at y 0.18 (even i) or 0.26 (odd i), pitched 40°
+/// outward, <c>foliage</c>; <c>Berry</c> Sphere 0.05 at (0.08, 0.16, 0), <c>grass-mown</c>. About 0.34 wide, 0.33
+/// tall.</description></item>
+/// <item><term>Sunbell Ripe</term><description><c>Foliage0</c> Sphere 0.22 x 0.18 at y 0.30 and
+/// <c>Foliage1</c>–<c>Foliage4</c> Spheres 0.22 x 0.18 at y 0.20, radius 0.16, yawed i x 90°, <c>foliage</c>; six
+/// berries at radius 0.25, yawed i x 60°, each <c>Berry&lt;i&gt;Top</c> Cylinder bottom 0.06, top 0.09, height 0.05
+/// at y 0.17, <c>sunbell-gold</c>, <c>Berry&lt;i&gt;Tip</c> Cylinder bottom 0, top 0.06, height 0.05 straight under it
+/// at y 0.12, <c>sunbell-orange</c> (the point, hanging down), and <c>Berry&lt;i&gt;SepalsA</c>/<c>SepalsB</c>
+/// Boxes 0.09 x 0.01 x 0.02 at y 0.20, yawed with the berry and 90° across it, <c>foliage</c>. No glow. About 0.59
+/// wide, 0.39 tall.</description></item>
+/// <item><term>Starcorn Young</term><description><c>Stalk</c> Cylinder bottom 0.05, top 0.035, height 0.40 at y
+/// 0.20, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf3</c> Boxes 0.30 x 0.02 x 0.06 from the stalk axis at y 0.12, 0.20,
+/// 0.28 and 0.36, yawed i x 90° + 30°, the outer end drooping (rolled −25°), <c>foliage</c>. About 0.51 wide, 0.40
+/// tall.</description></item>
+/// <item><term>Starcorn Ripe</term><description><c>Stalk</c> Cylinder bottom 0.08, top 0.05, height 0.95 at y
+/// 0.475, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf4</c> Boxes 0.36 x 0.02 x 0.07 from the stalk axis at y 0.15, 0.30,
+/// 0.45, 0.60 and 0.75, yawed i x 72°, drooping (rolled −25°), <c>foliage</c>; <c>Cob</c> Cylinder bottom 0.15, top
+/// 0.13, height 0.32 centred at (0.09, 0.62, 0), rolled −15° so its top leans away from the stalk, <c>starcorn</c>;
+/// <c>HuskLeft</c>/<c>HuskRight</c> Prisms 0.08 x 0.26 x 0.02 rising from the cob's foot on its −Z and +Z sides,
+/// rolled −15° with the cob and pitched ∓20° to peel back, <c>grass-mown</c>; <c>Sparkle0</c>–<c>Sparkle7</c>
+/// Boxes 0.025 pitched 45° and rolled 45° (diamonds), centred 0.005 m proud of the cob's tapering surface, spread
+/// from 0.125 m below to 0.125 m above its middle and round its outer side (−63° to 63° from the cob's +X),
+/// <c>starcorn-sparkle</c>; <c>Tassel0</c>–<c>Tassel2</c> Prisms 0.03 x 0.14 x 0.01 rising from (0, 0.935, 0) so
+/// they are centred at y 1.0, yawed i x 120°, pitched 20° outward, <c>sunbell-gold</c>. About 0.65 wide, 1.07
+/// tall.</description></item>
 /// </list>
 /// <para>
-/// The Seed, Sprout and Young models are up to 25% larger than the issue's starting sizes (the issue allows it), so
-/// the early stages still read from the farthest camera zoom.
+/// The Seed, Sprout and Young models of emberroot and dusktuber are up to 25% larger than #90's starting sizes (the
+/// issue allows it), so the early stages still read from the farthest camera zoom. Ripe sunbell's outer foliage
+/// (radius 0.16, not 0.13) and berries (radius 0.25, not 0.20) sit further out than #91's starting sizes, so the bush
+/// is at least 0.1 m wider than ripe dusktuber (AC4).
 /// </para>
 /// <para>
-/// Moonmelon, sunbell and starcorn have no parts yet (<see cref="Parts"/> returns <c>null</c>); the game falls back
-/// to their prototype models until the summer and fall features draw them.
+/// Moonmelon has no parts yet (<see cref="Parts"/> returns <c>null</c>); the game falls back to its prototype model
+/// until the fall feature (#92) draws it.
 /// </para>
 /// </summary>
 public static class CropArt
@@ -148,7 +179,14 @@ public static class CropArt
     private static Dictionary<(CropTypeId Crop, GrowthStage Stage), IReadOnlyList<CropPart>> Build()
     {
         var models = new Dictionary<(CropTypeId, GrowthStage), IReadOnlyList<CropPart>>();
-        foreach (var (crop, colour) in new[] { (CropTypeId.Emberroot, "ember"), (CropTypeId.Dusktuber, "dusktuber") })
+        var colours = new[]
+        {
+            (CropTypeId.Emberroot, "ember"),
+            (CropTypeId.Dusktuber, "dusktuber"),
+            (CropTypeId.Sunbell, "sunbell-gold"),
+            (CropTypeId.Starcorn, "starcorn"),
+        };
+        foreach (var (crop, colour) in colours)
         {
             models[(crop, GrowthStage.Seed)] = Seed(colour);
             models[(crop, GrowthStage.Sprout)] = Sprout(colour);
@@ -158,6 +196,10 @@ public static class CropArt
         models[(CropTypeId.Emberroot, GrowthStage.Ripe)] = EmberrootRipe();
         models[(CropTypeId.Dusktuber, GrowthStage.Young)] = DusktuberYoung();
         models[(CropTypeId.Dusktuber, GrowthStage.Ripe)] = DusktuberRipe();
+        models[(CropTypeId.Sunbell, GrowthStage.Young)] = SunbellYoung();
+        models[(CropTypeId.Sunbell, GrowthStage.Ripe)] = SunbellRipe();
+        models[(CropTypeId.Starcorn, GrowthStage.Young)] = StarcornYoung();
+        models[(CropTypeId.Starcorn, GrowthStage.Ripe)] = StarcornRipe();
         return models;
     }
 
@@ -249,6 +291,119 @@ public static class CropArt
         return parts;
     }
 
+    /// <summary>Three young canes leaning out, a ring of leaves round them and one small green berry.</summary>
+    private static List<CropPart> SunbellYoung()
+    {
+        var parts = new List<CropPart>();
+        for (var i = 0; i < 3; i++)
+        {
+            parts.Add(RisingFrom(
+                $"Cane{i}", 0.025f, 0.22f, 0.015f, Vector3.Zero, pitch: 15f, yaw: i * 120f, "foliage", CropPartShape.Cylinder));
+        }
+
+        for (var i = 0; i < 6; i++)
+        {
+            var y = 0.18f + (0.08f * (i % 2));
+            parts.Add(Around($"Leaf{i}", CropPartShape.Prism, 0.12f, 0.16f, 0.03f, radius: 0.10f, y, yaw: i * 60f, pitch: 40f, "foliage"));
+        }
+
+        parts.Add(new CropPart("Berry", CropPartShape.Sphere, 0.05f, 0.05f, 0.05f, 0.08f, 0.16f, 0f, 0f, 0f, 0f, "grass-mown"));
+        return parts;
+    }
+
+    /// <summary>
+    /// A rounded raspberry bush with six sun-coloured berries hanging point down under its edge, each gold at the top
+    /// shading to an orange point under a green star of sepals. Nothing on it is a bell.
+    /// </summary>
+    private static List<CropPart> SunbellRipe()
+    {
+        const float berryRadius = 0.25f;
+        var parts = new List<CropPart> { Upright("Foliage0", CropPartShape.Sphere, 0.22f, 0.18f, 0.22f, 0.30f, "foliage") };
+        for (var i = 0; i < 4; i++)
+        {
+            parts.Add(Around(
+                $"Foliage{i + 1}", CropPartShape.Sphere, 0.22f, 0.18f, 0.22f, radius: 0.16f, y: 0.20f, yaw: i * 90f, pitch: 0f, "foliage"));
+        }
+
+        for (var i = 0; i < 6; i++)
+        {
+            var yaw = i * 60f;
+            parts.Add(Around($"Berry{i}Top", CropPartShape.Cylinder, 0.06f, 0.05f, 0.09f, berryRadius, 0.17f, yaw, pitch: 0f, "sunbell-gold"));
+            parts.Add(Around($"Berry{i}Tip", CropPartShape.Cylinder, 0f, 0.05f, 0.06f, berryRadius, 0.12f, yaw, pitch: 0f, "sunbell-orange"));
+            parts.Add(Around($"Berry{i}SepalsA", CropPartShape.Box, 0.09f, 0.01f, 0.02f, berryRadius, 0.20f, yaw, pitch: 0f, "foliage"));
+            parts.Add(Around(
+                $"Berry{i}SepalsB", CropPartShape.Box, 0.09f, 0.01f, 0.02f, berryRadius, 0.20f, yaw + 90f, pitch: 0f, "foliage", positionYaw: yaw));
+        }
+
+        return parts;
+    }
+
+    /// <summary>A young corn stalk with four long leaves drooping at their outer ends.</summary>
+    private static List<CropPart> StarcornYoung()
+    {
+        var parts = new List<CropPart> { Upright("Stalk", CropPartShape.Cylinder, 0.05f, 0.40f, 0.035f, 0.20f, "foliage") };
+        for (var i = 0; i < 4; i++)
+        {
+            var root = new Vector3(0f, 0.12f + (0.08f * i), 0f);
+            parts.Add(LyingFrom($"Leaf{i}", 0.30f, 0.02f, 0.06f, root, yaw: (i * 90f) + 30f, roll: -25f, "foliage"));
+        }
+
+        return parts;
+    }
+
+    /// <summary>
+    /// A tall corn stalk, by far the tallest crop on the farm, with five drooping leaves, a big golden cob leaning out
+    /// from it between two peeled-back husks, eight white diamond sparkles round the cob's outer side and a gold tassel.
+    /// </summary>
+    private static List<CropPart> StarcornRipe()
+    {
+        var parts = new List<CropPart> { Upright("Stalk", CropPartShape.Cylinder, 0.08f, 0.95f, 0.05f, 0.475f, "foliage") };
+        for (var i = 0; i < 5; i++)
+        {
+            var root = new Vector3(0f, 0.15f * (i + 1), 0f);
+            parts.Add(LyingFrom($"Leaf{i}", 0.36f, 0.02f, 0.07f, root, yaw: i * 72f, roll: -25f, "foliage"));
+        }
+
+        // The cob stands 0.09 m out from the stalk (+X) and leans 15° away from it: a negative roll tips its top to +X.
+        const float cobBottom = 0.15f;
+        const float cobTop = 0.13f;
+        const float cobLength = 0.32f;
+        const float cobRoll = -15f;
+        var cobCentre = new Vector3(0.09f, 0.62f, 0f);
+        var cobRotation = Rotation(0f, 0f, cobRoll);
+        parts.Add(new CropPart(
+            "Cob", CropPartShape.Cylinder, cobBottom, cobLength, cobTop, cobCentre.X, cobCentre.Y, cobCentre.Z, 0f, 0f, cobRoll, "starcorn"));
+
+        // The husks stand on the cob's foot either side of it (the cob's ±Z) and peel 20° back from it.
+        foreach (var (name, side) in new[] { ("HuskLeft", -1f), ("HuskRight", 1f) })
+        {
+            var foot = cobCentre + Vector3.Transform(new Vector3(0f, -cobLength / 2f, side * cobBottom / 2f), cobRotation);
+            parts.Add(RisingFrom(name, 0.08f, 0.26f, 0.02f, foot, pitch: side * 20f, yaw: 0f, "grass-mown", roll: cobRoll));
+        }
+
+        // Eight sparkles spread up the cob and round its outer side, just proud of its tapering surface.
+        for (var i = 0; i < 8; i++)
+        {
+            var along = -0.125f + (i * 0.25f / 7f);
+            var t = (along + (cobLength / 2f)) / cobLength;
+            var radius = (cobBottom / 2f) + (((cobTop - cobBottom) / 2f) * t) + 0.005f;
+            var around = Radians((((i * 3) % 8) - 3.5f) * 18f);
+            var at = cobCentre + Vector3.Transform(
+                new Vector3(radius * MathF.Cos(around), along, radius * MathF.Sin(around)), cobRotation);
+            parts.Add(new CropPart(
+                $"Sparkle{i}", CropPartShape.Box, 0.025f, 0.025f, 0.025f, at.X, at.Y, at.Z, 45f, 0f, 45f, "starcorn-sparkle"));
+        }
+
+        // The tassel rises from just inside the stalk top, so its three prisms are centred at y 1.0.
+        var tasselRoot = new Vector3(0f, 0.935f, 0f);
+        for (var i = 0; i < 3; i++)
+        {
+            parts.Add(RisingFrom($"Tassel{i}", 0.03f, 0.14f, 0.01f, tasselRoot, pitch: 20f, yaw: i * 120f, "sunbell-gold"));
+        }
+
+        return parts;
+    }
+
     private static CropPart Speckle(string name, float radius, float y, float yaw)
     {
         var at = Vector3.Transform(new Vector3(radius, y, 0f), Rotation(0f, yaw, 0f));
@@ -261,14 +416,46 @@ public static class CropArt
         new(name, shape, sizeX, sizeY, sizeZ, 0f, y, 0f, 0f, 0f, 0f, role);
 
     /// <summary>
-    /// An upright Prism whose foot is at <paramref name="root"/>, pitched <paramref name="pitch"/> outward and then
-    /// yawed to <paramref name="yaw"/>: its centre is the root plus the rotated half-length.
+    /// An upright part (a Prism unless <paramref name="shape"/> says otherwise) whose foot is at <paramref name="root"/>,
+    /// rolled <paramref name="roll"/>, pitched <paramref name="pitch"/> outward and then yawed to <paramref name="yaw"/>:
+    /// its centre is the root plus the rotated half-length.
     /// </summary>
     private static CropPart RisingFrom(
-        string name, float sizeX, float sizeY, float sizeZ, Vector3 root, float pitch, float yaw, string role)
+        string name,
+        float sizeX,
+        float sizeY,
+        float sizeZ,
+        Vector3 root,
+        float pitch,
+        float yaw,
+        string role,
+        CropPartShape shape = CropPartShape.Prism,
+        float roll = 0f)
     {
-        var centre = root + Vector3.Transform(new Vector3(0f, sizeY / 2f, 0f), Rotation(pitch, yaw, 0f));
-        return new CropPart(name, CropPartShape.Prism, sizeX, sizeY, sizeZ, centre.X, centre.Y, centre.Z, pitch, yaw, 0f, role);
+        var centre = root + Vector3.Transform(new Vector3(0f, sizeY / 2f, 0f), Rotation(pitch, yaw, roll));
+        return new CropPart(name, shape, sizeX, sizeY, sizeZ, centre.X, centre.Y, centre.Z, pitch, yaw, roll, role);
+    }
+
+    /// <summary>
+    /// A part centred <paramref name="radius"/> out from the slab's centre line at height <paramref name="y"/>, towards
+    /// <paramref name="positionYaw"/> (by default <paramref name="yaw"/>; yaw 0 is +Z), then pitched
+    /// <paramref name="pitch"/> outward and yawed to <paramref name="yaw"/>.
+    /// </summary>
+    private static CropPart Around(
+        string name,
+        CropPartShape shape,
+        float sizeX,
+        float sizeY,
+        float sizeZ,
+        float radius,
+        float y,
+        float yaw,
+        float pitch,
+        string role,
+        float? positionYaw = null)
+    {
+        var at = Vector3.Transform(new Vector3(0f, y, radius), Rotation(0f, positionYaw ?? yaw, 0f));
+        return new CropPart(name, shape, sizeX, sizeY, sizeZ, at.X, at.Y, at.Z, pitch, yaw, 0f, role);
     }
 
     /// <summary>

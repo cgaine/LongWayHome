@@ -147,6 +147,22 @@ public class CropArtTests
         }
     }
 
+    /// <summary>Part names identify parts in the table and the tests, so each one is used once per model.</summary>
+    [Theory]
+    [MemberData(nameof(DrawnModels))]
+    public void Every_part_name_is_unique_within_its_model(CropTypeId crop, GrowthStage stage)
+    {
+        var names = PartsOf(crop, stage).Select(part => part.Name).ToList();
+
+        Assert.Equal(names.Count, names.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    /// <summary>The issue's budget: one merged mesh per model, of under about 40 parts, holds 30 fps on a full plot (REQ-14).</summary>
+    [Theory]
+    [MemberData(nameof(DrawnModels))]
+    public void Every_model_has_at_most_40_parts(CropTypeId crop, GrowthStage stage) =>
+        Assert.InRange(PartsOf(crop, stage).Count, 1, 40);
+
     // ---- AC2: each stage is taller or wider than the one before ----
 
     [Theory]
