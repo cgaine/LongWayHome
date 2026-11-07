@@ -152,6 +152,57 @@ public class TileLookTests
         Assert.Equal(before, TileLook.For(game.FarmPlot[Position]));
     }
 
+    // ---- #79: the grass Tiles by Season; tilled and watered soil all year ----
+
+    public static TheoryData<Season> Seasons => new() { Season.Spring, Season.Summer, Season.Fall, Season.Winter };
+
+    [Fact]
+    public void BR_T8_tilled_and_watered_tiles_look_the_same_in_every_season()
+    {
+        var tilledDry = new Tile(Position, TileState.Tilled, false, null);
+        var tilledWatered = new Tile(Position, TileState.Tilled, true, null);
+
+        foreach (var season in Enum.GetValues<Season>())
+        {
+            Assert.Equal(TileLook.For(tilledDry), TileLook.For(tilledDry, season));
+            Assert.Equal(TileLook.For(tilledWatered), TileLook.For(tilledWatered, season));
+            Assert.Equal(TilledDry, TileLook.For(tilledDry, season));
+            Assert.Equal(TilledWatered, TileLook.For(tilledWatered, season));
+        }
+    }
+
+    [Fact]
+    public void AC5_the_seasonless_look_is_the_summer_look()
+    {
+        foreach (var tile in new[]
+                 {
+                     new Tile(Position),
+                     new Tile(Position, TileState.Tilled, false, null),
+                     new Tile(Position, TileState.Tilled, true, null),
+                 })
+        {
+            Assert.Equal(TileLook.For(tile, Season.Summer), TileLook.For(tile));
+        }
+    }
+
+    [Fact]
+    public void AC5_a_grass_tile_in_an_undefined_season_is_rejected()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => TileLook.For(new Tile(Position), (Season)99));
+    }
+
+    [Theory]
+    [MemberData(nameof(Seasons))]
+    public void AC5_grass_tile_slab_takes_the_seasons_ground(Season season)
+    {
+        var look = TileLook.For(new Tile(Position), season);
+
+        Assert.Equal(SeasonGrass.For(season).Ground, look.SlabRole);
+        Assert.True(look.ShowTufts);
+        Assert.False(look.ShowFurrows);
+        Assert.Equal(0f, look.Wet);
+    }
+
     [Fact]
     public void AC10_planted_tile_keeps_its_soil_look()
     {

@@ -364,7 +364,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 
 **Target marker.** The tile the Use button will act on gets a soft cream highlight (`#FFF6E0`) with ember-orange corner brackets (`#E9773A`). It looks the same on every tile type, and it replaces the prototype's faint grid outline as the main "what will happen" cue.
 
-**Seasons (grass):** spring fresh green `#8CB862`, summer meadow green `#7FA65A`, fall golden `#A8A458`, winter snow `#E4ECF0` with grass tips showing. Tilled and watered soil look the same all year.
+**Seasons (grass):** spring fresh green `#8CB862`, summer meadow green `#7FA65A`, fall golden `#A8A458`, winter snow `#E4ECF0` with grass tips showing. The mown margin is a lighter shade of each Season's meadow: spring `#A6D07C`, summer `#8CB862`, fall `#C0BC72`; in winter it is snow `#E4ECF0` like the meadow. Tilled and watered soil look the same all year.
 
 **Night:** tiles darken with the rest of the scene, but tilled, watered and the target marker all stay distinct.
 
