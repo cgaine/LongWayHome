@@ -75,6 +75,68 @@ public class HudTextTests
         Assert.Equal("Crops: Starcorn × 1", text);
     }
 
+    // ---- #95 AC4: the crops row's entries ----
+
+    private static List<InventoryStack> DusktuberThenEmberrootWithSeeds() =>
+    [
+        new(ItemKind.Crop, CropTypeId.Dusktuber, 2),
+        new(ItemKind.Seed, CropTypeId.Emberroot, 10),
+        new(ItemKind.Crop, CropTypeId.Emberroot, 9),
+    ];
+
+    [Fact]
+    public void AC4_Crops_entries_are_one_per_crop_stack_in_crop_type_order_without_seeds()
+    {
+        var entries = CropsText.Entries(DusktuberThenEmberrootWithSeeds(), TestGames.Shipped.CropTypes);
+
+        Assert.Equal(
+            [(CropTypeId.Emberroot, "Emberroot × 9"), (CropTypeId.Dusktuber, "Dusktuber × 2")],
+            entries);
+    }
+
+    [Fact]
+    public void AC4_Crops_entries_are_empty_with_no_stacks() =>
+        Assert.Empty(CropsText.Entries([], TestGames.Shipped.CropTypes));
+
+    [Fact]
+    public void AC4_Crops_entries_are_empty_with_only_seeds()
+    {
+        var stacks = new List<InventoryStack> { new(ItemKind.Seed, CropTypeId.Emberroot, 10) };
+
+        Assert.Empty(CropsText.Entries(stacks, TestGames.Shipped.CropTypes));
+    }
+
+    [Fact]
+    public void AC4_Crops_entry_without_data_row_uses_canonical_label()
+    {
+        var stacks = new List<InventoryStack> { new(ItemKind.Crop, CropTypeId.Moonmelon, 3) };
+
+        var entries = CropsText.Entries(stacks, TestGames.ShippedWithout(CropTypeId.Moonmelon).CropTypes);
+
+        Assert.Equal([(CropTypeId.Moonmelon, "Moonmelon × 3")], entries);
+    }
+
+    [Fact]
+    public void AC4_Crops_text_is_unchanged_for_the_same_stacks()
+    {
+        Assert.Equal(
+            "Crops: Emberroot × 9, Dusktuber × 2",
+            CropsText.For(DusktuberThenEmberrootWithSeeds(), TestGames.Shipped.CropTypes));
+        Assert.Equal("Crops: none", CropsText.For([], TestGames.Shipped.CropTypes));
+    }
+
+    [Fact]
+    public void AC4_Crops_text_lists_the_entries_texts()
+    {
+        var stacks = DusktuberThenEmberrootWithSeeds();
+        var entries = CropsText.Entries(stacks, TestGames.Shipped.CropTypes);
+
+        Assert.NotEmpty(entries);
+        Assert.Equal(
+            $"Crops: {string.Join(", ", entries.Select(e => e.Text))}",
+            CropsText.For(stacks, TestGames.Shipped.CropTypes));
+    }
+
     [Fact]
     public void Shop_gold_text_is_the_hud_gold_text() =>
         Assert.Equal(GoldText.For(250), ShopText.Gold(250));

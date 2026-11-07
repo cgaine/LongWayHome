@@ -21,6 +21,12 @@ public static class CropsText
         return entries.Count == 0 ? "Crops: none" : $"Crops: {string.Join(", ", entries)}";
     }
 
+    /// <summary>The crop stacks (not seeds) in CropTypeId order, each as (crop, "&lt;name&gt; × &lt;quantity&gt;").</summary>
+    public static IReadOnlyList<(CropTypeId Crop, string Text)> Entries(
+        IReadOnlyList<InventoryStack> stacks,
+        IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
+
     private static string NameOf(CropTypeId id, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
         cropTypes.TryGetValue(id, out var cropType) ? cropType.Name : CropLabels.For(id);
 }
