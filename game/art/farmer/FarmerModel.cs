@@ -20,7 +20,8 @@ namespace LongWayHome.Game.Art;
 /// merged by <see cref="ArtMeshes.MergeSkinned"/>, each vertex weighted fully to its part's bone, with a
 /// <see cref="Skin"/> binding each bone at rest. It draws with a copy of the shared palette material whose next pass
 /// is the inverted-hull outline (<c>res://art/shaders/outline.gdshader</c>), so only the farmer is outlined;</item>
-/// <item>a <c>Shadow</c>: a flat 0.6 m dark disc at y 0.01, unshaded and 35% opaque, casting no shadow;</item>
+/// <item>a <c>Shadow</c>: a flat 0.6 m dark disc just above the tile slabs (y 0.065), unshaded and 35% opaque,
+/// casting no shadow;</item>
 /// <item>a <see cref="BoneAttachment3D"/> <c>HeldItem</c> on the <c>RightHand</c> bone holding one mesh per item kind,
 /// built on first show from <see cref="HeldItemArt.PartsFor"/>, shown one at a time by <see cref="ShowHeld"/>.</item>
 /// </list>
@@ -36,7 +37,12 @@ public partial class FarmerModel : Node3D
 
     private const float ShadowDiameter = 0.6f;
 
-    private const float ShadowHeight = 0.01f;
+    /// <summary>
+    /// Just above the farm's tile slab tops (0.06 m, <c>TileView</c>): the Player stands at y 0, so a shadow at the
+    /// issue's y 0.01 would be buried in every Tile he walks on. Off the plot it floats a few centimetres over the
+    /// meadow, which the raised camera can't tell.
+    /// </summary>
+    private const float ShadowHeight = 0.065f;
 
     private static readonly Dictionary<HeldItem, ArrayMesh> HeldMeshes = new();
 

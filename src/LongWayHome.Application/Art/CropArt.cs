@@ -175,19 +175,7 @@ public static class CropArt
     public static (float Width, float Height) Bounds(IReadOnlyList<CropPart> parts)
     {
         ArgumentNullException.ThrowIfNull(parts);
-        if (parts.Count == 0)
-        {
-            return (0f, 0f);
-        }
-
-        var min = new Vector3(float.MaxValue);
-        var max = new Vector3(float.MinValue);
-        foreach (var corner in parts.SelectMany(Corners))
-        {
-            min = Vector3.Min(min, corner);
-            max = Vector3.Max(max, corner);
-        }
-
+        var (min, max) = PartBox.Extents(parts.SelectMany(Corners));
         return (MathF.Max(max.X - min.X, max.Z - min.Z), max.Y);
     }
 
