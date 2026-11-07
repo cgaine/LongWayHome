@@ -18,8 +18,9 @@ namespace LongWayHome.Game.Farm;
 /// puffball), tilled (a brown slab with three east–west furrows) or watered (the same, much darker, with the shader's
 /// wet sheen); tilled and watered look the same all year (ART_DIRECTION §7.2, BR-T8). The slab is 0.96 m square, so
 /// the dark plot base under the plot shows through the 4 cm gaps as grooves and the grid reads without drawn lines. Any Planting on it stands on the slab top as a low-poly model for
-/// its <see cref="GrowthStage"/>: a seed mound, a sprout, a young plant tinted toward its crop's colour, or a
-/// crop-specific ripe model (REQ-12).
+/// its <see cref="GrowthStage"/> (REQ-12): for emberroot and dusktuber the art-direction model of
+/// <see cref="CropArt"/>, one mesh from <see cref="CropModels"/> under the shared palette material (#90); for the
+/// crops not drawn yet, the prototype models of <see cref="PrototypeCropModels"/>.
 /// <para>
 /// The slab and furrows are built once when ready; the tufts and native plant on the first <see cref="Refresh"/>,
 /// which brings the Tile's grid position for their <see cref="TileDecoration"/>, and only if the Tile is still grass
@@ -44,20 +45,6 @@ public partial class TileView : Node3D
     private static BoxMesh? _slabMesh;
 
     private static ArrayMesh? _furrowMesh;
-
-    /// <summary>
-    /// The planting models are authored at about a tile's quarter and drawn larger, so each stage and crop reads from
-    /// the default camera distance at 1280 x 800 (REQ-12).
-    /// </summary>
-    private static readonly Vector3 ModelScale = new(1.6f, 1.6f, 1.6f);
-
-    private static readonly Color MoundColor = new(0.36f, 0.24f, 0.14f);
-
-    private static readonly Color SeedColor = new(0.95f, 0.85f, 0.55f);
-
-    private static readonly Color LeafColor = new(0.35f, 0.75f, 0.25f);
-
-    private static readonly Color StemColor = new(0.25f, 0.55f, 0.18f);
 
     private readonly Dictionary<(GrowthStage Stage, CropTypeId Crop), Node3D> _models = new();
 
@@ -180,17 +167,32 @@ public partial class TileView : Node3D
             return model;
         }
 
-        model = stage switch
+        // A crop drawn to the art direction is one merged mesh, shared by every Tile at that (crop, stage), in world
+        // metres and coloured by its UVs under the shared material: one draw (#90).
+        if (CropModels.MeshFor(crop, stage) is { } mesh)
         {
-            GrowthStage.Seed => CropModels.Seed(),
-            GrowthStage.Sprout => CropModels.Sprout(),
-            GrowthStage.Young => CropModels.Young(crop),
-            _ => CropModels.Ripe(crop),
-        };
+            model = new MeshInstance3D
+            {
+                Mesh = mesh,
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+            };
+        }
+        else
+        {
+            model = stage switch
+            {
+                GrowthStage.Seed => PrototypeCropModels.Seed(),
+                GrowthStage.Sprout => PrototypeCropModels.Sprout(),
+                GrowthStage.Young => PrototypeCropModels.Young(crop),
+                _ => PrototypeCropModels.Ripe(crop),
+            };
+            model.Scale = PrototypeCropModels.ModelScale;
+        }
+
         model.Name = $"{stage}_{crop}";
         model.Visible = false;
         model.Position = new Vector3(0f, SurfaceHeight, 0f);
-        model.Scale = ModelScale;
         AddChild(model);
         _models[(stage, crop)] = model;
         return model;
@@ -329,181 +331,5 @@ public partial class TileView : Node3D
             new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(yawDegrees)), new Vector3(x, y, z))
             * new Transform3D(new Basis(Vector3.Right, Mathf.DegToRad(tiltDegrees)), Vector3.Zero)
             * new Transform3D(Basis.Identity, new Vector3(0f, lift, 0f));
-    }
-
-    /// <summary>
-    /// The low-poly models of a Planting, built from primitive meshes with flat materials and standing on y = 0 of
-    /// their own node. No imported art.
-    /// </summary>
-    private static class CropModels
-    {
-        /// <summary>A small raised soil mound with a pale seed on top.</summary>
-        public static Node3D Seed()
-        {
-            var model = new Node3D();
-            Add(model, "Mound", Sphere(0.2f, 0.12f, MoundColor), new Vector3(0f, 0.02f, 0f));
-            Add(model, "SeedDot", Sphere(0.05f, 0.1f, SeedColor), new Vector3(0f, 0.08f, 0f));
-            return model;
-        }
-
-        /// <summary>Two small leaves on a short stem.</summary>
-        public static Node3D Sprout()
-        {
-            var model = new Node3D();
-            Add(model, "Stem", Cylinder(0.015f, 0.015f, 0.12f, StemColor), new Vector3(0f, 0.06f, 0f));
-            var leaf = Box(new Vector3(0.14f, 0.02f, 0.07f), LeafColor);
-            Add(model, "LeafLeft", leaf, new Vector3(-0.07f, 0.13f, 0f), new Vector3(0f, 0f, 25f));
-            Add(model, "LeafRight", leaf, new Vector3(0.07f, 0.13f, 0f), new Vector3(0f, 0f, -25f));
-            return model;
-        }
-
-        /// <summary>A taller leafy plant whose leaves are tinted toward the crop's colour.</summary>
-        public static Node3D Young(CropTypeId crop)
-        {
-            var model = new Node3D();
-            var tint = LeafColor.Lerp(CropColor(crop), 0.35f);
-            Add(model, "Stem", Cylinder(0.025f, 0.03f, 0.32f, StemColor), new Vector3(0f, 0.16f, 0f));
-            var leaf = Prism(new Vector3(0.12f, 0.26f, 0.04f), tint);
-            for (var i = 0; i < 4; i++)
-            {
-                var angle = i * 90f;
-                var direction = new Vector3(Mathf.Sin(Mathf.DegToRad(angle)), 0f, Mathf.Cos(Mathf.DegToRad(angle)));
-                Add(
-                    model,
-                    $"Leaf{i}",
-                    leaf,
-                    (direction * 0.1f) + new Vector3(0f, 0.2f + (0.06f * (i % 2)), 0f),
-                    new Vector3(35f, angle, 0f));
-            }
-
-            Add(model, "Crown", Sphere(0.07f, 0.12f, tint), new Vector3(0f, 0.34f, 0f));
-            return model;
-        }
-
-        /// <summary>The ripe model of each crop: clearly different from Young and from each other.</summary>
-        public static Node3D Ripe(CropTypeId crop) => crop switch
-        {
-            CropTypeId.Emberroot => Emberroot(),
-            CropTypeId.Dusktuber => Dusktuber(),
-            CropTypeId.Moonmelon => Moonmelon(),
-            CropTypeId.Sunbell => Sunbell(),
-            _ => Starcorn(),
-        };
-
-        /// <summary>The colour a crop is known by, used to tint its young plant.</summary>
-        private static Color CropColor(CropTypeId crop) => crop switch
-        {
-            CropTypeId.Emberroot => new Color(0.9f, 0.35f, 0.15f),
-            CropTypeId.Dusktuber => new Color(0.4f, 0.2f, 0.5f),
-            CropTypeId.Moonmelon => new Color(0.55f, 0.72f, 1f),
-            CropTypeId.Sunbell => new Color(0.98f, 0.85f, 0.2f),
-            _ => new Color(0.95f, 0.75f, 0.2f),
-        };
-
-        /// <summary>An orange-red root crown showing above the soil, with a tuft of green leaves.</summary>
-        private static Node3D Emberroot()
-        {
-            var model = new Node3D();
-            var root = new Color(0.92f, 0.32f, 0.12f);
-            Add(model, "Root", Cylinder(0.16f, 0.06f, 0.22f, root, 7), new Vector3(0f, 0.11f, 0f));
-            Add(model, "Crown", Sphere(0.16f, 0.12f, root), new Vector3(0f, 0.22f, 0f));
-            var leaf = Prism(new Vector3(0.1f, 0.34f, 0.04f), LeafColor);
-            Add(model, "LeafA", leaf, new Vector3(-0.07f, 0.4f, 0f), new Vector3(0f, 0f, 20f));
-            Add(model, "LeafB", leaf, new Vector3(0.07f, 0.4f, 0f), new Vector3(0f, 0f, -20f));
-            Add(model, "LeafC", leaf, new Vector3(0f, 0.42f, 0.06f), new Vector3(-20f, 0f, 0f));
-            return model;
-        }
-
-        /// <summary>A dark purple bulb sitting in the soil with a leafy top.</summary>
-        private static Node3D Dusktuber()
-        {
-            var model = new Node3D();
-            var bulb = new Color(0.32f, 0.14f, 0.42f);
-            Add(model, "Bulb", Sphere(0.24f, 0.3f, bulb), new Vector3(0f, 0.13f, 0f));
-            var leaf = Box(new Vector3(0.26f, 0.02f, 0.09f), new Color(0.25f, 0.6f, 0.22f));
-            for (var i = 0; i < 3; i++)
-            {
-                Add(model, $"Leaf{i}", leaf, new Vector3(0f, 0.32f, 0f), new Vector3(0f, i * 60f, 25f));
-            }
-
-            return model;
-        }
-
-        /// <summary>A large pale blue-white round melon with a short vine.</summary>
-        private static Node3D Moonmelon()
-        {
-            var model = new Node3D();
-            Add(model, "Melon", Sphere(0.38f, 0.36f, new Color(0.66f, 0.8f, 1f)), new Vector3(0f, 0.18f, 0f));
-            Add(model, "Vine", Box(new Vector3(0.22f, 0.03f, 0.04f), StemColor), new Vector3(0.14f, 0.03f, 0.12f));
-            Add(model, "Leaf", Box(new Vector3(0.12f, 0.02f, 0.1f), LeafColor), new Vector3(0.24f, 0.04f, 0.16f));
-            return model;
-        }
-
-        /// <summary>A leafy plant with yellow bell flowers hanging from it.</summary>
-        private static Node3D Sunbell()
-        {
-            var model = new Node3D();
-            Add(model, "Stem", Cylinder(0.025f, 0.03f, 0.44f, StemColor), new Vector3(0f, 0.22f, 0f));
-            var leaf = Prism(new Vector3(0.12f, 0.24f, 0.04f), LeafColor);
-            Add(model, "LeafA", leaf, new Vector3(-0.08f, 0.14f, 0f), new Vector3(0f, 0f, 40f));
-            Add(model, "LeafB", leaf, new Vector3(0.08f, 0.14f, 0f), new Vector3(0f, 0f, -40f));
-            var bell = Cylinder(0.02f, 0.09f, 0.12f, new Color(1f, 0.85f, 0.15f), 6);
-            Add(model, "BellA", bell, new Vector3(-0.12f, 0.38f, 0f));
-            Add(model, "BellB", bell, new Vector3(0.12f, 0.42f, 0.04f));
-            Add(model, "BellC", bell, new Vector3(0f, 0.48f, -0.1f));
-            return model;
-        }
-
-        /// <summary>A tall stalk with a golden cob.</summary>
-        private static Node3D Starcorn()
-        {
-            var model = new Node3D();
-            Add(model, "Stalk", Cylinder(0.035f, 0.045f, 0.8f, StemColor), new Vector3(0f, 0.4f, 0f));
-            var leaf = Box(new Vector3(0.32f, 0.02f, 0.06f), LeafColor);
-            Add(model, "LeafA", leaf, new Vector3(-0.14f, 0.3f, 0f), new Vector3(0f, 0f, -25f));
-            Add(model, "LeafB", leaf, new Vector3(0.14f, 0.5f, 0f), new Vector3(0f, 0f, 25f));
-            Add(
-                model,
-                "Cob",
-                Cylinder(0.06f, 0.07f, 0.26f, new Color(1f, 0.78f, 0.12f), 8),
-                new Vector3(0.09f, 0.62f, 0f),
-                new Vector3(0f, 0f, -15f));
-            return model;
-        }
-
-        private static void Add(Node3D parent, string name, Mesh mesh, Vector3 position, Vector3? rotation = null) =>
-            parent.AddChild(new MeshInstance3D
-            {
-                Name = name,
-                Mesh = mesh,
-                Position = position,
-                RotationDegrees = rotation ?? Vector3.Zero,
-            });
-
-        private static SphereMesh Sphere(float diameter, float height, Color color) => new()
-        {
-            Radius = diameter / 2f,
-            Height = height,
-            RadialSegments = 8,
-            Rings = 4,
-            Material = Flat(color),
-        };
-
-        private static CylinderMesh Cylinder(float top, float bottom, float height, Color color, int segments = 6) =>
-            new()
-            {
-                TopRadius = top,
-                BottomRadius = bottom,
-                Height = height,
-                RadialSegments = segments,
-                Rings = 1,
-                Material = Flat(color),
-            };
-
-        private static BoxMesh Box(Vector3 size, Color color) => new() { Size = size, Material = Flat(color) };
-
-        private static PrismMesh Prism(Vector3 size, Color color) => new() { Size = size, Material = Flat(color) };
-
-        private static StandardMaterial3D Flat(Color color) => new() { AlbedoColor = color };
     }
 }
