@@ -20,7 +20,7 @@ namespace LongWayHome.Game.Art;
 /// <c>soil-watered</c>;</item>
 /// <item>the <c>Crops</c> rows in front of the tile slabs (#90): one column per <see cref="CropTypeId"/> and one row per
 /// <see cref="GrowthStage"/>, Seed nearest the camera, each model from <see cref="CropModels.MeshFor"/> on a
-/// <c>soil-tilled</c> slab, for every (crop, stage) drawn to the art direction so far;</item>
+/// <c>soil-tilled</c> slab, for every (crop, stage);</item>
 /// <item>the four sample shapes (low-poly sphere, 6-sided trunk, house, cone tree), once on the left and once on the
 /// right, with a label over each set naming the style it shows.</item>
 /// </list>
@@ -409,8 +409,7 @@ public partial class ArtSandbox : Node3D
     /// <summary>
     /// The crop models in front of the tile slabs: one column per Crop type in <see cref="CropTypeId"/> order and one
     /// row per <see cref="GrowthStage"/>, Seed nearest the camera and Ripe farthest, 1.1 m apart. Each stands on a
-    /// 0.96 x 0.06 x 0.96 tilled slab and is drawn as on the farm: one mesh under the shared material. A (crop, stage)
-    /// with no mesh yet leaves its place empty, so later crop features appear here with no change.
+    /// 0.96 x 0.06 x 0.96 tilled slab and is drawn as on the farm: one mesh under the shared material.
     /// </summary>
     private void BuildCrops()
     {
@@ -423,11 +422,6 @@ public partial class ArtSandbox : Node3D
             var x = (column - ((cropTypes.Length - 1) / 2f)) * CropSpacing;
             for (var row = 0; row < stages.Length; row++)
             {
-                if (CropModels.MeshFor(cropTypes[column], stages[row]) is not { } mesh)
-                {
-                    continue;
-                }
-
                 // Stages run Seed to Ripe: Ripe (the last) farthest from the camera, Seed (the first) nearest.
                 var z = CropsRipeZ + ((stages.Length - 1 - row) * CropSpacing);
                 var name = $"{stages[row]}_{cropTypes[column]}";
@@ -440,7 +434,7 @@ public partial class ArtSandbox : Node3D
                 crops.AddChild(new MeshInstance3D
                 {
                     Name = name,
-                    Mesh = mesh,
+                    Mesh = CropModels.MeshFor(cropTypes[column], stages[row]),
                     MaterialOverride = ArtMaterials.Shared,
                     Position = new Vector3(x, CropSlabHeight, z),
                 });

@@ -5,7 +5,8 @@ namespace LongWayHome.Tests.Game;
 /// <summary>
 /// Reads the real Godot scripts (linked into the test output by the test project) and the blueprint and checks the
 /// Godot glue of #90: the cached crop mesh builder <c>CropModels</c>, <c>TileView</c> drawing it with the shared
-/// material, the prototype models moved to <c>PrototypeCropModels</c>, and the sandbox's <c>Crops</c> row.
+/// material, and the sandbox's <c>Crops</c> row; and #92's removal of the prototype fallback: with moonmelon drawn,
+/// <c>PrototypeCropModels</c> is deleted and <c>CropModels.MeshFor</c> always returns a mesh.
 /// </summary>
 public class CropModelsSourceTests
 {
@@ -25,7 +26,7 @@ public class CropModelsSourceTests
         Assert.Matches(@"Rings\s*=\s*4\b", source);
         Assert.Matches(@"RadialSegments\s*=\s*7\b", source);
         Assert.Matches(
-            @"public\s+static\s+ArrayMesh\?\s+MeshFor\s*\(\s*CropTypeId\s+crop\s*,\s*GrowthStage\s+stage\s*\)",
+            @"public\s+static\s+ArrayMesh\s+MeshFor\s*\(\s*CropTypeId\s+crop\s*,\s*GrowthStage\s+stage\s*\)",
             source);
     }
 
@@ -42,22 +43,24 @@ public class CropModelsSourceTests
         Assert.DoesNotContain("Flat(", source, StringComparison.Ordinal);
     }
 
-    // ---- AC9: only moonmelon keeps its prototype model (#91 drew sunbell and starcorn) ----
+    // ---- AC9: the prototype fallback is gone (#92 drew moonmelon, the last crop) ----
 
+    /// <summary>
+    /// Read from the repository, not the test output: the output keeps a stale copy of a deleted script, since the
+    /// test project copies game scripts with <c>PreserveNewest</c>.
+    /// </summary>
     [Fact]
-    public void AC9_prototype_models_keep_only_moonmelon()
+    public void AC9_prototype_crop_models_are_gone()
     {
-        var prototype = ReadGameFile("scripts", "Farm", "PrototypeCropModels.cs");
-        var tileView = ReadGameFile("scripts", "Farm", "TileView.cs");
+        var root = RepoRoot();
+        var prototype = Path.Combine(root, "game", "scripts", "Farm", "PrototypeCropModels.cs");
+        var tileViewPath = Path.Combine(root, "game", "scripts", "Farm", "TileView.cs");
+        Assert.True(File.Exists(tileViewPath), $"{tileViewPath} is missing");
+        var tileView = File.ReadAllText(tileViewPath);
 
-        Assert.Contains("internal static class PrototypeCropModels", prototype, StringComparison.Ordinal);
-        Assert.Contains("Moonmelon()", prototype, StringComparison.Ordinal);
-        Assert.DoesNotContain("Sunbell()", prototype, StringComparison.Ordinal);
-        Assert.DoesNotContain("Starcorn()", prototype, StringComparison.Ordinal);
-        Assert.Contains("1.6f", prototype, StringComparison.Ordinal);
-        Assert.DoesNotContain("Emberroot()", prototype, StringComparison.Ordinal);
-        Assert.DoesNotContain("Dusktuber()", prototype, StringComparison.Ordinal);
-        Assert.Contains("PrototypeCropModels.", tileView, StringComparison.Ordinal);
+        Assert.False(File.Exists(prototype), "game/scripts/Farm/PrototypeCropModels.cs still exists");
+        Assert.False(File.Exists(prototype + ".uid"), "game/scripts/Farm/PrototypeCropModels.cs.uid still exists");
+        Assert.DoesNotContain("PrototypeCropModels", tileView, StringComparison.Ordinal);
     }
 
     // ---- AC10: the sandbox's Crops row ----
@@ -108,6 +111,18 @@ public class CropModelsSourceTests
     }
 
     // ---- helpers ----
+
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "LongWayHome.sln")))
+        {
+            dir = dir.Parent;
+        }
+
+        Assert.True(dir is not null, $"no folder holding LongWayHome.sln above {AppContext.BaseDirectory}");
+        return dir!.FullName;
+    }
 
     private static string ReadGameFile(params string[] parts)
     {

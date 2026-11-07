@@ -24,8 +24,7 @@ public class CropArtGeometryTests
     /// <summary>The point at <paramref name="local"/> in the part's own (unrotated, centred) frame.</summary>
     private static Vector3 At(CropPart part, Vector3 local) => Centre(part) + Vector3.Transform(local, Rotation(part));
 
-    private static IReadOnlyList<CropPart> PartsOf(CropTypeId crop, GrowthStage stage) =>
-        CropArt.Parts(crop, stage) ?? throw new InvalidOperationException($"{crop} {stage} has no parts");
+    private static IReadOnlyList<CropPart> PartsOf(CropTypeId crop, GrowthStage stage) => CropArt.Parts(crop, stage);
 
     private static void AssertNear(Vector3 expected, Vector3 actual, string what) =>
         Assert.True(Vector3.Distance(expected, actual) <= Tolerance, $"{what}: expected {expected}, got {actual}");

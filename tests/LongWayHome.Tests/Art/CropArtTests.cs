@@ -6,7 +6,8 @@ using LongWayHome.Domain.Catalog;
 namespace LongWayHome.Tests.Art;
 
 /// <summary>
-/// AC1–AC4 of #90 and AC1–AC5 of #91: the part table of the emberroot, dusktuber, sunbell and starcorn models (<see cref="CropArt"/>) and its
+/// AC1–AC4 of #90, AC1–AC5 of #91 and AC1–AC4 of #92: the part table of the emberroot, dusktuber, sunbell, starcorn and
+/// moonmelon models (<see cref="CropArt"/>), which draws every crop at every stage, and its
 /// <see cref="CropArt.Bounds"/>. Rotations follow Godot's Euler YXZ (<c>Node3D.RotationDegrees</c>), which is
 /// <see cref="Quaternion.CreateFromYawPitchRoll"/>, applied about the part's centre. The unrotated box of a part is
 /// SizeX x SizeY x SizeZ for a Box or Prism, SizeX x SizeY x SizeX for a Sphere and max(SizeX, SizeZ) x SizeY x
@@ -17,9 +18,7 @@ public class CropArtTests
     private const float Tolerance = 1e-4f;
 
     private static readonly CropTypeId[] DrawnCrops =
-        [CropTypeId.Emberroot, CropTypeId.Dusktuber, CropTypeId.Sunbell, CropTypeId.Starcorn];
-
-    private static readonly CropTypeId[] PrototypeCrops = [CropTypeId.Moonmelon];
+        [CropTypeId.Emberroot, CropTypeId.Dusktuber, CropTypeId.Sunbell, CropTypeId.Starcorn, CropTypeId.Moonmelon];
 
     private static readonly GrowthStage[] StagesInOrder =
         [GrowthStage.Seed, GrowthStage.Sprout, GrowthStage.Young, GrowthStage.Ripe];
@@ -38,26 +37,7 @@ public class CropArtTests
         return data;
     }
 
-    public static TheoryData<CropTypeId, GrowthStage> PrototypeModels()
-    {
-        var data = new TheoryData<CropTypeId, GrowthStage>();
-        foreach (var crop in PrototypeCrops)
-        {
-            foreach (var stage in StagesInOrder)
-            {
-                data.Add(crop, stage);
-            }
-        }
-
-        return data;
-    }
-
-    private static IReadOnlyList<CropPart> PartsOf(CropTypeId crop, GrowthStage stage)
-    {
-        var parts = CropArt.Parts(crop, stage);
-        Assert.NotNull(parts);
-        return parts!;
-    }
+    private static IReadOnlyList<CropPart> PartsOf(CropTypeId crop, GrowthStage stage) => CropArt.Parts(crop, stage);
 
     private static string ColourRole(CropTypeId crop) => crop switch
     {
@@ -65,6 +45,7 @@ public class CropArtTests
         CropTypeId.Dusktuber => "dusktuber",
         CropTypeId.Sunbell => "sunbell-gold",
         CropTypeId.Starcorn => "starcorn",
+        CropTypeId.Moonmelon => "moonmelon",
         _ => throw new ArgumentOutOfRangeException(nameof(crop)),
     };
 
@@ -118,22 +99,41 @@ public class CropArtTests
         string name = "Part") =>
         new(name, shape, sizeX, sizeY, sizeZ, x, y, z, pitch, yaw, roll, "foliage");
 
-    // ---- AC1: parts for every stage of the drawn crops, null for moonmelon, palette roles only ----
+    // ---- AC1: parts for every stage of every crop, palette roles only ----
 
     [Theory]
     [MemberData(nameof(DrawnModels))]
-    public void AC1_drawn_crops_have_parts_at_every_stage(CropTypeId crop, GrowthStage stage)
-    {
-        var parts = CropArt.Parts(crop, stage);
+    public void AC1_drawn_crops_have_parts_at_every_stage(CropTypeId crop, GrowthStage stage) =>
+        Assert.NotEmpty(CropArt.Parts(crop, stage));
 
-        Assert.NotNull(parts);
-        Assert.NotEmpty(parts!);
+    /// <summary>#92 draws the last crop, so every crop has a model at every stage and the prototype fallback is gone.</summary>
+    [Fact]
+    public void AC1_every_crop_and_stage_has_parts()
+    {
+        foreach (var crop in Enum.GetValues<CropTypeId>())
+        {
+            foreach (var stage in Enum.GetValues<GrowthStage>())
+            {
+                Assert.True(CropArt.Parts(crop, stage).Count > 0, $"{crop} {stage} has no parts");
+            }
+        }
     }
 
-    [Theory]
-    [MemberData(nameof(PrototypeModels))]
-    public void AC1_only_moonmelon_has_no_parts_yet(CropTypeId crop, GrowthStage stage) =>
-        Assert.Null(CropArt.Parts(crop, stage));
+    /// <summary><see cref="CropArt.Parts"/> is non-nullable: a (crop, stage) with no model is a programming error.</summary>
+    [Fact]
+    public void AC1_parts_reject_an_undefined_crop() =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => CropArt.Parts((CropTypeId)999, GrowthStage.Ripe));
+
+    /// <summary>The exception names the argument that has no model: the crop if it is undefined, else the stage.</summary>
+    [Fact]
+    public void Parts_name_the_undefined_argument()
+    {
+        var badCrop = Assert.Throws<ArgumentOutOfRangeException>(() => CropArt.Parts((CropTypeId)999, GrowthStage.Ripe));
+        var badStage = Assert.Throws<ArgumentOutOfRangeException>(() => CropArt.Parts(CropTypeId.Moonmelon, (GrowthStage)9));
+
+        Assert.Equal("crop", badCrop.ParamName);
+        Assert.Equal("stage", badStage.ParamName);
+    }
 
     [Theory]
     [MemberData(nameof(DrawnModels))]
@@ -170,6 +170,7 @@ public class CropArtTests
     [InlineData(CropTypeId.Dusktuber)]
     [InlineData(CropTypeId.Sunbell)]
     [InlineData(CropTypeId.Starcorn)]
+    [InlineData(CropTypeId.Moonmelon)]
     public void AC2_each_stage_grows_by_at_least_5cm_in_height_or_width(CropTypeId crop)
     {
         var bounds = StagesInOrder.Select(stage => CropArt.Bounds(PartsOf(crop, stage))).ToArray();
@@ -223,17 +224,66 @@ public class CropArtTests
     [InlineData(CropTypeId.Sunbell, GrowthStage.Sprout)]
     [InlineData(CropTypeId.Starcorn, GrowthStage.Seed)]
     [InlineData(CropTypeId.Starcorn, GrowthStage.Sprout)]
+    [InlineData(CropTypeId.Moonmelon, GrowthStage.Seed)]
+    [InlineData(CropTypeId.Moonmelon, GrowthStage.Sprout)]
     public void AC4_seed_and_sprout_include_a_part_in_the_crops_colour_role(CropTypeId crop, GrowthStage stage) =>
         Assert.Contains(PartsOf(crop, stage), part => part.Role == ColourRole(crop));
 
     /// <summary>The ripe bounds of every crop other than <paramref name="except"/> that <see cref="CropArt"/> draws.</summary>
     private static List<(CropTypeId Crop, (float Width, float Height) Bounds)> OtherDrawnRipeBounds(CropTypeId except) =>
-        Enum.GetValues<CropTypeId>()
+        DrawnCrops
             .Where(crop => crop != except)
-            .Select(crop => (Crop: crop, Parts: CropArt.Parts(crop, GrowthStage.Ripe)))
-            .Where(entry => entry.Parts is not null)
-            .Select(entry => (entry.Crop, CropArt.Bounds(entry.Parts!)))
+            .Select(crop => (crop, CropArt.Bounds(CropArt.Parts(crop, GrowthStage.Ripe))))
             .ToList();
+
+    [Fact]
+    public void AC4_ripe_moonmelon_is_the_widest_ripe_crop_by_10cm_and_under_half_a_metre()
+    {
+        var moonmelon = CropArt.Bounds(PartsOf(CropTypeId.Moonmelon, GrowthStage.Ripe));
+        var others = OtherDrawnRipeBounds(CropTypeId.Moonmelon);
+
+        Assert.NotEmpty(others);
+        foreach (var (crop, bounds) in others)
+        {
+            Assert.True(
+                moonmelon.Width >= bounds.Width + 0.1f - Tolerance,
+                $"ripe moonmelon width {moonmelon.Width} is not 0.1 m more than ripe {crop}'s {bounds.Width}");
+        }
+
+        Assert.True(moonmelon.Height < 0.5f, $"ripe moonmelon height {moonmelon.Height} is not under 0.5 m");
+    }
+
+    [Fact]
+    public void AC4_ripe_moonmelon_has_at_least_five_moonmelon_ribs_around_its_centre()
+    {
+        var ribs = PartsOf(CropTypeId.Moonmelon, GrowthStage.Ripe)
+            .Where(part => part.Name.StartsWith("Rib", StringComparison.Ordinal) && part.Role == "moonmelon")
+            .ToList();
+
+        Assert.True(ribs.Count >= 5, $"ripe moonmelon has {ribs.Count} moonmelon Rib parts, not at least 5");
+
+        foreach (var rib in ribs)
+        {
+            var radius = MathF.Sqrt((rib.X * rib.X) + (rib.Z * rib.Z));
+            Assert.True(radius >= 0.05f - Tolerance, $"{rib.Name} is {radius} m from the centre, not at least 0.05 m out");
+        }
+
+        // The ribs go all the way round: no gap of more than 90° between neighbours, the wrap-around included.
+        var angles = ribs.Select(rib => MathF.Atan2(rib.X, rib.Z) * 180f / MathF.PI).Order().ToList();
+        for (var i = 0; i < angles.Count; i++)
+        {
+            var next = i + 1 < angles.Count ? angles[i + 1] : angles[0] + 360f;
+            Assert.True(
+                next - angles[i] <= 90f + Tolerance,
+                $"ripe moonmelon's ribs leave a {next - angles[i]}° gap after {angles[i]}°");
+        }
+
+        var meanX = ribs.Average(rib => rib.X);
+        var meanZ = ribs.Average(rib => rib.Z);
+        Assert.True(
+            MathF.Sqrt((meanX * meanX) + (meanZ * meanZ)) <= 0.03f + Tolerance,
+            $"ripe moonmelon's ribs centre on ({meanX}, {meanZ}), not within 0.03 m of the axis");
+    }
 
     [Fact]
     public void AC4_ripe_starcorn_is_at_least_1_5_times_as_tall_as_every_other_ripe_crop()
@@ -436,6 +486,36 @@ public class CropArtTests
     }
 
     [Fact]
+    public void Young_moonmelon_is_a_low_vine_with_a_pale_bud()
+    {
+        var parts = PartsOf(CropTypeId.Moonmelon, GrowthStage.Young);
+        var young = CropArt.Bounds(parts);
+        var sprout = CropArt.Bounds(PartsOf(CropTypeId.Moonmelon, GrowthStage.Sprout));
+
+        Assert.True(young.Height < 0.25f, $"young moonmelon height {young.Height} is not under 0.25 m");
+        Assert.True(young.Width > sprout.Width, $"young moonmelon width {young.Width} is not more than the sprout's {sprout.Width}");
+        Assert.Contains(parts, part => part.Name == "Vine" && part.Role == "foliage");
+        Assert.Contains(parts, part => part.Name == "Bud" && part.Role == "moonmelon");
+        Assert.Contains(parts, part => part.Role == "leaf-underside");
+    }
+
+    [Fact]
+    public void Ripe_moonmelon_has_a_foliage_vine_stalk_and_tendril()
+    {
+        var parts = PartsOf(CropTypeId.Moonmelon, GrowthStage.Ripe);
+
+        Assert.Contains(parts, part => part.Name == "Vine" && part.Role == "foliage");
+        Assert.Contains(parts, part => part.Name == "Stalk" && part.Role == "foliage");
+        Assert.Contains(parts, part => part.Name == "Tendril" && part.Role == "foliage");
+        Assert.Contains(parts, part => part.Name == "Crown" && part.Role == "moonmelon");
+    }
+
+    /// <summary>The issue's budget for the widest model: keep the ripe moonmelon under about 30 parts (REQ-14).</summary>
+    [Fact]
+    public void Ripe_moonmelon_has_at_most_30_parts() =>
+        Assert.InRange(PartsOf(CropTypeId.Moonmelon, GrowthStage.Ripe).Count, 1, 30);
+
+    [Fact]
     public void Young_starcorn_has_a_foliage_stalk() =>
         Assert.Contains(
             PartsOf(CropTypeId.Starcorn, GrowthStage.Young),
@@ -446,6 +526,7 @@ public class CropArtTests
     [InlineData(CropTypeId.Dusktuber)]
     [InlineData(CropTypeId.Sunbell)]
     [InlineData(CropTypeId.Starcorn)]
+    [InlineData(CropTypeId.Moonmelon)]
     public void Seed_is_a_dirt_path_mound_and_a_seed_in_the_crops_colour(CropTypeId crop)
     {
         var parts = PartsOf(crop, GrowthStage.Seed);
@@ -459,6 +540,7 @@ public class CropArtTests
     [InlineData(CropTypeId.Dusktuber)]
     [InlineData(CropTypeId.Sunbell)]
     [InlineData(CropTypeId.Starcorn)]
+    [InlineData(CropTypeId.Moonmelon)]
     public void Sprout_is_a_stem_two_seed_leaves_and_a_bud_in_the_crops_colour(CropTypeId crop)
     {
         var parts = PartsOf(crop, GrowthStage.Sprout);
