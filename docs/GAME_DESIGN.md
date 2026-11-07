@@ -301,7 +301,7 @@ Decided 2026-11-07: the expedition goes under the lake, not behind the mountain.
 
 These clash with what the doc already says. The rest of the doc hasn't been changed yet.
 
-1. **Mine progression.** ~~Do the per-level plank counts and the "pump every fifth level" pattern stay as the cost of the puzzle pieces, or go?~~ Resolved (draft): both stay. The plank counts become each level's plank budget for its walls, and a new pump every fifth level stays the big cost (Water-flow puzzles). Still open: REQ-33 describes the old model and needs updating, and the budgets need playtesting.
+1. **Mine progression.** ~~Do the per-level plank counts and the "pump every fifth level" pattern stay as the cost of the puzzle pieces, or go?~~ Resolved (draft): both stay. The plank counts become each level's plank budget for its walls, and a new pump every fifth level stays the big cost (Water-flow puzzles). REQ-58 (replacing REQ-33) and REQ-57 (replacing REQ-49) describe the puzzles. Still open: the budgets need playtesting.
 2. **"As in Stardew".** The mine's Pacing line says it is "free to explore at any pace, as in Stardew", which is the comparison this change moves away from.
 3. **Getting it wrong.** ~~What happens when water goes the wrong way?~~ Resolved: there is no failure. You try again as many times as you need until the level is solved, which keeps "no danger in this version" (pillar 1).
 4. **Mine levels 1–5.** ~~Is level 5 the first puzzle (a tutorial), or a plain pump as written?~~ Resolved 2026-11-07: level 5 is the first water-flow puzzle, a two-step tutorial with Mira's first pump. Levels 1–4 stay dry.

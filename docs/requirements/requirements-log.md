@@ -877,3 +877,43 @@ and roadmap issues.
 - **Kind**: —
 - **Statement**: A `game/art/` sandbox scene to try the palette, light and models and settle flat or stepped shading.
 - **Verdict**: dropped (a development step, not player-facing; stays a Phase 1B roadmap entry)
+
+### REQ-57 — Early mine
+- **Date**: 2026-11-07
+- **Source**: docs/GAME_DESIGN.md, Water-flow puzzles and Early mine (2026-11-07); chat, 2026-11-07. Source wording: "Make level 5 the first water-flow puzzle"; "Level 5: the first flooded level and the first water-flow puzzle, a short tutorial solved with Mira's first pump"
+- **Kind**: capability
+- **Statement**: Buying the pickaxe opens the old mine, with Maggie telling its story. The Player clears debris on levels 1 to 4 and collects stone, Rosk ore, glimmercaps and a few small Groth deposits on levels 3 to 5. A staircase built into the mine connects the levels, and every fifth cleared level adds a shortcut from the entrance. Level 5 is the first water-flow puzzle, a tutorial: the Player digs a silt slump with the pickaxe so the top of the water runs to a drain, then places Mira's first pump, which lifts the rest one tier, so the stairs down come up dry. The puzzle rules apply from here: water runs downhill and levels out, drains swallow it, a Rosk pump lifts it one tier and no higher, and the pickaxe digs silt one tier lower. Placing and picking up pieces is free, holding a piece previews where the water will go, a free reset puts the water and pieces back as they started, and a level is solved when its stairs down are dry, then stays solved. Out of scope: danger (creatures, collapses); failing a puzzle; walls, sumps, springs and gates (REQ-58).
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-49 entry; 3 Phases)
+- **Rule changes**: none (Phase 2 is not yet in domain-model.md)
+- **Open questions**: How the water simulation settles in the engine (tile model, speed, Steam Deck cost) is for the technical blueprint.
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-49
+
+### REQ-58 — Deep mine
+- **Date**: 2026-11-07
+- **Source**: docs/GAME_DESIGN.md, Water-flow puzzles, Shoring and Conflicts to review 1 (2026-11-07). Source wording: "From level 6 on, each level is a water-flow puzzle whose walls are sealed planks"; "the plank counts become each level's plank budget for its walls, and a new pump every fifth level stays the big cost"
+- **Kind**: capability
+- **Statement**: The Player goes down to level 60 of the mine. Each flooded level from 6 is a water-flow puzzle with the REQ-57 rules, adding new pieces over the levels: sealed-plank walls that block one tile edge (from level 6), sumps that hold only so much (from 8), springs that keep flowing (from 10), and sluice gates that open and shut, with Groth pumps that lift two tiers (from 16) and Forgelight pumps that lift three (from 31). The Player pays only for the pieces in a level's final solution: each level is built so its tidy solution uses about its sealed-plank budget, and every fifth level needs a new pump forged by Mira. The ore changes with depth: Rosk, then Groth, then Embrite. Out of scope: danger (creatures, collapses); failing a puzzle.
+- **Acceptance**: to settle at phase readiness
+- **Verdict**: changed
+- **Phase**: Phase 4
+- **Documents**: product-definition (5 Functional Requirements, Phase 4, replaces the REQ-33 entry; 3 Phases)
+- **Rule changes**: none (Phase 4 is not yet in domain-model.md)
+- **Open questions**: The per-level plank budgets need playtesting. Using water on purpose deeper down (floating an ore cart, turning a wheel) is an idea, not yet decided.
+- **Deferred**: —
+- **Roadmap**: —
+- **Supersedes**: REQ-33
+
+### Water-flow puzzles sync — 2026-11-07
+- **Source**: docs/GAME_DESIGN.md, Water-flow puzzles (2026-11-07), which resolved Conflicts to review 1 and 4
+- **Changed**: REQ-49 → REQ-57, REQ-33 → REQ-58.
+- **No change**:
+  - REQ-22: Mira still forges Rosk pumps at stage 1 and Groth pumps at stage 2; the puzzles use them as pieces.
+  - REQ-48: Tom's sealed planks are still made the same way; the puzzles use them as walls.
+- **Not in requirements**: how the puzzles look on screen is in docs/ART_DIRECTION.md section 7.7.
+- **Documents**: product-definition (REQ-49 and REQ-33 entries replaced; 3 Phases)
+- **Rule changes**: none

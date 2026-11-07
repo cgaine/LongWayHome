@@ -28,9 +28,9 @@ For players who enjoy relaxing farming and life games, Long Way Home offers a ge
 | --- | --- | --- | --- |
 | Phase 1 (MVP) | Godot rebuild | The v0.1 farm loop plays the same on Windows, Linux and Steam Deck, with keyboard and mouse or a controller | REQ-1, REQ-2, REQ-3, REQ-4, REQ-5, REQ-6, REQ-7, REQ-8, REQ-9, REQ-10, REQ-11, REQ-12, REQ-13, REQ-14, REQ-42 |
 | Phase 1B | Farm art | The Phase 1 farm looks the way the art direction describes, with a camera the player can rotate and zoom, still at 30 fps on Steam Deck | REQ-52, REQ-53, REQ-54, REQ-55, REQ-56 |
-| Phase 2 | Rebuilding Ember Bay | The player gathers materials and rebuilds the first town buildings, which unlock tools and the early mine | REQ-44, REQ-16, REQ-17, REQ-45, REQ-46, REQ-47, REQ-48, REQ-22, REQ-49, REQ-50, REQ-51 |
+| Phase 2 | Rebuilding Ember Bay | The player gathers materials and rebuilds the first town buildings, which unlock tools and the early mine | REQ-44, REQ-16, REQ-17, REQ-45, REQ-46, REQ-47, REQ-48, REQ-22, REQ-57, REQ-50, REQ-51 |
 | Phase 3 | Life in town | Residents return and become friends; food, fishing, festivals and seasons give each day variety | REQ-43, REQ-26, REQ-27, REQ-28, REQ-29, REQ-30, REQ-31, REQ-32 |
-| Phase 4 | The way home | The player reaches the bottom of the mine, restores the wider world and repairs the ship; story complete and released on Steam | REQ-33, REQ-34, REQ-35, REQ-36, REQ-37, REQ-38, REQ-39, REQ-40 |
+| Phase 4 | The way home | The player reaches the bottom of the mine, restores the wider world and repairs the ship; story complete and released on Steam | REQ-58, REQ-34, REQ-35, REQ-36, REQ-37, REQ-38, REQ-39, REQ-40 |
 
 ## 4. Out of Scope
 
@@ -209,10 +209,10 @@ The **Player** rebuilds Mira's house, then her forge. Stage 1 upgrades tools to 
 - **Acceptance**: to settle at phase readiness
 - **Out of scope**: Forgelight tools (REQ-34).
 
-#### REQ-49 — Early mine *(capability)* *(supersedes REQ-23, 2026-11-06)*
-Buying the pickaxe opens the old mine, with Maggie telling its story. The **Player** clears debris on levels 1 to 4 and collects stone, Rosk ore, glimmercaps and a few small Groth deposits on levels 3 to 5. A staircase built into the mine connects the levels, and every fifth cleared level adds a shortcut from the entrance. Level 5 is drained with Mira's first pump.
+#### REQ-57 — Early mine *(capability)* *(supersedes REQ-49, 2026-11-07)*
+Buying the pickaxe opens the old mine, with Maggie telling its story. The **Player** clears debris on levels 1 to 4 and collects stone, Rosk ore, glimmercaps and a few small Groth deposits on levels 3 to 5. A staircase built into the mine connects the levels, and every fifth cleared level adds a shortcut from the entrance. Level 5 is the first water-flow puzzle, a tutorial: the Player digs a silt slump with the pickaxe so the top of the water runs to a drain, then places Mira's first pump, which lifts the rest one tier, so the stairs down come up dry. The puzzle rules apply from here: water runs downhill and levels out, drains swallow it, a Rosk pump lifts it one tier and no higher, and the pickaxe digs silt one tier lower. Placing and picking up pieces is free, holding a piece previews where the water will go, a free reset puts the water and pieces back as they started, and a level is solved when its stairs down are dry, then stays solved.
 - **Acceptance**: to settle at phase readiness
-- **Out of scope**: danger (creatures, collapses).
+- **Out of scope**: danger (creatures, collapses); failing a puzzle; walls, sumps, springs and gates (REQ-58).
 #### REQ-50 — First residents return *(capability)* *(supersedes REQ-24, 2026-11-06)*
 The **Player** sees the Hollis family (Tom, June and Jesse) move in when the carpenter reopens. Mira moves in once her house is rebuilt and the Player has explored mine levels 1 to 5; she then asks the Player to rebuild the blacksmith.
 - **Acceptance**: to settle at phase readiness
@@ -266,10 +266,10 @@ Carpenter stage 3 lets the **Player** rebuild homes so families can move back. T
 
 ### Phase 4 — The way home
 
-#### REQ-33 — Deep mine *(capability)*
-The **Player** goes down to level 60 of the mine. Each level from 6 is shored up with sealed planks, and every fifth level needs a pump forged by Mira. The ore changes with depth: Rosk, then Groth, then Embrite.
+#### REQ-58 — Deep mine *(capability)* *(supersedes REQ-33, 2026-11-07)*
+The **Player** goes down to level 60 of the mine. Each flooded level from 6 is a water-flow puzzle with the REQ-57 rules, adding new pieces over the levels: sealed-plank walls that block one tile edge (from level 6), sumps that hold only so much (from 8), springs that keep flowing (from 10), and sluice gates that open and shut, with Groth pumps that lift two tiers (from 16) and Forgelight pumps that lift three (from 31). The Player pays only for the pieces in a level's final solution: each level is built so its tidy solution uses about its sealed-plank budget, and every fifth level needs a new pump forged by Mira. The ore changes with depth: Rosk, then Groth, then Embrite.
 - **Acceptance**: to settle at phase readiness
-- **Out of scope**: danger (creatures, collapses).
+- **Out of scope**: danger (creatures, collapses); failing a puzzle.
 
 #### REQ-34 — Master smith *(capability)*
 Blacksmith stage 3 lets the **Player** get Forgelight tools and metal parts such as sprinklers.
