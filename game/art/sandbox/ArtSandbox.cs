@@ -13,7 +13,7 @@ namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// The art sandbox (#75), the script of <c>res://art/sandbox/ArtSandbox.tscn</c>, opened from the title screen with
-/// the <c>--art-sandbox</c> launch flag. Builds, on a 52 x 72 m ground slab (x ±26, z −22..50) (the <c>wall-grey</c> swatch, the
+/// the <c>--art-sandbox</c> launch flag. Builds, on a 52 x 84 m ground slab (x ±26, z −22..62) (the <c>wall-grey</c> swatch, the
 /// palette's closest neutral):
 /// <list type="bullet">
 /// <item>the palette rows at the back: one 0.8 m cube per <see cref="ArtPalette"/> swatch, in texture order (11 to a
@@ -52,7 +52,10 @@ namespace LongWayHome.Game.Art;
 /// outlines show only under the Night preset;</item>
 /// <item>in front of it the carpenter (<see cref="CarpenterArt"/>) at each <see cref="CarpenterStage"/>, left to right,
 /// each labelled, with a rebuild sign in front of the first three (wood in while empty, nothing once reopened, wood and
-/// stone at the workshop). Its lit windows show only at night; the sap barrels glow too.</item>
+/// stone at the workshop). Its lit windows show only at night; the sap barrels glow too;</item>
+/// <item>in front of that the blacksmith (<see cref="BlacksmithArt"/>) at each <see cref="BlacksmithStage"/>, left to
+/// right, each labelled, with a rebuild sign in front of the first three. Its lit window shows only at night; the forge,
+/// coals and furnace glow on their own.</item>
 /// </list>
 /// Every mesh takes its colour from the shared palette material through <see cref="ArtMaterials.Apply"/> (#76).
 /// Flat only or Stepped only sets the global shader uniform <c>art_stepped_shading</c>, so every mesh shows that
@@ -79,10 +82,13 @@ public partial class ArtSandbox : Node3D
 
     private const float GroundWidth = 52f;
 
-    private const float GroundDepth = 72f;
+    private const float GroundDepth = 84f;
 
-    /// <summary>The ground's centre z: it runs from z −22 at the back to z 50 at the front.</summary>
-    private const float GroundCentreZ = 14f;
+    /// <summary>The ground's centre z: it runs from z −22 at the back to z 62 at the front.</summary>
+    private const float GroundCentreZ = 20f;
+
+    /// <summary>The z of the Blacksmith row, in front of the carpenter row.</summary>
+    private const float BlacksmithZ = 55f;
 
     /// <summary>The z of the Carpenter row, in front of the store row.</summary>
     private const float CarpenterZ = 42.5f;
@@ -1017,6 +1023,49 @@ public partial class ArtSandbox : Node3D
                 Position = signAt,
             });
             AddNightOnly(town, $"Carpenter{stage}RebuildSignOutline", TownModels.RebuildSignOutline(), signAt);
+        }
+
+        (BlacksmithStage Stage, float X, string Label, (bool Wood, bool Stone, bool Gold)? Sign)[] smiths =
+        [
+            (BlacksmithStage.Empty, -19.5f, "Blacksmith · 0. Empty", (true, true, false)),
+            (BlacksmithStage.Reopened, -6.5f, "Blacksmith · 1. Reopened", (false, false, false)),
+            (BlacksmithStage.Forge, 6.5f, "Blacksmith · 2. Forge", (true, false, false)),
+            (BlacksmithStage.MasterSmith, 19.5f, "Blacksmith · 3. Master smith", null),
+        ];
+        foreach (var (stage, x, label, sign) in smiths)
+        {
+            var position = new Vector3(x, 0f, BlacksmithZ);
+            town.AddChild(new MeshInstance3D
+            {
+                Name = $"Blacksmith{stage}",
+                Mesh = TownModels.Blacksmith(stage),
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+                Position = position,
+            });
+            AddNightOnly(town, $"Blacksmith{stage}NightLights", TownModels.BlacksmithNightLights(stage), position);
+            town.AddChild(new Label3D
+            {
+                Name = $"Blacksmith{stage}Label",
+                Text = label,
+                Position = position + new Vector3(0f, 9.2f, 0f),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                FontSize = 48,
+                OutlineSize = 10,
+                PixelSize = 0.006f,
+            });
+
+            if (sign is not { } pips) continue;
+            var signAt = position + new Vector3(-2.4f, 0f, 5.4f);
+            town.AddChild(new MeshInstance3D
+            {
+                Name = $"Blacksmith{stage}RebuildSign",
+                Mesh = TownModels.RebuildSign(pips.Wood, pips.Stone, pips.Gold),
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+                Position = signAt,
+            });
+            AddNightOnly(town, $"Blacksmith{stage}RebuildSignOutline", TownModels.RebuildSignOutline(), signAt);
         }
     }
 

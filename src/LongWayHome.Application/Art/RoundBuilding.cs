@@ -63,9 +63,12 @@ internal sealed class RoundBuilding
     /// <summary>
     /// The dark core, the stone base and the staves, each stave in two pieces split at a height that steps round the
     /// drum. A stave is mauve where <paramref name="alive"/> holds for its angle, greyed where not; the
-    /// <paramref name="missing"/> pieces (stave index, upper?) are left out to show the core.
+    /// <paramref name="missing"/> pieces (stave index, upper?) are left out to show the core. With <paramref name="stoneTo"/>
+    /// above zero the wall is stone up to that height (a stone storey, the blacksmith's): staggered courses of blocks, each
+    /// about 0.34 m tall, in <c>stone</c> and <c>rock</c>, standing a little proud of the staves, and single staves run
+    /// from there to the top.
     /// </summary>
-    public void Drum(List<CropPart> parts, int staves, Func<float, bool> alive, IReadOnlyCollection<(int Stave, bool Upper)> missing)
+    public void Drum(List<CropPart> parts, int staves, Func<float, bool> alive, IReadOnlyCollection<(int Stave, bool Upper)> missing, float stoneTo = 0f)
     {
         parts.Add(Cylinder("Core", 2f * (WallRadius - StaveDepth), WallTop, 2f * (WallRadius - StaveDepth), Centre + new Vector3(0f, WallTop / 2f, 0f), "timber-trim"));
         parts.Add(Cylinder("Base", 2f * WallRadius + 0.16f, BaseTop + 0.02f, 2f * WallRadius + 0.14f, Centre + new Vector3(0f, (BaseTop + 0.02f) / 2f, 0f), "stone"));
@@ -75,12 +78,13 @@ internal sealed class RoundBuilding
         {
             var angle = 360f * i / staves;
             var live = alive(Signed(angle));
-            // The split steps round the drum between about 37% and 77% of the wall, so it suits any wall height.
-            var split = WallTop * (0.37f + 0.1f * (i * 7 % 5));
+            // The split steps round the drum between about 37% and 77% of the wall, so it suits any wall height; on a
+            // stone storey the staves start where the stone ends.
+            var split = stoneTo > 0f ? stoneTo : WallTop * (0.37f + 0.1f * (i * 7 % 5));
             var lower = live ? (i % 4 == 2 ? "timber-side" : "timber") : (i % 3 == 1 ? "timber-side" : "wall-grey");
             var upper = live ? (i % 4 == 0 ? "timber-side" : "timber") : (i % 3 == 2 ? "timber-side" : "wall-grey");
             var tilt = live ? 0f : 0.6f * (i % 3 - 1);
-            if (!missing.Contains((i, false)))
+            if (stoneTo <= 0f && !missing.Contains((i, false)))
             {
                 var height = split - BaseTop - 0.01f;
                 parts.Add(Box($"Stave{i}Lower", width, height, StaveDepth, OnWall(angle, 0f, BaseTop + height / 2f, -StaveDepth / 2f), lower, yaw: angle, roll: tilt));
@@ -96,9 +100,25 @@ internal sealed class RoundBuilding
             {
                 var y = WallTop * (0.25f + 0.33f * g + 0.05f * (i * 3 % 4));
                 var piece = (i, y >= split);
-                if (missing.Contains(piece) || y > WallTop - 0.1f) continue;
+                if (missing.Contains(piece) || y > WallTop - 0.1f || y < stoneTo + 0.1f) continue;
                 parts.Add(Box($"Grain{i}_{g}", width * 0.6f, 0.016f, 0.01f, OnWall(angle, 0.04f * (g * 2 - 1), y, 0.003f), "timber-grain",
                     yaw: angle, roll: 3f * (g * 2 - 1)));
+            }
+        }
+
+        if (stoneTo <= 0f) return;
+        var courses = Math.Max(1, (int)MathF.Round((stoneTo - BaseTop) / 0.34f));
+        var course = (stoneTo - BaseTop) / courses;
+        for (var c = 0; c < courses; c++)
+        {
+            for (var i = 0; i < staves; i++)
+            {
+                // Every other course is offset half a block, so the joints never line up.
+                var angle = 360f * (i + 0.5f * (c % 2)) / staves;
+                var role = (i * 5 + c * 3) % 4 == 0 ? "rock" : "stone";
+                var lean = 0.8f * ((i + c) % 3 - 1);
+                parts.Add(Box($"Stone{c}_{i}", width - 0.02f, course - 0.025f, StaveDepth + 0.06f,
+                    OnWall(angle, 0f, BaseTop + course * (c + 0.5f), -StaveDepth / 2f + 0.03f), role, yaw: angle, roll: lean));
             }
         }
     }
