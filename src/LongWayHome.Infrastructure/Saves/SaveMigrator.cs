@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using LongWayHome.Infrastructure.Saves.Migrations;
 
 namespace LongWayHome.Infrastructure.Saves;
 
@@ -10,7 +11,7 @@ namespace LongWayHome.Infrastructure.Saves;
 public sealed class SaveMigrator
 {
     /// <summary>The save format version this build writes.</summary>
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     /// <summary>The name of the version property in a save document.</summary>
     public const string VersionProperty = "saveVersion";
@@ -45,8 +46,8 @@ public sealed class SaveMigrator
         Steps = steps;
     }
 
-    /// <summary>The migrator with no steps, for the current version.</summary>
-    public static SaveMigrator Default { get; } = new([]);
+    /// <summary>The migrator for the current version: the 1 → 2 step (<see cref="SaveV1ToV2"/>).</summary>
+    public static SaveMigrator Default { get; } = new([SaveV1ToV2.Migrate]);
 
     /// <summary>The version documents are upgraded to; <see cref="CurrentVersion"/> unless a test says otherwise.</summary>
     public int TargetVersion { get; }

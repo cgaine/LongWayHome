@@ -150,15 +150,17 @@ public sealed class GameSession
         return ActionResult.Ok;
     }
 
-    /// <summary>The held-item cycle: Hoe, Watering can, then one entry per Seed stack in CropTypeId order.</summary>
+    /// <summary>
+    /// The held-item cycle: Hoe, Watering can, then one entry per Seed type held anywhere in the Backpack, in CropTypeId
+    /// order.
+    /// </summary>
     public IReadOnlyList<HeldItem> HeldItems()
     {
         var items = new List<HeldItem> { HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan) };
 
-        // Inventory.Stacks is ordered by ItemKind then CropTypeId, so the seeds come out in CropTypeId order.
-        items.AddRange(Game.Player.Inventory.Stacks
-            .Where(stack => stack.Kind == ItemKind.Seed)
-            .Select(stack => HeldItem.SeedOf(stack.CropTypeId)));
+        // BR-P7, BR-K2: a Seed type split over several Slots is one entry; Totals is in CropTypeId order.
+        items.AddRange(Game.Player.Backpack.Totals(ItemKind.Seed)
+            .Select(total => HeldItem.SeedOf(total.CropTypeId)));
 
         return items.AsReadOnly();
     }
@@ -192,7 +194,12 @@ public sealed class GameSession
         // BR-T6: harvesting needs no tool, so a Ripe Planting is harvested whatever is held.
         if (PlantingStatusAt(position) == PlantingStatus.Ripe)
         {
-            return new UsePreview(UseActionKind.Harvest, null);
+            // BR-K3: the domain decides whether the Crop fits, so the preview and Game.Harvest cannot drift apart.
+            // PlantingStatusAt is Ripe only for a Crop type with a data row.
+            var cropType = Data.CropTypes[Game.FarmPlot[position].Planting!.CropTypeId];
+            return Game.HarvestRejection(position, cropType) is { } harvestRejection
+                ? Rejected(harvestRejection)
+                : new UsePreview(UseActionKind.Harvest, null);
         }
 
         if (held.Seed is { } seed)
@@ -360,7 +367,7 @@ public sealed class GameSession
         ArgumentNullException.ThrowIfNull(held);
 
         return held.Seed is { } seed
-            ? $"{held.DisplayLabel} × {Game.Player.Inventory.Quantity(ItemKind.Seed, seed)}"
+            ? $"{held.DisplayLabel} × {Game.Player.Backpack.Quantity(ItemRef.Seed(seed))}"
             : held.DisplayLabel;
     }
 

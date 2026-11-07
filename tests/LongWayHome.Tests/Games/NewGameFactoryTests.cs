@@ -25,8 +25,9 @@ public class NewGameFactoryTests
 
         Assert.Equal(new Gold(100), player.Gold);
         Assert.Equal(150, player.Energy);
-        Assert.True(player.Tools.SetEquals([ToolId.Hoe, ToolId.WateringCan]));
-        Assert.Equal(2, player.Tools.Count);
+        Assert.Equal(1, player.Backpack.Quantity(ItemRef.Tool(ToolId.Hoe)));
+        Assert.Equal(1, player.Backpack.Quantity(ItemRef.Tool(ToolId.WateringCan)));
+        Assert.Equal(2, player.Backpack.Slots.Count(slot => slot.Item?.Kind == ItemKind.Tool));
         Assert.Equal(20, player.WateringCan.Capacity);
         Assert.Equal(20, player.WateringCan.Charges);
         Assert.False(player.WateringCan.Upgraded);
@@ -35,12 +36,12 @@ public class NewGameFactoryTests
     [Fact]
     public void AC2_BR_P6_new_game_holds_10_emberroot_and_5_dusktuber_seeds_only()
     {
-        var inventory = NewGameFactory.Create(Shipped, Now).Player.Inventory;
+        var inventory = NewGameFactory.Create(Shipped, Now).Player.Backpack;
 
         Assert.Equal(
             [(ItemKind.Seed, CropTypeId.Emberroot, 10), (ItemKind.Seed, CropTypeId.Dusktuber, 5)],
-            inventory.Stacks.Select(stack => (stack.Kind, stack.CropTypeId, stack.Quantity)));
-        Assert.DoesNotContain(inventory.Stacks, stack => stack.Kind == ItemKind.Crop);
+            TestGames.Stacks(inventory));
+        Assert.DoesNotContain(TestGames.Stacks(inventory), stack => stack.Kind == ItemKind.Crop);
     }
 
     [Fact]
@@ -91,11 +92,71 @@ public class NewGameFactoryTests
         };
         var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
 
-        var inventory = NewGameFactory.Create(data, Now).Player.Inventory;
+        var inventory = NewGameFactory.Create(data, Now).Player.Backpack;
 
         Assert.Equal(
             [(ItemKind.Seed, CropTypeId.Emberroot, 7)],
-            inventory.Stacks.Select(stack => (stack.Kind, stack.CropTypeId, stack.Quantity)));
+            TestGames.Stacks(inventory));
+    }
+
+    [Fact]
+    public void AC1_New_game_backpack_has_12_slots_hoe_in_slot_0_basic_can_in_slot_1_then_the_starting_seeds()
+    {
+        var backpack = NewGameFactory.Create(Shipped, Now).Player.Backpack;
+
+        Assert.Equal(12, backpack.Capacity);
+        Assert.Equal(0, backpack.HotbarRow);
+        Assert.Equal(
+            [
+                "0:Tool:Hoe:1:Basic",
+                "1:Tool:WateringCan:1:Basic",
+                "2:Seed:Emberroot:10:-",
+                "3:Seed:Dusktuber:5:-",
+                .. Enumerable.Range(4, 8).Select(index => $"{index}:-:-:0:-"),
+            ],
+            backpack.Slots.Select(TestGames.DescribeSlot));
+    }
+
+    [Fact]
+    public void BR_P6_New_game_has_100_gold_150_energy_and_a_full_basic_20_charge_can_in_the_backpack()
+    {
+        var player = NewGameFactory.Create(Shipped, Now).Player;
+
+        Assert.Equal(new Gold(100), player.Gold);
+        Assert.Equal(150, player.Energy);
+        Assert.Equal(ToolTier.Basic, player.Backpack.TierOf(ToolId.Hoe));
+        Assert.Equal(ToolTier.Basic, player.Backpack.TierOf(ToolId.WateringCan));
+        Assert.Equal(20, player.WateringCan.Capacity);
+        Assert.Equal(20, player.WateringCan.Charges);
+        Assert.False(player.WateringCan.Upgraded);
+        Assert.Equal(0, player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+    }
+
+    [Fact]
+    public void BR_P7_Starting_seed_entries_go_through_Add_so_a_crop_listed_twice_shares_a_slot()
+    {
+        var tuning = Shipped.Tuning with
+        {
+            StartingSeeds = [new StartingStack(CropTypeId.Emberroot, 3), new StartingStack(CropTypeId.Emberroot, 4)],
+        };
+        var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
+
+        var backpack = NewGameFactory.Create(data, Now).Player.Backpack;
+
+        Assert.Equal("2:Seed:Emberroot:7:-", TestGames.DescribeSlot(backpack.Slots[2]));
+        Assert.Null(backpack.Slots[3].Item);
+    }
+
+    [Fact]
+    public void Starting_seeds_that_do_not_fit_in_the_backpack_are_refused_as_bad_tuning()
+    {
+        var tuning = Shipped.Tuning with
+        {
+            StartingSeeds = [new StartingStack(CropTypeId.Emberroot, (10 * Backpack.MaxStack) + 1)],
+        };
+        var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
+
+        Assert.Throws<InvalidOperationException>(() => NewGameFactory.Create(data, Now));
     }
 
     [Fact]

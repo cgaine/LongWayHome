@@ -245,7 +245,7 @@ public sealed class Game
             return Rejection.TileOccupied;
         }
 
-        if (Player.Inventory.Quantity(ItemKind.Seed, cropTypeId) < 1)
+        if (Player.Backpack.Quantity(ItemRef.Seed(cropTypeId)) < 1)
         {
             return Rejection.NoSeed;
         }
@@ -265,12 +265,15 @@ public sealed class Game
         }
 
         // Both steps are known to succeed now: the Tile is tilled and empty, and the seed is held.
-        // BR-P7: Remove drops the stack when it reaches 0.
-        Player.Inventory.Remove(ItemKind.Seed, cropTypeId, 1);
+        // BR-T3: planting uses one Seed; BR-K2: a Slot that reaches 0 is emptied.
+        Player.Backpack.Remove(ItemRef.Seed(cropTypeId), 1);
         return FarmPlot[position].Plant(new Planting(cropTypeId, Date, 0));
     }
 
-    /// <summary>Why harvesting would be refused, or null: NoPlanting, then NotRipe (BR-T6).</summary>
+    /// <summary>
+    /// Why harvesting would be refused, or null: NoPlanting, then NotRipe (BR-T6), then BackpackFull when one Crop
+    /// fits nowhere (BR-K3).
+    /// </summary>
     public Rejection? HarvestRejection(GridPosition position, CropType cropType)
     {
         ArgumentNullException.ThrowIfNull(cropType);
@@ -281,7 +284,13 @@ public sealed class Game
             return Rejection.NoPlanting;
         }
 
-        return planting.StatusFor(cropType) == PlantingStatus.Ripe ? null : Rejection.NotRipe;
+        if (planting.StatusFor(cropType) != PlantingStatus.Ripe)
+        {
+            return Rejection.NotRipe;
+        }
+
+        // BR-K3: until dropped items exist, a Crop that fits nowhere is refused and the Planting stays.
+        return Player.Backpack.CanFit(ItemRef.Crop(cropType.Id), 1) ? null : Rejection.BackpackFull;
     }
 
     /// <summary>Harvests a ripe Planting into one Crop (BR-T6). Costs no energy (BR-P2).</summary>
@@ -292,19 +301,20 @@ public sealed class Game
             return ActionResult.Rejected(rejection);
         }
 
-        // BR-T6: one Crop of its type is added and the Planting goes; BR-P7 merges it into one stack. The Crop is added
-        // first so a failing Add leaves the Planting in place.
-        Player.Inventory.Add(ItemKind.Crop, cropType.Id, 1);
+        // BR-T6: one Crop of its type is added and the Planting goes; BR-K3 tops up a matching stack first. The Crop is
+        // added first so a failing Add leaves the Planting in place; HarvestRejection checked it fits.
+        Player.Backpack.Add(ItemRef.Crop(cropType.Id), 1);
         return FarmPlot[position].Harvest(cropType);
     }
 
     /// <summary>
-    /// Moves every Crop stack into the Shipping Bin (BR-S1); NothingToShip when there is none. Costs no energy (BR-P2).
+    /// Moves every Crop in every Backpack Slot into the Shipping Bin, merged per Crop type (BR-S1); NothingToShip when
+    /// there is none. Costs no energy (BR-P2).
     /// </summary>
     public ActionResult ShipAll()
     {
-        // BR-S1: only Crops ship; with none held nothing changes.
-        var crops = Player.Inventory.Stacks.Where(stack => stack.Kind == ItemKind.Crop).ToList();
+        // BR-S1, BR-K6: only Crops ship, never seeds or tools; with none held nothing changes.
+        var crops = Player.Backpack.Totals(ItemKind.Crop);
         if (crops.Count == 0)
         {
             return ActionResult.Rejected(Rejection.NothingToShip);
@@ -321,7 +331,7 @@ public sealed class Game
         foreach (var stack in crops)
         {
             ShippingBin.Add(stack.CropTypeId, stack.Quantity);
-            Player.Inventory.Remove(ItemKind.Crop, stack.CropTypeId, stack.Quantity);
+            Player.Backpack.Remove(ItemRef.Crop(stack.CropTypeId), stack.Quantity);
         }
 
         return ActionResult.Ok;

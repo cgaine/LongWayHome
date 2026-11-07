@@ -16,7 +16,7 @@ public class PlantingTests
     {
         var game = TestGames.NewSession().Game;
         Assert.Equal(150, game.Player.Energy);
-        Assert.Equal(10, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(10, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
         Assert.Equal(new GameDate(1, Season.Spring, 1), game.Date);
         game.FarmPlot[Target].Till();
 
@@ -27,8 +27,48 @@ public class PlantingTests
             new Planting(CropTypeId.Emberroot, new GameDate(1, Season.Spring, 1), 0),
             game.FarmPlot[Target].Planting);
         Assert.Equal(TileState.Tilled, game.FarmPlot[Target].State);
-        Assert.Equal(9, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(9, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
         Assert.Equal(150, game.Player.Energy);
+    }
+
+    [Fact]
+    public void BR_T3_Planting_takes_one_seed_out_of_the_backpack()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack(), tiles: TestGames.TilledWith(Target, null));
+
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Planting(CropTypeId.Emberroot, TestGames.FirstDay, 0), game.FarmPlot[Target].Planting);
+        Assert.Equal("2:Seed:Emberroot:9:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+    }
+
+    [Fact]
+    public void BR_T3_Planting_the_last_seed_empties_its_slot()
+    {
+        var game = TestGames.WithBackpack(
+            TestGames.BackpackWith((ItemRef.Seed(CropTypeId.Emberroot), 1), (ItemRef.Seed(CropTypeId.Dusktuber), 5)),
+            tiles: TestGames.TilledWith(Target, null));
+
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal("2:-:-:0:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+        Assert.Equal(5, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+    }
+
+    [Fact]
+    public void BR_T3_Planting_a_seed_the_backpack_does_not_hold_is_NoSeed_and_changes_nothing()
+    {
+        var game = TestGames.WithBackpack(
+            TestGames.BackpackWith((ItemRef.Crop(CropTypeId.Emberroot), 4)), tiles: TestGames.TilledWith(Target, null));
+        var before = TestGames.Describe(game.Player.Backpack);
+
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NoSeed), result);
+        Assert.Null(game.FarmPlot[Target].Planting);
+        Assert.Equal(before, TestGames.Describe(game.Player.Backpack));
     }
 
     [Fact]
@@ -42,7 +82,7 @@ public class PlantingTests
         Assert.Equal(ActionResult.Rejected(Rejection.NotTilled), result);
         Assert.Equal(TileState.Grass, game.FarmPlot[Target].State);
         Assert.Null(game.FarmPlot[Target].Planting);
-        Assert.Equal(10, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(10, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
         Assert.Equal(before, TestGames.FullSnapshot(game));
     }
 
@@ -59,8 +99,8 @@ public class PlantingTests
 
         Assert.Equal(ActionResult.Rejected(Rejection.TileOccupied), result);
         Assert.Equal(existing, game.FarmPlot[Target].Planting);
-        Assert.Equal(9, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
-        Assert.Equal(5, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
+        Assert.Equal(9, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
+        Assert.Equal(5, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
         Assert.Equal(before, TestGames.FullSnapshot(game));
     }
 
@@ -75,7 +115,7 @@ public class PlantingTests
 
         Assert.All(results, result => Assert.Equal(ActionResult.Ok, result));
         Assert.DoesNotContain(
-            game.Player.Inventory.Stacks,
+            TestGames.Stacks(game.Player.Backpack),
             stack => stack.Kind == ItemKind.Seed && stack.CropTypeId == CropTypeId.Dusktuber);
         var before = TestGames.FullSnapshot(game);
 
@@ -127,7 +167,7 @@ public class PlantingTests
         var empty = new GridPosition(2, 1);
         var game = TestGames.WithTiles(
             150,
-            new Inventory(),
+            TestGames.ToolsOnly(),
             TestGames.TilledWith(occupied, growing),
             TestGames.TilledWith(empty, null));
 
@@ -173,8 +213,8 @@ public class PlantingTests
 
         game.Plant(Target, TestGames.Crop(CropTypeId.Dusktuber));
 
-        Assert.Equal(4, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
-        Assert.Equal(10, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(4, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+        Assert.Equal(10, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
         Assert.Equal(CropTypeId.Dusktuber, game.FarmPlot[Target].Planting?.CropTypeId);
     }
 
@@ -288,15 +328,15 @@ public class PlantingTests
     [Fact]
     public void BR_P7_planting_the_last_seed_removes_its_stack()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 1);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 1);
         var game = TestGames.WithTiles(150, inventory, TestGames.TilledWith(Target, null));
 
         var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
 
         Assert.Equal(ActionResult.Ok, result);
-        Assert.Empty(game.Player.Inventory.Stacks);
-        Assert.Equal(0, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Empty(TestGames.Stacks(game.Player.Backpack));
+        Assert.Equal(0, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
     }
 
     [Fact]

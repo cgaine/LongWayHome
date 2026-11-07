@@ -26,11 +26,11 @@ public class HotbarTextTests
     public void AC8_compact_seed_label_is_the_full_hotbar_label_without_seeds()
     {
         var session = TestGames.NewSession();
-        session.Game.Player.Inventory.Add(ItemKind.Seed, CropTypeId.Moonmelon, 99);
+        session.Game.Player.Backpack.Add(ItemRef.Seed(CropTypeId.Moonmelon), 99);
         var seed = HeldItem.SeedOf(CropTypeId.Moonmelon);
 
         var full = session.Hotbar(seed).Single(slot => slot.Item == seed).Label;
-        var compact = HotbarText.Compact(seed, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Moonmelon));
+        var compact = HotbarText.Compact(seed, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Moonmelon)));
 
         Assert.Equal(full.Replace(" seeds", ""), compact);
         Assert.True(compact.Length < full.Length);

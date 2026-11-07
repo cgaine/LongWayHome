@@ -47,10 +47,27 @@ public class SaveMigratorTests
     }
 
     [Fact]
-    public void AC11_default_migrator_leaves_a_version_1_document_as_it_is()
+    public void AC11_default_migrator_leaves_a_current_version_document_as_it_is()
+    {
+        var result = SaveMigrator.Default.Migrate(Document(SaveMigrator.CurrentVersion));
+
+        Assert.Equal(Document(SaveMigrator.CurrentVersion).ToJsonString(), result.ToJsonString());
+    }
+
+    [Fact]
+    public void Default_migrator_targets_version_2_with_the_one_1_to_2_step()
+    {
+        Assert.Equal(2, SaveMigrator.CurrentVersion);
+        Assert.Equal(2, SaveMigrator.Default.TargetVersion);
+        Assert.Single(SaveMigrator.Default.Steps);
+    }
+
+    [Fact]
+    public void Default_migrator_upgrades_a_version_1_document_with_no_player_to_version_2_leaving_the_rest()
     {
         var result = SaveMigrator.Default.Migrate(Document(1));
 
-        Assert.Equal(Document(1).ToJsonString(), result.ToJsonString());
+        Assert.Equal(2, result["saveVersion"]!.GetValue<int>());
+        Assert.Equal("kept", result["payload"]!.GetValue<string>());
     }
 }

@@ -268,10 +268,10 @@ public class UseTests
     [Fact]
     public void Held_items_omit_a_seed_type_with_no_stack_and_never_include_crop_stacks()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Dusktuber, 3);
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 4);
-        inventory.Add(ItemKind.Crop, CropTypeId.Moonmelon, 1);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Dusktuber), 3);
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 4);
+        inventory.Add(ItemRef.Crop(CropTypeId.Moonmelon), 1);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
 
         var held = session.HeldItems();
@@ -284,10 +284,10 @@ public class UseTests
     [Fact]
     public void Held_items_list_seed_stacks_in_crop_type_order()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Starcorn, 1);
-        inventory.Add(ItemKind.Seed, CropTypeId.Emberroot, 2);
-        inventory.Add(ItemKind.Seed, CropTypeId.Moonmelon, 3);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Starcorn), 1);
+        inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 2);
+        inventory.Add(ItemRef.Seed(CropTypeId.Moonmelon), 3);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
 
         var held = session.HeldItems();
@@ -450,7 +450,7 @@ public class UseTests
         Assert.Equal(
             new Planting(CropTypeId.Emberroot, TestGames.FirstDay, 0),
             session.Game.FarmPlot[Target].Planting);
-        Assert.Equal(9, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
+        Assert.Equal(9, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
         Assert.Equal(150, session.Game.Player.Energy);
     }
 
@@ -468,8 +468,8 @@ public class UseTests
         Assert.Null(tile.Planting);
         Assert.Equal(TileState.Tilled, tile.State);
         Assert.True(tile.Watered);
-        Assert.Equal(1, session.Game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Dusktuber));
-        Assert.Equal(5, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
+        Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Dusktuber)));
+        Assert.Equal(5, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
         Assert.Equal(150, session.Game.Player.Energy);
     }
 
@@ -502,7 +502,7 @@ public class UseTests
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Null(session.Game.FarmPlot[Target].Planting);
-        Assert.Equal(1, session.Game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Moonmelon));
+        Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Moonmelon)));
         Assert.Equal([Target], tiles);
         Assert.Equal(1, inventories);
     }
@@ -587,8 +587,8 @@ public class UseTests
         }
 
         Assert.Equal(planting, session.Game.FarmPlot[Target].Planting);
-        Assert.Equal(10, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
-        Assert.Equal(5, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Dusktuber));
+        Assert.Equal(10, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
+        Assert.Equal(5, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
     }
 
     [Fact]
@@ -699,9 +699,9 @@ public class UseTests
     [Fact]
     public void Held_label_counts_seeds_only_not_crops_of_the_same_type()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Dusktuber, 3);
-        inventory.Add(ItemKind.Crop, CropTypeId.Dusktuber, 7);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Dusktuber), 3);
+        inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 7);
         var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
 
         Assert.Equal("Dusktuber seeds × 3", session.HeldLabel(HeldItem.SeedOf(CropTypeId.Dusktuber)));

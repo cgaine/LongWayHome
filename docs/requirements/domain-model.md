@@ -38,8 +38,8 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Shop** | The menu where the Player buys Seeds for the current Season and the Watering can upgrade. In Phase 2, Maggie's general store and the carpenter's and blacksmith's counters (REQ-58). |
 | **Can upgrade** | Phase 1 only: a one-time purchase that raises the Watering can's capacity from 20 to 40. Retired in Phase 2; capacity comes from the can's Tool tier (REQ-57). |
 | **Gold** | The Player's money. Never negative. |
-| **Backpack** | *(planned, REQ-47)* What the Player carries in Phase 2: 12, 24 or 36 Slots. Replaces the unlimited Phase 1 Inventory. |
-| **Slot** | *(planned, REQ-47)* One place in the Backpack or a Chest, holding 1 to 99 of one item, or exactly one tool. |
+| **Backpack** | What the Player carries in Phase 2: 12, 24 or 36 Slots. Replaces the unlimited Phase 1 Inventory. |
+| **Slot** | One place in the Backpack or a Chest, holding 1 to 99 of one item, or exactly one tool. |
 | **Hotbar row** | *(planned, REQ-47)* The 6-Slot row of the Backpack shown on screen. The Player cycles which row it is. |
 | **Material** | *(planned, REQ-44)* A gathered or made item used for rebuilds, orders and pumps: wood, sap, stone, Rosk ore, Groth ore, glimmercap, plank, sealed plank, Rosk pump. |
 | **Resource node** | *(planned, REQ-44)* A tree, stump, rock, ore deposit, glimmercap or debris pile the Player breaks with the axe or pickaxe for materials. |
@@ -66,7 +66,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `TileState` | `grass`, `tilled` | Tile |
 | `PlantingStatus` (derived, never stored) | `growing`, `ripe` | Planting |
 | `DayEndReason` | `slept`, `passed_out` | Game (last Night) |
-| `ItemKind` | `seed`, `crop`; *(planned, REQ-47)* `material`, `tool`, `placeable` | InventoryStack, BackpackSlot |
+| `ItemKind` | `seed`, `crop`, `tool`; *(planned, REQ-47)* `material`, `placeable` | InventoryStack, BackpackSlot |
 | `ToolId` | `hoe`, `watering_can`; *(planned, REQ-58)* `axe`, `pickaxe` | Player tools, ToolItem, Order |
 | `ShopItemKind` | `seed`, `can_upgrade` (Phase 1 only); *(planned, REQ-58, REQ-48)* `tool`, `backpack_upgrade`, `placeable`, `farmhouse_upgrade` | ShopListing |
 | `CropTypeId` | `emberroot`, `dusktuber`, `moonmelon`, `sunbell`, `starcorn` | CropType, Planting, InventoryStack, ShippedItem, ShopListing |
@@ -74,10 +74,10 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `GameDate` | `{ year: int ≥ 1, season: Season, day: 1–28 }` | Game |
 | `ClockMinutes` | integer, 360 (06:00) to 1560 (02:00 next morning) | Game |
 | `Gold` | integer ≥ 0 | Player, CropType, ShopListing, BuildingStage, Order |
-| `ToolTier` | *(planned, REQ-57)* `basic`, `rosk`, `groth` | ToolItem, Order |
+| `ToolTier` | `basic`, `rosk`, `groth` | ToolItem, Order |
 | `MaterialId` | *(planned, REQ-44)* `wood`, `sap`, `stone`, `rosk_ore`, `groth_ore`, `glimmercap`, `plank`, `sealed_plank`, `rosk_pump` | BackpackSlot, BuildingStage, Order |
 | `PlaceableId` | *(planned, REQ-48)* `fence`, `chest` | PlacedObject, BackpackSlot, ShopListing |
-| `ItemRef` | *(planned, REQ-47)* `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
+| `ItemRef` | `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
 | `NodeKind` | *(planned, REQ-44, REQ-49)* `tree`, `stump`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`, `debris` | ResourceNode, NodeSpawn |
 | `AreaId` | *(planned, REQ-49, REQ-48)* `farm`, `forest_path`, `town`, `lakeshore`, `across_river`, `mine` | ResourceNode, DroppedItem, NodeSpawn |
 | `BuildingId` | *(planned, REQ-45)* `general_store`, `carpenter`, `miras_house`, `blacksmith` | Building, BuildingStage |
@@ -257,13 +257,13 @@ Phase 2 stages: general_store 1 (start) to 4; carpenter 0 (ruined at start) to 2
 | axe | 4 swings a tree | 3 swings | 2 swings; clears stumps; more wood |
 | pickaxe | 4 swings a rock | 3 swings | 2 swings; more stone |
 
-### Phase 2 changes to Player *(planned, REQ-47, REQ-57)*
+### Phase 2 changes to Player
 
 - `Player.tools` is replaced by tools held in Backpack Slots as `ToolItem`s. The hoe and watering can are Basic in a new Game (BR-P6).
-- `WateringCan.capacity` is derived from the can's tier (20 / 40 / 60); `upgraded` is retired (BR-W1, BR-W4).
+- *(planned, REQ-57)* `WateringCan.capacity` is derived from the can's tier (20 / 40 / 60); `upgraded` is retired (BR-W1, BR-W4).
 - `InventoryStack` is replaced by `BackpackSlot` (BR-P7, BR-K2).
 
-#### Backpack (child of Player, exactly one) *(planned, REQ-47)*
+#### Backpack (child of Player, exactly one)
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
@@ -649,9 +649,9 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 | Phase 2 Game state (Backpack, DroppedItems, ResourceNodes, NodeRegrowths, PlacedObjects, Buildings, Orders, MineLevels, Residents, Game flags) *(planned, REQ-45 to REQ-50)* | Part of the Game in its save slot, overwritten each Night like the rest. DroppedItems never outlive a Night (BR-K4), so a save never holds one. |
 | MaterialType, NodeSpawn, BuildingStage, OrderRecipe, ToolTierEffect *(planned)* | Reference data shipped with the build. A save stores only ids, positions and counts, so costs and yields can be retuned without breaking saves. |
 
-Each save file carries a save-format version (`saveVersion`, currently 1), so later phases (backpack slots, buildings) can migrate Phase 1 saves.
+Each save file carries a save-format version (`saveVersion`, currently 2), so later phases (backpack slots, buildings) can migrate Phase 1 saves.
 
-*(planned, REQ-47)* Phase 2 saves are version 2. A version 1 save loads with: its 12 x 9 Tiles inside the farm's cleared start region with no nodes on them; `openingDone` true; its stacks packed into Backpack Slots (raising capacity to 24 or 36 only if they don't fit in 12); the hoe and can at Basic, or the can at Rosk if the Can upgrade was bought; every other Phase 2 state as in a new Game, so the general store is at stage 1 and the farm Bin is gone until stage 4 (BR-S3); anything in the Bin at save time was already paid out in that Night.
+Phase 2 saves are version 2. A version 1 save loads with: its stacks packed into Backpack Slots (raising capacity to 24 or 36 only if they don't fit in 12); the hoe and can at Basic, or the can at Rosk if the Can upgrade was bought; *(planned, REQ-47)* its 12 x 9 Tiles inside the farm's cleared start region with no nodes on them; `openingDone` true; every other Phase 2 state as in a new Game, so the general store is at stage 1 and the farm Bin is gone until stage 4 (BR-S3); anything in the Bin at save time was already paid out in that Night.
 
 Future: Steam Cloud sync of save slots.
 
