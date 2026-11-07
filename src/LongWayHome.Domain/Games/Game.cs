@@ -35,6 +35,7 @@ public sealed class Game
         Player = player;
         FarmPlot = farmPlot;
         ShippingBin = shippingBin ?? new ShippingBin();
+        DroppedItems = _droppedItems.AsReadOnly();
     }
 
     public Guid Id { get; }
@@ -64,7 +65,7 @@ public sealed class Game
     private readonly List<DroppedItem> _droppedItems = [];
 
     /// <summary>The items on the ground, oldest first (BR-K3, BR-K4). Never saved; a loaded Game has none.</summary>
-    public IReadOnlyList<DroppedItem> DroppedItems => _droppedItems.AsReadOnly();
+    public IReadOnlyList<DroppedItem> DroppedItems { get; }
 
     /// <summary>
     /// Gains a non-tool item: what fits goes in the Backpack (BR-K3), the rest drops at <paramref name="feet"/> as

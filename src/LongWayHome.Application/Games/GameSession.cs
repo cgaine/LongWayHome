@@ -455,10 +455,14 @@ public sealed class GameSession
         var result = ShopService.Buy(Game, Data, listingId, quantity, feet);
         if (result.IsOk)
         {
+            // BR-K3: a gain only ever adds DroppedItems, so a changed count means something dropped.
             LastBuyDropped = Game.DroppedItems.Count != droppedBefore;
             PlayerChanged?.Invoke();
             InventoryChanged?.Invoke();
-            RaiseIfDropped(droppedBefore);
+            if (LastBuyDropped)
+            {
+                DroppedItemsChanged?.Invoke();
+            }
         }
 
         return result;

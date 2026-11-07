@@ -410,7 +410,7 @@ stateDiagram-v2
 | new Game → active | Player | BR-G1, BR-P6 |
 | active → night (Sleep) | Player, at the house door | BR-G3 |
 | active → night (Pass out) | Game, when the clock reaches 02:00 | BR-G3, BR-P4 |
-| night → active | Game | Night steps in order: BR-T4 growth → BR-S2 payout → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
+| night → active | Game | Night steps in order: BR-T4 growth → BR-S2 payout → BR-K4 dropped items removed → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
 | night → active (Phase 2) *(planned, REQ-45, REQ-48, REQ-50, REQ-57)* | Game | Night steps in order: BR-T4 growth → BR-S2 payout (once the bin exists, BR-S3) → BR-B3 rebuilds → BR-O2 orders ready → BR-R2, BR-R3 residents arrive → BR-K4 dropped items removed → BR-N4 regrowth → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
 
 ### Tile
