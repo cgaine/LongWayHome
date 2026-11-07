@@ -4,19 +4,23 @@ using System.Collections.Generic;
 using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
+using LongWayHome.Domain.Catalog;
 using LongWayHome.Game.Ui;
 
 namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// The art sandbox (#75), the script of <c>res://art/sandbox/ArtSandbox.tscn</c>, opened from the title screen with
-/// the <c>--art-sandbox</c> launch flag. Builds, on a 16 x 16 m ground slab (the <c>wall-grey</c> swatch, the
+/// the <c>--art-sandbox</c> launch flag. Builds, on a 20 x 20 m ground slab (the <c>wall-grey</c> swatch, the
 /// palette's closest neutral):
 /// <list type="bullet">
 /// <item>the palette rows at the back: one 0.8 m cube per <see cref="ArtPalette"/> swatch, in texture order (11 to a
 /// row, 1.2 m apart), each with a billboard label giving its role and hex;</item>
 /// <item>the three 1 x 1 m tile slabs at the front: <c>grass-lit</c>, <c>soil-tilled</c> and
 /// <c>soil-watered</c>;</item>
+/// <item>the <c>Crops</c> rows in front of the tile slabs (#90): one column per <see cref="CropTypeId"/> and one row per
+/// <see cref="GrowthStage"/>, Seed nearest the camera, each model from <see cref="CropModels.MeshFor"/> on a
+/// <c>soil-tilled</c> slab, for every (crop, stage) drawn to the art direction so far;</item>
 /// <item>the four sample shapes (low-poly sphere, 6-sided trunk, house, cone tree), once on the left and once on the
 /// right, with a label over each set naming the style it shows.</item>
 /// </list>
@@ -40,7 +44,7 @@ public partial class ArtSandbox : Node3D
 
     private const string TitleScene = "res://scenes/Main.tscn";
 
-    private const float GroundSize = 16f;
+    private const float GroundSize = 20f;
 
     private const float CubeSize = 0.8f;
 
@@ -58,6 +62,20 @@ public partial class ArtSandbox : Node3D
 
     /// <summary>The z of the tile slabs, in front of the sample shapes.</summary>
     private const float TilesZ = 4.5f;
+
+    /// <summary>The z of the Ripe crop row, in front of the tile slabs; each earlier stage is a row nearer the camera.</summary>
+    private const float CropsRipeZ = TilesZ + 1.2f;
+
+    /// <summary>The spacing of the crop rows and columns.</summary>
+    private const float CropSpacing = 1.1f;
+
+    /// <summary>The tilled slab each crop stands on, the size of a farm Tile's slab.</summary>
+    private const float CropSlabSize = 0.96f;
+
+    private const float CropSlabHeight = 0.06f;
+
+    /// <summary>The point the camera orbits by default: in front of the origin, so the crop rows are in view.</summary>
+    private static readonly Vector3 CameraCentre = new(0f, 0f, 2.5f);
 
     /// <summary>
     /// The light presets, ART_DIRECTION §3 and the issue's table. A reviewer may tune these values; nothing else
@@ -136,10 +154,11 @@ public partial class ArtSandbox : Node3D
         BuildGround();
         BuildPalette();
         BuildTiles();
+        BuildCrops();
         BuildShapes();
         BuildLabel();
 
-        Camera = new SandboxCamera { Name = "SandboxCamera", Current = true };
+        Camera = new SandboxCamera { Name = "SandboxCamera", Current = true, Centre = CameraCentre };
         AddChild(Camera);
 
         Apply();
@@ -384,6 +403,48 @@ public partial class ArtSandbox : Node3D
                 new Vector3((i - 1) * 1.1f, 0.025f, TilesZ),
                 slabs[i].Role,
                 parent: tiles);
+        }
+    }
+
+    /// <summary>
+    /// The crop models in front of the tile slabs: one column per Crop type in <see cref="CropTypeId"/> order and one
+    /// row per <see cref="GrowthStage"/>, Seed nearest the camera and Ripe farthest, 1.1 m apart. Each stands on a
+    /// 0.96 x 0.06 x 0.96 tilled slab and is drawn as on the farm: one mesh under the shared material. A (crop, stage)
+    /// with no mesh yet leaves its place empty, so later crop features appear here with no change.
+    /// </summary>
+    private void BuildCrops()
+    {
+        var crops = new Node3D { Name = "Crops" };
+        AddChild(crops);
+        var cropTypes = System.Enum.GetValues<CropTypeId>();
+        var stages = System.Enum.GetValues<GrowthStage>();
+        for (var column = 0; column < cropTypes.Length; column++)
+        {
+            var x = (column - ((cropTypes.Length - 1) / 2f)) * CropSpacing;
+            for (var row = 0; row < stages.Length; row++)
+            {
+                if (CropModels.MeshFor(cropTypes[column], stages[row]) is not { } mesh)
+                {
+                    continue;
+                }
+
+                // Stages run Seed to Ripe: Ripe (the last) farthest from the camera, Seed (the first) nearest.
+                var z = CropsRipeZ + ((stages.Length - 1 - row) * CropSpacing);
+                var name = $"{stages[row]}_{cropTypes[column]}";
+                AddMesh(
+                    $"{name}Slab",
+                    new BoxMesh { Size = new Vector3(CropSlabSize, CropSlabHeight, CropSlabSize) },
+                    new Vector3(x, CropSlabHeight / 2f, z),
+                    "soil-tilled",
+                    parent: crops);
+                crops.AddChild(new MeshInstance3D
+                {
+                    Name = name,
+                    Mesh = mesh,
+                    MaterialOverride = ArtMaterials.Shared,
+                    Position = new Vector3(x, CropSlabHeight, z),
+                });
+            }
         }
     }
 
