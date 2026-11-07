@@ -228,6 +228,56 @@ Idea to explore: some parts need the town to finish them, e.g. the blacksmith fo
 
 Crash site (draft): fairly remote, in the forest at the base of the mountains near the mine entrance, hidden from town. The hull is half-buried with the power out. Inside are four empty slots for the power cell, navigation crystal, hull alloy and engine core; each installed part lights up a section of the ship, so progress is visible. Only Maggie knows at first; Mira and others learn through their lantern stories.
 
+## Beyond the farming loop (draft)
+
+Why: the core loop feels too close to Stardew, so we're mixing in other genres. Added 2026-11-07; the conflicts with the rest of this doc are listed at the end of this section and still need review.
+
+### Water-flow puzzles in the flooded mine
+
+Water-flow puzzles are the main way through the flooded mine:
+
+- Each flooded level is a small puzzle map where water pools in low spots.
+- You place pumps, sealed-plank walls and channels to drain it or send it somewhere else.
+- Levels get harder deeper down, with more than one water source and channels that can flood other rooms.
+- A solved level stays solved.
+- How it works in detail still needs more thought.
+
+### Ship-tech exploration
+
+Each ship part you install gives you an ability that opens new areas:
+
+| Ship part | Ability | Opens |
+| --- | --- | --- |
+| Power cell | A scanner that shows plants and ore through walls | Hidden plants and ore |
+| Navigation crystal | A map of hidden spots, and a way to read old signals | Hidden spots; the lost ship's distress signal |
+| Hull alloy | A suit for deeper or colder places | Deeper or colder places |
+| Engine core | A jet boost | The mountaintop, the best mining spot in the game, with Embrite and rare ore |
+
+### The lost ship expedition
+
+- The lake stays reserved for relics.
+- The other crashed ship is behind the mountain, in a valley nobody in town has visited.
+- The navigation crystal picks up its distress signal. You follow clues from the residents, then make a multi-day trek with food, gear and maybe a resident or two.
+- The ship is older than yours, and one possible twist is that its pilot stayed and is still in town.
+- When this opens is undecided. Right now it would come at the very end, since the jet boost comes from the last ship part.
+
+### Conflicts to review
+
+These clash with what the doc already says. Nothing above this section has been changed yet.
+
+1. **Mine progression.** Backstory says each level is shored up with a fixed mix of materials, levels 6 and deeper each cost a set number of sealed planks (10 to 40, Shoring table), and every fifth level needs a pump. The puzzles place pumps, walls and channels instead. Do the per-level plank counts and the "pump every fifth level" pattern stay as the cost of the puzzle pieces, or go? REQ-33 describes the old model.
+2. **"As in Stardew".** The mine's Pacing line says it is "free to explore at any pace, as in Stardew", which is the comparison this change moves away from.
+3. **Getting it wrong.** Channels that flood other rooms are a way to fail, and the mine has "no danger in this version, only energy cost" (pillar 1). What happens when water goes the wrong way: free undo, reset the level, or just more water to clear?
+4. **Mine levels 1–5.** Levels 1–4 are above the water and only need debris cleared, and level 5 is drained with Mira's first pump. Is level 5 the first puzzle (a tutorial), or a plain pump as written?
+5. **Parts in the ship or on you.** The crash site has four slots, and installing a part lights up a section of the ship. If the part stays in the ship, how does the farmer carry its ability? The farmer's wrist unit (ART_DIRECTION.md 6.1, "the only ship tech that still works") is one way to hold them.
+6. **Hull alloy.** One idea has Mira forge the alloy into plating for the ship, and now it also makes a suit. Is it one part doing both? It's found on level 45: does the suit gate levels 46–60, the "colder places" elsewhere, or both?
+7. **The mountaintop comes too late.** The engine core is on level 60, the bottom of the mine, so the jet boost and "the best mining spot in the game" open only after all mining is done. Embrite, used for Forgelight tools and pumps, already comes from the deeper levels, so the mountaintop adds little unless the order changes.
+8. **Ending.** REQ-36 ends the story once all four parts are installed, and the engine core is the last part. If the expedition needs the jet boost, it lands after the ending. Either the expedition is the ending, it's a post-game, or a different part (or route) opens the valley.
+9. **The lake mystery.** Maggie's 5th lantern ("saw a light fall into the lake, just like your crash"), Clyde's 5th ("strange lights under the water"), the lantern stories' "something fell into the lake before" and the sunken town's "possibly more of the strange metal" all point to a ship in the lake. With the lake reserved for relics, these beats need to point behind the mountain instead.
+10. **Who the pilot could be.** The farmer is "the only Earth human on the planet" (ART_DIRECTION.md 6.1) and every resident has the native traits (section 6.2). A pilot still in town would have to be a non-Earth traveller, or a resident whose look hides it. Maggie, the only one who knows where the farmer came from, is the obvious candidate.
+11. **Multi-day trek.** Days end by sleeping at the house door (REQ-4), the game saves each night at home (REQ-11), and residents don't travel with you. The trek needs camping or sleeping away from home, saving on the trail, and residents as companions. Unwatered crops just wait, so being away is safe (pillar 1).
+12. **World layout.** The mountains hold only the mine. The mountaintop and the hidden valley behind the mountain aren't in the World layout yet, and the far shore across the lake is still "to be decided".
+
 ## First building: General store
 
 The general store is the first building to restore. It is open from day one at level 1 (Maggie's corner) and grows through three rebuilds, each costing more wood, stone and gold.
