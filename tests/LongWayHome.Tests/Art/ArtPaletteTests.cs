@@ -224,11 +224,17 @@ public class ArtPaletteTests
         }
 
         Assert.True(File.Exists(path), $"{path} is missing; {RegenerateHint}");
-        var committed = File.ReadAllBytes(path);
-        var expected = ArtPalette.EncodePng();
+
+        // Compare decoded pixels, not file bytes: the zlib stream ZLibStream writes differs between .NET runtimes
+        // (zlib vs zlib-ng), so the same pixels encode to different bytes on different machines.
+        var committed = DecodePng(File.ReadAllBytes(path));
+        var expected = DecodePng(ArtPalette.EncodePng());
         Assert.True(
-            committed.AsSpan().SequenceEqual(expected),
-            $"{path} is stale (differs from ArtPalette.EncodePng()); {RegenerateHint}");
+            committed.Width == expected.Width && committed.Height == expected.Height,
+            $"{path} is {committed.Width}x{committed.Height}, expected {expected.Width}x{expected.Height}; {RegenerateHint}");
+        Assert.True(
+            committed.Rgba.AsSpan().SequenceEqual(expected.Rgba),
+            $"{path} is stale (its pixels differ from ArtPalette.EncodePng()); {RegenerateHint}");
     }
 
     // ---- AC5: import, sampler, project global ----
