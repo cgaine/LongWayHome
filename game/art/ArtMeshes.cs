@@ -27,7 +27,7 @@ public static class ArtMeshes
     /// </summary>
     public static ArrayMesh Merge(IEnumerable<MeshPart> parts)
     {
-        var list = parts as IReadOnlyCollection<MeshPart> ?? parts.ToList();
+        var list = parts.ToList();
         var anyGlow = list.Any(part => part.Glow > 0f);
         var surface = new SurfaceTool();
         surface.Begin(Mesh.PrimitiveType.Triangles);

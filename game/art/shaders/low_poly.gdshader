@@ -53,15 +53,21 @@ varying float v_glow;
 void vertex() {
 	v_stepped = style_override < 0 ? (art_stepped_shading ? 1 : 0) : style_override;
 	v_wet = wet;
-	float pulse;
-	if (UV2.y < 0.5) {
-		// Steady: a slow breathing, offset by the crop's position so neighbours aren't in step (ART_DIRECTION §8).
-		pulse = 0.85 + 0.15 * sin(TIME * 1.5 + NODE_POSITION_WORLD.x + NODE_POSITION_WORLD.z);
-	} else {
-		// Twinkle: a sharp flash, offset by the vertex's position so each speck flashes on its own.
-		pulse = 0.35 + 0.65 * pow(0.5 + 0.5 * sin(TIME * 5.0 + dot(VERTEX, vec3(91.0, 37.0, 53.0))), 4.0);
+	v_glow = 0.0;
+	// Skip the pulse on every mesh that doesn't glow and on every mesh by day.
+	if (UV2.x > 0.0 && art_night > 0.0) {
+		// Offset by the crop's position so neighbouring crops, which share one cached mesh, aren't in step.
+		float neighbour = NODE_POSITION_WORLD.x + NODE_POSITION_WORLD.z;
+		float pulse;
+		if (UV2.y < 0.5) {
+			// Steady: a slow breathing (ART_DIRECTION §8).
+			pulse = 0.85 + 0.15 * sin(TIME * 1.5 + neighbour);
+		} else {
+			// Twinkle: a sharp flash, offset by the vertex's position so each speck flashes on its own.
+			pulse = 0.35 + 0.65 * pow(0.5 + 0.5 * sin(TIME * 5.0 + dot(VERTEX, vec3(91.0, 37.0, 53.0)) + neighbour), 4.0);
+		}
+		v_glow = UV2.x * art_night * pulse;
 	}
-	v_glow = UV2.x * art_night * pulse;
 }
 
 void fragment() {
