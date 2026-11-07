@@ -104,6 +104,14 @@ public class InputGlyphsTests
     }
 
     [Theory]
+    [InlineData(InputDeviceKind.KeyboardMouse, "[Space]")]
+    [InlineData(InputDeviceKind.Controller, "(A)")]
+    public void REQ_13_ui_accept_glyph_is_Space_or_A(InputDeviceKind device, string expected)
+    {
+        Assert.Equal(expected, InputGlyphs.For("ui_accept", device));
+    }
+
+    [Theory]
     [InlineData(InputDeviceKind.KeyboardMouse, "[X]")]
     [InlineData(InputDeviceKind.Controller, "(View)")]
     public void AC9_hotbar_cycle_glyph_is_X_or_View(InputDeviceKind device, string expected)

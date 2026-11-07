@@ -121,6 +121,7 @@ game/
     Ui/Hud.cs                 # hotbar, clock, gold, energy
     Ui/UsePrompt.cs           # shows what Use will do (REQ-12)
     Ui/ShopMenu.cs
+    Ui/BackpackMenu.cs        # the Backpack screen: every slot in rows of six, pick up and put down (REQ-47) (#131)
     Ui/IconTextures.cs        # the seed and crop icon textures, loaded once (paths from ItemIcons) (#95)
     Ui/SaveSlotsMenu.cs
   art/                        # new art, apart from gameplay scenes and scripts (ART_DIRECTION §8)
