@@ -250,33 +250,37 @@ Each ship part you install gives you an ability that opens new areas:
 | --- | --- | --- |
 | Power cell | A scanner that shows plants and ore through walls | Hidden plants and ore |
 | Navigation crystal | A map of hidden spots, and a way to read old signals | Hidden spots; the lost ship's distress signal |
-| Hull alloy | A suit for deeper or colder places | Deeper or colder places |
+| Hull alloy | A suit for deeper or colder places | Deeper or colder places, including the bottom of the lake |
 | Engine core | A jet boost | The mountaintop, the best mining spot in the game, with Embrite and rare ore |
 
 ### The lost ship expedition
 
-- The lake stays reserved for relics.
-- The other crashed ship is behind the mountain, in a valley nobody in town has visited.
-- The navigation crystal picks up its distress signal. You follow clues from the residents, then make a multi-day trek with food, gear and maybe a resident or two.
+Decided 2026-11-07: the expedition goes under the lake, not behind the mountain.
+
+- The other crashed ship lies at the bottom of the lake, deeper than the sunken town. The sunken town keeps its relics; the lost ship is the lake's deeper secret.
+- This is the light Maggie saw fall into the lake and the strange lights Clyde has seen under the water (their 5th lanterns).
+- The navigation crystal picks up its distress signal from under the water. You follow clues from the residents, then make a multi-day expedition with food, gear and maybe a resident or two.
 - The ship is older than yours, and one possible twist is that its pilot stayed and is still in town.
-- When this opens is undecided. Right now it would come at the very end, since the jet boost comes from the last ship part.
+- When it opens (proposed): once you have the navigation crystal (the signal) and the hull alloy suit (deep, cold water). That puts it before the engine core, so it no longer waits for the jet boost.
 
 ### Conflicts to review
 
-These clash with what the doc already says. Nothing above this section has been changed yet.
+These clash with what the doc already says. The rest of the doc hasn't been changed yet.
 
 1. **Mine progression.** Backstory says each level is shored up with a fixed mix of materials, levels 6 and deeper each cost a set number of sealed planks (10 to 40, Shoring table), and every fifth level needs a pump. The puzzles place pumps, walls and channels instead. Do the per-level plank counts and the "pump every fifth level" pattern stay as the cost of the puzzle pieces, or go? REQ-33 describes the old model.
 2. **"As in Stardew".** The mine's Pacing line says it is "free to explore at any pace, as in Stardew", which is the comparison this change moves away from.
 3. **Getting it wrong.** Channels that flood other rooms are a way to fail, and the mine has "no danger in this version, only energy cost" (pillar 1). What happens when water goes the wrong way: free undo, reset the level, or just more water to clear?
 4. **Mine levels 1–5.** Levels 1–4 are above the water and only need debris cleared, and level 5 is drained with Mira's first pump. Is level 5 the first puzzle (a tutorial), or a plain pump as written?
 5. **Parts in the ship or on you.** The crash site has four slots, and installing a part lights up a section of the ship. If the part stays in the ship, how does the farmer carry its ability? The farmer's wrist unit (ART_DIRECTION.md 6.1, "the only ship tech that still works") is one way to hold them.
-6. **Hull alloy.** One idea has Mira forge the alloy into plating for the ship, and now it also makes a suit. Is it one part doing both? It's found on level 45: does the suit gate levels 46–60, the "colder places" elsewhere, or both?
+6. **Hull alloy.** One idea has Mira forge the alloy into plating for the ship, and now it also makes a suit. Is it one part doing both? It's found on level 45: does the suit gate levels 46–60, the bottom of the lake, or both?
 7. **The mountaintop comes too late.** The engine core is on level 60, the bottom of the mine, so the jet boost and "the best mining spot in the game" open only after all mining is done. Embrite, used for Forgelight tools and pumps, already comes from the deeper levels, so the mountaintop adds little unless the order changes.
-8. **Ending.** REQ-36 ends the story once all four parts are installed, and the engine core is the last part. If the expedition needs the jet boost, it lands after the ending. Either the expedition is the ending, it's a post-game, or a different part (or route) opens the valley.
-9. **The lake mystery.** Maggie's 5th lantern ("saw a light fall into the lake, just like your crash"), Clyde's 5th ("strange lights under the water"), the lantern stories' "something fell into the lake before" and the sunken town's "possibly more of the strange metal" all point to a ship in the lake. With the lake reserved for relics, these beats need to point behind the mountain instead.
+8. **Ending.** ~~If the expedition needs the jet boost, it lands after the ending (REQ-36).~~ Resolved if the proposed timing holds: under the lake, the expedition needs the navigation crystal and the hull alloy suit, not the jet boost, so it comes before the last part and the ending.
+9. **The lake mystery.** ~~The lantern stories point to a ship in the lake.~~ Resolved: the lost ship is now in the lake, so Maggie's and Clyde's 5th lanterns, "something fell into the lake before" and the sunken town's "possibly more of the strange metal" all lead to it.
 10. **Who the pilot could be.** The farmer is "the only Earth human on the planet" (ART_DIRECTION.md 6.1) and every resident has the native traits (section 6.2). A pilot still in town would have to be a non-Earth traveller, or a resident whose look hides it. Maggie, the only one who knows where the farmer came from, is the obvious candidate.
-11. **Multi-day trek.** Days end by sleeping at the house door (REQ-4), the game saves each night at home (REQ-11), and residents don't travel with you. The trek needs camping or sleeping away from home, saving on the trail, and residents as companions. Unwatered crops just wait, so being away is safe (pillar 1).
-12. **World layout.** The mountains hold only the mine. The mountaintop and the hidden valley behind the mountain aren't in the World layout yet, and the far shore across the lake is still "to be decided".
+11. **Multi-day expedition.** Days end by sleeping at the house door (REQ-4), the game saves each night at home (REQ-11), and residents don't travel with you. A multi-day expedition under the lake needs somewhere to sleep away from home (Clyde's rowboat, a camp on the far shore, or air pockets in the wreck), saving away from home, and residents as companions. Unwatered crops just wait, so being away is safe (pillar 1).
+12. **World layout.** The World layout has no deep lake beyond the sunken town, and no mountaintop for the jet boost. The far shore across the lake is still "to be decided" and could be where the expedition starts.
+13. **Diving helmet or suit.** Clyde's 5th lantern already has Mira forge a diving helmet for the sunken town. The hull alloy suit now covers the deep lake. Proposed split: the helmet is for the shallow sunken town, and the suit for the cold, deep water below it.
+14. **Getting out on the lake.** Clyde's rowboat (his 4th lantern) is the only boat until the late-game ferry. Is the rowboat how you reach the dive spot over the lost ship?
 
 ## First building: General store
 
