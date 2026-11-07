@@ -12,7 +12,7 @@ namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// The art sandbox (#75), the script of <c>res://art/sandbox/ArtSandbox.tscn</c>, opened from the title screen with
-/// the <c>--art-sandbox</c> launch flag. Builds, on a 26 x 26 m ground slab (the <c>wall-grey</c> swatch, the
+/// the <c>--art-sandbox</c> launch flag. Builds, on a 40 x 40 m ground slab (the <c>wall-grey</c> swatch, the
 /// palette's closest neutral):
 /// <list type="bullet">
 /// <item>the palette rows at the back: one 0.8 m cube per <see cref="ArtPalette"/> swatch, in texture order (11 to a
@@ -31,7 +31,12 @@ namespace LongWayHome.Game.Art;
 /// right, with a label over each set naming the style it shows;</item>
 /// <item>the <c>Farmhouses</c> at the front corners: the round farmhouse of the concept art
 /// (<see cref="RoundFarmhouseArt"/>, built by <see cref="RoundFarmhouseModels"/>), run-down on the left and restored on
-/// the right, each with a label. The restored house's warm window panes show only under the Night preset.</item>
+/// the right, each with a label. The restored house's warm window panes show only under the Night preset;</item>
+/// <item>the <c>Trees</c> behind the palette (<see cref="TreeArt"/>, built by <see cref="NatureModels"/>): a row of
+/// Twinbough stages in summer (sapling, full tree, old giant, stump) and behind it a row of full Twinboughs, one per
+/// season, each with a label. The sap seams and the stump's rings glow under the Night preset;</item>
+/// <item>the <c>Rocks</c> down the left edge (<see cref="RockArt"/>): a rock, a boulder, Rosk ore and Groth ore, each
+/// with a label.</item>
 /// </list>
 /// Every mesh takes its colour from the shared palette material through <see cref="ArtMaterials.Apply"/> (#76).
 /// Flat only or Stepped only sets the global shader uniform <c>art_stepped_shading</c>, so every mesh shows that
@@ -56,7 +61,7 @@ public partial class ArtSandbox : Node3D
 
     private const string TitleScene = "res://scenes/Main.tscn";
 
-    private const float GroundSize = 26f;
+    private const float GroundSize = 40f;
 
     private const float CubeSize = 0.8f;
 
@@ -102,6 +107,15 @@ public partial class ArtSandbox : Node3D
 
     /// <summary>The z of the two farmhouses, level with the crop rows and in front of the Animations row.</summary>
     private const float FarmhousesZ = 8f;
+
+    /// <summary>The z of the Twinbough stages row, behind the palette.</summary>
+    private const float TreeStagesZ = -12f;
+
+    /// <summary>The z of the Twinbough seasons row, behind the stages row.</summary>
+    private const float TreeSeasonsZ = -18.5f;
+
+    /// <summary>The x of the rocks, down the left edge clear of the run-down farmhouse.</summary>
+    private const float RocksX = -16f;
 
     /// <summary>How long a one-shot clip rests on its last pose before the sandbox plays it again, in seconds.</summary>
     private const double OneShotRestartSeconds = 0.5;
@@ -194,6 +208,8 @@ public partial class ArtSandbox : Node3D
         BuildAnimations();
         BuildShapes();
         BuildFarmhouses();
+        BuildTrees();
+        BuildRocks();
         BuildLabel();
 
         Camera = new SandboxCamera { Name = "SandboxCamera", Current = true, Centre = CameraCentre };
@@ -674,6 +690,85 @@ public partial class ArtSandbox : Node3D
                 farmhouses.AddChild(_farmhouseNightLights);
             }
         }
+    }
+
+    /// <summary>
+    /// The Twinbough rows behind the palette: the four stages in summer, then a full tree in each season, each one merged
+    /// mesh under the shared material that casts shadows, with a label over it.
+    /// </summary>
+    private void BuildTrees()
+    {
+        var trees = new Node3D { Name = "Trees" };
+        AddChild(trees);
+        (TreeStage Stage, float X, string Label)[] stages =
+        [
+            (TreeStage.Sapling, -9f, "Twinbough · Sapling"),
+            (TreeStage.Full, -4f, "Twinbough · Full tree"),
+            (TreeStage.Giant, 2.5f, "Twinbough · Old giant"),
+            (TreeStage.Stump, 8.5f, "Twinbough · Stump"),
+        ];
+        foreach (var (stage, x, label) in stages)
+        {
+            AddNature(trees, $"Twinbough{stage}", NatureModels.Twinbough(stage, Season.Summer), new Vector3(x, 0f, TreeStagesZ), label, LabelHeight(stage));
+        }
+
+        var seasons = System.Enum.GetValues<Season>();
+        for (var i = 0; i < seasons.Length; i++)
+        {
+            var x = (i - (seasons.Length - 1) / 2f) * 7f;
+            AddNature(trees, $"Twinbough{seasons[i]}", NatureModels.Twinbough(TreeStage.Full, seasons[i]), new Vector3(x, 0f, TreeSeasonsZ),
+                $"Twinbough · {seasons[i]}", LabelHeight(TreeStage.Full));
+        }
+    }
+
+    /// <summary>How high a tree's label floats: just over its top.</summary>
+    private static float LabelHeight(TreeStage stage) => stage switch
+    {
+        TreeStage.Sapling => 2.2f,
+        TreeStage.Giant => 6.9f,
+        TreeStage.Stump => 1.6f,
+        _ => 5.6f,
+    };
+
+    /// <summary>The rocks the pickaxe breaks, down the left edge, each with a label.</summary>
+    private void BuildRocks()
+    {
+        var rocks = new Node3D { Name = "Rocks" };
+        AddChild(rocks);
+        (RockKind Kind, float Z, string Label, float LabelY)[] kinds =
+        [
+            (RockKind.Rock, -4f, "Rock", 1.1f),
+            (RockKind.Boulder, -0.5f, "Boulder (iron pickaxe)", 1.8f),
+            (RockKind.RoskOre, 3f, "Rosk ore", 1.1f),
+            (RockKind.GrothOre, 6f, "Groth ore", 1.3f),
+        ];
+        foreach (var (kind, z, label, labelY) in kinds)
+        {
+            AddNature(rocks, $"Rock{kind}", NatureModels.Rock(kind), new Vector3(RocksX, 0f, z), label, labelY);
+        }
+    }
+
+    /// <summary>One merged tree or rock mesh under the shared material, casting shadows, with a billboard label over it.</summary>
+    private static void AddNature(Node3D parent, string name, Mesh mesh, Vector3 position, string label, float labelHeight)
+    {
+        parent.AddChild(new MeshInstance3D
+        {
+            Name = name,
+            Mesh = mesh,
+            MaterialOverride = ArtMaterials.Shared,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+            Position = position,
+        });
+        parent.AddChild(new Label3D
+        {
+            Name = $"{name}Label",
+            Text = label,
+            Position = position + new Vector3(0f, labelHeight, 0f),
+            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+            FontSize = 40,
+            OutlineSize = 8,
+            PixelSize = 0.006f,
+        });
     }
 
     private void BuildLabel()
