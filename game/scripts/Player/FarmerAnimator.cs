@@ -153,7 +153,7 @@ public partial class FarmerAnimator : Node
         {
             _oneShot = FarmerClip.PassOut;
             _done = null;
-                Play(FarmerClip.PassOut, OneShotBlend, restart: true);
+            Play(FarmerClip.PassOut, OneShotBlend, restart: true);
         }
     }
 
