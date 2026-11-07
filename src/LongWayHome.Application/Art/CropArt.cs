@@ -86,13 +86,14 @@ public sealed record CropPart(
 /// Prisms 0.12 x 0.16 x 0.03 at radius 0.10, yawed i x 60°, at y 0.18 (even i) or 0.26 (odd i), pitched 40°
 /// outward, <c>foliage</c>; <c>Berry</c> Sphere 0.05 at (0.08, 0.16, 0), <c>grass-mown</c>. About 0.34 wide, 0.33
 /// tall.</description></item>
-/// <item><term>Sunbell Ripe</term><description><c>Foliage0</c> Sphere 0.22 x 0.18 at y 0.30 and
-/// <c>Foliage1</c>–<c>Foliage4</c> Spheres 0.22 x 0.18 at y 0.20, radius 0.16, yawed i x 90°, <c>foliage</c>; six
+/// <item><term>Sunbell Ripe</term><description><c>Foliage0</c> Sphere 0.17 x 0.14 at y 0.28 and
+/// <c>Foliage1</c>–<c>Foliage4</c> Spheres 0.17 x 0.14 at y 0.20, radius 0.16, placed at 45° + i x 90° so they sit
+/// between the berries, <c>foliage</c>; six
 /// berries at radius 0.25, yawed i x 60°, each <c>Berry&lt;i&gt;Top</c> Cylinder bottom 0.06, top 0.09, height 0.05
 /// at y 0.17, <c>sunbell-gold</c>, <c>Berry&lt;i&gt;Tip</c> Cylinder bottom 0, top 0.06, height 0.05 straight under it
 /// at y 0.12, <c>sunbell-orange</c> (the point, hanging down), and <c>Berry&lt;i&gt;SepalsA</c>/<c>SepalsB</c>
 /// Boxes 0.09 x 0.01 x 0.02 at y 0.20, yawed with the berry and 90° across it, <c>foliage</c>. No glow. About 0.59
-/// wide, 0.39 tall.</description></item>
+/// wide, 0.35 tall.</description></item>
 /// <item><term>Starcorn Young</term><description><c>Stalk</c> Cylinder bottom 0.05, top 0.035, height 0.40 at y
 /// 0.20, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf3</c> Boxes 0.30 x 0.02 x 0.06 from the stalk axis at y 0.14, 0.22,
 /// 0.30 and 0.38, yawed i x 90° + 30°, the outer end drooping (rolled −25°) but clear of the soil, <c>foliage</c>.
@@ -100,9 +101,10 @@ public sealed record CropPart(
 /// <item><term>Starcorn Ripe</term><description><c>Stalk</c> Cylinder bottom 0.08, top 0.05, height 0.95 at y
 /// 0.475, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf4</c> Boxes 0.36 x 0.02 x 0.07 from the stalk axis at y 0.17, 0.32,
 /// 0.47, 0.62 and 0.77, yawed i x 72°, drooping (rolled −25°) but clear of the soil, <c>foliage</c>; <c>Cob</c>
-/// Cylinder bottom 0.15, top 0.13, height 0.32 centred at (0.09, 0.62, 0), rolled −15° so its top leans away from the stalk, <c>starcorn</c>;
-/// <c>HuskLeft</c>/<c>HuskRight</c> Prisms 0.08 x 0.26 x 0.02 rising from the cob's foot on its −Z and +Z sides,
-/// rolled −15° with the cob and pitched ∓20° to peel back, <c>grass-mown</c>; <c>Sparkle0</c>–<c>Sparkle7</c>
+/// Cylinder bottom 0.15, top 0.13, height 0.32 centred at (0.09, 0.62, 0), rolled −15° so its top leans away from
+/// the stalk, <c>starcorn</c>; <c>HuskLeft</c>/<c>HuskRight</c> Prisms 0.08 x 0.26 x 0.02 rising from the cob's foot
+/// on its −Z and +Z sides, rolled −15° with the cob and pitched ∓20° to peel back, <c>grass-mown</c>;
+/// <c>Sparkle0</c>–<c>Sparkle7</c>
 /// Boxes 0.025 pitched 45° and rolled 45° (diamonds), centred 0.005 m proud of the cob's tapering surface, spread
 /// from 0.125 m below to 0.125 m above its middle and round its outer side (−63° to 63° from the cob's +X),
 /// <c>starcorn-sparkle</c>; <c>Tassel0</c>–<c>Tassel2</c> Prisms 0.03 x 0.14 x 0.01 rising from (0, 0.935, 0) so
@@ -113,7 +115,9 @@ public sealed record CropPart(
 /// The Seed, Sprout and Young models of emberroot and dusktuber are up to 25% larger than #90's starting sizes (the
 /// issue allows it), so the early stages still read from the farthest camera zoom. Ripe sunbell's outer foliage
 /// (radius 0.16, not 0.13) and berries (radius 0.25, not 0.20) sit further out than #91's starting sizes, so the bush
-/// is at least 0.1 m wider than ripe dusktuber (AC4).
+/// is at least 0.1 m wider than ripe dusktuber (AC4). Its foliage spheres are smaller (0.17 x 0.14, not 0.22 x 0.18),
+/// the centre one lower (y 0.28, not 0.30), and the outer four placed at 45° + i x 90°, not i x 90°, so the berries
+/// are not hidden by the bush from the game camera's 30–60° pitch.
 /// </para>
 /// <para>
 /// Moonmelon has no parts yet (<see cref="Parts"/> returns <c>null</c>); the game falls back to its prototype model
@@ -318,11 +322,23 @@ public static class CropArt
     private static List<CropPart> SunbellRipe()
     {
         const float berryRadius = 0.25f;
-        var parts = new List<CropPart> { Upright("Foliage0", CropPartShape.Sphere, 0.22f, 0.18f, 0.22f, 0.30f, "foliage") };
+        // A compact bush whose outer spheres sit between the berries (45° + i x 90°), so the berries show beside it from
+        // the game camera. The spheres are unrotated: only their position is yawed.
+        var parts = new List<CropPart> { Upright("Foliage0", CropPartShape.Sphere, 0.17f, 0.14f, 0.17f, 0.28f, "foliage") };
         for (var i = 0; i < 4; i++)
         {
             parts.Add(Around(
-                $"Foliage{i + 1}", CropPartShape.Sphere, 0.22f, 0.18f, 0.22f, radius: 0.16f, y: 0.20f, yaw: i * 90f, pitch: 0f, "foliage"));
+                $"Foliage{i + 1}",
+                CropPartShape.Sphere,
+                0.17f,
+                0.14f,
+                0.17f,
+                radius: 0.16f,
+                y: 0.20f,
+                yaw: 0f,
+                pitch: 0f,
+                "foliage",
+                positionYaw: 45f + (i * 90f)));
         }
 
         for (var i = 0; i < 6; i++)

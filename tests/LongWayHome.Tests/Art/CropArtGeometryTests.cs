@@ -167,6 +167,26 @@ public class CropArtGeometryTests
         }
     }
 
+    /// <summary>The berries show beside the bush from the game camera: no berry top's centre is under a foliage sphere.</summary>
+    [Fact]
+    public void Ripe_sunbell_berries_sit_beside_the_foliage_not_under_it()
+    {
+        var parts = PartsOf(CropTypeId.Sunbell, GrowthStage.Ripe);
+        var foliage = parts.Where(part => part.Name.StartsWith("Foliage", StringComparison.Ordinal)).ToList();
+        var tops = parts.Where(part => part.Name.StartsWith("Berry", StringComparison.Ordinal)
+            && part.Name.EndsWith("Top", StringComparison.Ordinal)).ToList();
+
+        Assert.Equal(6, tops.Count);
+        foreach (var top in tops)
+        {
+            foreach (var sphere in foliage)
+            {
+                var apart = new Vector2(top.X - sphere.X, top.Z - sphere.Z).Length();
+                Assert.True(apart > sphere.SizeX / 2f, $"{top.Name} is {apart} m from {sphere.Name}, under its edge");
+            }
+        }
+    }
+
     [Theory]
     [InlineData(GrowthStage.Young)]
     [InlineData(GrowthStage.Ripe)]
