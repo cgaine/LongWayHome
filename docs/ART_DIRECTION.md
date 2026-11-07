@@ -210,7 +210,7 @@ The coverall uses the ship's blue-silver from section 2, so he starts out lookin
 
 1. **Day one:** coverall, boots, mission cap.
 2. **Settling in:** a gift from the town, an ember-orange knitted scarf (draft: from Maggie).
-3. **At home:** a local work shirt in honey, teal overalls with the Earth patch sewn onto the bib, a woven sun hat with an ember band. He keeps the flight boots and the wrist unit.
+3. **At home:** a local work shirt in honey, teal overalls with the Earth patch sewn onto the bib, a woven sun hat with an ember band. He keeps the flight boots and the wrist unit. He also keeps the flight coverall: sealed with the diving helmet Mira forges, it becomes his diving suit for the lake (design doc, Beyond the farming loop).
 
 Decided: the outfit changes with the story. Draft trigger for each step: a story beat (e.g. a lantern story or a rebuild), not a menu choice. If the game later gets a wardrobe, these become the first three outfits.
 

@@ -240,6 +240,7 @@ Water-flow puzzles are the main way through the flooded mine:
 - You place pumps, sealed-plank walls and channels to drain it or send it somewhere else.
 - Levels get harder deeper down, with more than one water source and channels that can flood other rooms.
 - A solved level stays solved.
+- No failure: if the water goes the wrong way, you just try again until you solve it.
 - How it works in detail still needs more thought.
 
 ### Ship-tech exploration
@@ -259,7 +260,7 @@ Decided 2026-11-07: the expedition goes under the lake, not behind the mountain.
 
 - The other crashed ship lies at the bottom of the lake, deeper than the sunken town. The sunken town keeps its relics; the lost ship is the lake's deeper secret.
 - This is the light Maggie saw fall into the lake and the strange lights Clyde has seen under the water (their 5th lanterns).
-- **Diving suit:** the farmer's own flight coverall from his ship, sealed up with the diving helmet Mira forges (the helmet from Clyde's 5th lantern). The same suit and helmet take you through the sunken town and down to the lost ship. There are no cold areas in the mine; the suit is only for the lake.
+- **Diving suit:** the farmer's own flight coverall from his ship, sealed up with the diving helmet Mira forges (the helmet from Clyde's 5th lantern). The same suit and helmet take you all the way down, through the sunken town to the lost ship, with no upgrade needed. He swaps the coverall for town clothes as Ember Bay becomes home (ART_DIRECTION.md 6.1), but keeps it and wears it again to dive. There are no cold areas in the mine; the suit is only for the lake.
 - The navigation crystal picks up its distress signal from under the water. You follow clues from the residents, then make a multi-day expedition with food, gear and maybe a resident or two.
 - The ship is older than yours, and one possible twist is that its pilot stayed and is still in town.
 - When it opens (proposed): once you have the navigation crystal (the signal, mine level 30) and the diving suit. That puts it well before the engine core, so it no longer waits for the jet boost.
@@ -268,9 +269,9 @@ Decided 2026-11-07: the expedition goes under the lake, not behind the mountain.
 
 These clash with what the doc already says. The rest of the doc hasn't been changed yet.
 
-1. **Mine progression.** Backstory says each level is shored up with a fixed mix of materials, levels 6 and deeper each cost a set number of sealed planks (10 to 40, Shoring table), and every fifth level needs a pump. The puzzles place pumps, walls and channels instead. Do the per-level plank counts and the "pump every fifth level" pattern stay as the cost of the puzzle pieces, or go? REQ-33 describes the old model.
+1. **Mine progression.** Backstory says each level is shored up with a fixed mix of materials, levels 6 and deeper each cost a set number of sealed planks (10 to 40, Shoring table), and every fifth level needs a pump. The puzzles place pumps, walls and channels instead. Do the per-level plank counts and the "pump every fifth level" pattern stay as the cost of the puzzle pieces, or go? Still open: the cost needs revisiting. REQ-33 describes the old model.
 2. **"As in Stardew".** The mine's Pacing line says it is "free to explore at any pace, as in Stardew", which is the comparison this change moves away from.
-3. **Getting it wrong.** Channels that flood other rooms are a way to fail, and the mine has "no danger in this version, only energy cost" (pillar 1). What happens when water goes the wrong way: free undo, reset the level, or just more water to clear?
+3. **Getting it wrong.** ~~What happens when water goes the wrong way?~~ Resolved: there is no failure. You try again as many times as you need until the level is solved, which keeps "no danger in this version" (pillar 1).
 4. **Mine levels 1–5.** Levels 1–4 are above the water and only need debris cleared, and level 5 is drained with Mira's first pump. Is level 5 the first puzzle (a tutorial), or a plain pump as written?
 5. **Parts in the ship or on you.** The crash site has four slots, and installing a part lights up a section of the ship. If the part stays in the ship, how does the farmer carry its ability? The farmer's wrist unit (ART_DIRECTION.md 6.1, "the only ship tech that still works") is one way to hold them.
 6. **Hull alloy.** ~~Does its suit gate mine levels 46–60 or the lake?~~ Resolved: no cold areas in the mine, and the diving suit is the farmer's coverall plus Mira's helmet. Still open: what ability the hull alloy gives instead (the earlier idea of Mira forging it into plating for the ship still stands).
@@ -280,7 +281,7 @@ These clash with what the doc already says. The rest of the doc hasn't been chan
 10. **Who the pilot could be.** The farmer is "the only Earth human on the planet" (ART_DIRECTION.md 6.1) and every resident has the native traits (section 6.2). A pilot still in town would have to be a non-Earth traveller, or a resident whose look hides it. Maggie, the only one who knows where the farmer came from, is the obvious candidate.
 11. **Multi-day expedition.** Days end by sleeping at the house door (REQ-4), the game saves each night at home (REQ-11), and residents don't travel with you. A multi-day expedition under the lake needs somewhere to sleep away from home (Clyde's rowboat, a camp on the far shore, or air pockets in the wreck), saving away from home, and residents as companions. Unwatered crops just wait, so being away is safe (pillar 1).
 12. **World layout.** The World layout has no deep lake beyond the sunken town, and no mountaintop for the jet boost. The far shore across the lake is still "to be decided" and could be where the expedition starts.
-13. **Diving helmet or suit.** ~~Helmet for the sunken town, hull alloy suit for the deep lake?~~ Resolved: one diving suit, the farmer's flight coverall with Mira's helmet, for the whole lake. Still open: whether the deep water needs an upgrade to the helmet or suit, or the same kit goes all the way down. The art also needs a look: the farmer's outfit story (ART_DIRECTION.md 6.1) swaps the coverall for town clothes, so he keeps it for diving.
+13. **Diving helmet or suit.** ~~Helmet for the sunken town, hull alloy suit for the deep lake?~~ Resolved: one diving suit, the farmer's flight coverall with Mira's helmet, for the whole lake. The same suit goes all the way down, with no upgrade. The farmer still swaps the coverall for town clothes in his outfit story (ART_DIRECTION.md 6.1), but keeps it to dive in.
 14. **Getting out on the lake.** Clyde's rowboat (his 4th lantern) is the only boat until the late-game ferry. Is the rowboat how you reach the dive spot over the lost ship?
 
 ## First building: General store
