@@ -42,6 +42,7 @@ game/                                # the Godot project
   scenes/                            # .tscn scenes
   scripts/                           # C# node scripts, by area
   art/                               # new art (shaders, the art sandbox), apart from gameplay scenes
+    icons/                           # seed and crop icons (SVG, palette colours only)
   ui/                                # HUD and menus
   assets/                            # models, textures, audio
 tests/
@@ -115,6 +116,7 @@ game/
     Ui/Hud.cs                 # hotbar, clock, gold, energy
     Ui/UsePrompt.cs           # shows what Use will do (REQ-12)
     Ui/ShopMenu.cs
+    Ui/IconTextures.cs        # the seed and crop icon textures, loaded once (paths from ItemIcons) (#95)
     Ui/SaveSlotsMenu.cs
   art/                        # new art, apart from gameplay scenes and scripts (ART_DIRECTION §8)
     ArtMaterials.cs           # Shared palette material; Apply(node, role) colours a code-built shape (#76)
@@ -123,6 +125,9 @@ game/
     farm/
       Meadow.tscn             # the farm's ground: meadow, shade patches, mown margin, edging, path, props (#77)
       MeadowView.cs           # builds its meshes and MultiMeshes from MeadowLayout (Application/Art/MeadowLayout.cs)
+    icons/
+      seed_<crop>.svg         # seed packet icons for the hotbar and the shop, palette colours only (#95)
+      crop_<crop>.svg         # harvested-crop icons for the HUD crops row, palette colours only (#95)
     materials/
       palette.tres            # the one shared ShaderMaterial: low_poly.gdshader on palette.png
     palette/
@@ -144,7 +149,7 @@ game/
 - **Input:** every action is a Godot Input Map action bound to both keyboard and mouse and a controller: `move_*`, `run`, `use_tool`, `interact`, `tool_next`, `tool_prev`, `open_menu`, `pause`, and the camera's `camera_rotate_left`, `camera_rotate_right`, `camera_zoom_in`, `camera_zoom_out` (Z/C/R/V and the right stick; REQ-52). Nothing reads raw keys or buttons (REQ-13). The UI follows the last-used device for prompts, for every action.
 - **Readable at a glance (REQ-12):** each growth stage has its own model, bigger than the one before it; every crop (emberroot, dusktuber, sunbell, starcorn and moonmelon) is drawn to ART_DIRECTION §4 by `CropArt` and `CropModels` (#90, #91, #92): Seed (a light dirt mound with a seed in the crop's colour), Sprout (a stem with two seed leaves in a V and a bud in the crop's colour), Young (emberroot's orange shoulder under five fronds; dusktuber's low rosette of leaves curling violet; sunbell's three canes in a ring of leaves with one small green berry; starcorn's short stalk with four drooping leaves; moonmelon's low trailing vine with veined leaves and a pale bud) and Ripe (emberroot's tall frond tuft over a wide orange shoulder with a warm core; dusktuber's big speckled purple bulb under four curling leaves; sunbell's rounded bush hung with six gold-to-orange berries, point down under green sepal stars; starcorn's tall stalk with a big golden cob between peeled husks, white diamond sparkles and a gold tassel; moonmelon's pale blue-white ribbed gourd with a crown and stalk, on a trailing vine with leaves and a tendril); each Tile is a slab in one of three states (grass with small tufts, brown tilled soil with furrows, and much darker watered soil with a wet sheen), with dark grooves between the slabs instead of grid lines; the Use target marker is a cream highlight with four ember-orange corner brackets on the targeted Tile, drawn over everything; `UsePrompt` names the action Use will perform on the targeted Tile, or why it can't.
 - **Pausing (BR-G2):** opening any menu pauses the scene tree, and `GameSession.AdvanceClock` is only called from an unpaused node.
-- **Art sandbox:** starting with the user argument `--art-sandbox` (`godot --path game -- --art-sandbox` from source, `<exported binary> -- --art-sandbox` on the Deck; combinable with `--show-fps`) makes the title screen open `art/sandbox/ArtSandbox.tscn` instead of the save slots, once per run. It is where shading and colour are judged on the Deck before art reaches the farm, and `pause` returns to the title screen. Gameplay scenes adopt approved art by instancing scenes and materials from `art/` (the meadow, #77), never anything under `art/sandbox/`; scripts other than `SaveSlotsMenu` reference nothing in `art/` except the shared material helpers `ArtMaterials` and `ArtMeshes` (the tile slabs, #78) and the crop builder `CropModels` (#90), and never the sandbox.
+- **Art sandbox:** starting with the user argument `--art-sandbox` (`godot --path game -- --art-sandbox` from source, `<exported binary> -- --art-sandbox` on the Deck; combinable with `--show-fps`) makes the title screen open `art/sandbox/ArtSandbox.tscn` instead of the save slots, once per run. It is where shading and colour are judged on the Deck before art reaches the farm, and `pause` returns to the title screen. Gameplay scenes adopt approved art by instancing scenes and materials from `art/` (the meadow, #77), never anything under `art/sandbox/`; scripts other than `SaveSlotsMenu` reference nothing in `art/` except the shared material helpers `ArtMaterials` and `ArtMeshes` (the tile slabs, #78) and the crop builder `CropModels` (#90), and the seed and crop icons in `art/icons/` (#95; their paths come from `ItemIcons` in `LongWayHome.Application/Art/`, so no script names an `art/` path), and never the sandbox.
 - **Renderer:** Forward+ by default. The Steam Deck target is a steady 30 fps at 1280 × 800 (REQ-14); if it's missed, the fallback is the Mobile renderer with a lower resolution scale, and the frame rate is capped at 30 on Deck to save battery.
 
 ## 4. Key patterns

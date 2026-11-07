@@ -137,6 +137,32 @@ public class HudTextTests
             CropsText.For(stacks, TestGames.Shipped.CropTypes));
     }
 
+    // ---- #95 AC7: the crops row's leading label ----
+
+    [Fact]
+    public void AC7_Crops_heading_is_Crops_colon_when_crops_are_carried()
+    {
+        var entries = CropsText.Entries(DusktuberThenEmberrootWithSeeds(), TestGames.Shipped.CropTypes);
+
+        Assert.Equal("Crops:", CropsText.Heading(entries));
+    }
+
+    [Fact]
+    public void AC7_Crops_heading_is_Crops_none_when_none_are_carried() =>
+        Assert.Equal("Crops: none", CropsText.Heading(CropsText.Entries([], TestGames.Shipped.CropTypes)));
+
+    [Fact]
+    public void AC7_Crops_row_entries_are_separated_by_a_comma_and_space() =>
+        Assert.Equal(", ", CropsText.EntrySeparator);
+
+    [Fact]
+    public void AC4_Crops_entries_null_arguments_throw()
+    {
+        Assert.Throws<ArgumentNullException>(() => CropsText.Entries(null!, TestGames.Shipped.CropTypes));
+        Assert.Throws<ArgumentNullException>(() => CropsText.Entries([], null!));
+        Assert.Throws<ArgumentNullException>(() => CropsText.Heading(null!));
+    }
+
     [Fact]
     public void Shop_gold_text_is_the_hud_gold_text() =>
         Assert.Equal(GoldText.For(250), ShopText.Gold(250));

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Starcorn (crop)</title>
+  <path d="M32 6 Q28 1 23 2" fill="none" stroke="#34405E" stroke-width="3.6"/>
+  <path d="M32 6 Q28 1 23 2" fill="none" stroke="#F7C531" stroke-width="1.6"/>
+  <path d="M32 6 Q36 1 41 2.5" fill="none" stroke="#34405E" stroke-width="3.6"/>
+  <path d="M32 6 Q36 1 41 2.5" fill="none" stroke="#F7C531" stroke-width="1.6"/>
+  <path d="M32 5 C41 5 44 15 44 27 L43 46 Q32 53 21 46 L20 27 C20 15 23 5 32 5 Z" stroke-linejoin="round" fill="#E8B830" stroke="#34405E" stroke-width="2"/>
+  <path d="M21 15 Q32 18 43 15" fill="none" stroke="#E9821A" stroke-width="1.3"/>
+  <path d="M20.5 22 Q32 25 43.5 22" fill="none" stroke="#E9821A" stroke-width="1.3"/>
+  <path d="M20.5 29 Q32 32 43.5 29" fill="none" stroke="#E9821A" stroke-width="1.3"/>
+  <path d="M20.5 36 Q32 39 43.5 36" fill="none" stroke="#E9821A" stroke-width="1.3"/>
+  <path d="M21 43 Q32 46 43 43" fill="none" stroke="#E9821A" stroke-width="1.3"/>
+  <path d="M27 6.5 Q25 27 26.5 49" fill="none" stroke="#E9821A" stroke-width="1.3"/>
+  <path d="M32 5 L32 51" fill="none" stroke="#E9821A" stroke-width="1.3"/>
+  <path d="M37 6.5 Q39 27 37.5 49" fill="none" stroke="#E9821A" stroke-width="1.3"/>
+  <path d="M32 5 C41 5 44 15 44 27 L43 46 Q32 53 21 46 L20 27 C20 15 23 5 32 5 Z" stroke-linejoin="round" fill="none" stroke="#34405E" stroke-width="2"/>
+  <path d="M28.5 56 L35.5 56 L35 63 L29 63 Z" stroke-linejoin="round" fill="#3E8F82" stroke="#34405E" stroke-width="2"/>
+  <path d="M31 60 Q12 52 11 25 Q20 41 33 47 Z" stroke-linejoin="round" fill="#8CB862" stroke="#34405E" stroke-width="2"/>
+  <path d="M33 60 Q52 52 53 25 Q44 41 31 47 Z" stroke-linejoin="round" fill="#8CB862" stroke="#34405E" stroke-width="2"/>
+  <path d="M28.5 13.9 L29.97 17.03 L33.1 18.5 L29.97 19.97 L28.5 23.1 L27.03 19.97 L23.9 18.5 L27.03 17.03 Z" fill="#FFFFFF" stroke="#34405E" stroke-width="1"/>
+  <path d="M37.5 27 L38.78 29.72 L41.5 31 L38.78 32.28 L37.5 35 L36.22 32.28 L33.5 31 L36.22 29.72 Z" fill="#FFFFFF" stroke="#34405E" stroke-width="1"/>
+  <path d="M27 34.8 L28.02 36.98 L30.2 38 L28.02 39.02 L27 41.2 L25.98 39.02 L23.8 38 L25.98 36.98 Z" fill="#FFFFFF" stroke="#34405E" stroke-width="1"/>
+  <path d="M53 6 L54.6 9.4 L58 11 L54.6 12.6 L53 16 L51.4 12.6 L48 11 L51.4 9.4 Z" fill="#FFFFFF" stroke="#34405E" stroke-width="1"/>
+  <path d="M11 11.4 L12.15 13.85 L14.6 15 L12.15 16.15 L11 18.6 L9.85 16.15 L7.4 15 L9.85 13.85 Z" fill="#FFFFFF" stroke="#34405E" stroke-width="1"/>
+</svg>

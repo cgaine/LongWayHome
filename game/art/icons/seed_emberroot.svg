@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Emberroot seeds</title>
+  <rect x="8.5" y="3" width="47" height="58" rx="7" stroke-linejoin="round" fill="#FFF6E0" stroke="#34405E" stroke-width="2"/>
+  <path d="M8.5 10 L55.5 10" fill="none" stroke="#34405E" stroke-width="2"/>
+  <g transform="translate(14.08 9.5) scale(0.56)">
+    <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(-26 32 23)" fill="#7A68A8" stroke="#34405E" stroke-width="1.96"/>
+    <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.18" transform="rotate(-26 32 23)"/>
+    <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(26 32 23)" fill="#7A68A8" stroke="#34405E" stroke-width="1.96"/>
+    <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.18" transform="rotate(26 32 23)"/>
+    <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(-52 32 23)" fill="#3E8F82" stroke="#34405E" stroke-width="1.96"/>
+    <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.18" transform="rotate(-52 32 23)"/>
+    <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(52 32 23)" fill="#3E8F82" stroke="#34405E" stroke-width="1.96"/>
+    <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.18" transform="rotate(52 32 23)"/>
+    <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(0 32 23)" fill="#3E8F82" stroke="#34405E" stroke-width="1.96"/>
+    <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.18" transform="rotate(0 32 23)"/>
+    <path d="M19 25 Q19 20 24 20 L40 20 Q45 20 45 25 C45 35 37 50 32 61 C27 50 19 35 19 25 Z" stroke-linejoin="round" fill="#E9773A" stroke="#34405E" stroke-width="1.96"/>
+    <path d="M23.5 26 Q24.5 36 29 47" fill="none" stroke="#FFB04A" stroke-width="2.55"/>
+    <path d="M35 30 L41 30" fill="none" stroke="#34405E" stroke-width="1.57" stroke-linecap="round"/>
+    <path d="M25 37 L30 37" fill="none" stroke="#34405E" stroke-width="1.57" stroke-linecap="round"/>
+    <path d="M34 44 L38 44" fill="none" stroke="#34405E" stroke-width="1.57" stroke-linecap="round"/>
+    <path d="M30 51 L33 51" fill="none" stroke="#34405E" stroke-width="1.57" stroke-linecap="round"/>
+  </g>
+  <ellipse cx="25" cy="53" rx="4.3" ry="5.6" transform="rotate(-22 25 53)" fill="#E9773A" stroke="#34405E" stroke-width="2"/>
+  <ellipse cx="39" cy="53" rx="4.3" ry="5.6" transform="rotate(22 39 53)" fill="#E9773A" stroke="#34405E" stroke-width="2"/>
+</svg>

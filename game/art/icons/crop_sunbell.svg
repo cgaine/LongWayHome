@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Sunbell (crop)</title>
+  <ellipse cx="24" cy="8" rx="7" ry="3.6" transform="rotate(15 24 8)" fill="#3E8F82" stroke="#34405E" stroke-width="2"/>
+  <ellipse cx="40" cy="8" rx="7" ry="3.6" transform="rotate(-15 40 8)" fill="#3E8F82" stroke="#34405E" stroke-width="2"/>
+  <path d="M32 7 Q22 10 18 20" fill="none" stroke="#34405E" stroke-width="4.4"/>
+  <path d="M32 7 Q22 10 18 20" fill="none" stroke="#3E8F82" stroke-width="2.4"/>
+  <path d="M32 7 Q42 10 46 20" fill="none" stroke="#34405E" stroke-width="4.4"/>
+  <path d="M32 7 Q42 10 46 20" fill="none" stroke="#3E8F82" stroke-width="2.4"/>
+  <path d="M32 7 L32 31" fill="none" stroke="#34405E" stroke-width="4.4"/>
+  <path d="M32 7 L32 31" fill="none" stroke="#3E8F82" stroke-width="2.4"/>
+  <path d="M10 26 C10 18 26 18 26 26 C26 34 21 40 18 44 C15 40 10 34 10 26 Z" fill="#E9821A" stroke="none"/>
+  <path d="M10 26 C10 18 26 18 26 26 Q26 30 24.7 33 Q18 35.5 11.3 33 Q10 30 10 26 Z" fill="#F7C531" stroke="none"/>
+  <path d="M10 26 C10 18 26 18 26 26 C26 34 21 40 18 44 C15 40 10 34 10 26 Z" stroke-linejoin="round" fill="none" stroke="#34405E" stroke-width="2"/>
+  <polygon points="18,15 19.65,19.23 24.18,19.49 20.66,22.37 21.82,26.76 18,24.3 14.18,26.76 15.34,22.37 11.82,19.49 16.35,19.23" fill="#3E8F82" stroke="#34405E" stroke-width="1.5"/>
+  <path d="M38 26 C38 18 54 18 54 26 C54 34 49 40 46 44 C43 40 38 34 38 26 Z" fill="#E9821A" stroke="none"/>
+  <path d="M38 26 C38 18 54 18 54 26 Q54 30 52.7 33 Q46 35.5 39.3 33 Q38 30 38 26 Z" fill="#F7C531" stroke="none"/>
+  <path d="M38 26 C38 18 54 18 54 26 C54 34 49 40 46 44 C43 40 38 34 38 26 Z" stroke-linejoin="round" fill="none" stroke="#34405E" stroke-width="2"/>
+  <polygon points="46,15 47.65,19.23 52.18,19.49 48.66,22.37 49.82,26.76 46,24.3 42.18,26.76 43.34,22.37 39.82,19.49 44.35,19.23" fill="#3E8F82" stroke="#34405E" stroke-width="1.5"/>
+  <path d="M23.5 37 C23.5 29 40.5 29 40.5 37 C40.5 45 35 52 32 56 C29 52 23.5 45 23.5 37 Z" fill="#E9821A" stroke="none"/>
+  <path d="M23.5 37 C23.5 29 40.5 29 40.5 37 Q40.5 41 39.2 44 Q32 46.5 24.8 44 Q23.5 41 23.5 37 Z" fill="#F7C531" stroke="none"/>
+  <path d="M23.5 37 C23.5 29 40.5 29 40.5 37 C40.5 45 35 52 32 56 C29 52 23.5 45 23.5 37 Z" stroke-linejoin="round" fill="none" stroke="#34405E" stroke-width="2"/>
+  <polygon points="32,26 33.65,30.23 38.18,30.49 34.66,33.37 35.82,37.76 32,35.3 28.18,37.76 29.34,33.37 25.82,30.49 30.35,30.23" fill="#3E8F82" stroke="#34405E" stroke-width="1.5"/>
+</svg>
