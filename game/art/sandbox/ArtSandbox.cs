@@ -5,6 +5,7 @@ using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Players;
 using LongWayHome.Game.Ui;
 
 namespace LongWayHome.Game.Art;
@@ -21,6 +22,9 @@ namespace LongWayHome.Game.Art;
 /// <item>the <c>Crops</c> rows in front of the tile slabs (#90): one column per <see cref="CropTypeId"/> and one row per
 /// <see cref="GrowthStage"/>, Seed nearest the camera, each model from <see cref="CropModels.MeshFor"/> on a
 /// <c>soil-tilled</c> slab, for every (crop, stage);</item>
+/// <item>the <c>Farmer</c> row beside the crops (#102): four farmers from <c>res://art/farmer/Farmer.tscn</c> on a
+/// <c>grass-lit</c> slab, turned to yaw 0, 90, 180 and 270 and holding the hoe, the watering can, emberroot seeds and
+/// the hoe, so the cap brim and the held item can be judged from every side;</item>
 /// <item>the four sample shapes (low-poly sphere, 6-sided trunk, house, cone tree), once on the left and once on the
 /// right, with a label over each set naming the style it shows.</item>
 /// </list>
@@ -75,6 +79,14 @@ public partial class ArtSandbox : Node3D
     private const float CropSlabSize = 0.96f;
 
     private const float CropSlabHeight = 0.06f;
+
+    private const string FarmerScene = "res://art/farmer/Farmer.tscn";
+
+    /// <summary>The x of the Farmer row, just right of the crop columns.</summary>
+    private const float FarmersX = 3.5f;
+
+    /// <summary>The farmers' spacing along the row, from the Ripe crop row's z towards the camera.</summary>
+    private const float FarmerSpacing = 1.1f;
 
     /// <summary>The point the camera orbits by default: in front of the origin, so the crop rows are in view.</summary>
     private static readonly Vector3 CameraCentre = new(0f, 0f, 2.5f);
@@ -157,6 +169,7 @@ public partial class ArtSandbox : Node3D
         BuildPalette();
         BuildTiles();
         BuildCrops();
+        BuildFarmers();
         BuildShapes();
         BuildLabel();
 
@@ -444,6 +457,43 @@ public partial class ArtSandbox : Node3D
                     Position = new Vector3(x, CropSlabHeight, z),
                 });
             }
+        }
+    }
+
+    /// <summary>
+    /// The <c>Farmer</c> row: four farmers on one <c>grass-lit</c> slab beside the crops, one per crop row, at yaw 0,
+    /// 90, 180 and 270 (facing the camera, to its right, away and to its left), holding the hoe, the watering can,
+    /// emberroot seeds and the hoe. They are lit like everything else, so each light preset shows them too.
+    /// </summary>
+    private void BuildFarmers()
+    {
+        var farmers = new Node3D { Name = "Farmer" };
+        AddChild(farmers);
+        float[] yaws = [0f, 90f, 180f, 270f];
+        HeldItem[] held =
+        [
+            HeldItem.Of(ToolId.Hoe),
+            HeldItem.Of(ToolId.WateringCan),
+            HeldItem.SeedOf(CropTypeId.Emberroot),
+            HeldItem.Of(ToolId.Hoe),
+        ];
+        var length = yaws.Length * FarmerSpacing;
+        AddMesh(
+            "FarmerSlab",
+            new BoxMesh { Size = new Vector3(1.2f, 0.05f, length) },
+            new Vector3(FarmersX, 0.025f, CropsRipeZ + (length - FarmerSpacing) / 2f),
+            "grass-lit",
+            parent: farmers);
+
+        var scene = GD.Load<PackedScene>(FarmerScene);
+        for (var i = 0; i < yaws.Length; i++)
+        {
+            var farmer = scene.Instantiate<FarmerModel>();
+            farmer.Name = $"Farmer{yaws[i]:0}";
+            farmer.Position = new Vector3(FarmersX, 0.05f, CropsRipeZ + i * FarmerSpacing);
+            farmer.RotationDegrees = new Vector3(0f, yaws[i], 0f);
+            farmer.ShowHeld(held[i]);
+            farmers.AddChild(farmer);
         }
     }
 

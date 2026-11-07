@@ -192,23 +192,9 @@ public static class CropArt
     }
 
     /// <summary>The eight corners of a part's unrotated box, rotated about its centre.</summary>
-    private static IEnumerable<Vector3> Corners(CropPart part)
-    {
-        var footprint = part.Shape switch
-        {
-            CropPartShape.Sphere => (X: part.SizeX, Z: part.SizeX),
-            CropPartShape.Cylinder => (X: MathF.Max(part.SizeX, part.SizeZ), Z: MathF.Max(part.SizeX, part.SizeZ)),
-            _ => (X: part.SizeX, Z: part.SizeZ),
-        };
-        var half = new Vector3(footprint.X / 2f, part.SizeY / 2f, footprint.Z / 2f);
-        var rotation = Rotation(part.PitchDegrees, part.YawDegrees, part.RollDegrees);
-        var centre = new Vector3(part.X, part.Y, part.Z);
-        for (var i = 0; i < 8; i++)
-        {
-            var sign = new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f);
-            yield return centre + Vector3.Transform(half * sign, rotation);
-        }
-    }
+    private static IEnumerable<Vector3> Corners(CropPart part) => PartBox.Corners(
+        part.Shape, part.SizeX, part.SizeY, part.SizeZ, new Vector3(part.X, part.Y, part.Z),
+        part.PitchDegrees, part.YawDegrees, part.RollDegrees);
 
     /// <summary>Godot's Euler YXZ rotation, Ry(yaw)·Rx(pitch)·Rz(roll).</summary>
     private static Quaternion Rotation(float pitchDegrees, float yawDegrees, float rollDegrees) =>

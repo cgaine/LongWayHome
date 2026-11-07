@@ -1,31 +1,16 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/Player/PlayerController.cs" id="1_player"]
 [ext_resource type="Script" path="res://scripts/Player/FollowCamera.cs" id="2_camera"]
 [ext_resource type="Script" path="res://scripts/Player/ToolTargeting.cs" id="3_targeting"]
 [ext_resource type="Script" path="res://scripts/Player/HeldItemSelection.cs" id="4_selection"]
 [ext_resource type="Script" path="res://scripts/Player/ToolUse.cs" id="5_tooluse"]
+[ext_resource type="PackedScene" path="res://art/farmer/Farmer.tscn" id="6_farmer"]
+[ext_resource type="Script" path="res://scripts/Player/HeldItemView.cs" id="7_heldview"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
 height = 1.6
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
-albedo_color = Color(0.85, 0.55, 0.3, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
-material = SubResource("StandardMaterial3D_body")
-radius = 0.35
-height = 1.6
-radial_segments = 12
-rings = 4
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nose"]
-albedo_color = Color(0.25, 0.2, 0.18, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_nose"]
-material = SubResource("StandardMaterial3D_nose")
-size = Vector3(0.16, 0.16, 0.3)
 
 [node name="Player" type="CharacterBody3D"]
 motion_mode = 1
@@ -37,13 +22,7 @@ shape = SubResource("CapsuleShape3D_body")
 
 [node name="Model" type="Node3D" parent="."]
 
-[node name="Body" type="MeshInstance3D" parent="Model"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
-mesh = SubResource("CapsuleMesh_body")
-
-[node name="Nose" type="MeshInstance3D" parent="Model"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0.38)
-mesh = SubResource("BoxMesh_nose")
+[node name="Farmer" parent="Model" instance=ExtResource("6_farmer")]
 
 [node name="FollowCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 9, 9)
@@ -58,3 +37,6 @@ script = ExtResource("4_selection")
 
 [node name="ToolUse" type="Node" parent="."]
 script = ExtResource("5_tooluse")
+
+[node name="HeldItemView" type="Node" parent="."]
+script = ExtResource("7_heldview")
