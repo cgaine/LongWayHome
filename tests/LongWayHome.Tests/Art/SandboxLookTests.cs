@@ -90,6 +90,23 @@ public class SandboxLookTests
         Assert.Equal(expected, look.Label);
     }
 
+    // ---- #94 AC7: the sandbox's art_night per preset (glows only under Night) ----
+
+    [Theory]
+    [InlineData(LightPreset.Morning, 0f)]
+    [InlineData(LightPreset.Day, 0f)]
+    [InlineData(LightPreset.Dusk, 0f)]
+    [InlineData(LightPreset.Night, 1f)]
+    public void AC7_ArtNight_is_one_only_under_the_Night_preset(LightPreset preset, float expected)
+    {
+        foreach (var mode in Enum.GetValues<StyleMode>())
+        {
+            var look = new SandboxLook(preset, mode, false);
+
+            Assert.Equal(expected, look.ArtNight);
+        }
+    }
+
     [Fact]
     public void AC6_preset_changes_keep_mode_and_sides()
     {
