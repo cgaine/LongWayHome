@@ -185,6 +185,7 @@ The planet's signature. They're picked by hand and only at night (design doc), s
 - **Farm animals:** puffhen, mossback and woolhorn. See section 6.3.
 - **Townsfolk:** see section 6.2.
 - **The farmer:** a human from Earth. See section 6.1.
+- **Tools in hand:** what the farmer carries. See section 6.4.
 
 ### 6.1 The farmer (draft)
 
@@ -219,7 +220,7 @@ Decided: the outfit changes with the story. Draft trigger for each step: a story
 **Readability (pillar 4):**
 
 - From the overhead camera, the cap's brim (later the hat's brim) shows which way he faces. It replaces the prototype's "nose" block.
-- The tool in hand is always visible, so the next action reads at a glance.
+- The tool in hand is always visible, so the next action reads at a glance (section 6.4).
 - Size and collision stay as they are now (capsule 1.6 m tall, radius 0.35) so the art upgrade doesn't change gameplay.
 
 **Build notes:** chunky: about 3 heads tall, with a big head, wide body, short legs and oversized boots and hands, for a cozy read and so the face and the tool read from the overhead camera (decided: chunkier than the first 4-head draft). Low-poly with three tones per part (highlight, lit and shade facets), a soft dark outline, a little contact shadow (under the cap brim, under the chin, on the ground) and small details that read up close: boot toe caps and laces, knee pads, a chest pocket, fabric folds at elbows and knees, stitching on the overalls, a weave on the hat. One material using a palette texture. Rigged to Godot's humanoid skeleton profile so shared animations can be retargeted. First animations needed: idle, walk, hoe swing, watering, plant, harvest, carry, sleep and pass out.
@@ -291,6 +292,43 @@ Three native creatures in familiar farm roles (design doc, Ranch and animals). R
 | Asleep (night) | Eyes closed, its night glow showing |
 
 **Still to design:** the coop and barn (grown, like the farmhouse, section 7.1), feed troughs, and products as inventory icons.
+
+### 6.4 Tools in hand (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Tools in hand page)
+
+**Always in hand.** Whatever is selected in the hotbar is in the farmer's hand, so the next action reads at a glance (pillar 4). That includes seeds, which the game already lets him hold. He holds it in the hand without the wrist unit, so both stay visible. Long tools stand head up beside him; the watering can and the seed pouch hang below the hand, so they never read as long tools.
+
+**Mostly familiar.** Tools are made by people, so they keep Earth shapes (section 1). The second look is in the materials: handles of native mauve timber with its wavy grain, and heads of the planet's own metals.
+
+| Item | Status | Silhouette |
+| --- | --- | --- |
+| Hoe | In game, starting tool | An L: the blade juts out from the top of the handle and turns down |
+| Watering can | In game, starting tool | A round body with a long spout and a sprinkler rose, carried by its top handle |
+| Seeds | In game | A cloth pouch tied at the neck; a patch and a few seeds peeking out show the crop's colour |
+| Axe | Planned (Maggie, 50g) | A single wedge head with a pale sharpened edge and a short poll |
+| Pickaxe | Planned (Maggie, 75g) | A curved, double-pointed head: the widest silhouette |
+
+**From above.** The camera rotates freely and tilts toward top-down when zoomed out, so what shows from overhead is the head: a short arm and plate (hoe), a round body with a spout (can), a small pouch (seeds), a wedge on one side (axe) and a long crescent across both sides (pickaxe).
+
+**Upgrade levels.** Mira upgrades every tool through the same four metals (design doc, Tool upgrade levels). Each level reads three ways, so it never relies on colour alone:
+
+| Level | Metal | Head | Handle |
+| --- | --- | --- | --- |
+| Basic | Plain grey `#9A98A2` | Smallest; the basic can is dented | Plain timber |
+| Rosk (copper tier) | Rose copper `#C77A52` | Larger; the can gets rivets | 1 band, cord grip |
+| Groth (iron tier) | Dark blue-grey iron `#59627A` | Larger again; the can's rose widens for 3 tiles | 2 bands, leather grip |
+| Forgelight (steel tier) | Pale steel `#C9D2E0` with an Embrite inlay `#B48CFF` | Largest; the widest can rose for 3 x 3 | 3 bands, ember-orange grip |
+
+The head grows with what the tool covers: the hoe blade widens from 1 tile to 5 x 5, the can's body grows with its uses, and the axe and pickaxe heads grow with what they can break.
+
+**At night.** Ordinary metals darken with the scene but keep their shape. Forgelight's Embrite inlay glows soft violet, the rare glow from the deep mine (section 2), so the best tools read in the dark and carry a little light into the mine.
+
+**Palette:** timber `#9C7E8C` (light `#B396A3`, shade `#7E6474`, grain `#6E5664`), Basic `#9A98A2`, Rosk `#C77A52`, Groth `#59627A`, Forgelight `#C9D2E0`, Embrite `#B48CFF`, Forgelight grip `#E9773A`, seed pouch `#D9C39A`.
+
+**Fits the game:** held tools are visual only. They don't change the farmer's capsule or the tile he targets, and they become the props for the first tool animations (hoe swing, watering, plant, harvest).
+
+**Still to design:** the fishing rod (Clyde's first lantern), sprinklers and other Forgelight parts, tools as hotbar icons, and the tool-use animations.
 
 ## 7. Places
 
