@@ -877,3 +877,53 @@ and roadmap issues.
 - **Kind**: —
 - **Statement**: A `game/art/` sandbox scene to try the palette, light and models and settle flat or stepped shading.
 - **Verdict**: dropped (a development step, not player-facing; stays a Phase 1B roadmap entry)
+
+### REQ-57 — Blacksmith and tool upgrades
+- **Date**: 2026-11-07
+- **Source**: Phase 2 readiness interview, 2026-11-07. Source wording: "Next morning"; "Move to Phase 4" (Groth pumps); "Mira only" (can upgrade)
+- **Kind**: change
+- **Statement**: The Player rebuilds Mira's house, then her forge. Stage 1 upgrades tools to Rosk and forges Rosk pumps; stage 2 smelts Groth for Groth tools. An upgraded tool does more per action for the same 2 energy, and is ready the next morning. The watering can's capacity comes from its tier: 20 Basic, 40 Rosk, 60 Groth. Out of scope: Forgelight tools (REQ-34); Groth pumps, which come with the deep mine (REQ-33).
+- **Acceptance**: a tool left with Mira is out of the backpack until the next morning, when it is collected at its new tier; every action costs 2 energy at every tier, a Rosk hoe tills 3 tiles in a row, a Groth hoe a 3 x 3 area, and a Groth can waters 3 tiles in a row at one charge per tile; Groth tools are offered only once the forge is at stage 2.
+- **Verdict**: planned (changes REQ-22)
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-22 entry; 3 Phases); domain-model (`ToolTier`, `ToolTierEffect`, `Order`, `OrderRecipe`, BR-O1–O4, BR-U1–U3); canonical-values (`ToolTier`, `OrderKind`, `Provider`)
+- **Rule changes**: BR-W1 capacity by tier; BR-W4 retired (no store can upgrade); BR-P2 covers axe and pickaxe swings
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 2 entry on #2
+- **Supersedes**: REQ-22
+
+### REQ-58 — General store
+- **Date**: 2026-11-07
+- **Source**: Phase 2 readiness interview, 2026-11-07. Source wording: "Store stage 4" (farm bin); "All from stage 1" (seeds); "Crops, paid at once"; "Mira only" (can upgrade)
+- **Kind**: change
+- **Statement**: The Player can shop at Maggie's corner of the general store from day one for every seed in season, the axe (50 gold) and the pickaxe (75 gold), and sells harvested crops to Maggie at the store for their base price, paid at once. Rebuilding it adds the 24-slot backpack (stage 2), the 36-slot backpack and farm chests (stage 3) and, at stage 4, a shipping bin on the farm that sells overnight. The store doesn't sell a watering can upgrade. Replaces the Phase 1 shop (REQ-9) and the Phase 1 farm bin from the start (REQ-8). Out of scope: seasonal stock beyond the in-season rule, and opening hours.
+- **Acceptance**: on day one Maggie sells every in-season seed, the axe and the pickaxe, each tool once; selling crops to Maggie adds their base price in gold straight away, and seeds and materials can't be sold; there is no farm shipping bin until store stage 4 is rebuilt.
+- **Verdict**: planned (changes REQ-46; settles its open question)
+- **Phase**: Phase 2
+- **Documents**: product-definition (5 Functional Requirements, Phase 2, replaces the REQ-46 entry; 3 Phases); domain-model (ShopListing vendor and stage, BR-L3–L5, BR-S3); canonical-values (`ShopItemKind` tool, backpack_upgrade, placeable, farmhouse_upgrade; `ToolId` axe, pickaxe)
+- **Rule changes**: BR-S1 applies only once the bin exists; BR-L1 every in-season seed from stage 1 and no can upgrade
+- **Open questions**: —
+- **Deferred**: —
+- **Roadmap**: Phase 2 entry on #2
+- **Supersedes**: REQ-46
+
+### Phase 2 readiness — 2026-11-07
+- **Source**: requirements-intake phase readiness, started from epic-planning for Phase 2; design doc rev 173
+- **REQs in the phase**: REQ-44, REQ-16, REQ-17, REQ-45, REQ-58 (new, supersedes REQ-46), REQ-47, REQ-48, REQ-57 (new, supersedes REQ-22), REQ-49, REQ-50, REQ-51
+- **Settled**:
+  - REQ-44: open question settled: nothing grows back within 3 tiles of tilled soil (BR-N4). Acceptance added. `ResourceNode`, `NodeSpawn`, `NodeRegrowth`, `MaterialType`, BR-N1–N7.
+  - REQ-16: the meadow is a 72 x 36 grid (draft size) with the cleared 6 x 6 by the farmhouse; stumps need the Groth axe. BR-T1 and BR-T2 changed, BR-N6, BR-N7.
+  - REQ-17: a guided Spring 1; the clock stops while Maggie talks, lines skippable, steps not; a loaded save never replays it. `Game.openingDone`, BR-I1; BR-P6 changed (seeds come from Maggie).
+  - REQ-45: deliveries add up and are final; rebuilt in the Night after the last one. `Building`, `BuildingStage`, BR-B1–B5.
+  - REQ-46 → REQ-58: open question settled: the farm bin arrives at store stage 4; seeds all from stage 1; Maggie pays at once; no store can upgrade.
+  - REQ-47: overflow drops at the farmer's feet and is cleared in the Night; tools never leave except for an upgrade. `Backpack`, `BackpackSlot`, `DroppedItem`, BR-K1–K6; BR-P7 changed.
+  - REQ-48: a fence is decoration, a chest stores 36 slots, both can be picked back up; the farmhouse upgrade restores its look only. `PlacedObject`, BR-F1–F2, BR-B5, BR-A1.
+  - REQ-22 → REQ-57: upgrades ready the next morning; Groth pumps move to the deep mine (REQ-33); can capacity by tier.
+  - REQ-49: level 5 is a plain Rosk pump, not a water-flow puzzle; mine rocks and ore grow back, debris doesn't. `MineLevel`, BR-M1–M6.
+  - REQ-50: "explored levels 1–5" means having set foot on level 5. `Resident`, BR-R1–R3.
+  - REQ-51: no change to the statement; acceptance added. BR-W3 changed, BR-A2.
+- **Documents**: product-definition (Phase 2 acceptance for every REQ; REQ-57 and REQ-58 replace REQ-22 and REQ-46; 3 Phases); domain-model (Phase 2 entities, lifecycles, BR-K, N, F, B, O, U, M, A, R, I, BR-L3–L5, BR-S3, save version 2); canonical-values (`ItemKind`, `ToolId`, `ShopItemKind` extended; `ToolTier`, `MaterialId`, `PlaceableId`, `NodeKind`, `AreaId`, `BuildingId`, `OrderKind`, `MineLevelState`, `ResidentId`, `WaterSource`); technical-blueprint (areas as scenes, Phase 2 commands and Night order, save v2 migration, new data files, Deck risk for the 72 x 36 meadow)
+- **Rule changes**: BR-T1 (12 x 9 → 72 x 36), BR-T2 (no node or placed object), BR-P2 (axe and pickaxe swings; free actions), BR-P6 (tools in the backpack; seeds from Maggie), BR-P7 (slots replace stacks), BR-W1 (capacity by tier), BR-W3 (any water source), BR-W4 (retired), BR-S1 (once the bin exists), BR-L1 (all in-season seeds; no can upgrade)
+- **Not treated as requirements**: the design doc's water-flow puzzles (2026-11-07), which belong with the deep mine and are still being designed
+- **Ready**: all REQs in Phase 2. Handed to epic-planning.
