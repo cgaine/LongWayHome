@@ -299,7 +299,7 @@ Store rebuild costs (draft): level 2 is 50 wood, 25 stone, 300 gold and needs no
 
 Selling: until store level 4 you carry crops to the store and sell them to Maggie. At level 4 she gives you a shipping bin for the farm, which sells overnight. (Early playtest builds can keep the bin from the start.)
 
-Backpack (draft): slot-based; each slot holds a stack of one item, up to 99. Start with 12 slots, with the four tools taking slots (8 left for seeds, crops and materials). Maggie's upgrades: 24 slots at store level 2, 36 at level 3. The hotbar is one 6-slot row of the backpack shown on screen; a key or controller button cycles which row is the hotbar. With a full backpack, extra items drop on the ground and stay until the next morning.
+Backpack (draft): slot-based; each slot holds a stack of one item, up to 99. Start with 12 slots, with the four tools taking slots (8 left for seeds, crops and materials). Maggie's upgrades: 24 slots at store level 2, 36 at level 3. The hotbar is one 6-slot row of the backpack shown on screen; a key or controller button cycles which row is the hotbar (decided: the triggers LT and RT on a controller, [T] and [G] on the keyboard, while the bumpers and [Q] [E] keep changing the item). With a full backpack, extra items drop on the ground and stay until the next morning.
 
 ## Carpenter
 

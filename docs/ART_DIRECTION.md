@@ -512,7 +512,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (HUD and menus pa
 
 - **Top left, status:** energy as an ember-to-gold bar with its number; the watering can as 20 water pips, one per charge; gold with a sprout coin. The energy bar turns ember when the farmer is tired.
 - **Top right, clock:** weather icon and time; a day arc from 6 am to 2 am along which the sun (Hearth after dark) moves, with a tick where dusk starts; then the date.
-- **Bottom centre, hotbar:** six slots, ready for the backpack row (REQ-47). Icons instead of words, with the stack count in the corner; the selected slot rises with an ember border and its name shows above. The change-item glyphs sit at each end.
+- **Bottom centre, hotbar:** six slots, ready for the backpack row (REQ-47). Icons instead of words, with the stack count in the corner; the selected slot rises with an ember border and its name shows above. The change-item glyphs sit at each end, and a small pill after it shows the row ("Row 1 of 2") with the change-row glyphs.
 - **Prompts, above the hotbar:** the Use prompt with its glyph (REQ-12). An interaction (Ship crops, Refill can, Sleep, Shop) stacks above it with an ember border. A rejection ("Already watered") is greyed and dashed, with no glyph.
 - **Glyphs** follow the last device used (REQ-13): keys are square cream chips, controller buttons round ones.
 - The panels are nearly opaque, so the HUD reads the same over morning mist and the indigo night.
@@ -529,7 +529,8 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (HUD and menus pa
 **The backpack (REQ-47).** Concept art on the Backpack page. Opened with the menu button; the clock stops while it's open.
 
 - **Slots:** a grid of six columns, one row per 6 slots, each slot drawn exactly like a hotbar slot (icon, count in the corner, ember border when focused). It starts with 12 slots, with the hoe, can, axe and pickaxe taking four of them.
-- **The hotbar row** has an ember band and a "Hotbar" tag, so you can see which row the HUD shows. (X) makes the focused row the hotbar. The in-game button that cycles the row is still to be chosen.
+- **The hotbar row** has an ember band and a "Hotbar" tag, so you can see which row the HUD shows.
+- **Changing the row:** decided 2026-11-07. The bumpers (LB, RB) change the selected item and the triggers (LT, RT) cycle the hotbar row, in play and in the backpack. On the keyboard, [Q] [E] (and the mouse wheel) change the item and [T] [G] cycle the row: two free keys, one above the other beside the movement keys, so they read as row up and row down.
 - **Locked rows:** rows you don't have yet show as dashed and locked, labelled with the store stage that opens them (24 slots at stage 2, 36 at stage 3), so the upgrade is a goal you can see.
 - **Item details:** a panel beside the grid shows the focused item's kind and Season, how full its stack is (out of 99), and for crops what it sells for, each and for the whole stack.
 - **Moving:** (A) lifts a stack, which floats over the slot you're aiming at while its old slot stays dashed in ember; (A) places it, merging onto a stack of the same item, and (B) puts it back. A mouse can drag.
