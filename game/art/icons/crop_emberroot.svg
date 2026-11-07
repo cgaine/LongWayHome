@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Emberroot (crop)</title>
+  <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(-26 32 23)" fill="#7A68A8" stroke="#34405E" stroke-width="2"/>
+  <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.2" transform="rotate(-26 32 23)"/>
+  <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(26 32 23)" fill="#7A68A8" stroke="#34405E" stroke-width="2"/>
+  <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.2" transform="rotate(26 32 23)"/>
+  <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(-52 32 23)" fill="#3E8F82" stroke="#34405E" stroke-width="2"/>
+  <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.2" transform="rotate(-52 32 23)"/>
+  <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(52 32 23)" fill="#3E8F82" stroke="#34405E" stroke-width="2"/>
+  <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.2" transform="rotate(52 32 23)"/>
+  <ellipse cx="32" cy="12.5" rx="4.2" ry="11" transform="rotate(0 32 23)" fill="#3E8F82" stroke="#34405E" stroke-width="2"/>
+  <path d="M32 22 L32 6" fill="none" stroke="#34405E" stroke-width="1.2" transform="rotate(0 32 23)"/>
+  <path d="M19 25 Q19 20 24 20 L40 20 Q45 20 45 25 C45 35 37 50 32 61 C27 50 19 35 19 25 Z" stroke-linejoin="round" fill="#E9773A" stroke="#34405E" stroke-width="2"/>
+  <path d="M23.5 26 Q24.5 36 29 47" fill="none" stroke="#FFB04A" stroke-width="2.6"/>
+  <path d="M35 30 L41 30" fill="none" stroke="#34405E" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M25 37 L30 37" fill="none" stroke="#34405E" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M34 44 L38 44" fill="none" stroke="#34405E" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M30 51 L33 51" fill="none" stroke="#34405E" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

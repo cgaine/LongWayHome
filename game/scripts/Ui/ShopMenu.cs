@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Godot;
+using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Game.Core;
@@ -13,8 +14,8 @@ namespace LongWayHome.Game.Ui;
 /// The shop menu. On an <c>interact</c> press (not repeated while held) while the Player is in range of the shop's
 /// <see cref="InteractionPoint"/> and the tree is not already paused, it pauses the tree (which stops the day clock,
 /// BR-G2) and shows a centred "Shop" panel: "Gold &lt;n&gt;", one button per listing in
-/// <see cref="GameSession.ShopOffers"/> labelled <see cref="ShopText.Row"/> (the seed rows, then the Watering can
-/// upgrade while it is offered; a <see cref="ShopText.NoSeeds"/> line stands in for the seed rows when there are none),
+/// <see cref="GameSession.ShopOffers"/> labelled <see cref="ShopText.Row"/> (the seed rows, each with its
+/// <see cref="ItemIcons.SeedIcon"/>, then the Watering can upgrade, with no icon, while it is offered; a <see cref="ShopText.NoSeeds"/> line stands in for the seed rows when there are none),
 /// a Close button labelled <see cref="InputGlyphs.CloseLabel"/> ("[Esc] Close" / "(B) Close", following
 /// <see cref="LastInputDevice"/> while open), and a message line. The first button takes focus, so
 /// <c>ui_up</c>/<c>ui_down</c> move between rows and <c>ui_accept</c> presses one; when nothing has focus (e.g. a
@@ -30,6 +31,8 @@ namespace LongWayHome.Game.Ui;
 public partial class ShopMenu : CanvasLayer
 {
     private const string ShopPointId = "shop";
+
+    private const int SeedIconSize = 32;
 
     private GameSession? _session;
 
@@ -157,6 +160,12 @@ public partial class ShopMenu : CanvasLayer
         foreach (var listing in offers)
         {
             var row = StyledButton(ShopText.Row(listing, _session.Data));
+            if (ItemIcons.For(listing) is { } icon)
+            {
+                row.Icon = IconTextures.Get(icon);
+                row.AddThemeConstantOverride("icon_max_width", SeedIconSize);
+            }
+
             row.Pressed += () => Buy(listing);
             _items.AddChild(row);
         }
