@@ -56,8 +56,9 @@ public partial class Hud : CanvasLayer
 
     private const int SelectedBorderWidth = 3;
 
-    /// <summary>Horizontal slot padding: 4 px, so the widest hotbar (7 slots of "Moonmelon seeds × 99" and the like)
-    /// fits in 1280 px at font 20.</summary>
+    /// <summary>Horizontal slot padding: 4 px. Text only, the widest hotbar (both tools and five "Moonmelon seeds × 99"
+    /// and the like) is 1274 px at font 20; each seed slot's <see cref="HotbarIconSize"/> icon and its 4 px gap add
+    /// 36 px to that (#95), measured in the game.</summary>
     private const int SlotPaddingX = 4;
 
     private const int SlotPaddingY = 4;

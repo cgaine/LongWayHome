@@ -28,14 +28,18 @@ public static class IconTextures
 
     /// <summary>A <paramref name="size"/>-pixel square <see cref="TextureRect"/> showing the icon at
     /// <paramref name="path"/>, centred vertically in its row and ignoring the mouse.</summary>
-    public static TextureRect Rect(string path, int size, string name = "Icon") => new()
+    public static TextureRect Rect(string path, int size) => new()
     {
-        Name = name,
+        Name = "Icon",
         Texture = Get(path),
         CustomMinimumSize = new Vector2(size, size),
         ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
         StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
         SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+
+        // The icons are 64 px textures with mipmaps, drawn at 32 and 24 px; sampling the mipmaps keeps the thin
+        // outlines smooth instead of dropping pixels.
+        TextureFilter = CanvasItem.TextureFilterEnum.LinearWithMipmaps,
         MouseFilter = Control.MouseFilterEnum.Ignore,
     };
 }
