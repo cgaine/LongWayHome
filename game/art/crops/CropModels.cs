@@ -66,6 +66,7 @@ public static class CropModels
             RadialSegments = 7,
             Rings = 1,
         },
-        _ => new PrismMesh { Size = new Vector3(part.SizeX, part.SizeY, part.SizeZ) },
+        CropPartShape.Prism => new PrismMesh { Size = new Vector3(part.SizeX, part.SizeY, part.SizeZ) },
+        _ => throw new System.ArgumentOutOfRangeException(nameof(part), part.Shape, "Unknown crop part shape."),
     };
 }
