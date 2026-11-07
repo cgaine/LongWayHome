@@ -20,7 +20,10 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="CropsText"/> ("Crops:" then each carried crop's icon and "Emberroot × 9", or "Crops: none") and the
 /// held item's label (with the seed count when a seed is held). Along the bottom centre, the hotbar: one slot per
 /// entry of <see cref="GameSession.Hotbar"/>, a seed slot showing its <see cref="ItemIcons.SeedIcon"/> left of its
-/// label, the selected one bordered in ember orange. Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
+/// label, the selected one bordered in ember orange. When those full slots would not fit the visible width (less a
+/// <see cref="HotbarMargin"/> each side; both tools and five seed types at × 99 on a 1280 px screen), the seed slots
+/// switch to <see cref="HotbarText.Compact"/> labels ("Emberroot × 99", the packet icon saying it is a seed; the held
+/// label keeps the full name), re-checked when the viewport resizes. Redraws when the session raises <see cref="GameSession.PlayerChanged"/> or
 /// <see cref="GameSession.InventoryChanged"/> and when the Player's <see cref="HeldItemSelection"/> changes. Just
 /// above the hotbar, a <see cref="InputGlyphs.ChangeItemHint"/> line ("[Q] [E] Change item" / "(LB) (RB) Change item")
 /// names the buttons that cycle the held item. Bottom centre, above the <see cref="UsePrompt"/>, a
@@ -58,10 +61,14 @@ public partial class Hud : CanvasLayer
 
     /// <summary>Horizontal slot padding: 4 px. Text only, the widest hotbar (both tools and five "Moonmelon seeds × 99"
     /// and the like) is 1274 px at font 20; each seed slot's <see cref="HotbarIconSize"/> icon and its 4 px gap add
-    /// 36 px to that (#95), measured in the game.</summary>
+    /// 36 px to that (#95), too wide for 1280 px, so in that case the seed slots fall back to compact labels
+    /// (<see cref="HotbarText.Compact"/>) rather than smaller padding or text.</summary>
     private const int SlotPaddingX = 4;
 
     private const int SlotPaddingY = 4;
+
+    /// <summary>The space the hotbar keeps clear at each side of the screen before it falls back to compact labels.</summary>
+    private const int HotbarMargin = 16;
 
     private static readonly Color SlotBackground = new(0, 0, 0, 0.55f);
 
@@ -179,6 +186,7 @@ public partial class Hud : CanvasLayer
         }
 
         RefreshHints();
+        GetViewport().SizeChanged += RefitHotbar;
 
         _pond = InteractionPoint.Find(GetTree().Root, PondPointId);
         if (_pond is not null)
@@ -222,6 +230,8 @@ public partial class Hud : CanvasLayer
     {
         if (_session is not null)
         {
+            // Connected in _Ready only once the session exists.
+            GetViewport().SizeChanged -= RefitHotbar;
             _session.PlayerChanged -= Refresh;
             _session.InventoryChanged -= Refresh;
             _session.ClockChanged -= RefreshClock;
@@ -356,17 +366,36 @@ public partial class Hud : CanvasLayer
         }
 
         _hotbarSlots = slots;
+        RefitHotbar();
+    }
+
+    /// <summary>Builds the slots with their full labels, then with compact seed labels if those don't fit (#95).</summary>
+    private void RefitHotbar()
+    {
+        BuildHotbar(compact: false);
+        if (_hotbar.GetCombinedMinimumSize().X > GetViewport().GetVisibleRect().Size.X - (2 * HotbarMargin))
+        {
+            BuildHotbar(compact: true);
+        }
+    }
+
+    private void BuildHotbar(bool compact)
+    {
         foreach (var child in _hotbar.GetChildren())
         {
             _hotbar.RemoveChild(child);
             child.QueueFree();
         }
 
-        foreach (var slot in slots)
+        var inventory = _session!.Game.Player.Inventory;
+        foreach (var slot in _hotbarSlots)
         {
             var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
             panel.AddThemeStyleboxOverride("panel", slot.Selected ? _selectedSlotStyle : _slotStyle);
-            var label = OutlinedLabel(slot.Label, SlotFontSize);
+            var text = compact && slot.Item.Seed is { } seed
+                ? HotbarText.Compact(slot.Item, inventory.Quantity(ItemKind.Seed, seed))
+                : slot.Label;
+            var label = OutlinedLabel(text, SlotFontSize);
             if (ItemIcons.For(slot.Item) is { } icon)
             {
                 // A seed slot: its seed icon left of the unchanged label. Tool slots stay text only.
