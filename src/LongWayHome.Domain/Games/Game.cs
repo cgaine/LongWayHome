@@ -35,6 +35,7 @@ public sealed class Game
         Player = player;
         FarmPlot = farmPlot;
         ShippingBin = shippingBin ?? new ShippingBin();
+        DroppedItems = _droppedItems.AsReadOnly();
     }
 
     public Guid Id { get; }
@@ -60,6 +61,82 @@ public sealed class Game
 
     /// <summary>The crops shipped today, paid for in the Night (BR-S1, BR-S2).</summary>
     public ShippingBin ShippingBin { get; }
+
+    private readonly List<DroppedItem> _droppedItems = [];
+
+    /// <summary>The items on the ground, oldest first (BR-K3, BR-K4). Never saved; a loaded Game has none.</summary>
+    public IReadOnlyList<DroppedItem> DroppedItems { get; }
+
+    /// <summary>
+    /// Gains a non-tool item: what fits goes in the Backpack (BR-K3), the rest drops at <paramref name="feet"/> as
+    /// DroppedItems of at most 99 each (BR-K2), each a new entry never merged with one already there. A tool throws
+    /// (BR-K6) and a quantity below 1 throws, both changing nothing.
+    /// </summary>
+    public GainResult Gain(ItemRef item, int quantity, GridPosition feet)
+    {
+        // BR-K6: tools never go through Gain, so they can never drop.
+        if (item.Kind == ItemKind.Tool)
+        {
+            throw new ArgumentException("A tool is never gained as a stack or dropped (BR-K6).", nameof(item));
+        }
+
+        // BR-K3: matching stacks below 99, then the lowest free Slots; Add validates the item and the quantity.
+        var left = Player.Backpack.Add(item, quantity);
+        var added = quantity - left;
+        if (left == 0)
+        {
+            return new GainResult(added, []);
+        }
+
+        // BR-K3, BR-K2: what fits nowhere drops at the feet in chunks of at most 99, never merged.
+        var dropped = new List<DroppedItem>();
+        while (left > 0)
+        {
+            var chunk = Math.Min(Backpack.MaxStack, left);
+            dropped.Add(new DroppedItem(AreaId.Farm, null, feet, item, chunk));
+            left -= chunk;
+        }
+
+        _droppedItems.AddRange(dropped);
+        return new GainResult(added, dropped.AsReadOnly());
+    }
+
+    /// <summary>
+    /// Picks up the DroppedItems at <paramref name="position"/>, oldest first, as much as fits (BR-K4): one that all
+    /// fits is removed, one that partly fits keeps the rest. Returns whether anything moved. Costs no energy (BR-P2).
+    /// </summary>
+    public bool PickUp(GridPosition position)
+    {
+        var moved = false;
+
+        // BR-K4: oldest first, each through BR-K3; a later item may still top up a matching stack.
+        foreach (var dropped in _droppedItems.Where(item => item.Position == position).ToList())
+        {
+            var left = Player.Backpack.Add(dropped.Item, dropped.Quantity);
+            if (left == dropped.Quantity)
+            {
+                continue;
+            }
+
+            moved = true;
+            if (left == 0)
+            {
+                _droppedItems.Remove(dropped);
+            }
+            else
+            {
+                dropped.Quantity = left;
+            }
+        }
+
+        return moved;
+    }
+
+    /// <summary>Whether any DroppedItem lies at <paramref name="position"/>.</summary>
+    public bool HasDroppedItemsAt(GridPosition position) => _droppedItems.Exists(item => item.Position == position);
+
+    /// <summary>The Night's dropped-items step (BR-K4): every DroppedItem is removed.</summary>
+    public void ClearDroppedItems() => _droppedItems.Clear();
 
     /// <summary>Records when the Game was saved (BR-G5).</summary>
     public void MarkSaved(DateTimeOffset at) => SavedAt = at;
@@ -286,8 +363,8 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Why harvesting would be refused, or null: NoPlanting, then NotRipe (BR-T6), then BackpackFull when one Crop
-    /// fits nowhere (BR-K3).
+    /// Why harvesting would be refused, or null: NoPlanting, then NotRipe (BR-T6). A full Backpack never refuses a
+    /// harvest: the Crop drops at the farmer's feet (BR-K3).
     /// </summary>
     public Rejection? HarvestRejection(GridPosition position, CropType cropType)
     {
@@ -299,26 +376,23 @@ public sealed class Game
             return Rejection.NoPlanting;
         }
 
-        if (planting.StatusFor(cropType) != PlantingStatus.Ripe)
-        {
-            return Rejection.NotRipe;
-        }
-
-        // BR-K3: until dropped items exist, a Crop that fits nowhere is refused and the Planting stays.
-        return Player.Backpack.CanFit(ItemRef.Crop(cropType.Id), 1) ? null : Rejection.BackpackFull;
+        return planting.StatusFor(cropType) != PlantingStatus.Ripe ? Rejection.NotRipe : null;
     }
 
-    /// <summary>Harvests a ripe Planting into one Crop (BR-T6). Costs no energy (BR-P2).</summary>
-    public ActionResult Harvest(GridPosition position, CropType cropType)
+    /// <summary>
+    /// Harvests a ripe Planting into one Crop (BR-T6), gained at <paramref name="feet"/> (BR-K3): with no room it drops
+    /// there, or on the harvested Tile when <paramref name="feet"/> is null. Costs no energy (BR-P2).
+    /// </summary>
+    public ActionResult Harvest(GridPosition position, CropType cropType, GridPosition? feet = null)
     {
         if (HarvestRejection(position, cropType) is { } rejection)
         {
             return ActionResult.Rejected(rejection);
         }
 
-        // BR-T6: one Crop of its type is added and the Planting goes; BR-K3 tops up a matching stack first. The Crop is
-        // added first so a failing Add leaves the Planting in place; HarvestRejection checked it fits.
-        Player.Backpack.Add(ItemRef.Crop(cropType.Id), 1);
+        // BR-T6: one Crop of its type is gained and the Planting goes; BR-K3 tops up a matching stack first and drops
+        // what fits nowhere at the feet (the harvested Tile when none is given).
+        Gain(ItemRef.Crop(cropType.Id), 1, feet ?? position);
         return FarmPlot[position].Harvest(cropType);
     }
 

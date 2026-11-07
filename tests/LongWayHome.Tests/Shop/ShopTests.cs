@@ -1,5 +1,6 @@
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
 using LongWayHome.Tests.Games;
@@ -109,41 +110,73 @@ public class ShopTests
     private static Backpack RoomForNineEmberrootSeeds() =>
         TestGames.FullBackpack((ItemRef.Seed(CropTypeId.Emberroot), 90));
 
+    // #130 changed the next tests: a purchase is never refused for room; what doesn't fit drops at the farmer's feet.
+    private static readonly GridPosition Feet = new(3, 8);
+
     [Fact]
-    public void AC9_Buying_seeds_that_do_not_all_fit_is_BackpackFull_and_takes_no_gold()
+    public void BR_K3_Buying_seeds_that_do_not_all_fit_takes_the_gold_and_drops_the_rest()
     {
         var game = TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 1000);
-        var before = TestGames.Describe(game.Player.Backpack);
 
-        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 10);
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 10, Feet);
 
-        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
-        Assert.Equal(new Gold(1000), game.Player.Gold);
-        Assert.Equal(before, TestGames.Describe(game.Player.Backpack));
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(1000 - (10 * 15)), game.Player.Gold);
+        Assert.Equal("2:Seed:Emberroot:99:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+        var dropped = Assert.Single(game.DroppedItems);
+        Assert.Equal((Feet, ItemRef.Seed(CropTypeId.Emberroot), 1), (dropped.Position, dropped.Item, dropped.Quantity));
     }
 
     [Fact]
-    public void AC9_Buying_a_seed_type_with_no_free_slot_is_BackpackFull_and_takes_no_gold()
+    public void BR_K3_Buying_a_seed_type_with_no_free_slot_drops_it_all()
     {
         var game = TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 1000);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_dusktuber", 1, Feet);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(1000 - 30), game.Player.Gold);
+        Assert.Equal(0, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+        var dropped = Assert.Single(game.DroppedItems);
+        Assert.Equal((Feet, ItemRef.Seed(CropTypeId.Dusktuber), 1), (dropped.Position, dropped.Item, dropped.Quantity));
+    }
+
+    [Fact]
+    public void BR_K3_Buying_without_feet_drops_at_plot_tile_0_0()
+    {
+        var game = TestGames.WithBackpack(TestGames.FullBackpack(), gold: 1000);
 
         var result = ShopService.Buy(game, TestGames.Shipped, "seed_dusktuber");
 
-        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
-        Assert.Equal(new Gold(1000), game.Player.Gold);
-        Assert.Equal(0, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new GridPosition(0, 0), Assert.Single(game.DroppedItems).Position);
     }
 
     [Fact]
-    public void AC9_Session_buy_of_seeds_that_do_not_fit_raises_nothing()
+    public void BR_L2_Session_buy_of_seeds_that_do_not_fit_raises_player_and_inventory_changed()
     {
         var session = new GameSession(TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 1000), TestGames.Shipped);
         var events = RecordEvents(session);
 
-        var result = session.Buy("seed_emberroot", 10);
+        var result = session.Buy("seed_emberroot", 10, Feet);
 
-        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
-        Assert.Empty(events);
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Contains("PlayerChanged", events);
+        Assert.Contains("InventoryChanged", events);
+        Assert.Single(session.Game.DroppedItems);
+    }
+
+    [Fact]
+    public void BR_L2_full_backpack_purchase_is_not_refused()
+    {
+        var game = TestGames.WithBackpack(TestGames.FullBackpack(), gold: 100);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 2, Feet);
+
+        // BR-L2: the gold is taken and the seeds gained (here, all dropped) in the same step.
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(100 - (2 * 15)), game.Player.Gold);
+        Assert.Equal(2, Assert.Single(game.DroppedItems).Quantity);
     }
 
     [Fact]
@@ -159,14 +192,15 @@ public class ShopTests
     }
 
     [Fact]
-    public void BR_P5_Exactly_enough_gold_but_no_room_is_BackpackFull_and_keeps_the_gold()
+    public void BR_P5_Exactly_enough_gold_and_room_for_only_part_spends_it_all_and_drops_the_rest()
     {
         var game = TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 10 * 15);
 
-        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 10);
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 10, Feet);
 
-        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
-        Assert.Equal(new Gold(150), game.Player.Gold);
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(0), game.Player.Gold);
+        Assert.Equal(1, Assert.Single(game.DroppedItems).Quantity);
     }
 
     [Fact]
@@ -318,18 +352,20 @@ public class ShopTests
     }
 
     [Fact]
-    public void BR_L2_a_seed_stack_past_what_the_backpack_holds_is_refused_and_takes_no_gold()
+    public void BR_L2_a_seed_past_what_the_backpack_holds_takes_the_gold_and_drops_at_the_feet()
     {
         // BR-K2: a Slot holds at most 99, so every Slot full of emberroot seeds is as many as can be carried.
         var inventory = TestGames.ToolsOnly();
         inventory.Add(ItemRef.Seed(CropTypeId.Emberroot), 10 * Backpack.MaxStack);
         var game = TestGames.WithGold(100, TestGames.FirstDay, inventory);
-        var before = Snapshot(game);
+        var before = TestGames.Describe(game.Player.Backpack);
 
-        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot");
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 1, Feet);
 
-        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
-        Assert.Equal(before, Snapshot(game));
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(85), game.Player.Gold);
+        Assert.Equal(before, TestGames.Describe(game.Player.Backpack));
+        Assert.Equal(1, Assert.Single(game.DroppedItems).Quantity);
     }
 
     [Fact]

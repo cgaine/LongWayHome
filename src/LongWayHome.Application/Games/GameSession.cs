@@ -76,6 +76,31 @@ public sealed class GameSession
     /// <summary>Raised after a successful action changes the inventory.</summary>
     public event Action? InventoryChanged;
 
+    /// <summary>Raised after items drop on the ground or are picked up (BR-K3, BR-K4).</summary>
+    public event Action? DroppedItemsChanged;
+
+    /// <summary>Whether the last successful purchase dropped anything at the farmer's feet.</summary>
+    public bool LastBuyDropped { get; private set; }
+
+    /// <summary>Whether any DroppedItem lies at <paramref name="feet"/>.</summary>
+    public bool HasDroppedItemsAt(GridPosition feet) => Game.HasDroppedItemsAt(feet);
+
+    /// <summary>
+    /// Picks up the DroppedItems at the farmer's feet (BR-K4). Raises InventoryChanged and DroppedItemsChanged when
+    /// anything moved, and nothing otherwise. Costs no energy (BR-P2).
+    /// </summary>
+    public bool PickUp(GridPosition feet)
+    {
+        var picked = Game.PickUp(feet);
+        if (picked)
+        {
+            InventoryChanged?.Invoke();
+            DroppedItemsChanged?.Invoke();
+        }
+
+        return picked;
+    }
+
     /// <summary>Raised after <see cref="AdvanceClock"/> moves the clock by at least one minute.</summary>
     public event Action? ClockChanged;
 
@@ -199,16 +224,18 @@ public sealed class GameSession
 
     /// <summary>
     /// Performs what <see cref="PreviewUse(GridPosition?, int)"/> names from the held slot, or its rejection. Planting
-    /// takes the Seed from that Slot.
+    /// takes the Seed from that Slot; a harvested Crop that fits nowhere drops at <paramref name="feet"/>, or on the
+    /// harvested Tile when it is null (BR-K3).
     /// </summary>
-    public ActionResult Use(GridPosition? target, int heldPosition)
+    public ActionResult Use(GridPosition? target, int heldPosition, GridPosition? feet = null)
     {
         var slot = HotbarSlotAt(heldPosition);
         var preview = PreviewUse(target, HeldItemOf(slot), slot.Index);
         return Perform(
             target,
             preview,
-            position => PlantFromSlot(position, slot.Item!.Value.CropTypeId!.Value, slot.Index));
+            position => PlantFromSlot(position, slot.Item!.Value.CropTypeId!.Value, slot.Index),
+            feet);
     }
 
     /// <summary>
@@ -225,10 +252,10 @@ public sealed class GameSession
     /// Performs what <see cref="PreviewUse(GridPosition?, HeldItem)"/> names, or returns its rejection; a seed is taken
     /// from the highest-index Slot holding it.
     /// </summary>
-    internal ActionResult Use(GridPosition? target, HeldItem held)
+    internal ActionResult Use(GridPosition? target, HeldItem held, GridPosition? feet = null)
     {
         var preview = PreviewUse(target, held);
-        return Perform(target, preview, position => Plant(position, held.Seed!.Value));
+        return Perform(target, preview, position => Plant(position, held.Seed!.Value), feet);
     }
 
     // The Use decision: harvest first (BR-T6), then the held item. With a slotIndex, a seed plants from that Slot only.
@@ -242,8 +269,8 @@ public sealed class GameSession
         // BR-T6: harvesting needs no tool, so a Ripe Planting is harvested whatever is held.
         if (PlantingStatusAt(position) == PlantingStatus.Ripe)
         {
-            // BR-K3: the domain decides whether the Crop fits, so the preview and Game.Harvest cannot drift apart.
-            // PlantingStatusAt is Ripe only for a Crop type with a data row.
+            // BR-T6: the domain decides, so the preview and Game.Harvest cannot drift apart; a full Backpack never
+            // refuses (BR-K3). PlantingStatusAt is Ripe only for a Crop type with a data row.
             var cropType = Data.CropTypes[Game.FarmPlot[position].Planting!.CropTypeId];
             return Game.HarvestRejection(position, cropType) is { } harvestRejection
                 ? Rejected(harvestRejection)
@@ -284,13 +311,14 @@ public sealed class GameSession
     }
 
     // Runs a previewed action; each Use overload says how it plants (from the held Slot, or the held seed type).
-    private ActionResult Perform(GridPosition? target, UsePreview preview, Func<GridPosition, ActionResult> plant) =>
+    private ActionResult Perform(
+        GridPosition? target, UsePreview preview, Func<GridPosition, ActionResult> plant, GridPosition? feet) =>
         preview.Action switch
         {
             UseActionKind.Till => Till(target!.Value),
             UseActionKind.Water => Water(target!.Value),
             UseActionKind.Plant => plant(target!.Value),
-            UseActionKind.Harvest => Harvest(target!.Value),
+            UseActionKind.Harvest => Harvest(target!.Value, feet),
             _ => ActionResult.Rejected(preview.Rejection!.Value),
         };
 
@@ -373,9 +401,11 @@ public sealed class GameSession
 
     /// <summary>
     /// Harvests the ripe Planting on a Tile (BR-T6), looking up its Crop type in <see cref="GameData.CropTypes"/>.
-    /// Raises InventoryChanged and TileChanged on success. A Planting whose Crop type has no data is NotRipe.
+    /// Raises InventoryChanged and TileChanged on success, and DroppedItemsChanged when the Crop fit nowhere and dropped
+    /// at <paramref name="feet"/> (the harvested Tile when null; BR-K3). A Planting whose Crop type has no data is
+    /// NotRipe.
     /// </summary>
-    public ActionResult Harvest(GridPosition position)
+    public ActionResult Harvest(GridPosition position, GridPosition? feet = null)
     {
         if (Game.FarmPlot[position].Planting is not { } planting)
         {
@@ -387,11 +417,13 @@ public sealed class GameSession
             return ActionResult.Rejected(Rejection.NotRipe);
         }
 
-        var result = Game.Harvest(position, cropType);
+        var droppedBefore = Game.DroppedItems.Count;
+        var result = Game.Harvest(position, cropType, feet);
         if (result.IsOk)
         {
             TileChanged?.Invoke(position);
             InventoryChanged?.Invoke();
+            RaiseIfDropped(droppedBefore);
         }
 
         return result;
@@ -413,16 +445,24 @@ public sealed class GameSession
     public IReadOnlyList<ShopListing> ShopOffers() => ShopService.Offers(Game, Data);
 
     /// <summary>
-    /// Buys a Shop listing (BR-L2) through <see cref="ShopService.Buy"/>. Raises PlayerChanged and InventoryChanged on
-    /// success and nothing on a rejection.
+    /// Buys a Shop listing (BR-L2) through <see cref="ShopService.Buy"/>; seeds that fit nowhere drop at
+    /// <paramref name="feet"/> (BR-K3). Raises PlayerChanged and InventoryChanged on success, DroppedItemsChanged when
+    /// any dropped, and nothing on a rejection. A success sets <see cref="LastBuyDropped"/>.
     /// </summary>
-    public ActionResult Buy(string listingId, int quantity = 1)
+    public ActionResult Buy(string listingId, int quantity = 1, GridPosition? feet = null)
     {
-        var result = ShopService.Buy(Game, Data, listingId, quantity);
+        var droppedBefore = Game.DroppedItems.Count;
+        var result = ShopService.Buy(Game, Data, listingId, quantity, feet);
         if (result.IsOk)
         {
+            // BR-K3: a gain only ever adds DroppedItems, so a changed count means something dropped.
+            LastBuyDropped = Game.DroppedItems.Count != droppedBefore;
             PlayerChanged?.Invoke();
             InventoryChanged?.Invoke();
+            if (LastBuyDropped)
+            {
+                DroppedItemsChanged?.Invoke();
+            }
         }
 
         return result;
@@ -461,6 +501,15 @@ public sealed class GameSession
                 : planting.DaysGrown == 0 ? GrowthStage.Seed : GrowthStage.Sprout;
 
     private static UsePreview Rejected(Rejection rejection) => new(null, rejection);
+
+    // BR-K3: a gain only ever adds DroppedItems, so a changed count means something dropped.
+    private void RaiseIfDropped(int droppedBefore)
+    {
+        if (Game.DroppedItems.Count != droppedBefore)
+        {
+            DroppedItemsChanged?.Invoke();
+        }
+    }
 
     // BR-T3, BR-C1: the domain decides, for both the preview and Plant. A Crop type with no data row has no Season.
     private Rejection? PlantRejection(GridPosition position, CropTypeId cropTypeId) =>

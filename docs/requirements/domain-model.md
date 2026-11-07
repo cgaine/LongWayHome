@@ -273,7 +273,7 @@ Phase 2 stages: general_store 1 (start) to 4; carpenter 0 (ruined at start) to 2
 
 BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `quantity` (int, 1–99; always 1 for a tool), `toolTier` (ToolTier?, required when the item is a tool).
 
-#### DroppedItem (child of Game, zero or more) *(planned, REQ-47)*
+#### DroppedItem (child of Game, zero or more)
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
@@ -410,8 +410,8 @@ stateDiagram-v2
 | new Game → active | Player | BR-G1, BR-P6 |
 | active → night (Sleep) | Player, at the house door | BR-G3 |
 | active → night (Pass out) | Game, when the clock reaches 02:00 | BR-G3, BR-P4 |
-| night → active | Game | Night steps in order: BR-T4 growth → BR-S2 payout → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
-| night → active (Phase 2) *(planned, REQ-45, REQ-47, REQ-48, REQ-50, REQ-57)* | Game | Night steps in order: BR-T4 growth → BR-S2 payout (once the bin exists, BR-S3) → BR-B3 rebuilds → BR-O2 orders ready → BR-R2, BR-R3 residents arrive → BR-K4 dropped items removed → BR-N4 regrowth → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
+| night → active | Game | Night steps in order: BR-T4 growth → BR-S2 payout → BR-K4 dropped items removed → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
+| night → active (Phase 2) *(planned, REQ-45, REQ-48, REQ-50, REQ-57)* | Game | Night steps in order: BR-T4 growth → BR-S2 payout (once the bin exists, BR-S3) → BR-B3 rebuilds → BR-O2 orders ready → BR-R2, BR-R3 residents arrive → BR-K4 dropped items removed → BR-N4 regrowth → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
 
 ### Tile
 
@@ -574,8 +574,8 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 
 - BR-K1: The Backpack has 12, 24 or 36 Slots, and its capacity never goes down.
 - BR-K2: A Slot is empty or holds 1 to 99 of one item. A tool is always alone in its Slot, with its tier. The same item may fill several Slots.
-- BR-K3: An item the Player gains goes first onto a Slot of the same item below 99, then into the lowest free Slot. What fits nowhere drops at the farmer's feet as a DroppedItem. *(planned, REQ-47)*
-- BR-K4: A DroppedItem can be picked up again while there is room; every DroppedItem left is removed in the Night. *(planned, REQ-47)*
+- BR-K3: An item the Player gains goes first onto a Slot of the same item below 99, then into the lowest free Slot. What fits nowhere drops at the farmer's feet as a DroppedItem.
+- BR-K4: A DroppedItem can be picked up again while there is room; every DroppedItem left is removed in the Night.
 - BR-K5: The hotbar is the 6 Slots of `hotbarRow`. Cycling moves to the next row and wraps back to row 0.
 - BR-K6: Tools can't be dropped, sold, shipped, stored in a chest or lost; they leave the Backpack only while an upgrade Order holds them (BR-O4). *(planned, REQ-57: the upgrade Order)*
 

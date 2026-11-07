@@ -98,20 +98,21 @@ public class UsePromptTextTests
         Assert.Null(prompt);
     }
 
+    // #130 changed the next three: a full Backpack no longer refuses a harvest, so its "Backpack full" prompt goes.
     [Fact]
-    public void AC8_BackpackFull_prompts_Backpack_full_as_a_non_action()
+    public void AC1_BackpackFull_shows_no_use_prompt()
     {
         var prompt = UsePromptText.For(
             new UsePreview(null, Rejection.BackpackFull), Hoe, null, TestGames.Shipped.CropTypes);
 
-        AssertPrompt("Backpack full", false, prompt);
+        Assert.Null(prompt);
     }
 
     [Theory]
     [InlineData("hoe")]
     [InlineData("can")]
     [InlineData("emberroot_seeds")]
-    public void AC8_Ripe_tile_with_no_room_previews_BackpackFull_and_prompts_Backpack_full(string heldName)
+    public void AC1_Ripe_tile_with_no_room_previews_Harvest_whatever_is_held(string heldName)
     {
         var held = heldName switch
         {
@@ -126,24 +127,23 @@ public class UsePromptTextTests
         var preview = session.PreviewUse(Target, held);
         var prompt = UsePromptText.For(preview, held, session.Game.FarmPlot[Target].Planting, session.Data.CropTypes);
 
-        Assert.Equal(new UsePreview(null, Rejection.BackpackFull), preview);
-        AssertPrompt("Backpack full", false, prompt);
+        Assert.Equal(new UsePreview(UseActionKind.Harvest, null), preview);
+        AssertPrompt("Harvest Dusktuber", true, prompt);
     }
 
     [Fact]
-    public void AC8_Use_on_a_ripe_tile_with_no_room_is_BackpackFull_and_keeps_the_planting()
+    public void AC1_Use_on_a_ripe_tile_with_no_room_harvests_and_drops_the_crop()
     {
-        var ripe = TestGames.Ripe(CropTypeId.Dusktuber);
-        var session = TestGames.SessionWithBackpack(TestGames.FullBackpack(), TestGames.TilledWith(Target, ripe));
-        var events = 0;
-        session.TileChanged += _ => events++;
-        session.InventoryChanged += () => events++;
+        var feet = new GridPosition(5, 3);
+        var session = TestGames.SessionWithBackpack(
+            TestGames.FullBackpack(), TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Dusktuber)));
 
-        var result = session.Use(Target, Hoe);
+        var result = session.Use(Target, Hoe, feet);
 
-        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
-        Assert.Equal(ripe, session.Game.FarmPlot[Target].Planting);
-        Assert.Equal(0, events);
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Null(session.Game.FarmPlot[Target].Planting);
+        var dropped = Assert.Single(session.Game.DroppedItems);
+        Assert.Equal((feet, ItemRef.Crop(CropTypeId.Dusktuber), 1), (dropped.Position, dropped.Item, dropped.Quantity));
     }
 
     [Fact]

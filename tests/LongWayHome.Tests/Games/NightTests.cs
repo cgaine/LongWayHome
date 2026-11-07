@@ -412,6 +412,174 @@ public class NightTests
         Assert.Equal(new GameDate(1, Season.Summer, 1), game.Date);
     }
 
+    // ---- #130: dropped items are removed in the Night (BR-K4), after the payout and before the date ----
+
+    private static readonly GridPosition Feet = new(2, 6);
+
+    /// <summary>A Game with a full Backpack, emberroot × 4 in the bin and 5 dusktuber crops on the ground.</summary>
+    private static GameState GameWithDroppedItemsAndBin()
+    {
+        var game = TestGames.OnDateWithShippingBin(
+            TestGames.FirstDay, 150, TestGames.FullBackpack(), [], (CropTypeId.Emberroot, 4));
+        game.Gain(ItemRef.Crop(CropTypeId.Dusktuber), 5, Feet);
+        Assert.NotEmpty(game.DroppedItems);
+        return game;
+    }
+
+    [Theory]
+    [InlineData(DayEndReason.Slept)]
+    [InlineData(DayEndReason.PassedOut)]
+    public void AC8_after_sleep_or_pass_out_no_dropped_items_remain(DayEndReason reason)
+    {
+        var session = new GameSession(GameWithDroppedItemsAndBin(), TestGames.Shipped);
+
+        if (reason == DayEndReason.Slept)
+        {
+            Assert.Equal(ActionResult.Ok, session.Sleep());
+        }
+        else
+        {
+            session.AdvanceClock(720);
+        }
+
+        Assert.Equal(reason, session.Game.LastDayEnd);
+        Assert.Empty(session.Game.DroppedItems);
+    }
+
+    [Fact]
+    public void AC9_dropped_items_cleared_after_payout_before_date_save_last()
+    {
+        var game = GameWithDroppedItemsAndBin();
+        var cropTypes = new DroppedRecordingCropTypes(game, TestGames.Shipped.CropTypes);
+        var random = new DroppedRecordingRandom(game);
+        int? droppedAtSave = null;
+        GameDate? dateAtSave = null;
+
+        NightProcessor.Run(
+            game,
+            TestGames.Shipped with { CropTypes = cropTypes },
+            DayEndReason.Slept,
+            random,
+            saved =>
+            {
+                droppedAtSave = saved.DroppedItems.Count;
+                dateAtSave = saved.Date;
+            });
+
+        // The payout looked its Crop type up while the dropped items were still on the ground: not cleared before it.
+        var payoutLookups = cropTypes.Lookups.Where(lookup => lookup.Key == CropTypeId.Emberroot).ToList();
+        Assert.NotEmpty(payoutLookups);
+        Assert.All(payoutLookups, lookup => Assert.Equal(1, lookup.Dropped));
+
+        // By the weather roll (just after the date step) they were gone, and the gold was paid.
+        Assert.Equal(0, random.DroppedAtRoll);
+        Assert.Equal(new Gold(100 + (4 * 35)), game.Player.Gold);
+
+        // The save is still the last step: it saw the next morning with nothing on the ground.
+        Assert.Equal(0, droppedAtSave);
+        Assert.Equal(new GameDate(1, Season.Spring, 2), dateAtSave);
+        Assert.Empty(game.DroppedItems);
+    }
+
+    [Fact]
+    public void AC9_night_processor_clears_dropped_items_between_the_payout_and_the_date_step()
+    {
+        // Source order in NightProcessor.Run: no step can be observed between the clear and the date step, so the
+        // order of the calls is checked directly.
+        var source = File.ReadAllText(Path.Combine(
+            RepoRoot(), "src", "LongWayHome.Application", "Games", "NightProcessor.cs"));
+
+        var payout = source.IndexOf("game.PayOutShippingBin(", StringComparison.Ordinal);
+        var clear = source.IndexOf("game.ClearDroppedItems()", StringComparison.Ordinal);
+        var date = source.IndexOf("game.AdvanceDate()", StringComparison.Ordinal);
+        var save = source.IndexOf("save(game)", StringComparison.Ordinal);
+
+        Assert.True(clear >= 0, "NightProcessor never calls game.ClearDroppedItems()");
+        Assert.True(payout < clear, "ClearDroppedItems must come after PayOutShippingBin");
+        Assert.True(clear < date, "ClearDroppedItems must come before AdvanceDate");
+        Assert.True(date < save, "the save must stay the last step");
+    }
+
+    [Fact]
+    public void BR_G5_save_runs_after_dropped_items_cleared()
+    {
+        var game = GameWithDroppedItemsAndBin();
+        (int Dropped, int Clock, int Energy)? atSave = null;
+
+        NightProcessor.Run(
+            game,
+            TestGames.Shipped,
+            DayEndReason.PassedOut,
+            NeverRainSource.Instance,
+            saved => atSave = (saved.DroppedItems.Count, saved.ClockMinutes, saved.Player.Energy));
+
+        Assert.Equal((0, TestGames.Shipped.Tuning.DayStartMinutes, TestGames.Shipped.Tuning.PassOutEnergy), atSave);
+    }
+
+    /// <summary>Crop type rows that record the looked-up key and how many DroppedItems lay on the ground.</summary>
+    private sealed class DroppedRecordingCropTypes(GameState game, IReadOnlyDictionary<CropTypeId, CropType> inner)
+        : IReadOnlyDictionary<CropTypeId, CropType>
+    {
+        public List<(CropTypeId Key, int Dropped)> Lookups { get; } = [];
+
+        public CropType this[CropTypeId key]
+        {
+            get
+            {
+                Record(key);
+                return inner[key];
+            }
+        }
+
+        public IEnumerable<CropTypeId> Keys => inner.Keys;
+
+        public IEnumerable<CropType> Values => inner.Values;
+
+        public int Count => inner.Count;
+
+        public bool ContainsKey(CropTypeId key)
+        {
+            Record(key);
+            return inner.ContainsKey(key);
+        }
+
+        public bool TryGetValue(CropTypeId key, [MaybeNullWhen(false)] out CropType value)
+        {
+            Record(key);
+            return inner.TryGetValue(key, out value);
+        }
+
+        public IEnumerator<KeyValuePair<CropTypeId, CropType>> GetEnumerator() => inner.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private void Record(CropTypeId key) => Lookups.Add((key, game.DroppedItems.Count));
+    }
+
+    /// <summary>A never-rain random source that records how many DroppedItems lay on the ground at the roll.</summary>
+    private sealed class DroppedRecordingRandom(GameState game) : IRandomSource
+    {
+        public int? DroppedAtRoll { get; private set; }
+
+        public int NextPercent()
+        {
+            DroppedAtRoll = game.DroppedItems.Count;
+            return 99;
+        }
+    }
+
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "LongWayHome.sln")))
+        {
+            dir = dir.Parent;
+        }
+
+        Assert.True(dir is not null, $"no folder holding LongWayHome.sln above {AppContext.BaseDirectory}");
+        return dir!.FullName;
+    }
+
     [Fact]
     public void BR_P4_passing_out_and_sleeping_pay_the_same_gold_and_leave_the_same_bin()
     {

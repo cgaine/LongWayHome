@@ -60,6 +60,10 @@ public static class NightProcessor
         // BR-S2: the shipping payout, after growth and before the date step.
         game.PayOutShippingBin(data.CropTypes);
 
+        // BR-K4: every DroppedItem left on the ground is removed, after the payout and before the date step, so a
+        // save never holds one (BR-G5).
+        game.ClearDroppedItems();
+
         // BR-G1: the date moves on one day. After growth, which never reads the Season, so a Planting keeps growing
         // across a season change (BR-T5).
         game.AdvanceDate();

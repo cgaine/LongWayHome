@@ -2,7 +2,9 @@
 
 using Godot;
 using LongWayHome.Application.Games;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Game.Core;
+using LongWayHome.Game.Farm;
 
 namespace LongWayHome.Game.Player;
 
@@ -12,7 +14,10 @@ namespace LongWayHome.Game.Player;
 /// forward walks away from the <see cref="FollowCamera"/>, whichever way it has turned (REQ-52). On
 /// <see cref="GameSession.NightCompleted"/> it returns to where the scene placed it, in front of the house door, at
 /// rest. While the <see cref="FarmerAnimator"/> locks movement (falling asleep or passing out, #103) the Player
-/// stands still and keeps the way he faces. Holds no rules.
+/// stands still and keeps the way he faces. It also tracks the farmer's <see cref="Feet"/> tile (#130) and picks up the
+/// DroppedItems there through <see cref="GameSession.PickUp"/> whenever that tile changes, and again after
+/// <see cref="GameSession.InventoryChanged"/> while DroppedItems lie there (room may have been freed); never while the
+/// tree is paused. Holds no rules: what is picked up is decided by the session (BR-K4).
 /// </summary>
 public partial class PlayerController : CharacterBody3D
 {
@@ -27,11 +32,30 @@ public partial class PlayerController : CharacterBody3D
     private Vector3 _startPosition;
     private FarmerAnimator? _animator;
 
+    /// <summary>The feet tile the last pick-up ran on, or null before the first.</summary>
+    private GridPosition? _pickedUpAt;
+
+    /// <summary>Set by <see cref="GameSession.InventoryChanged"/> while DroppedItems lie at the feet: try again.</summary>
+    private bool _retryPickUp;
+
     /// <summary>
     /// The last non-zero world move direction snapped to north (0,-1), south (0,1), west (-1,0) or east (1,0), where
     /// X is east and Y is south. Starts facing south.
     /// </summary>
     public Vector2I Facing { get; private set; } = new(0, 1);
+
+    /// <summary>
+    /// The farmer's feet tile: the plot tile nearest the farmer (<see cref="FeetTile.Nearest"/>), so dropping and
+    /// picking up beside the plot use the same tile (#130).
+    /// </summary>
+    public GridPosition Feet
+    {
+        get
+        {
+            var cell = FarmGrid.CellAt(GlobalPosition);
+            return FeetTile.Nearest(cell.X, cell.Y);
+        }
+    }
 
     public override void _Ready()
     {
@@ -58,6 +82,7 @@ public partial class PlayerController : CharacterBody3D
         if (_session is not null)
         {
             _session.NightCompleted += ReturnToStart;
+            _session.InventoryChanged += OnInventoryChanged;
         }
     }
 
@@ -66,6 +91,7 @@ public partial class PlayerController : CharacterBody3D
         if (_session is not null)
         {
             _session.NightCompleted -= ReturnToStart;
+            _session.InventoryChanged -= OnInventoryChanged;
         }
     }
 
@@ -78,6 +104,8 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _PhysicsProcess(double delta)
     {
+        PickUpAtFeet();
+
         if (_animator?.LocksMovement == true)
         {
             // He is falling asleep or passing out: no move, and no turn away from where the clip faces him.
@@ -111,5 +139,34 @@ public partial class PlayerController : CharacterBody3D
             // Standing still, the farmer turns straight to face the targeted tile (issue #71).
             _model.Rotation = _model.Rotation with { Y = FacingDirection.Yaw(Facing.X, Facing.Y) };
         }
+    }
+
+    // Room may have been freed (shipping, planting, a pick-up that left some behind): retry on the next unpaused
+    // physics frame rather than inside the event, so a pick-up never runs in the middle of another action.
+    private void OnInventoryChanged()
+    {
+        if (_session!.HasDroppedItemsAt(Feet))
+        {
+            _retryPickUp = true;
+        }
+    }
+
+    // BR-K4: picks up at the feet tile when it changes, or when a retry is due; never while the tree is paused.
+    private void PickUpAtFeet()
+    {
+        if (_session is null || GetTree().Paused)
+        {
+            return;
+        }
+
+        var feet = Feet;
+        if (feet == _pickedUpAt && !_retryPickUp)
+        {
+            return;
+        }
+
+        _pickedUpAt = feet;
+        _retryPickUp = false;
+        _session.PickUp(feet);
     }
 }

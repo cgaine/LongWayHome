@@ -1,5 +1,6 @@
 using LongWayHome.Application.Data;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
 
@@ -27,12 +28,14 @@ public static class ShopService
     }
 
     /// <summary>
-    /// Buys a quantity of an offered listing: takes the price and adds the seeds, or applies the Can upgrade, in one step
-    /// (BR-L2, BR-W4). A quantity below 1, or other than 1 for the Can upgrade, throws; a listing not offered today is
-    /// NotOffered; seeds that don't all fit in the Backpack are BackpackFull; less gold than the total is NotEnoughGold.
-    /// A rejection or an overflowing total changes nothing, and buying costs no energy (BR-P2).
+    /// Buys a quantity of an offered listing: takes the price and gains the seeds, or applies the Can upgrade, in one
+    /// step (BR-L2, BR-W4). Seeds that fit nowhere drop at <paramref name="feet"/>, or at plot tile (0, 0) when it is
+    /// null, so a purchase is never refused for room (BR-K3). A quantity below 1, or other than 1 for the Can upgrade,
+    /// throws; a listing not offered today is NotOffered; less gold than the total is NotEnoughGold. A rejection or an
+    /// overflowing total changes nothing, and buying costs no energy (BR-P2).
     /// </summary>
-    public static ActionResult Buy(Game game, GameData data, string listingId, int quantity = 1)
+    public static ActionResult Buy(
+        Game game, GameData data, string listingId, int quantity = 1, GridPosition? feet = null)
     {
         ArgumentNullException.ThrowIfNull(game);
         ArgumentNullException.ThrowIfNull(data);
@@ -47,10 +50,11 @@ public static class ShopService
 
         return offered.Kind == ShopItemKind.CanUpgrade
             ? BuyCanUpgrade(game, data, offered, quantity)
-            : BuySeeds(game, offered, offered.CropTypeId!.Value, quantity);
+            : BuySeeds(game, offered, offered.CropTypeId!.Value, quantity, feet ?? new GridPosition(0, 0));
     }
 
-    private static ActionResult BuySeeds(Game game, ShopListing offered, CropTypeId cropTypeId, int quantity)
+    private static ActionResult BuySeeds(
+        Game game, ShopListing offered, CropTypeId cropTypeId, int quantity, GridPosition feet)
     {
         var player = game.Player;
 
@@ -59,19 +63,14 @@ public static class ShopService
         // The price is checked before anything changes, so an overflow leaves gold and Backpack as they were.
         var total = checked(offered.Price.Value * quantity);
 
-        // BR-K3, BR-L2: until dropped items exist, seeds that fit nowhere are refused before any gold is taken.
-        if (!player.Backpack.CanFit(seeds, quantity))
-        {
-            return ActionResult.Rejected(Rejection.BackpackFull);
-        }
-
-        // BR-L2, BR-P5: the gold is taken and the seeds added in the same step, or nothing changes.
+        // BR-L2, BR-P5: the gold is taken and the seeds gained in the same step, or nothing changes.
         if (!player.TrySpendGold(total))
         {
             return ActionResult.Rejected(Rejection.NotEnoughGold);
         }
 
-        player.Backpack.Add(seeds, quantity);
+        // BR-K3: what fits goes in the Backpack and the rest drops at the feet; never refused for room.
+        game.Gain(seeds, quantity, feet);
         return ActionResult.Ok;
     }
 

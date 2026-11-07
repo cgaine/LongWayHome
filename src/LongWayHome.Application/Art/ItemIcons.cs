@@ -1,5 +1,6 @@
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Application.Art;
 
@@ -75,6 +76,14 @@ public static class ItemIcons
         ArgumentNullException.ThrowIfNull(listing);
         return listing is { Kind: ShopItemKind.Seed, CropTypeId: { } crop } ? SeedIcon(crop) : null;
     }
+
+    /// <summary>The seed or crop icon for an item, or null for a tool.</summary>
+    public static string? For(ItemRef item) => item switch
+    {
+        { Kind: ItemKind.Seed, CropTypeId: { } seed } => SeedIcon(seed),
+        { Kind: ItemKind.Crop, CropTypeId: { } crop } => CropIcon(crop),
+        _ => null,
+    };
 
     /// <summary>The canonical code value (canonical-values.md): "emberroot", "dusktuber", and so on.</summary>
     private static string CodeOf(CropTypeId crop) => crop switch

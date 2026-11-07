@@ -56,6 +56,19 @@ public class ShopTextTests
     }
 
     [Fact]
+    public void AC4_after_buy_message_when_seeds_dropped()
+    {
+        Assert.Equal("Some seeds dropped at your feet", ShopText.SeedsDropped);
+        Assert.Equal("Some seeds dropped at your feet", ShopText.AfterBuy(dropped: true));
+    }
+
+    [Fact]
+    public void AC4_after_buy_message_is_empty_when_nothing_dropped()
+    {
+        Assert.Equal("", ShopText.AfterBuy(dropped: false));
+    }
+
+    [Fact]
     public void Row_of_a_seed_listing_with_no_crop_type_throws()
     {
         var listing = new ShopListing("seed_nothing", ShopItemKind.Seed, null, new Gold(10));
