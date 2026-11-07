@@ -100,6 +100,18 @@ public sealed class Backpack
 
     public int HotbarRow { get; }
 
+    /// <summary>The six Slots of the current hotbar row: indexes HotbarRow × 6 to HotbarRow × 6 + 5 (BR-K5).</summary>
+    public IReadOnlyList<BackpackSlot> HotbarSlots => throw new NotImplementedException();
+
+    /// <summary>Moves the hotbar to the next row, wrapping back to row 0 after row Capacity / 6 − 1 (BR-K5).</summary>
+    public void CycleHotbar() => throw new NotImplementedException();
+
+    /// <summary>
+    /// Removes <paramref name="quantity"/> from one Slot, emptying it when it reaches 0; false and no change when the
+    /// Slot holds fewer, or holds a tool (BR-K6).
+    /// </summary>
+    public bool RemoveFrom(int slotIndex, int quantity) => throw new NotImplementedException();
+
     /// <summary>
     /// Adds a non-tool item: tops up Slots holding it below 99 in index order, then fills free Slots in index order
     /// (BR-K3). Returns the quantity that fitted nowhere. A quantity below 1 throws.

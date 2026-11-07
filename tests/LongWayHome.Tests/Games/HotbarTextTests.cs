@@ -39,4 +39,12 @@ public class HotbarTextTests
     [Fact]
     public void AC8_compact_label_of_a_null_item_throws() =>
         Assert.Throws<ArgumentNullException>(() => HotbarText.Compact(null!, 1));
+
+    [Theory]
+    [InlineData(0, 12, "Row 1/2")]
+    [InlineData(1, 12, "Row 2/2")]
+    [InlineData(0, 24, "Row 1/4")]
+    [InlineData(5, 36, "Row 6/6")]
+    public void AC10_row_label_is_the_1_based_row_of_capacity_over_6(int hotbarRow, int capacity, string expected) =>
+        Assert.Equal(expected, HotbarText.Row(hotbarRow, capacity));
 }

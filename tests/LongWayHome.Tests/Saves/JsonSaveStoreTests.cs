@@ -62,6 +62,21 @@ public sealed class JsonSaveStoreTests : IDisposable
         Assert.Equal(game.FarmPlot[SaveGames.Growing].Planting, loaded.FarmPlot[SaveGames.Growing].Planting);
     }
 
+    // ---- #129: the hotbar row ----
+
+    [Fact]
+    public void AC11_A_game_saved_on_hotbar_row_1_loads_on_row_1()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack());
+        game.Player.Backpack.CycleHotbar();
+
+        Store().Save(1, game);
+        var loaded = new JsonSaveStore(_folder.Path).Load(1);
+
+        Assert.Equal(1, loaded.Player.Backpack.HotbarRow);
+        Assert.Equal(Enumerable.Range(6, 6), loaded.Player.Backpack.HotbarSlots.Select(slot => slot.Index));
+    }
+
     [Fact]
     public void AC12_The_file_has_saveVersion_2_and_writes_every_backpack_slot()
     {

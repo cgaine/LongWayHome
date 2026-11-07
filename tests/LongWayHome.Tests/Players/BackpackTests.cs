@@ -369,4 +369,141 @@ public class BackpackTests
 
         Assert.Null(backpack.TierOf(ToolId.Hoe));
     }
+
+    // ---- #129: the hotbar row and taking from one Slot ----
+
+    private static Backpack Restored(params BackpackSlot[] slots) => TestGames.RestoredBackpack(slots);
+
+    private static Backpack Distinct() => TestGames.DistinctBackpack();
+
+    [Theory]
+    [InlineData(12, new[] { 1, 0 })]
+    [InlineData(24, new[] { 1, 2, 3, 0 })]
+    [InlineData(36, new[] { 1, 2, 3, 4, 5, 0 })]
+    public void BR_K5_Cycling_moves_to_the_next_row_and_wraps_after_capacity_over_6_rows(int capacity, int[] rows)
+    {
+        var backpack = TestGames.ToolsOnly();
+        if (capacity > 12)
+        {
+            backpack.RaiseCapacity(24);
+        }
+
+        if (capacity > 24)
+        {
+            backpack.RaiseCapacity(36);
+        }
+
+        var seen = new List<int>();
+        foreach (var _ in rows)
+        {
+            backpack.CycleHotbar();
+            seen.Add(backpack.HotbarRow);
+        }
+
+        Assert.Equal(rows, seen);
+    }
+
+    [Fact]
+    public void BR_K5_The_hotbar_slots_are_the_six_slots_of_the_current_row()
+    {
+        var backpack = Distinct();
+
+        var row0 = backpack.HotbarSlots.Select(slot => slot.Index).ToList();
+        backpack.CycleHotbar();
+        var row1 = backpack.HotbarSlots.Select(slot => slot.Index).ToList();
+        backpack.CycleHotbar();
+        var again = backpack.HotbarSlots.Select(slot => slot.Index).ToList();
+
+        Assert.Equal(Enumerable.Range(0, 6), row0);
+        Assert.Equal(Enumerable.Range(6, 6), row1);
+        Assert.Equal(Enumerable.Range(0, 6), again);
+    }
+
+    [Fact]
+    public void BR_K5_The_hotbar_slots_carry_their_contents()
+    {
+        var backpack = Distinct();
+        backpack.CycleHotbar();
+
+        Assert.Equal(
+            backpack.Slots.Skip(6).Take(6).Select(TestGames.DescribeSlot),
+            backpack.HotbarSlots.Select(TestGames.DescribeSlot));
+    }
+
+    [Fact]
+    public void BR_K5_With_24_slots_the_third_row_is_slots_12_to_17()
+    {
+        var backpack = TestGames.ToolsOnly();
+        backpack.RaiseCapacity(24);
+
+        backpack.CycleHotbar();
+        backpack.CycleHotbar();
+
+        Assert.Equal(2, backpack.HotbarRow);
+        Assert.Equal(Enumerable.Range(12, 6), backpack.HotbarSlots.Select(slot => slot.Index));
+    }
+
+    [Fact]
+    public void BR_K5_Cycling_changes_no_slot()
+    {
+        var backpack = Distinct();
+        var before = TestGames.Describe(backpack);
+
+        backpack.CycleHotbar();
+
+        Assert.Equal(before, TestGames.Describe(backpack));
+    }
+
+    [Fact]
+    public void BR_K6_RemoveFrom_a_tool_slot_returns_false_and_the_tool_stays()
+    {
+        var backpack = TestGames.ToolsOnly();
+        var before = TestGames.Describe(backpack);
+
+        Assert.False(backpack.RemoveFrom(0, 1));
+        Assert.False(backpack.RemoveFrom(1, 1));
+        Assert.Equal(before, TestGames.Describe(backpack));
+    }
+
+    [Fact]
+    public void RemoveFrom_takes_only_from_the_given_slot()
+    {
+        var backpack = Restored(new BackpackSlot(2, EmberrootSeed, 5, null), new BackpackSlot(3, EmberrootSeed, 5, null));
+
+        Assert.True(backpack.RemoveFrom(2, 1));
+
+        Assert.Equal(4, backpack.Slots[2].Quantity);
+        Assert.Equal(5, backpack.Slots[3].Quantity);
+        Assert.Equal(EmberrootSeed, backpack.Slots[2].Item);
+    }
+
+    [Fact]
+    public void RemoveFrom_with_fewer_in_the_slot_returns_false_and_changes_nothing()
+    {
+        var backpack = Restored(new BackpackSlot(2, EmberrootSeed, 2, null), new BackpackSlot(3, EmberrootSeed, 5, null));
+        var before = TestGames.Describe(backpack);
+
+        Assert.False(backpack.RemoveFrom(2, 3));
+        Assert.Equal(before, TestGames.Describe(backpack));
+    }
+
+    [Fact]
+    public void RemoveFrom_an_empty_slot_returns_false_and_changes_nothing()
+    {
+        var backpack = TestGames.ToolsOnly();
+        var before = TestGames.Describe(backpack);
+
+        Assert.False(backpack.RemoveFrom(5, 1));
+        Assert.Equal(before, TestGames.Describe(backpack));
+    }
+
+    [Fact]
+    public void RemoveFrom_empties_a_slot_that_reaches_0()
+    {
+        var backpack = Restored(new BackpackSlot(4, DusktuberCrop, 3, null));
+
+        Assert.True(backpack.RemoveFrom(4, 3));
+
+        Assert.Equal(Empty(4), TestGames.DescribeSlot(backpack.Slots[4]));
+    }
 }

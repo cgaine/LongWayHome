@@ -40,6 +40,9 @@ public static class InputGlyphs
     public static string ChangeItemHint(InputDeviceKind device) =>
         $"{For("tool_prev", device)} {For("tool_next", device)} Change item";
 
+    /// <summary>The hotbar row hint: "&lt;hotbar_cycle glyph&gt; Next row", e.g. "[X] Next row".</summary>
+    public static string CycleRowHint(InputDeviceKind device) => throw new NotImplementedException();
+
     /// <summary>The shop's Close button: "&lt;ui_cancel glyph&gt; Close", e.g. "[Esc] Close".</summary>
     public static string CloseLabel(InputDeviceKind device) => $"{For("ui_cancel", device)} Close";
 }

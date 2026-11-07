@@ -176,10 +176,33 @@ public sealed class GameSession
         var items = HeldItems();
         var selected = items.Contains(held) ? held : HeldItem.Of(ToolId.Hoe);
         return items
-            .Select(item => new HotbarSlot(item, HeldLabel(item), item == selected))
+            .Select(item => new HotbarSlot(
+                item,
+                item.Seed is { } seed ? ItemRef.Seed(seed) : ItemRef.Tool(item.Tool!.Value),
+                item.Seed is { } held ? Game.Player.Backpack.Quantity(ItemRef.Seed(held)) : 1,
+                HeldLabel(item),
+                item == selected))
             .ToList()
             .AsReadOnly();
     }
+
+    /// <summary>
+    /// Moves the hotbar to the next Backpack row (BR-K5) and raises InventoryChanged. Costs no energy; nothing else
+    /// changes.
+    /// </summary>
+    public void CycleHotbar() => throw new NotImplementedException();
+
+    /// <summary>The six slots of the current hotbar row, position 0–5, with <paramref name="heldPosition"/> selected.</summary>
+    public IReadOnlyList<HotbarSlot> Hotbar(int heldPosition) => throw new NotImplementedException();
+
+    /// <summary>What the held position of the current row holds, or null when it is empty or holds a crop.</summary>
+    public HeldItem? HeldItemAt(int heldPosition) => throw new NotImplementedException();
+
+    /// <summary>Decides what Use from the held position would do, without changing state.</summary>
+    public UsePreview PreviewUse(GridPosition? target, int heldPosition) => throw new NotImplementedException();
+
+    /// <summary>Performs what <see cref="PreviewUse(GridPosition?, int)"/> names from the held slot, or its rejection.</summary>
+    public ActionResult Use(GridPosition? target, int heldPosition) => throw new NotImplementedException();
 
     /// <summary>Decides what Use would do, without changing state.</summary>
     public UsePreview PreviewUse(GridPosition? target, HeldItem held)

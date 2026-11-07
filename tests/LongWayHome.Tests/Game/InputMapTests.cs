@@ -15,7 +15,7 @@ public class InputMapTests
     [
         "move_up", "move_down", "move_left", "move_right", "run", "use_tool",
         "interact", "tool_prev", "tool_next", "open_menu", "pause",
-        "camera_rotate_left", "camera_rotate_right", "camera_zoom_in", "camera_zoom_out",
+        "camera_rotate_left", "camera_rotate_right", "camera_zoom_in", "camera_zoom_out", "hotbar_cycle",
     ];
 
     private static readonly string[] MoveActionNames = ["move_up", "move_down", "move_left", "move_right"];
@@ -113,6 +113,22 @@ public class InputMapTests
         Assert.Matches($@"InputEventKey,(?:(?!Object\().)*""physical_keycode"":{physicalKeycode},", body);
         Assert.Contains($"\"axis\":{axis},\"axis_value\":{axisValue},", body);
         Assert.Equal(0.2, Actions[action].Deadzone, precision: 3);
+    }
+
+    [Fact]
+    public void AC9_hotbar_cycle_is_bound_to_the_X_key()
+    {
+        Assert.True(Actions.ContainsKey("hotbar_cycle"), "project.godot has no input action 'hotbar_cycle'");
+
+        Assert.Matches(@"InputEventKey,(?:(?!Object\().)*""physical_keycode"":88,", Actions["hotbar_cycle"].Body);
+    }
+
+    [Fact]
+    public void AC9_hotbar_cycle_is_bound_to_the_controller_View_button()
+    {
+        Assert.True(Actions.ContainsKey("hotbar_cycle"), "project.godot has no input action 'hotbar_cycle'");
+
+        Assert.Matches(@"InputEventJoypadButton,(?:(?!Object\().)*""button_index"":4,", Actions["hotbar_cycle"].Body);
     }
 
     [Fact]

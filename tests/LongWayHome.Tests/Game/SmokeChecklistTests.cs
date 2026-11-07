@@ -126,6 +126,37 @@ public class SmokeChecklistTests
         Assert.True(fade > passOut.Index, $"The {pass} pass's 2:00 step does not put the night fade after the pass out: {step}");
     }
 
+    /// <summary>#129 AC12: the controller and keyboard passes cycle the hotbar row with that device's button.</summary>
+    [Theory]
+    [InlineData("controller", "(View)")]
+    [InlineData("keyboard", "[X]")]
+    public void AC12_pass_has_a_step_cycling_the_hotbar_row_with_its_button(string pass, string button)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        Assert.True(
+            steps.Any(step =>
+                step.Contains(button, StringComparison.Ordinal) &&
+                step.Contains("hotbar row", StringComparison.OrdinalIgnoreCase)),
+            $"The {pass} pass has no step cycling the hotbar row with {button}");
+    }
+
+    /// <summary>#129 AC12: the new button is in each pass's Buttons: list.</summary>
+    [Theory]
+    [InlineData("controller", "(View)")]
+    [InlineData("keyboard", "[X]")]
+    public void AC12_pass_buttons_line_lists_the_hotbar_cycle_button(string pass, string button)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+
+        var buttonsLine = ReadButtonsLine(section.Value.Body);
+        Assert.True(buttonsLine is not null, $"The {pass} pass has no 'Buttons:' line");
+        Assert.True(buttonsLine.Contains(button, StringComparison.Ordinal), $"The {pass} pass's Buttons: line never mentions {button}");
+    }
+
     [Fact]
     public void AC8_blueprint_testing_section_links_the_checklist()
     {

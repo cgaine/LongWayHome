@@ -103,6 +103,22 @@ public class InputGlyphsTests
         Assert.Equal(expected, InputGlyphs.CloseLabel(device));
     }
 
+    [Theory]
+    [InlineData(InputDeviceKind.KeyboardMouse, "[X]")]
+    [InlineData(InputDeviceKind.Controller, "(View)")]
+    public void AC9_hotbar_cycle_glyph_is_X_or_View(InputDeviceKind device, string expected)
+    {
+        Assert.Equal(expected, InputGlyphs.For("hotbar_cycle", device));
+    }
+
+    [Theory]
+    [InlineData(InputDeviceKind.KeyboardMouse, "[X] Next row")]
+    [InlineData(InputDeviceKind.Controller, "(View) Next row")]
+    public void AC9_cycle_row_hint_names_hotbar_cycle(InputDeviceKind device, string expected)
+    {
+        Assert.Equal(expected, InputGlyphs.CycleRowHint(device));
+    }
+
     private static List<string> ReadInputActionNames()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "game", "project.godot");

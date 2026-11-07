@@ -392,11 +392,11 @@ public partial class Hud : CanvasLayer
         {
             var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
             panel.AddThemeStyleboxOverride("panel", slot.Selected ? _selectedSlotStyle : _slotStyle);
-            var text = compact && slot.Item.Seed is { } seed
-                ? HotbarText.Compact(slot.Item, backpack.Quantity(ItemRef.Seed(seed)))
+            var text = compact && slot.Item is { Seed: { } seed } seedItem
+                ? HotbarText.Compact(seedItem, backpack.Quantity(ItemRef.Seed(seed)))
                 : slot.Label;
             var label = OutlinedLabel(text, SlotFontSize);
-            if (ItemIcons.For(slot.Item) is { } icon)
+            if (slot.Item is { } item && ItemIcons.For(item) is { } icon)
             {
                 // A seed slot: its seed icon left of the unchanged label. Tool slots stay text only.
                 var content = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
