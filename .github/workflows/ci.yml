@@ -1,11 +1,14 @@
 name: CI
 
 # Manual only: use the "Run workflow" button on the Actions tab and pick a branch.
+# release.yml also calls this workflow to build what it publishes.
 on:
   workflow_dispatch:
+  workflow_call:
 
+# github.workflow is the caller's name when called, so a release never shares a group with (or cancels) a CI run.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

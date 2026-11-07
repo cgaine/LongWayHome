@@ -31,4 +31,6 @@ A cozy 3D farming game (working title) built with Godot 4 (.NET / C#) for Window
 
 **Build everything:** `dotnet build LongWayHome.sln` at the repository root. `Godot.NET.Sdk` is restored from NuGet, so this works without the editor installed.
 
-**Builds:** CI (`.github/workflows/ci.yml`) builds the solution and runs the tests with coverage on every pull request. Every push to `main` also exports the game for Windows and Linux; download both builds from the artifacts of the latest [`CI` run on `main`](https://github.com/cgaine/LongWayHome/actions/workflows/ci.yml?query=branch%3Amain). The Godot version CI uses is `GODOT_VERSION` in `ci.yml` and must match `Godot.NET.Sdk` in `game/LongWayHome.Game.csproj`.
+**Builds:** CI (`.github/workflows/ci.yml`) runs only when started by hand (Actions → CI → Run workflow, then pick a branch). It builds the solution, runs the tests with coverage and exports the game for Windows and Linux; download both builds from the run's artifacts. The Godot version CI uses is `GODOT_VERSION` in `ci.yml` and must match `Godot.NET.Sdk` in `game/LongWayHome.Game.csproj`.
+
+**Releases:** Actions → Release → Run workflow, on `main`. Each run runs CI on `main`, then publishes the next minor version as a [GitHub release](https://github.com/cgaine/LongWayHome/releases) with `LongWayHome-vX.Y.0-windows.zip` and `LongWayHome-vX.Y.0-linux.tar.gz` attached. The first release is `v0.1.0`; after that it takes the latest `vX.Y.Z` tag and makes `vX.(Y+1).0`. For a major or patch version, push that tag by hand; the next run counts on from it.
