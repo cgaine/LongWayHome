@@ -297,7 +297,7 @@ Each season starts with two crops; more seeds unlock as the general store expand
 | Season | Starting crops |
 | --- | --- |
 | Spring | Emberroot (orange root, warm to the touch), dusktuber (purple tuber that keeps all winter) |
-| Summer | Sunbell (hanging fruit that rings in the wind), starcorn (tall stalks, glittering kernels) |
+| Summer | Sunbell (sun-coloured berries that hang upside down on a bush), starcorn (tall stalks, glittering kernels) |
 | Fall | Moonmelon (pale gourd that glows faintly at night), coilsquash (spiral squash) |
 | Winter | None outdoors: a season for mining, fishing and rebuilding |
 
