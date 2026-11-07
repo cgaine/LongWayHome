@@ -5,6 +5,7 @@ using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
 using LongWayHome.Game.Ui;
 
@@ -35,6 +36,9 @@ namespace LongWayHome.Game.Art;
 /// <item>the <c>Trees</c> behind the palette (<see cref="TreeArt"/>, built by <see cref="NatureModels"/>): a row of
 /// Twinbough stages in summer (sapling, full tree, old giant, stump) and behind it a row of full Twinboughs, one per
 /// season, each with a label. The sap seams and the stump's rings glow under the Night preset;</item>
+/// <item>the <c>GrassTiles</c> at the far left: a 4 x 4 lawn of farm grass Tiles per Season, back to front spring,
+/// summer, fall and winter, each Tile with the <see cref="GrassTileArt"/> layout and turn its grid position picks, as
+/// in the farm, each lawn labelled;</item>
 /// <item>the <c>Rocks</c> down the left edge (<see cref="RockArt"/>): a rock, a boulder, Rosk ore and Groth ore, each
 /// with a label;</item>
 /// <item>the <c>GatherTools</c> row at the front: four farmers holding the Phase 2 axe and pickaxe
@@ -241,6 +245,7 @@ public partial class ArtSandbox : Node3D
         BuildShapes();
         BuildFarmhouses();
         BuildTrees();
+        BuildGrassTiles();
         BuildRocks();
         BuildGatherTools();
         BuildIcons();
@@ -757,6 +762,51 @@ public partial class ArtSandbox : Node3D
             var x = (i - (seasons.Length - 1) / 2f) * 7f;
             AddNature(trees, $"Twinbough{seasons[i]}", NatureModels.Twinbough(TreeStage.Full, seasons[i]), new Vector3(x, 0f, TreeSeasonsZ),
                 $"Twinbough · {seasons[i]}", LabelHeight(TreeStage.Full));
+        }
+    }
+
+    /// <summary>
+    /// A 4 x 4 lawn of farm grass Tiles per Season at the far left: each a 0.96 m slab in the Season's ground colour with
+    /// the detail mesh its grid position picks, 1 m apart as on the farm plot.
+    /// </summary>
+    private void BuildGrassTiles()
+    {
+        var lawns = new Node3D { Name = "GrassTiles" };
+        AddChild(lawns);
+        var seasons = System.Enum.GetValues<Season>();
+        for (var s = 0; s < seasons.Length; s++)
+        {
+            var grass = SeasonGrass.For(seasons[s]);
+            var centre = new Vector3(-22f, 0f, -15f + 6f * s);
+            for (var x = 0; x < 4; x++)
+            {
+                for (var y = 0; y < 4; y++)
+                {
+                    var at = centre + new Vector3(x - 1.5f, 0f, y - 1.5f);
+                    AddMesh($"{seasons[s]}Slab{x}_{y}", new BoxMesh { Size = new Vector3(0.96f, 0.06f, 0.96f) }, at + new Vector3(0f, 0.03f, 0f), grass.Ground, parent: lawns);
+                    // Each lawn borrows a different 4 x 4 corner of the 12 x 9 plot's grid, so they don't repeat.
+                    var (variant, turns) = GrassTileArt.PickFor(new GridPosition(x + 4 * (s % 3), y + 4 * (s / 3)));
+                    lawns.AddChild(new MeshInstance3D
+                    {
+                        Name = $"{seasons[s]}Grass{x}_{y}",
+                        Mesh = GrassTileModels.MeshFor(variant, grass),
+                        MaterialOverride = ArtMaterials.Shared,
+                        Position = at + new Vector3(0f, 0.06f, 0f),
+                        RotationDegrees = new Vector3(0f, 90f * turns, 0f),
+                    });
+                }
+            }
+
+            lawns.AddChild(new Label3D
+            {
+                Name = $"{seasons[s]}GrassLabel",
+                Text = $"Grass tiles · {seasons[s]}",
+                Position = centre + new Vector3(0f, 1.2f, 0f),
+                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+                FontSize = 40,
+                OutlineSize = 8,
+                PixelSize = 0.006f,
+            });
         }
     }
 

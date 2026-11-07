@@ -109,7 +109,7 @@ game/
   scripts/
     Core/GameRoot.cs          # autoload: composition root, owns GameSession
     Farm/FarmPlotView.cs      # draws Tiles and Plantings from state
-    Farm/TileView.cs
+    Farm/TileView.cs          # one Tile's slab; a grass Tile's detail is a GrassTileModels mesh (GrassTileArt layout and quarter turn from its grid position, in the Season's grass)
     Player/PlayerController.cs
     Player/ToolTargeting.cs   # which Tile the Use action targets
     Player/FarmerAnimator.cs  # plays the farmer's locomotion and action clips (#103)
@@ -135,6 +135,7 @@ game/
       Farmhouse.tscn          # the run-down farmhouse (#104): one Model mesh, no collision (Farm.tscn's House keeps its box)
       FarmhouseView.cs        # merges FarmhouseArt.RunDown (Application/Art/FarmhouseArt.cs) into that one mesh under the shared material
       RoundFarmhouseModels.cs # the concept art's round farmhouse, run-down and restored, from RoundFarmhouseArt (Application/Art/); art sandbox only for now
+      GrassTileModels.cs      # the grass Tile detail meshes: each GrassTileArt layout in each Season's grass, shared by every Tile showing it
       NatureModels.cs         # the Twinbough (TreeArt: each stage and season) and the rocks (RockArt: rock, boulder, Rosk and Groth ore); art sandbox only for now
     town/
       TownModels.cs           # the general store at each StoreStage (GeneralStoreArt) and the carpenter at each CarpenterStage (CarpenterArt), both on the shared RoundBuilding shape, and the rebuild sign (RebuildSignArt), with their night-only lights; art sandbox only for now

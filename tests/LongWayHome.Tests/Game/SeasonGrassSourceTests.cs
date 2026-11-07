@@ -106,8 +106,12 @@ public class SeasonGrassSourceTests
     [Fact]
     public void AC6_tile_view_applies_the_seasons_tuft_role_and_height()
     {
+        // The Season's tuft role and height are baked into the grass detail mesh built from its SeasonGrass
+        // (GrassTileArt, tested in GrassTileArtTests); the view swaps that mesh in for the Season.
         var source = ReadScript("Farm", "TileView.cs");
 
+        Assert.Matches(@"\bGrassTileModels\s*\.\s*MeshFor\s*\(\s*_variant\s*,\s*grass\s*\)", source);
+        Assert.Matches(@"\bApplyTufts\s*\(\s*SeasonGrass\.For\s*\(\s*season\s*\)\s*\)", source);
         Assert.Matches(@"\.\s*Tufts\b", source);
         Assert.Matches(@"\bTuftHeightScale\b", source);
     }

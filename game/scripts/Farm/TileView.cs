@@ -14,18 +14,21 @@ namespace LongWayHome.Game.Farm;
 /// <summary>
 /// Draws one Tile of the Farm plot as the 1 x 1 m slab of ART_DIRECTION §7.2 (#78), in the state
 /// <see cref="TileLook.For(Tile, Season)"/> picks: grass (a slab in the Season's ground colour, <see cref="SeasonGrass"/>
-/// (#79), with three small tufts in its tuft colour and height and, on about one Tile in six, a native frond or
-/// puffball), tilled (a brown slab with three east–west furrows) or watered (the same, much darker, with the shader's
+/// (#79), covered by its <see cref="GrassTileArt"/> detail: mottled turf patches, a dozen tufts in the Season's tones
+/// and heights, and by layout clover, flowers, pebbles or a seeding clump, fallen leaves in fall and snow drifts in
+/// winter; each Tile takes one of <see cref="GrassTileArt.Variants"/> layouts and a quarter turn from its grid position,
+/// so neighbours rarely match; and, on about one Tile in six, a native frond or puffball), tilled (a brown slab with three east–west furrows) or watered (the same, much darker, with the shader's
 /// wet sheen); tilled and watered look the same all year (ART_DIRECTION §7.2, BR-T8). The slab is 0.96 m square, so
 /// the dark plot base under the plot shows through the 4 cm gaps as grooves and the grid reads without drawn lines. Any Planting on it stands on the slab top as a low-poly model for
 /// its <see cref="GrowthStage"/> (REQ-12): the art-direction model of <see cref="CropArt"/>, one mesh from
 /// <see cref="CropModels"/> under the shared palette material (#90, #91, #92).
 /// <para>
-/// The slab and furrows are built once when ready; the tufts and native plant on the first <see cref="Refresh"/>,
-/// which brings the Tile's grid position for their <see cref="TileDecoration"/>, and only if the Tile is still grass
-/// (a tilled Tile never reverts, BR-T8). After that <see cref="Refresh"/> only swaps palette roles, sets the
-/// <c>wet</c> instance parameter, scales the tufts' height and shows or hides parts, and only when the look or the
-/// Season's tufts change. Each (stage, crop) model is
+/// The slab and furrows are built once when ready; the grass detail (the <c>Tufts</c> node) and native plant on the first
+/// <see cref="Refresh"/>, which brings the Tile's grid position for their <see cref="GrassTileArt.PickFor"/> and
+/// <see cref="TileDecoration"/>, and only if the Tile is still grass (a tilled Tile never reverts, BR-T8). After that
+/// <see cref="Refresh"/> only swaps palette roles, sets the <c>wet</c> instance parameter, swaps the detail to the
+/// Season's shared mesh (<see cref="GrassTileModels"/>, whose blades already take the Season's <c>Tufts</c> role and
+/// <c>TuftHeightScale</c>) and shows or hides parts, and only when the look or the Season's grass change. Each (stage, crop) model is
 /// built once, the first time it is shown. Every lit tile mesh uses the one shared palette material. Holds no rules.
 /// </para>
 /// </summary>
@@ -55,8 +58,11 @@ public partial class TileView : Node3D
 
     private MeshInstance3D? _nativePlant;
 
-    /// <summary>The palette role last given to the tufts, so a Season's role is applied only when it changes.</summary>
-    private string? _tuftRole;
+    /// <summary>The Season grass the detail mesh was last built for, so a Season's mesh is swapped in only when it changes.</summary>
+    private SeasonGrass? _tuftGrass;
+
+    /// <summary>This Tile's grass layout, from its grid position.</summary>
+    private int _variant;
 
     private bool _decorated;
 
@@ -135,28 +141,19 @@ public partial class TileView : Node3D
     }
 
     /// <summary>
-    /// Gives the tufts the Season's role and height, when either has changed. The blades stand on the slab top, so the
-    /// node is scaled on Y about that height (not about y 0) to keep their feet on the slab.
+    /// Shows this Tile's grass layout in the Season's <paramref name="grass"/>, when the Season's grass has changed: the
+    /// shared mesh of <see cref="GrassTileModels.MeshFor"/>, whose blades take <c>grass.Tufts</c> and
+    /// <c>grass.TuftHeightScale</c> (winter's short tips through the snow) and whose patches its tones.
     /// </summary>
     private void ApplyTufts(SeasonGrass grass)
     {
-        if (_tufts is null)
+        if (_tufts is null || grass == _tuftGrass)
         {
             return;
         }
 
-        if (grass.Tufts != _tuftRole)
-        {
-            ArtMaterials.Apply(_tufts, grass.Tufts);
-            _tuftRole = grass.Tufts;
-        }
-
-        var scale = grass.TuftHeightScale;
-        if (!Mathf.IsEqualApprox(_tufts.Scale.Y, scale))
-        {
-            _tufts.Scale = new Vector3(1f, scale, 1f);
-            _tufts.Position = new Vector3(0f, SurfaceHeight * (1f - scale), 0f);
-        }
+        _tufts.Mesh = GrassTileModels.MeshFor(_variant, grass);
+        _tuftGrass = grass;
     }
 
     private Node3D ModelFor(GrowthStage stage, CropTypeId crop)
@@ -227,16 +224,17 @@ public partial class TileView : Node3D
         }
 
         var decoration = TileDecoration.For(position);
-        var blades = new List<MeshPart>();
-        foreach (var (x, z) in decoration.TuftOffsets)
-        {
-            blades.AddRange(Decorations.Tuft(x, z, SurfaceHeight));
-        }
+        var (variant, quarterTurns) = GrassTileArt.PickFor(position);
+        _variant = variant;
 
+        // The detail stands on the slab top, coloured by its UVs under the shared material; its mesh is set by
+        // ApplyTufts for the Season.
         _tufts = new MeshInstance3D
         {
             Name = "Tufts",
-            Mesh = ArtMeshes.Merge(blades),
+            MaterialOverride = ArtMaterials.Shared,
+            Position = new Vector3(0f, SurfaceHeight, 0f),
+            RotationDegrees = new Vector3(0f, 90f * quarterTurns, 0f),
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
             Visible = false,
         };
@@ -271,21 +269,9 @@ public partial class TileView : Node3D
     private static ArrayMesh FurrowMesh => _furrowMesh ??= ArtMeshes.Merge(FurrowRows.Select(z =>
         new MeshPart(new BoxMesh { Size = FurrowSize }, At(0f, SurfaceHeight + (FurrowHeight / 2f), z))));
 
-    /// <summary>The grass tile's tufts and native plants, each standing on the slab top at <c>top</c>.</summary>
+    /// <summary>The grass tile's native plants, each standing on the slab top at <c>top</c>.</summary>
     private static class Decorations
     {
-        /// <summary>Three thin blades, 0.08–0.12 m tall, fanned out and leaning away from the tuft's centre.</summary>
-        public static IEnumerable<MeshPart> Tuft(float x, float z, float top)
-        {
-            for (var i = 0; i < 3; i++)
-            {
-                var height = 0.08f + (0.02f * i);
-                yield return new MeshPart(
-                    new PrismMesh { Size = new Vector3(0.03f, height, 0.008f) },
-                    Lean(x, top, z, (i * 120f) + 15f, 20f, height / 2f));
-            }
-        }
-
         /// <summary>Two flat fronds leaning out on opposite sides, about 0.22 m tall.</summary>
         public static IEnumerable<MeshPart> Frond(float top) =>
         [
