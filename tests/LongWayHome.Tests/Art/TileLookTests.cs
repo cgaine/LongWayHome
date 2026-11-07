@@ -185,6 +185,12 @@ public class TileLookTests
         }
     }
 
+    [Fact]
+    public void AC5_a_grass_tile_in_an_undefined_season_is_rejected()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => TileLook.For(new Tile(Position), (Season)99));
+    }
+
     [Theory]
     [MemberData(nameof(Seasons))]
     public void AC5_grass_tile_slab_takes_the_seasons_ground(Season season)

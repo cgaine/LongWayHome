@@ -15,9 +15,9 @@ namespace LongWayHome.Game.Farm;
 /// Draws one Tile of the Farm plot as the 1 x 1 m slab of ART_DIRECTION §7.2 (#78), in the state
 /// <see cref="TileLook.For(Tile, Season)"/> picks: grass (a slab in the Season's ground colour, <see cref="SeasonGrass"/>
 /// (#79), with three small tufts in its tuft colour and height and, on about one Tile in six, a native frond or
-/// puffball), tilled (the same all year, BR-T8) (a brown slab with three east–west furrows) or watered (the same, much darker, with the
-/// shader's wet sheen). The slab is 0.96 m square, so the dark plot base under the plot shows through the 4 cm gaps as
-/// grooves and the grid reads without drawn lines. Any Planting on it stands on the slab top as a low-poly model for
+/// puffball), tilled (a brown slab with three east–west furrows) or watered (the same, much darker, with the shader's
+/// wet sheen); tilled and watered look the same all year (ART_DIRECTION §7.2, BR-T8). The slab is 0.96 m square, so
+/// the dark plot base under the plot shows through the 4 cm gaps as grooves and the grid reads without drawn lines. Any Planting on it stands on the slab top as a low-poly model for
 /// its <see cref="GrowthStage"/>: a seed mound, a sprout, a young plant tinted toward its crop's colour, or a
 /// crop-specific ripe model (REQ-12).
 /// <para>
