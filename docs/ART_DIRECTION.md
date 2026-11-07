@@ -492,6 +492,42 @@ The two things beside the plot that the farmer uses every day. Each shows where 
 - **Steam Deck first:** every effect must hold the frame rate on the Deck at 1280 x 800 (the risk register in `docs/requirements/technical-blueprint.md` already plans for low-poly art and Deck testing). Effects that cost too much get a lower-cost fallback.
 - **Separate from gameplay:** new art lives in its own folder and scenes, never in the rules (Domain, Application). A gameplay scene adopts a new asset by swapping a model or material, without changing any rules.
 
+### 8.1 HUD and menus (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (HUD and menus page)
+
+**One small UI kit** for the HUD and every menu, drawn at the Steam Deck's 1280 x 800. Warm plum panels and cream text are the town's warm side (section 2); ember is the accent and the focus colour. Type is Nunito (rounded and cozy, clear on the Deck). Every text is 20 px or more, 22 px for body text, as the game's text-size test already requires.
+
+| Role | Colour |
+| --- | --- |
+| Panel | `#241C30` at about 88% opacity, with a mauve `#9C7E8C` line |
+| Text / muted text | `#F6F1E4` / `#CFC6D8` |
+| Accent and focused button | Ember `#E9773A`, with an amber `#FFB04A` focus ring |
+| Energy | Ember to gold `#E9773A` → `#F7C531` |
+| Water | `#6FC3E8` |
+| Gold | `#F7D27A` |
+| Disabled | `#9A92A6`, with a dashed border |
+
+**The HUD** shows what the game shows today:
+
+- **Top left, status:** energy as an ember-to-gold bar with its number; the watering can as 20 water pips, one per charge; gold with a sprout coin. The energy bar turns ember when the farmer is tired.
+- **Top right, clock:** weather icon and time; a day arc from 6 am to 2 am along which the sun (Hearth after dark) moves, with a tick where dusk starts; then the date.
+- **Bottom centre, hotbar:** six slots, ready for the backpack row (REQ-47). Icons instead of words, with the stack count in the corner; the selected slot rises with an ember border and its name shows above. The change-item glyphs sit at each end.
+- **Prompts, above the hotbar:** the Use prompt with its glyph (REQ-12). An interaction (Ship crops, Refill can, Sleep, Shop) stacks above it with an ember border. A rejection ("Already watered") is greyed and dashed, with no glyph.
+- **Glyphs** follow the last device used (REQ-13): keys are square cream chips, controller buttons round ones.
+- The panels are nearly opaque, so the HUD reads the same over morning mist and the indigo night.
+
+**Menus.** Every menu works with a controller alone: one item always has focus, and the glyphs for the current device sit at the bottom.
+
+| Screen | Look |
+| --- | --- |
+| Title | "Long Way Home" over the meadow at dusk with Hearth rising; Continue (with the slot's date and gold), New game, Load game, Quit, as in the game |
+| Shop (Maggie's corner) | Maggie in an arched window beside the list. Each listing has an icon, its Season and grow days, and its price; out-of-season seeds stay listed but greyed, saying why |
+| Pause | "Paused" with the date and time. Proposal: adds Controls and Quit to title to today's Resume, and a line saying the farm was saved last night |
+| Night | The two moons over the lake, "You slept." or "You passed out…", the new date. Proposal: a summary of what sold overnight and the gold earned, then Saved, or the save-failed line in ember |
+
+**Still to design:** the backpack screen (REQ-47), the save slot list and overwrite question, settings, and talking to residents (dialogue boxes and the friendship lanterns).
+
 ## 9. Open questions
 
 - [x] How alien overall? Decided: a little further than the first draft for buildings, which are "grown, not built" (section 7.1). The rest keeps "familiar at first, different on a second look".
