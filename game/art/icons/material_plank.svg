@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Planks</title>
+  <g transform="rotate(-18 32 32)">
+    <rect x="4" y="34" width="56" height="13" rx="2" fill="#9C7E8C" stroke="#34405E" stroke-width="2"/>
+    <rect x="5" y="43" width="54" height="3" fill="#7E6474"/>
+    <rect x="52" y="35" width="7" height="11" fill="#C9A88E"/>
+    <path d="M10 39 q8 -2 16 0 t16 0" fill="none" stroke="#6E5664" stroke-width="1.6" stroke-linecap="round"/>
+    <rect x="4" y="18" width="56" height="13" rx="2" fill="#9C7E8C" stroke="#34405E" stroke-width="2"/>
+    <rect x="5" y="27" width="54" height="3" fill="#7E6474"/>
+    <rect x="52" y="19" width="7" height="11" fill="#C9A88E"/>
+    <path d="M12 23 q8 2 16 0 t14 0" fill="none" stroke="#6E5664" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+</svg>

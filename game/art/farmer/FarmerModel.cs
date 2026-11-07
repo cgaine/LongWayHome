@@ -22,7 +22,8 @@ namespace LongWayHome.Game.Art;
 /// <item>a <c>Shadow</c>: a flat 0.6 m dark disc just above the tile slabs (y 0.065), unshaded and 35% opaque,
 /// casting no shadow;</item>
 /// <item>a <see cref="BoneAttachment3D"/> <c>HeldItem</c> on the <c>RightHand</c> bone holding one mesh per item kind,
-/// built on first show from <see cref="HeldItemArt.PartsFor"/>, shown one at a time by <see cref="ShowHeld"/>.</item>
+/// built on first show from <see cref="HeldItemArt.PartsFor"/>, shown one at a time by <see cref="ShowHeld"/> (or, for the
+/// Phase 2 axe and pickaxe, which only the art sandbox shows yet, by <see cref="ShowGatherTool"/>).</item>
 /// </list>
 /// It also gives the scene's <c>Animations</c> <see cref="AnimationPlayer"/> the clips of
 /// <see cref="FarmerAnimations.Build"/> as its default library (#103); <c>FarmerAnimator</c> on the Player, or the art
@@ -51,6 +52,8 @@ public partial class FarmerModel : Node3D
 
     private static readonly Dictionary<HeldItem, ArrayMesh> HeldMeshes = new();
 
+    private static readonly Dictionary<GatherTool, ArrayMesh> GatherMeshes = new();
+
     private static ArrayMesh? _bodyMesh;
 
     private static Skin? _skin;
@@ -63,6 +66,12 @@ public partial class FarmerModel : Node3D
 
     /// <summary>The held-item meshes this farmer has shown, one per item kind.</summary>
     private readonly Dictionary<HeldItem, MeshInstance3D> _heldViews = new();
+
+    /// <summary>The gathering-tool meshes this farmer has shown (art sandbox only).</summary>
+    private readonly Dictionary<GatherTool, MeshInstance3D> _gatherViews = new();
+
+    /// <summary>The gathering tool to hold instead of <see cref="_held"/>, if any.</summary>
+    private GatherTool? _gather;
 
     private BoneAttachment3D? _hand;
 
@@ -102,7 +111,12 @@ public partial class FarmerModel : Node3D
         _hand = new BoneAttachment3D { Name = "HeldItem", BoneName = HandBone };
         Skeleton.AddChild(_hand);
 
+        var gather = _gather;
         ShowHeld(_held);
+        if (gather is { } tool)
+        {
+            ShowGatherTool(tool);
+        }
 
         // #103: the clips, on the scene's AnimationPlayer. Its root node is this Farmer, so the tracks'
         // "Skeleton:<Bone>" paths resolve to the skeleton just built (the player resolves them when it first plays).
@@ -116,9 +130,15 @@ public partial class FarmerModel : Node3D
     public void ShowHeld(HeldItem held)
     {
         _held = held;
+        _gather = null;
         if (_hand is null)
         {
             return;
+        }
+
+        foreach (var view in _gatherViews.Values)
+        {
+            view.Visible = false;
         }
 
         if (!_heldViews.ContainsKey(held))
@@ -137,6 +157,51 @@ public partial class FarmerModel : Node3D
         foreach (var (item, view) in _heldViews)
         {
             view.Visible = item == held;
+        }
+    }
+
+    /// <summary>
+    /// Shows a Phase 2 gathering tool (the axe or the pickaxe, <see cref="HeldItemArt.PartsFor(GatherTool)"/>) in his
+    /// right hand and hides the rest. The game has no such tools yet, so only the art sandbox calls this; a later
+    /// <see cref="ShowHeld"/> puts the held item back.
+    /// </summary>
+    public void ShowGatherTool(GatherTool tool)
+    {
+        _gather = tool;
+        if (_hand is null)
+        {
+            return;
+        }
+
+        if (!_gatherViews.ContainsKey(tool))
+        {
+            if (!GatherMeshes.TryGetValue(tool, out var mesh))
+            {
+                mesh = ArtMeshes.Merge(HeldItemArt.PartsFor(tool).Select(part => ToMeshPart(
+                    part.Shape, part.SizeX, part.SizeY, part.SizeZ, part.X, part.Y, part.Z,
+                    part.PitchDegrees, part.YawDegrees, part.RollDegrees, part.Role)));
+                GatherMeshes[tool] = mesh;
+            }
+
+            var view = new MeshInstance3D
+            {
+                Name = $"{tool}",
+                Mesh = mesh,
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.On,
+            };
+            _hand.AddChild(view);
+            _gatherViews[tool] = view;
+        }
+
+        foreach (var view in _heldViews.Values)
+        {
+            view.Visible = false;
+        }
+
+        foreach (var (item, view) in _gatherViews)
+        {
+            view.Visible = item == tool;
         }
     }
 

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Wood</title>
+  <rect x="6" y="22" width="44" height="26" rx="13" fill="#9C7E8C" stroke="#34405E" stroke-width="2"/>
+  <path d="M10 41 Q28 46 46 41 L46 46 Q28 50 10 46 Z" fill="#7E6474"/>
+  <path d="M13 29 q8 -3 15 0 t14 0" fill="none" stroke="#6E5664" stroke-width="2" stroke-linecap="round"/>
+  <path d="M15 37 q7 -2 13 0" fill="none" stroke="#6E5664" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="49" cy="35" rx="9" ry="13" fill="#C9A88E" stroke="#34405E" stroke-width="2"/>
+  <ellipse cx="49" cy="35" rx="5" ry="7.5" fill="none" stroke="#FFB04A" stroke-width="1.8"/>
+  <ellipse cx="49" cy="35" rx="1.8" ry="2.6" fill="#FFB04A"/>
+  <path d="M20 22 q-2 -9 4 -13 q5 0 2 7" fill="none" stroke="#3E8F82" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="25" cy="10" rx="4" ry="2.4" fill="#4FA294" transform="rotate(-30 25 10)"/>
+</svg>

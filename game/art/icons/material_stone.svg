@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Stone</title>
+  <path d="M8 46 L15 25 L30 14 L47 18 L57 35 L51 52 L24 57 Z" fill="#9A95A2" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M15 25 L30 14 L47 18 L34 30 Z" fill="#E4ECF0"/>
+  <path d="M34 30 L57 35 L51 52 Z" fill="#6E6670"/>
+  <path d="M8 46 L24 57 L26 40 Z" fill="#8F8A96"/>
+  <path d="M34 30 L26 40 M26 40 L24 57" fill="none" stroke="#34405E" stroke-width="1.2"/>
+</svg>

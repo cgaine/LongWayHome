@@ -5,6 +5,20 @@ using LongWayHome.Domain.Players;
 namespace LongWayHome.Application.Art;
 
 /// <summary>
+/// The gathering tools bought from Maggie in Phase 2 (design doc, Tools: the axe for 50 gold, the pickaxe for 75), drawn
+/// ahead of the game having them: they are not <see cref="ToolId"/> values yet, so nothing in play can hold them. The art
+/// sandbox shows them in the farmer's hand through <see cref="HeldItemArt.PartsFor(GatherTool)"/>.
+/// </summary>
+public enum GatherTool
+{
+    /// <summary>The axe: wood and sap from trees.</summary>
+    Axe,
+
+    /// <summary>The pickaxe: stone and ore from rocks.</summary>
+    Pickaxe,
+}
+
+/// <summary>
 /// The parts of the item in the farmer's right hand (#102), in the hand's space (origin at the <c>RightHand</c> bone,
 /// the centre of the fist; y up from the grip, +Z the farmer's front). Pure C#, no Godot; the Godot builder
 /// <c>FarmerModel</c> merges each item into one mesh under the shared palette material.
@@ -21,6 +35,12 @@ namespace LongWayHome.Application.Art;
 /// cord, tied at the neck (<c>timber-side</c>), its mouth flaring open with three seeds peeking out in the crop's
 /// colour (<c>ember</c>, <c>dusktuber</c>, <c>moonmelon</c>, <c>sunbell-gold</c>, <c>starcorn</c>), and a
 /// <c>timber</c> patch on its front.</description></item>
+/// <item><term>Axe (basic)</term><description>The hoe's short, thick handle and bands, with a <c>rock</c> head on top
+/// (ART_DIRECTION §6.4): a socket round the handle, a short <c>rock</c> poll behind and a single wedge jutting forward
+/// that deepens towards its edge, with a pale <c>ship-metal</c> sharpened edge 0.2 m in front of the handle.</description></item>
+/// <item><term>Pickaxe (basic)</term><description>The same handle with a curved, double-pointed <c>rock</c> head across
+/// its top, forward and back: each arm three tapering pieces bending down towards a <c>ship-metal</c> point, 0.5 m
+/// tip to tip, the widest silhouette of the tools.</description></item>
 /// </list>
 /// </summary>
 public static class HeldItemArt
@@ -28,6 +48,10 @@ public static class HeldItemArt
     private static readonly IReadOnlyList<CropPart> HoeParts = BuildHoe();
 
     private static readonly IReadOnlyList<CropPart> CanParts = BuildCan();
+
+    private static readonly IReadOnlyList<CropPart> AxeParts = BuildAxe();
+
+    private static readonly IReadOnlyList<CropPart> PickaxeParts = BuildPickaxe();
 
     private static readonly Dictionary<CropTypeId, IReadOnlyList<CropPart>> PouchParts = Enum.GetValues<CropTypeId>()
         .ToDictionary(crop => crop, crop => (IReadOnlyList<CropPart>)BuildPouch(SeedColour(crop)));
@@ -54,6 +78,15 @@ public static class HeldItemArt
 
         throw new ArgumentException($"No held-item art for tool {held.Tool}, seed {held.Seed}.", nameof(held));
     }
+
+    /// <summary>The parts of a gathering tool (basic level), in the hand's space like the hoe.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">An undefined tool.</exception>
+    public static IReadOnlyList<CropPart> PartsFor(GatherTool tool) => tool switch
+    {
+        GatherTool.Axe => AxeParts,
+        GatherTool.Pickaxe => PickaxeParts,
+        _ => throw new ArgumentOutOfRangeException(nameof(tool), tool, "Unknown gathering tool."),
+    };
 
     /// <summary>The crop's own colour role, as on its seed and ripe models (#90–#92) and its icons (#95).</summary>
     private static string SeedColour(CropTypeId crop) => crop switch
@@ -101,6 +134,52 @@ public static class HeldItemArt
             // The dent: a small flat facet, tilted against the round side so it catches the light differently.
             Part("Dent", CropPartShape.Box, 0.012f, 0.07f, 0.08f, 0.128f, -0.22f, -0.04f, "rock", yaw: 20f, roll: 12f),
         ];
+    }
+
+    /// <summary>The handle the hoe, axe and pickaxe share: timber, held near its lower end, with two bands.</summary>
+    private static List<CropPart> Handle() =>
+    [
+        Part("Handle", CropPartShape.Cylinder, 0.05f, 0.75f, 0.05f, 0f, 0.155f, 0f, "timber"),
+        Part("HandleBand", CropPartShape.Cylinder, 0.058f, 0.05f, 0.058f, 0f, 0.11f, 0f, "timber-side"),
+        Part("HandleButt", CropPartShape.Cylinder, 0.058f, 0.04f, 0.058f, 0f, -0.20f, 0f, "timber-side"),
+    ];
+
+    private static List<CropPart> BuildAxe() =>
+    [
+        .. Handle(),
+        Part("Socket", CropPartShape.Box, 0.065f, 0.12f, 0.08f, 0f, 0.48f, 0f, "rock"),
+        Part("Poll", CropPartShape.Box, 0.06f, 0.08f, 0.05f, 0f, 0.48f, -0.06f, "rock"),
+        // The wedge: a cheek next to the socket, then a deeper blade, then the pale edge.
+        Part("Cheek", CropPartShape.Box, 0.05f, 0.11f, 0.07f, 0f, 0.48f, 0.07f, "rock"),
+        Part("Blade", CropPartShape.Box, 0.042f, 0.19f, 0.07f, 0f, 0.475f, 0.14f, "rock"),
+        Part("BladeTop", CropPartShape.Box, 0.042f, 0.05f, 0.09f, 0f, 0.555f, 0.125f, "rock", pitch: -24f),
+        Part("BladeBottom", CropPartShape.Box, 0.042f, 0.05f, 0.09f, 0f, 0.395f, 0.125f, "rock", pitch: 24f),
+        Part("Edge", CropPartShape.Box, 0.03f, 0.22f, 0.025f, 0f, 0.475f, 0.185f, "ship-metal"),
+        Part("Wedge", CropPartShape.Box, 0.012f, 0.06f, 0.06f, 0f, 0.535f, 0f, "timber-grain"),
+    ];
+
+    private static List<CropPart> BuildPickaxe()
+    {
+        var parts = Handle();
+        parts.Add(Part("Socket", CropPartShape.Box, 0.07f, 0.09f, 0.08f, 0f, 0.5f, 0f, "rock"));
+        // Each arm bends down in three tapering pieces towards a pale point, forward (+Z) and back (−Z).
+        (float Droop, float Length, float Height, float Width)[] pieces = [(8f, 0.09f, 0.05f, 0.05f), (22f, 0.09f, 0.04f, 0.042f), (40f, 0.08f, 0.03f, 0.034f)];
+        foreach (var (side, name) in new[] { (1f, "Front"), (-1f, "Back") })
+        {
+            var at = (Y: 0.51f, Z: side * 0.03f);
+            for (var i = 0; i < pieces.Length; i++)
+            {
+                var (droop, length, height, width) = pieces[i];
+                var (sin, cos) = MathF.SinCos(droop * MathF.PI / 180f);
+                var end = (Y: at.Y - sin * length, Z: at.Z + side * cos * length);
+                // The piece lies along Z, pitched so its far end drops by the droop.
+                parts.Add(Part($"Arm{name}{i}", CropPartShape.Box, width, height, length + 0.01f, 0f, (at.Y + end.Y) / 2f, (at.Z + end.Z) / 2f,
+                    i == pieces.Length - 1 ? "ship-metal" : "rock", pitch: side * droop));
+                at = end;
+            }
+        }
+
+        return parts;
     }
 
     private static List<CropPart> BuildPouch(string colour) =>

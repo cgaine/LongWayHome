@@ -4,6 +4,22 @@ using LongWayHome.Domain.Catalog;
 namespace LongWayHome.Application.Art;
 
 /// <summary>
+/// The Phase 2 materials that have backpack icons (design doc, Gathering and Rebuilding; the concept art's Backpack
+/// page), drawn ahead of the game having them: nothing in play carries them yet.
+/// </summary>
+public enum MaterialKind
+{
+    Wood,
+    Sap,
+    Stone,
+    RoskOre,
+    GrothOre,
+    Glimmercap,
+    Plank,
+    SealedPlank,
+}
+
+/// <summary>
 /// The Godot resource paths of the seed and crop icons under <c>game/art/icons/</c> (#95). Icons key on
 /// <see cref="CropTypeId"/>, not on the data file, so a seed type with no data row still has one. Pure C#, no Godot.
 /// </summary>
@@ -18,6 +34,33 @@ public static class ItemIcons
     /// <summary>"res://art/icons/crop_&lt;code&gt;.svg" for the crop's canonical code.</summary>
     /// <exception cref="ArgumentOutOfRangeException">An undefined Crop type.</exception>
     public static string CropIcon(CropTypeId crop) => $"{Folder}crop_{CodeOf(crop)}.svg";
+
+    /// <summary>"res://art/icons/material_&lt;code&gt;.svg": wood, sap, stone, rosk_ore, groth_ore, glimmercap, plank, sealed_plank.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">An undefined material.</exception>
+    public static string MaterialIcon(MaterialKind material) => $"{Folder}material_{CodeOf(material)}.svg";
+
+    /// <summary>"res://art/icons/tool_&lt;code&gt;.svg": axe, pickaxe.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">An undefined tool.</exception>
+    public static string ToolIcon(GatherTool tool) => tool switch
+    {
+        GatherTool.Axe => $"{Folder}tool_axe.svg",
+        GatherTool.Pickaxe => $"{Folder}tool_pickaxe.svg",
+        _ => throw new ArgumentOutOfRangeException(nameof(tool), tool, "Unknown gathering tool."),
+    };
+
+    /// <summary>The material's code in its icon's file name.</summary>
+    private static string CodeOf(MaterialKind material) => material switch
+    {
+        MaterialKind.Wood => "wood",
+        MaterialKind.Sap => "sap",
+        MaterialKind.Stone => "stone",
+        MaterialKind.RoskOre => "rosk_ore",
+        MaterialKind.GrothOre => "groth_ore",
+        MaterialKind.Glimmercap => "glimmercap",
+        MaterialKind.Plank => "plank",
+        MaterialKind.SealedPlank => "sealed_plank",
+        _ => throw new ArgumentOutOfRangeException(nameof(material), material, "Unknown material."),
+    };
 
     /// <summary>The seed icon for a held seed, or null for a tool.</summary>
     public static string? For(HeldItem item)
