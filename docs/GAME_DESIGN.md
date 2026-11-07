@@ -2,7 +2,7 @@
 
 Nov 5, 2026 · @Chris Gaine
 
-> Snapshot of the living design doc at https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN (rev 171). The live doc is the source of truth; re-export here as it evolves.
+> This file is the living design doc and the source of truth. Edit it here; it replaces the earlier Claude Doc, whose last revision (rev 173) was merged in on 2026-11-07.
 
 Long Way Home is a cozy 3D farming game (working title chosen 2026-11-05; the browser prototype is still called Little Acre, v0.1). This doc tracks how its systems connect, the numbers behind them, and what to build next. The title may change before release: three space-themed games on Steam already use "A Long Way Home" or "The Long Way Home", one of them with farming, so a subtitle or different name may be needed.
 
@@ -17,7 +17,21 @@ These are proposed starting points. Rewrite them until they feel right, then use
 
 ## Systems map
 
-> *Interactive diagram (6-step core loop, 4 supporting systems) — view it in the [live doc](https://claude.ai/artifact/1eP2gWZqTNcAMPXXxLyaiN).*
+Gold drives the loop; energy, water and sleep gate how fast it turns. Square boxes are the six-step core daily loop; rounded boxes are the four supporting systems.
+
+```mermaid
+flowchart LR
+    gold["<b>Gold</b><br/>Starts at 100g"] --> shop["<b>Shop</b><br/>Seeds and the can upgrade"]
+    shop --> plot["<b>Farm plot</b><br/>Till, then plant seeds"]
+    plot --> growth["<b>Crop growth</b><br/>1 stage per watered night"]
+    growth --> basket["<b>Harvest to basket</b><br/>Ripe crops"]
+    basket --> bin["<b>Shipping bin</b><br/>Sells at base price"]
+    bin --> gold
+    energy(["<b>Energy</b><br/>150 a day, refills on sleep"]) -- limits tilling and watering --> plot
+    can(["<b>Watering can</b><br/>20 uses, refill at any water"]) -- watered tiles grow --> growth
+    weather(["<b>Weather</b><br/>22% rain waters every tile"]) -- rain --> can
+    sleep(["<b>Sleep</b><br/>Ends the day at the door"]) -- pays out overnight --> bin
+```
 
 Gold buys seeds, seeds become crops, and crops ship for gold. Energy and the watering can cap how much of the plot you can work each day, and nothing grows or sells until you sleep. When you add a system, add its box and arrows here first.
 
@@ -283,7 +297,7 @@ Each season starts with two crops; more seeds unlock as the general store expand
 | Season | Starting crops |
 | --- | --- |
 | Spring | Emberroot (orange root, warm to the touch), dusktuber (purple tuber that keeps all winter) |
-| Summer | Sunbell (hanging fruit that rings in the wind), starcorn (tall stalks, glittering kernels) |
+| Summer | Sunbell (sun-coloured berries that hang upside down on a bush), starcorn (tall stalks, glittering kernels) |
 | Fall | Moonmelon (pale gourd that glows faintly at night), coilsquash (spiral squash) |
 | Winter | None outdoors: a season for mining, fishing and rebuilding |
 
@@ -457,18 +471,9 @@ The river runs from the mountains to the lake, giving several fishing spots alon
 - Uses: sell, supply June's café, or use in later rebuilds
 - Future enhancement: breeding and hatching eggs
 
-## Art direction (draft)
+## Art direction
 
-Stylized 3D, a step up from the choppy low-poly prototype: cozy, readable, light enough for the Steam Deck. Familiar at first glance, with a touch of alien.
-
-- Shapes: smooth shading on organic things (crops, rocks, characters, animals); harder edges on buildings. Plants and trees slightly off from Earth (spiral trunks, oversized leaves); buildings stay familiar and cozy
-- Colour: one tight palette used everywhere. Mostly familiar greens and browns, with a few odd accents (teal-tinted grass, purple dusk shadows)
-- Light: soft shadows, light ambient occlusion, warm-to-cool light shifting through the day
-- Glow: crops, wild glowing plants, Embrite and the crash site glow softly at night; glow is the main alien signature
-- Sky: an alien night sky (e.g. a second moon or a ringed planet)
-- Motion: grass and leaves sway in the wind via a shader
-
-Process: settle style, palette, camera angle and scale (tile and character size) early; leave detailed assets until each area's design is stable. Merge graphics work into the main branch early and then add it phase by phase, rather than keeping a long-lived separate branch. Merge this section with the existing art notes in the repo. Where they differ on colours, the graphics-branch design takes priority over the colour notes here.
+The look of the game lives in [ART_DIRECTION.md](ART_DIRECTION.md). In short: stylised 3D, a step up from the low-poly prototype, cozy and readable and light enough for the Steam Deck; familiar at first glance, with a touch of alien. Glow is the main alien signature. Where this doc and the art direction differ on how things look, the art direction wins.
 
 ## Milestone 1: Godot rebuild
 

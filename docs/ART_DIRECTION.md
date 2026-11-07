@@ -301,7 +301,7 @@ Three native creatures in familiar farm roles (design doc, Ranch and animals). R
 | Town | Tired at first, warmer with each rebuild | Rebuilt buildings get fresh wood, ember-orange roofs and lit windows; unbuilt ones stay grey and boarded up. Progress is visible from the square |
 | Lakeshore and dock | Calm, a little melancholy | Turquoise shallows with drowned rooftops below; lanterns on the water at the festival |
 | River | Lively | Snowmelt falls, rocky creek, wide slow meadow stretch |
-| Mountains and mine | Gets stranger the deeper you go | Upper levels: timber and lantern light. Deep levels: violet glows, then the ship-metal colour |
+| Mountains and mine | Gets stranger the deeper you go | Upper levels: timber and lantern light. Deep levels: violet glows and softly glowing Embrite, then the ship-metal colour |
 | Crash site | Out of place | Smooth, pale, iridescent hull against the organic forest; each installed part lights a section |
 
 ### 7.1 The farmhouse: grown, not built
@@ -390,9 +390,12 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings p
 
 ## 8. Style and technical direction (draft)
 
-- **Style:** stylised low-poly with flat or softly stepped shading, simple shapes, and colour doing most of the work. No realistic textures. This matches what the prototype already uses (REQ-12 "low-poly"), so the upgrade is a better version of the same direction, not a change.
-- **Lighting carries the mood:** most of the alien feel comes from the sky, the light colour and the glows, which are cheap to render. Models stay simple.
-- **Motion:** gentle wind sway on plants, slow "breathing" pulses on glows, light ripples on water. Small motion makes a low-poly world feel alive.
+- **Style:** stylised 3D, a step up from the choppy low-poly prototype: cozy, readable and light enough for the Steam Deck. Simple shapes, with colour doing most of the work, and no realistic textures. This builds on what the prototype already uses (REQ-12 "low-poly"), so the upgrade is a better version of the same direction, not a change.
+- **Shapes** (design doc): smooth shading on organic things (crops, rocks, characters, animals) and harder edges on buildings. Plants and trees are slightly off from Earth (spiral trunks, oversized leaves); buildings keep familiar, cozy shapes (section 7.1). See the shading question in section 9.
+- **One palette:** one tight palette (section 2) is used everywhere, in the world, the characters and the HUD.
+- **Lighting carries the mood:** soft shadows, light ambient occlusion and light that shifts from warm to cool through the day (section 3). Most of the alien feel comes from the sky, the light colour and the glows, which are cheap to render. Models stay simple.
+- **Glow is the main alien signature:** crops, wild glowing plants, Embrite (the rare glowing mineral in the deep mine) and the crash site glow softly at night.
+- **Motion:** gentle wind sway on grass, plants and leaves, driven by a shader; slow "breathing" pulses on glows; light ripples on water. Small motion makes a low-poly world feel alive.
 - **Steam Deck first:** every effect must hold the frame rate on the Deck at 1280 x 800 (the risk register in `docs/requirements/technical-blueprint.md` already plans for low-poly art and Deck testing). Effects that cost too much get a lower-cost fallback.
 - **Separate from gameplay:** new art lives in its own folder and scenes, never in the rules (Domain, Application). A gameplay scene adopts a new asset by swapping a model or material, without changing any rules.
 
@@ -406,10 +409,12 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings p
 - [x] The farmer: chunky proportions, about 3 heads tall
 - [x] The farmhouse: restored by a house upgrade, available once the carpenter moves back
 - [ ] The farmhouse: any further upgrade stages after restored (e.g. a bigger house)?
-- [ ] Flat shading (sharp facets) or soft stepped shading (smoother, more painterly)?
+- [ ] Flat shading (sharp facets) or soft stepped shading (smoother, more painterly)? The design doc proposes smooth shading on organic things and harder edges on buildings (section 8). The farmer and animal sheets (sections 6.1 and 6.3) use faceted three-tone shading, so the two need settling.
 - [x] Camera: decided 2026-11-06. Rotate and zoom (REQ-52): free 360° rotation, with a tilt that goes towards top-down when zoomed out. Check the art from every angle and across the zoom range.
 
 ## 10. Next steps
+
+**Process** (design doc): settle style, palette, camera angle and scale (tile and character size) early, and leave detailed assets until each area's design is stable. Merge graphics work into `main` early and then add it phase by phase, rather than keeping a long-lived separate branch.
 
 1. Settle the theme and palette above.
 2. Build an art sandbox in `game/art/`: a scene, separate from the farm, to try the palette, sky, two moons, water, glow, trees, rocks, the farmhouse and the crops at each time of day.
