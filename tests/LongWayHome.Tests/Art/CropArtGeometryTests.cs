@@ -183,6 +183,8 @@ public class CropArtGeometryTests
             var outer = At(leaf, new Vector3(leaf.SizeX / 2f, 0f, 0f));
             Assert.True(new Vector2(inner.X, inner.Z).Length() <= Tolerance, $"{leaf.Name} inner end {inner} is off the stalk");
             Assert.True(outer.Y < inner.Y - 0.05f, $"{leaf.Name} outer end {outer} does not droop below {inner}");
+            var lowestEdge = At(leaf, new Vector3(leaf.SizeX / 2f, -leaf.SizeY / 2f, 0f)).Y;
+            Assert.True(lowestEdge > 0f, $"{leaf.Name} outer edge dips to y {lowestEdge}, into the soil");
         }
     }
 

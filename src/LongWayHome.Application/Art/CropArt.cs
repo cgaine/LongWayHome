@@ -94,13 +94,13 @@ public sealed record CropPart(
 /// Boxes 0.09 x 0.01 x 0.02 at y 0.20, yawed with the berry and 90° across it, <c>foliage</c>. No glow. About 0.59
 /// wide, 0.39 tall.</description></item>
 /// <item><term>Starcorn Young</term><description><c>Stalk</c> Cylinder bottom 0.05, top 0.035, height 0.40 at y
-/// 0.20, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf3</c> Boxes 0.30 x 0.02 x 0.06 from the stalk axis at y 0.12, 0.20,
-/// 0.28 and 0.36, yawed i x 90° + 30°, the outer end drooping (rolled −25°), <c>foliage</c>. About 0.51 wide, 0.40
-/// tall.</description></item>
+/// 0.20, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf3</c> Boxes 0.30 x 0.02 x 0.06 from the stalk axis at y 0.14, 0.22,
+/// 0.30 and 0.38, yawed i x 90° + 30°, the outer end drooping (rolled −25°) but clear of the soil, <c>foliage</c>.
+/// About 0.51 wide, 0.40 tall.</description></item>
 /// <item><term>Starcorn Ripe</term><description><c>Stalk</c> Cylinder bottom 0.08, top 0.05, height 0.95 at y
-/// 0.475, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf4</c> Boxes 0.36 x 0.02 x 0.07 from the stalk axis at y 0.15, 0.30,
-/// 0.45, 0.60 and 0.75, yawed i x 72°, drooping (rolled −25°), <c>foliage</c>; <c>Cob</c> Cylinder bottom 0.15, top
-/// 0.13, height 0.32 centred at (0.09, 0.62, 0), rolled −15° so its top leans away from the stalk, <c>starcorn</c>;
+/// 0.475, <c>foliage</c>; <c>Leaf0</c>–<c>Leaf4</c> Boxes 0.36 x 0.02 x 0.07 from the stalk axis at y 0.17, 0.32,
+/// 0.47, 0.62 and 0.77, yawed i x 72°, drooping (rolled −25°) but clear of the soil, <c>foliage</c>; <c>Cob</c>
+/// Cylinder bottom 0.15, top 0.13, height 0.32 centred at (0.09, 0.62, 0), rolled −15° so its top leans away from the stalk, <c>starcorn</c>;
 /// <c>HuskLeft</c>/<c>HuskRight</c> Prisms 0.08 x 0.26 x 0.02 rising from the cob's foot on its −Z and +Z sides,
 /// rolled −15° with the cob and pitched ∓20° to peel back, <c>grass-mown</c>; <c>Sparkle0</c>–<c>Sparkle7</c>
 /// Boxes 0.025 pitched 45° and rolled 45° (diamonds), centred 0.005 m proud of the cob's tapering surface, spread
@@ -344,7 +344,7 @@ public static class CropArt
         var parts = new List<CropPart> { Upright("Stalk", CropPartShape.Cylinder, 0.05f, 0.40f, 0.035f, 0.20f, "foliage") };
         for (var i = 0; i < 4; i++)
         {
-            var root = new Vector3(0f, 0.12f + (0.08f * i), 0f);
+            var root = new Vector3(0f, 0.14f + (0.08f * i), 0f);
             parts.Add(LyingFrom($"Leaf{i}", 0.30f, 0.02f, 0.06f, root, yaw: (i * 90f) + 30f, roll: -25f, "foliage"));
         }
 
@@ -360,7 +360,7 @@ public static class CropArt
         var parts = new List<CropPart> { Upright("Stalk", CropPartShape.Cylinder, 0.08f, 0.95f, 0.05f, 0.475f, "foliage") };
         for (var i = 0; i < 5; i++)
         {
-            var root = new Vector3(0f, 0.15f * (i + 1), 0f);
+            var root = new Vector3(0f, 0.17f + (0.15f * i), 0f);
             parts.Add(LyingFrom($"Leaf{i}", 0.36f, 0.02f, 0.07f, root, yaw: i * 72f, roll: -25f, "foliage"));
         }
 
