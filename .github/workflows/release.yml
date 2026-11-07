@@ -1,0 +1,91 @@
+name: Release
+
+# Manual only: use the "Run workflow" button on the Actions tab, on main.
+# Each run tests and exports main, then publishes the next minor version as a GitHub release:
+# v0.1.0 when no release tag exists yet, otherwise the latest vX.Y.Z tag with Y + 1 and Z = 0.
+on:
+  workflow_dispatch:
+
+# One release at a time, and never cancelled halfway, so two runs can't pick the same version.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check-branch:
+    name: check branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Releases come from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Releases are made from main, not ${GITHUB_REF}. Pick main in the Run workflow menu."
+          exit 1
+
+  build:
+    name: build
+    needs: check-branch
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Pick the next minor version
+        id: version
+        run: |
+          set -euo pipefail
+          latest="$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+          if [ -z "$latest" ]; then
+            next="v0.1.0"
+          else
+            IFS=. read -r major minor _ <<< "${latest#v}"
+            next="v${major}.$((minor + 1)).0"
+          fi
+          echo "Latest release tag: ${latest:-none}. Releasing ${next}."
+          echo "tag=$next" >> "$GITHUB_OUTPUT"
+
+      - name: Download Windows build
+        uses: actions/download-artifact@v4
+        with:
+          name: LongWayHome-windows-${{ github.sha }}
+          path: build/windows
+
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: LongWayHome-linux-${{ github.sha }}
+          path: build/linux
+
+      # Artifacts drop the executable bit, so put it back and ship Linux as a tarball, which keeps it.
+      - name: Package builds
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          chmod +x build/linux/LongWayHome.x86_64
+          tar -czf "dist/LongWayHome-${TAG}-linux.tar.gz" -C build/linux .
+          (cd build/windows && zip -qr "../../dist/LongWayHome-${TAG}-windows.zip" .)
+          ls -la dist
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --generate-notes
