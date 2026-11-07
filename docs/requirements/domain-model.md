@@ -49,7 +49,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Stage** | *(planned, REQ-45)* One step of a Building's restoration. Each has a cost and unlocks goods, services or Residents. |
 | **Rebuild sign** | *(planned, REQ-45)* The sign in front of a Building where the Player delivers the next Stage's materials and gold. |
 | **Order** | *(planned, REQ-48, REQ-57)* Work the Player leaves with Tom or Mira (planks, sealed planks, a tool upgrade, a pump), ready the next morning. |
-| **Tool tier** | *(planned, REQ-57)* How strong a tool is: Basic, Rosk or Groth in Phase 2. |
+| **Tool tier** | How strong a tool is: Basic, Rosk or Groth in Phase 2. |
 | **Pump** | *(planned, REQ-49, REQ-57)* A Rosk pump forged by Mira; using one drains a flooded Mine level. |
 | **Mine level** | *(planned, REQ-49)* One floor of the old mine, 1 to 5 in Phase 2. Blocked by debris, or flooded. |
 | **Resident** | *(planned, REQ-50)* A townsperson living in Ember Bay: Maggie, Clyde, Tom, June, Jesse, Mira. |
@@ -570,14 +570,14 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-L4: The axe and pickaxe are sold at Maggie's store from stage 1, once each per Game. Each joins the Backpack at Basic tier; a purchase that finds no free Slot is refused and costs nothing. *(planned, REQ-58)*
 - BR-L5: A listing is offered only when its vendor Building is at or above its `requiresStage`, and a `oncePerGame` listing only until bought. Buying a backpack upgrade sets the Backpack's capacity to that size and adds empty Slots. *(planned, REQ-58, REQ-47)*
 
-### Backpack *(planned, REQ-47)*
+### Backpack
 
-- BR-K1: The Backpack has 12, 24 or 36 Slots, and its capacity never goes down. *(planned, REQ-47)*
-- BR-K2: A Slot is empty or holds 1 to 99 of one item. A tool is always alone in its Slot, with its tier. The same item may fill several Slots. *(planned, REQ-47)*
+- BR-K1: The Backpack has 12, 24 or 36 Slots, and its capacity never goes down.
+- BR-K2: A Slot is empty or holds 1 to 99 of one item. A tool is always alone in its Slot, with its tier. The same item may fill several Slots.
 - BR-K3: An item the Player gains goes first onto a Slot of the same item below 99, then into the lowest free Slot. What fits nowhere drops at the farmer's feet as a DroppedItem. *(planned, REQ-47)*
 - BR-K4: A DroppedItem can be picked up again while there is room; every DroppedItem left is removed in the Night. *(planned, REQ-47)*
 - BR-K5: The hotbar is the 6 Slots of `hotbarRow`. Cycling moves to the next row and wraps back to row 0. *(planned, REQ-47)*
-- BR-K6: Tools can't be dropped, sold, shipped, stored in a chest or lost; they leave the Backpack only while an upgrade Order holds them (BR-O4). *(planned, REQ-47, REQ-57)*
+- BR-K6: Tools can't be dropped, sold, shipped, stored in a chest or lost; they leave the Backpack only while an upgrade Order holds them (BR-O4). *(planned, REQ-57: the upgrade Order)*
 
 ### Resource nodes *(planned, REQ-44, REQ-16, REQ-49)*
 
