@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=3]
+[gd_scene load_steps=38 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
@@ -16,6 +16,7 @@
 [ext_resource type="Material" path="res://art/materials/palette.tres" id="14_palette"]
 [ext_resource type="Script" path="res://art/crops/NightGlowView.cs" id="15_nightglowview"]
 [ext_resource type="PackedScene" path="res://art/farm/Farmhouse.tscn" id="16_farmhouse"]
+[ext_resource type="Script" path="res://scripts/World/DroppedItemsView.cs" id="17_droppeditems"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -118,6 +119,9 @@ shadow_enabled = true
 
 [node name="FarmPlotView" type="Node3D" parent="."]
 script = ExtResource("3_plotview")
+
+[node name="DroppedItemsView" type="Node3D" parent="."]
+script = ExtResource("17_droppeditems")
 
 [node name="House" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -9)

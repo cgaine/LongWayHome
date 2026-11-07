@@ -87,7 +87,7 @@ Folders: `Games/` (Game, GameDate, ClockMinutes, Weather, DayEndReason), `Player
 - `NightProcessor` runs the Night steps in the fixed order from the domain model: growth (BR-T4) → payout (BR-S2) → date (BR-G1) → weather (BR-G4) → watering reset and rain (BR-T7) → energy (BR-P3, BR-P4) → save (BR-G5). It is one method so the order is tested in one place.
 - `NewGameFactory` builds the starting state (BR-P6, BR-T1).
 - `ShopService` lists today's offers (BR-L1) and buys (BR-L2).
-- **Phase 2** *(planned, REQ-44 to REQ-51, REQ-57, REQ-58)*: `GameSession` gains `Swing` (axe or pickaxe on a node), `PickUp`, `CycleHotbar`, `Place`/`PickUpPlaced`, `SellToMaggie`, `Deliver` (rebuild sign), `PlaceOrder`/`CollectOrder`, `UsePump`, `EnterArea`/`EnterMineLevel` and the Opening steps. `NightProcessor` takes the Phase 2 order from the domain model: growth → payout (once the bin exists) → rebuilds → orders → residents → dropped items cleared → node regrowth → date → weather → watering reset → energy → save, still one method with one order test. `NewGameFactory` places the meadow's starting nodes from `NodeSpawn` (BR-N7). Node regrowth (BR-N4) uses no randomness: it is a fixed 2-Night wait, so it's testable without `IRandomSource`.
+- **Phase 2** *(planned, REQ-44 to REQ-46, REQ-48 to REQ-51, REQ-57, REQ-58)*: `GameSession` gains `Swing` (axe or pickaxe on a node), `PickUp`, `CycleHotbar`, `Place`/`PickUpPlaced`, `SellToMaggie`, `Deliver` (rebuild sign), `PlaceOrder`/`CollectOrder`, `UsePump`, `EnterArea`/`EnterMineLevel` and the Opening steps. `NightProcessor` takes the Phase 2 order from the domain model: growth → payout (once the bin exists) → rebuilds → orders → residents → dropped items cleared → node regrowth → date → weather → watering reset → energy → save, still one method with one order test. `NewGameFactory` places the meadow's starting nodes from `NodeSpawn` (BR-N7). Node regrowth (BR-N4) uses no randomness: it is a fixed 2-Night wait, so it's testable without `IRandomSource`.
 - Ports: `IGameDataSource` (crop types, shop listings, tuning), `ISaveStore` (list, load, save slots), `IRandomSource` (weather roll; seeded in tests).
 - Events out to the presentation layer: `GameSession` raises C# events (`TileChanged`, `InventoryChanged`, `DayEnded`, `NightCompleted`). The Godot layer subscribes; the core never calls into Godot.
 
@@ -113,10 +113,11 @@ game/
     Core/GameRoot.cs          # autoload: composition root, owns GameSession
     Farm/FarmPlotView.cs      # draws Tiles and Plantings from state
     Farm/TileView.cs          # one Tile's slab; a grass Tile's detail is a GrassTileModels mesh (GrassTileArt layout and quarter turn from its grid position, in the Season's grass)
-    Player/PlayerController.cs
+    Player/PlayerController.cs # moves the Player; tracks the feet tile and picks up DroppedItems there (#130)
     Player/ToolTargeting.cs   # which Tile the Use action targets
     Player/FarmerAnimator.cs  # plays the farmer's locomotion and action clips (#103)
     World/InteractionPoint.cs # door, bin, shop, pond
+    World/DroppedItemsView.cs # one billboard icon per DroppedItem on its tile, from state; no collision or shadows (#130)
     Ui/Hud.cs                 # hotbar, clock, gold, energy
     Ui/UsePrompt.cs           # shows what Use will do (REQ-12)
     Ui/ShopMenu.cs

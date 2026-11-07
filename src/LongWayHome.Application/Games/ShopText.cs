@@ -41,7 +41,7 @@ public static class ShopText
     public const string SeedsDropped = "Some seeds dropped at your feet";
 
     /// <summary>The message after a successful purchase: <see cref="SeedsDropped"/> when any dropped, else "".</summary>
-    public static string AfterBuy(bool dropped) => throw new NotImplementedException();
+    public static string AfterBuy(bool dropped) => dropped ? SeedsDropped : "";
 
     /// <summary>"Gold 100".</summary>
     public static string Gold(int gold) => GoldText.For(gold);

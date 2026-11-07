@@ -43,7 +43,6 @@ public static class UsePromptText
             Rejection.AlreadyWatered => "Already watered",
             Rejection.CanEmpty => "Can is empty — refill at the pond",
             Rejection.OutOfSeason => OutOfSeason(held, cropTypes),
-            Rejection.BackpackFull => "Backpack full",
             _ => null,
         };
 

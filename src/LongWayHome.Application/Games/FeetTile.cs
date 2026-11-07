@@ -8,5 +8,6 @@ namespace LongWayHome.Application.Games;
 /// </summary>
 public static class FeetTile
 {
-    public static GridPosition Nearest(int cellX, int cellY) => throw new NotImplementedException();
+    public static GridPosition Nearest(int cellX, int cellY) =>
+        new(Math.Clamp(cellX, 0, FarmPlot.Width - 1), Math.Clamp(cellY, 0, FarmPlot.Height - 1));
 }

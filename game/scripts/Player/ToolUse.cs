@@ -25,8 +25,11 @@ public partial class ToolUse : Node
 
     private FarmerAnimator? _animator;
 
+    private PlayerController _player = null!;
+
     public override void _Ready()
     {
+        _player = GetParent<PlayerController>();
         _targeting = GetNode<ToolTargeting>("../ToolTargeting");
         _selection = GetNode<HeldItemSelection>("../HeldItemSelection");
         _animator = GetNodeOrNull<FarmerAnimator>("../FarmerAnimator");
@@ -57,7 +60,8 @@ public partial class ToolUse : Node
         var held = _selection.Position;
         // What Use will do, read first: after a successful Use the preview has moved on (a tilled tile previews Plant).
         var action = _session!.PreviewUse(target, held).Action;
-        var result = _session.Use(target, held);
+        // A harvested Crop that fits nowhere drops at the farmer's feet tile (BR-K3).
+        var result = _session.Use(target, held, _player.Feet);
         if (result.IsOk && FarmerAnimationState.ForUse(action) is { } clip)
         {
             _animator?.PlayOneShot(clip);
