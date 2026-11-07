@@ -71,6 +71,8 @@ Readability comes first (pillar 4): tilled, watered and planted tiles and each c
 
 ## 3. Light and the sky (draft)
 
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Sky and light page)
+
 Time of day is already a system (6:00 am to 2:00 am). The light should make each part of the day feel different:
 
 | Time | Look |
@@ -86,6 +88,28 @@ Time of day is already a system (6:00 am to 2:00 am). The light should make each
 - Wisp: small, blue-white, crosses the sky faster. Second, cooler light.
 - When both are up, objects cast two faint shadows: a small detail that sells "not Earth".
 - Later idea: the moons' phases could connect to systems (e.g. some glowing plants only bloom when both are full).
+
+**The moons in detail** (colours match the art sandbox, `game/art/sandbox/ArtSandbox.cs`):
+
+| | Hearth | Wisp |
+| --- | --- | --- |
+| Colour | Soft gold `#F2D38A` | Blue-white `#CFE2FF` |
+| Size in the sky | About twice Earth's Moon | About half Hearth's size |
+| Path | Rises in the east at dusk; still up when the day ends at 2 am | Rises about 9 pm, crosses the whole sky and sets about 1 am |
+| Shadow | Higher and brighter: shorter, darker, warm-tinted | Lower and fainter: longer, lighter, cool |
+| Second look | A faint tilted ring | A thin trail of haze behind it as it moves |
+| Phases (draft) | One cycle per Season (28 days), full on day 14 | One cycle a week, full on days 7, 14, 21 and 28 |
+
+So both are full together on day 14 of every Season. Phases are display only for now.
+
+**Sky by time of day:**
+
+| Time | Sky (top → horizon) | Sun and moons |
+| --- | --- | --- |
+| Morning | `#8EC5E8` → mint `#CDE9DA` → peach `#FFE2B8` where the sun rises | Low sun `#FFE2B8` over the mountains; mist bands over the lake and meadow |
+| Day | `#8EC5E8` → mint `#CDE9DA` | High sun, short soft shadows |
+| Dusk | Amber `#F0A060` → rose `#B85C86` | Low orange sun in the west, Hearth rising in the east, windows lit |
+| Night | Indigo `#1B2142` → `#2A3160`, with stars | Hearth and Wisp; two faint shadows; glowing plants, leaf tips and lit windows |
 
 Night must never punish the player (pillar 1): it is darker and moodier, but tiles, crops and prompts stay readable.
 
