@@ -471,18 +471,9 @@ The river runs from the mountains to the lake, giving several fishing spots alon
 - Uses: sell, supply June's café, or use in later rebuilds
 - Future enhancement: breeding and hatching eggs
 
-## Art direction (draft)
+## Art direction
 
-Stylized 3D, a step up from the choppy low-poly prototype: cozy, readable, light enough for the Steam Deck. Familiar at first glance, with a touch of alien.
-
-- Shapes: smooth shading on organic things (crops, rocks, characters, animals); harder edges on buildings. Plants and trees slightly off from Earth (spiral trunks, oversized leaves); buildings stay familiar and cozy
-- Colour: one tight palette used everywhere. Mostly familiar greens and browns, with a few odd accents (teal-tinted grass, purple dusk shadows)
-- Light: soft shadows, light ambient occlusion, warm-to-cool light shifting through the day
-- Glow: crops, wild glowing plants, Embrite and the crash site glow softly at night; glow is the main alien signature
-- Sky: an alien night sky (e.g. a second moon or a ringed planet)
-- Motion: grass and leaves sway in the wind via a shader
-
-Process: settle style, palette, camera angle and scale (tile and character size) early; leave detailed assets until each area's design is stable. Merge graphics work into the main branch early and then add it phase by phase, rather than keeping a long-lived separate branch. Merge this section with the existing art notes in the repo. Where they differ on colours, the graphics-branch design takes priority over the colour notes here.
+The look of the game lives in [ART_DIRECTION.md](ART_DIRECTION.md). In short: stylised 3D, a step up from the low-poly prototype, cozy and readable and light enough for the Steam Deck; familiar at first glance, with a touch of alien. Glow is the main alien signature. Where this doc and the art direction differ on how things look, the art direction wins.
 
 ## Milestone 1: Godot rebuild
 
