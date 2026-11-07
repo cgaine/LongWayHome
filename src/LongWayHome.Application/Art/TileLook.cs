@@ -1,3 +1,4 @@
+using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 
 namespace LongWayHome.Application.Art;
@@ -22,4 +23,10 @@ public sealed record TileLook(string SlabRole, bool ShowTufts, bool ShowFurrows,
         TileState.Tilled => tile.Watered ? TilledWatered : TilledDry,
         _ => Grass,
     };
+
+    /// <summary>
+    /// The look for a Tile in <paramref name="season"/> (#79): a grass Tile takes the Season's ground role; tilled and
+    /// watered Tiles look the same all year (BR-T8).
+    /// </summary>
+    public static TileLook For(Tile tile, Season season) => throw new NotImplementedException();
 }

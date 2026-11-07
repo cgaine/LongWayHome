@@ -15,7 +15,8 @@ public class ArtPaletteTests
     private const string RegenerateHint =
         "run `UPDATE_PALETTE=1 dotnet test --filter AC4_committed_palette_png_is_current` to regenerate";
 
-    private static readonly (string Role, string Hex)[] ExpectedSwatches =
+    /// <summary>The 43 swatches #76 shipped, indices 0–42. The list is append-only, so these never move or change.</summary>
+    private static readonly (string Role, string Hex)[] BaselineSwatches =
     [
         ("grass-lit", "#7FA65A"),
         ("grass-shade", "#3F7A6C"),
@@ -62,15 +63,53 @@ public class ArtPaletteTests
         ("roof-far", "#2F6B60"),
     ];
 
+    /// <summary>The whole list: the baseline, then the Season margins appended by #79.</summary>
+    private static readonly (string Role, string Hex)[] ExpectedSwatches =
+    [
+        .. BaselineSwatches,
+        ("grass-spring-mown", "#A6D07C"),
+        ("grass-fall-mown", "#C0BC72"),
+    ];
+
+    /// <summary>The swatches the encoder is given, for the PNG layout tests, which hold for any list length.</summary>
+    private static (string Role, string Hex)[] PaletteSwatches =>
+        ArtPalette.Swatches.Select(s => (s.Role, s.Hex)).ToArray();
+
     // ---- AC1: the swatch list ----
 
     [Fact]
-    public void AC1_palette_lists_the_43_swatches_in_order()
+    public void AC3_palette_lists_the_45_swatches_in_order()
     {
         var actual = ArtPalette.Swatches.Select(s => (s.Role, s.Hex)).ToArray();
 
-        Assert.Equal(43, actual.Length);
+        Assert.Equal(45, actual.Length);
         Assert.Equal(ExpectedSwatches, actual);
+    }
+
+    // ---- #79 AC3: the two Season margin swatches, appended ----
+
+    [Fact]
+    public void AC3_swatch_43_is_grass_spring_mown_A6D07C()
+    {
+        Assert.True(ArtPalette.Swatches.Count > 43, $"the palette has {ArtPalette.Swatches.Count} swatches, no index 43");
+        Assert.Equal(new ArtSwatch("grass-spring-mown", "#A6D07C"), ArtPalette.Swatches[43]);
+    }
+
+    [Fact]
+    public void AC3_swatch_44_is_grass_fall_mown_C0BC72()
+    {
+        Assert.True(ArtPalette.Swatches.Count > 44, $"the palette has {ArtPalette.Swatches.Count} swatches, no index 44");
+        Assert.Equal(new ArtSwatch("grass-fall-mown", "#C0BC72"), ArtPalette.Swatches[44]);
+    }
+
+    [Fact]
+    public void AC3_indices_0_to_42_are_unchanged()
+    {
+        Assert.Equal(43, BaselineSwatches.Length);
+        Assert.True(ArtPalette.Swatches.Count >= 43, $"the palette has only {ArtPalette.Swatches.Count} swatches");
+
+        var first43 = ArtPalette.Swatches.Take(43).Select(s => (s.Role, s.Hex)).ToArray();
+        Assert.Equal(BaselineSwatches, first43);
     }
 
     [Fact]
@@ -122,9 +161,9 @@ public class ArtPaletteTests
     {
         var png = DecodePng(ArtPalette.EncodePng());
 
-        for (var i = 0; i < ExpectedSwatches.Length; i++)
+        for (var i = 0; i < PaletteSwatches.Length; i++)
         {
-            var (role, hex) = ExpectedSwatches[i];
+            var (role, hex) = PaletteSwatches[i];
             var x = (i % 8) * 8 + 4;
             var y = (i / 8) * 8 + 4;
             Assert.True(
@@ -132,7 +171,7 @@ public class ArtPaletteTests
                 $"swatch {i} ({role}) centre ({x},{y}) is {png.Pixel(x, y)}, expected {HexToRgba(hex)}");
         }
 
-        for (var i = ExpectedSwatches.Length; i < 64; i++)
+        for (var i = PaletteSwatches.Length; i < 64; i++)
         {
             for (var dy = 0; dy < 8; dy++)
             {
@@ -153,9 +192,9 @@ public class ArtPaletteTests
     {
         var png = DecodePng(ArtPalette.EncodePng());
 
-        for (var i = 0; i < ExpectedSwatches.Length; i++)
+        for (var i = 0; i < PaletteSwatches.Length; i++)
         {
-            var expected = HexToRgba(ExpectedSwatches[i].Hex);
+            var expected = HexToRgba(PaletteSwatches[i].Hex);
             for (var dy = 0; dy < 8; dy++)
             {
                 for (var dx = 0; dx < 8; dx++)
