@@ -11,6 +11,11 @@ namespace LongWayHome.Application.Art;
 /// through. Pure C#, no Godot: <c>GrassTileModels</c> merges each (variant, Season) into one mesh under the shared
 /// palette material, shared by every Tile showing it.
 /// <para>
+/// <b>The meadow.</b> <see cref="MeadowParts"/> is the same layout grown wild for the meadow round the plot (ART_DIRECTION
+/// §7.2, "wilder, overgrown native plants"): five more tufts, blades and seed stalks 1.6 times as tall, up to about
+/// 0.45 m. The meadow scatters these 1 m patches over its ground (<c>MeadowLayout.GrassCover</c>).
+/// </para>
+/// <para>
 /// <b>Variation.</b> There are <see cref="Variants"/> layouts. <see cref="PickFor"/> gives each grid position a layout and
 /// a quarter turn from a hash of the position (the same mixer as <see cref="TileDecoration"/>), so neighbouring Tiles
 /// rarely match, and the same Tile looks the same after a save and load.
@@ -32,7 +37,10 @@ public static class GrassTileArt
 
     private const float Spread = 0.42f;
 
-    private static readonly Dictionary<(int, SeasonGrass), IReadOnlyList<CropPart>> Cache = new();
+    /// <summary>How much taller the meadow's wild grass grows than the plot's.</summary>
+    public const float WildHeight = 1.6f;
+
+    private static readonly Dictionary<(int, SeasonGrass, bool), IReadOnlyList<CropPart>> Cache = new();
 
     /// <summary>The layout and quarter turn for a grid position; the same position always gives the same pair.</summary>
     public static (int Variant, int QuarterTurns) PickFor(GridPosition position)
@@ -45,7 +53,13 @@ public static class GrassTileArt
 
     /// <summary>The detail parts of <paramref name="variant"/> in the Season's <paramref name="grass"/>. The same list for the same arguments.</summary>
     /// <exception cref="ArgumentOutOfRangeException">The variant is not 0 to <see cref="Variants"/> − 1.</exception>
-    public static IReadOnlyList<CropPart> Parts(int variant, SeasonGrass grass)
+    public static IReadOnlyList<CropPart> Parts(int variant, SeasonGrass grass) => Cached(variant, grass, wild: false);
+
+    /// <summary>The wild meadow version of <paramref name="variant"/>: more and taller tufts. The same list for the same arguments.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The variant is not 0 to <see cref="Variants"/> − 1.</exception>
+    public static IReadOnlyList<CropPart> MeadowParts(int variant, SeasonGrass grass) => Cached(variant, grass, wild: true);
+
+    private static IReadOnlyList<CropPart> Cached(int variant, SeasonGrass grass, bool wild)
     {
         ArgumentNullException.ThrowIfNull(grass);
         if (variant is < 0 or >= Variants)
@@ -55,10 +69,10 @@ public static class GrassTileArt
 
         lock (Cache)
         {
-            if (!Cache.TryGetValue((variant, grass), out var parts))
+            if (!Cache.TryGetValue((variant, grass, wild), out var parts))
             {
-                parts = Build(variant, grass);
-                Cache[(variant, grass)] = parts;
+                parts = Build(variant, grass, wild);
+                Cache[(variant, grass, wild)] = parts;
             }
 
             return parts;
@@ -77,9 +91,10 @@ public static class GrassTileArt
         _ => new(grass.Ground, "grass-shade", ["starcorn-sparkle"], false),
     };
 
-    private static List<CropPart> Build(int variant, SeasonGrass grass)
+    private static List<CropPart> Build(int variant, SeasonGrass grass, bool wild)
     {
         var tones = TonesFor(grass);
+        var grow = wild ? WildHeight : 1f;
         var parts = new List<CropPart>();
         var state = 0x9E3779B9u * (uint)(variant + 1);
 
@@ -98,15 +113,16 @@ public static class GrassTileArt
         }
 
         // Tufts of blades, fanned and leaning out, in three tones; a few near the edge lean over the groove.
-        var tufts = tones.Snow ? 7 : 11 + (int)(Next(ref state) % 4);
+        var tufts = (tones.Snow ? 7 : 11 + (int)(Next(ref state) % 4)) + (wild ? 5 : 0);
         // In winter the tips through the snow keep to greens, never the snow's own tones.
         string[] bladeRoles = tones.Snow ? [grass.Tufts, "foliage", grass.Tufts] : [grass.Tufts, tones.Dark, tones.Light];
         for (var t = 0; t < tufts; t++)
         {
             var edge = t < 3;
-            var at = edge ? EdgeSpot(ref state) : Spot(ref state, Spread);
+            // The meadow's taller blades lean further, so its tufts stand further in to stay on the patch.
+            var at = edge ? EdgeSpot(ref state, wild ? 0.08f : 0f) : Spot(ref state, wild ? Spread - 0.08f : Spread);
             var blades = 3 + (int)(Next(ref state) % 3);
-            var baseHeight = (0.07f + 0.07f * Unit(ref state)) * grass.TuftHeightScale;
+            var baseHeight = (0.07f + 0.07f * Unit(ref state)) * grass.TuftHeightScale * grow;
             var baseYaw = 360f * Unit(ref state);
             for (var b = 0; b < blades; b++)
             {
@@ -135,7 +151,7 @@ public static class GrassTileArt
                 Pebbles(parts, ref state, 3);
                 break;
             default:
-                Seeding(parts, ref state, grass, tones);
+                Seeding(parts, ref state, grass, tones, wild ? 1.4f : 1f);
                 break;
         }
 
@@ -208,12 +224,12 @@ public static class GrassTileArt
     }
 
     /// <summary>A clump of taller blades going to seed, each with a small seed head.</summary>
-    private static void Seeding(List<CropPart> parts, ref uint state, SeasonGrass grass, Tones tones)
+    private static void Seeding(List<CropPart> parts, ref uint state, SeasonGrass grass, Tones tones, float grow)
     {
         var at = Spot(ref state, Spread - 0.08f);
         for (var b = 0; b < 5; b++)
         {
-            var height = (0.18f + 0.07f * Unit(ref state)) * grass.TuftHeightScale;
+            var height = (0.18f + 0.07f * Unit(ref state)) * grass.TuftHeightScale * grow;
             var yaw = 72f * b + 20f * Unit(ref state);
             var tilt = 6f + 12f * Unit(ref state);
             parts.Add(Blade($"Seed{b}Stalk", at, height, 0.018f, yaw, tilt, b % 2 == 0 ? grass.Tufts : tones.Dark));
@@ -235,11 +251,11 @@ public static class GrassTileArt
     private static Vector2 Spot(ref uint state, float reach) =>
         new((2f * Unit(ref state) - 1f) * reach, (2f * Unit(ref state) - 1f) * reach);
 
-    /// <summary>A point along one of the slab's edges, 0.36–0.44 m out, for tufts that soften the grooves.</summary>
-    private static Vector2 EdgeSpot(ref uint state)
+    /// <summary>A point along one of the slab's edges, 0.36–0.44 m out (less <paramref name="inset"/>), for tufts that soften the grooves.</summary>
+    private static Vector2 EdgeSpot(ref uint state, float inset)
     {
         var along = (2f * Unit(ref state) - 1f) * 0.4f;
-        var out_ = 0.36f + 0.08f * Unit(ref state);
+        var out_ = 0.36f + 0.08f * Unit(ref state) - inset;
         return (Next(ref state) % 4) switch
         {
             0 => new Vector2(along, out_),
