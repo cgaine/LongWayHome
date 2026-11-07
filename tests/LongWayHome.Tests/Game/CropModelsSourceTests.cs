@@ -42,18 +42,18 @@ public class CropModelsSourceTests
         Assert.DoesNotContain("Flat(", source, StringComparison.Ordinal);
     }
 
-    // ---- AC9: moonmelon, sunbell and starcorn keep their prototype models ----
+    // ---- AC9: only moonmelon keeps its prototype model (#91 drew sunbell and starcorn) ----
 
     [Fact]
-    public void AC9_prototype_models_keep_moonmelon_sunbell_and_starcorn()
+    public void AC9_prototype_models_keep_only_moonmelon()
     {
         var prototype = ReadGameFile("scripts", "Farm", "PrototypeCropModels.cs");
         var tileView = ReadGameFile("scripts", "Farm", "TileView.cs");
 
         Assert.Contains("internal static class PrototypeCropModels", prototype, StringComparison.Ordinal);
         Assert.Contains("Moonmelon()", prototype, StringComparison.Ordinal);
-        Assert.Contains("Sunbell()", prototype, StringComparison.Ordinal);
-        Assert.Contains("Starcorn()", prototype, StringComparison.Ordinal);
+        Assert.DoesNotContain("Sunbell()", prototype, StringComparison.Ordinal);
+        Assert.DoesNotContain("Starcorn()", prototype, StringComparison.Ordinal);
         Assert.Contains("1.6f", prototype, StringComparison.Ordinal);
         Assert.DoesNotContain("Emberroot()", prototype, StringComparison.Ordinal);
         Assert.DoesNotContain("Dusktuber()", prototype, StringComparison.Ordinal);

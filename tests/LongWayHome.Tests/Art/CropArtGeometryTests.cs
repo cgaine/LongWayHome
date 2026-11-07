@@ -126,6 +126,144 @@ public class CropArtGeometryTests
         }
     }
 
+    // ---- #91: sunbell and starcorn ----
+
+    [Fact]
+    public void Young_sunbell_canes_rise_from_the_base_and_lean_outward()
+    {
+        var canes = PartsOf(CropTypeId.Sunbell, GrowthStage.Young)
+            .Where(part => part.Name.StartsWith("Cane", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.Equal(3, canes.Count);
+        foreach (var cane in canes)
+        {
+            Assert.Equal(CropPartShape.Cylinder, cane.Shape);
+            AssertNear(Vector3.Zero, At(cane, new Vector3(0f, -cane.SizeY / 2f, 0f)), $"{cane.Name} foot");
+            var tip = At(cane, new Vector3(0f, cane.SizeY / 2f, 0f));
+            Assert.True(new Vector2(tip.X, tip.Z).Length() > 0.03f, $"{cane.Name} tip {tip} does not lean outward");
+        }
+    }
+
+    [Fact]
+    public void Ripe_sunbell_sepals_are_two_crossed_boxes_on_each_berry()
+    {
+        var parts = PartsOf(CropTypeId.Sunbell, GrowthStage.Ripe);
+
+        for (var i = 0; i < 6; i++)
+        {
+            var top = parts.Single(part => part.Name == $"Berry{i}Top");
+            var a = parts.Single(part => part.Name == $"Berry{i}SepalsA");
+            var b = parts.Single(part => part.Name == $"Berry{i}SepalsB");
+
+            foreach (var sepal in new[] { a, b })
+            {
+                Assert.Equal(CropPartShape.Box, sepal.Shape);
+                Assert.Equal(top.X, sepal.X, 1e-3f);
+                Assert.Equal(top.Z, sepal.Z, 1e-3f);
+            }
+
+            Assert.Equal(90f, b.YawDegrees - a.YawDegrees, Tolerance);
+        }
+    }
+
+    /// <summary>The berries show beside the bush from the game camera: no berry top's centre is under a foliage sphere.</summary>
+    [Fact]
+    public void Ripe_sunbell_berries_sit_beside_the_foliage_not_under_it()
+    {
+        var parts = PartsOf(CropTypeId.Sunbell, GrowthStage.Ripe);
+        var foliage = parts.Where(part => part.Name.StartsWith("Foliage", StringComparison.Ordinal)).ToList();
+        var tops = parts.Where(part => part.Name.StartsWith("Berry", StringComparison.Ordinal)
+            && part.Name.EndsWith("Top", StringComparison.Ordinal)).ToList();
+
+        Assert.Equal(6, tops.Count);
+        foreach (var top in tops)
+        {
+            foreach (var sphere in foliage)
+            {
+                var apart = new Vector2(top.X - sphere.X, top.Z - sphere.Z).Length();
+                Assert.True(apart > sphere.SizeX / 2f, $"{top.Name} is {apart} m from {sphere.Name}, under its edge");
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(GrowthStage.Young)]
+    [InlineData(GrowthStage.Ripe)]
+    public void Starcorn_leaves_start_at_the_stalk_and_droop_at_the_outer_end(GrowthStage stage)
+    {
+        var leaves = PartsOf(CropTypeId.Starcorn, stage)
+            .Where(part => part.Name.StartsWith("Leaf", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.NotEmpty(leaves);
+        foreach (var leaf in leaves)
+        {
+            var inner = At(leaf, new Vector3(-leaf.SizeX / 2f, 0f, 0f));
+            var outer = At(leaf, new Vector3(leaf.SizeX / 2f, 0f, 0f));
+            Assert.True(new Vector2(inner.X, inner.Z).Length() <= Tolerance, $"{leaf.Name} inner end {inner} is off the stalk");
+            Assert.True(outer.Y < inner.Y - 0.05f, $"{leaf.Name} outer end {outer} does not droop below {inner}");
+            var lowestEdge = At(leaf, new Vector3(leaf.SizeX / 2f, -leaf.SizeY / 2f, 0f)).Y;
+            Assert.True(lowestEdge > 0f, $"{leaf.Name} outer edge dips to y {lowestEdge}, into the soil");
+        }
+    }
+
+    [Fact]
+    public void Ripe_starcorn_cob_leans_away_from_the_stalk_and_its_husks_stand_on_its_foot()
+    {
+        var parts = PartsOf(CropTypeId.Starcorn, GrowthStage.Ripe);
+        var cob = parts.Single(part => part.Name == "Cob");
+        var cobFoot = At(cob, new Vector3(0f, -cob.SizeY / 2f, 0f));
+        var cobTop = At(cob, new Vector3(0f, cob.SizeY / 2f, 0f));
+
+        Assert.True(cobTop.X > cobFoot.X + 0.05f, $"the cob top {cobTop} does not lean out past its foot {cobFoot}");
+        foreach (var (name, side) in new[] { ("HuskLeft", -1f), ("HuskRight", 1f) })
+        {
+            var husk = parts.Single(part => part.Name == name);
+            var foot = At(husk, new Vector3(0f, -husk.SizeY / 2f, 0f));
+            var tip = At(husk, new Vector3(0f, husk.SizeY / 2f, 0f));
+            Assert.Equal(cobFoot.Y, foot.Y, 1e-2f);
+            Assert.True(MathF.Sign(foot.Z) == side, $"{name} foot {foot} is on the wrong side of the cob");
+            Assert.True(MathF.Abs(tip.Z) > MathF.Abs(foot.Z), $"{name} tip {tip} does not peel back from the cob");
+        }
+    }
+
+    [Fact]
+    public void Ripe_starcorn_sparkles_are_diamonds_on_the_side_facing_out_from_the_stalk()
+    {
+        var parts = PartsOf(CropTypeId.Starcorn, GrowthStage.Ripe);
+        var cob = parts.Single(part => part.Name == "Cob");
+        var sparkles = parts.Where(part => part.Name.StartsWith("Sparkle", StringComparison.Ordinal)).ToList();
+
+        Assert.Equal(8, sparkles.Count);
+        Assert.All(sparkles, sparkle =>
+        {
+            Assert.Equal(45f, sparkle.PitchDegrees, Tolerance);
+            Assert.Equal(45f, sparkle.RollDegrees, Tolerance);
+            Assert.True(sparkle.X > cob.X, $"{sparkle.Name} at x {sparkle.X} faces the stalk, not out from it");
+        });
+        var heights = sparkles.Select(sparkle => sparkle.Y).ToList();
+        Assert.True(heights.Max() - heights.Min() > cob.SizeY / 2f, "the sparkles are not spread over the cob's length");
+    }
+
+    [Fact]
+    public void Ripe_starcorn_tassels_rise_from_the_stalk_top()
+    {
+        var parts = PartsOf(CropTypeId.Starcorn, GrowthStage.Ripe);
+        var stalk = parts.Single(part => part.Name == "Stalk");
+        var stalkTop = stalk.Y + (stalk.SizeY / 2f);
+        var tassels = parts.Where(part => part.Name.StartsWith("Tassel", StringComparison.Ordinal)).ToList();
+
+        Assert.Equal(3, tassels.Count);
+        foreach (var tassel in tassels)
+        {
+            var foot = At(tassel, new Vector3(0f, -tassel.SizeY / 2f, 0f));
+            Assert.True(new Vector2(foot.X, foot.Z).Length() <= Tolerance, $"{tassel.Name} foot {foot} is off the stalk");
+            Assert.InRange(foot.Y, stalkTop - 0.03f, stalkTop);
+            Assert.Equal(1.0f, tassel.Y, 1e-2f);
+        }
+    }
+
     [Fact]
     public void Ripe_dusktuber_speckles_sit_on_the_bulbs_upper_half()
     {

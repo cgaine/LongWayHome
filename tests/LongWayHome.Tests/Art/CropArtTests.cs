@@ -6,7 +6,7 @@ using LongWayHome.Domain.Catalog;
 namespace LongWayHome.Tests.Art;
 
 /// <summary>
-/// AC1–AC4 of #90: the part table of the emberroot and dusktuber models (<see cref="CropArt"/>) and its
+/// AC1–AC4 of #90 and AC1–AC5 of #91: the part table of the emberroot, dusktuber, sunbell and starcorn models (<see cref="CropArt"/>) and its
 /// <see cref="CropArt.Bounds"/>. Rotations follow Godot's Euler YXZ (<c>Node3D.RotationDegrees</c>), which is
 /// <see cref="Quaternion.CreateFromYawPitchRoll"/>, applied about the part's centre. The unrotated box of a part is
 /// SizeX x SizeY x SizeZ for a Box or Prism, SizeX x SizeY x SizeX for a Sphere and max(SizeX, SizeZ) x SizeY x
@@ -16,9 +16,10 @@ public class CropArtTests
 {
     private const float Tolerance = 1e-4f;
 
-    private static readonly CropTypeId[] DrawnCrops = [CropTypeId.Emberroot, CropTypeId.Dusktuber];
+    private static readonly CropTypeId[] DrawnCrops =
+        [CropTypeId.Emberroot, CropTypeId.Dusktuber, CropTypeId.Sunbell, CropTypeId.Starcorn];
 
-    private static readonly CropTypeId[] PrototypeCrops = [CropTypeId.Moonmelon, CropTypeId.Sunbell, CropTypeId.Starcorn];
+    private static readonly CropTypeId[] PrototypeCrops = [CropTypeId.Moonmelon];
 
     private static readonly GrowthStage[] StagesInOrder =
         [GrowthStage.Seed, GrowthStage.Sprout, GrowthStage.Young, GrowthStage.Ripe];
@@ -62,6 +63,8 @@ public class CropArtTests
     {
         CropTypeId.Emberroot => "ember",
         CropTypeId.Dusktuber => "dusktuber",
+        CropTypeId.Sunbell => "sunbell-gold",
+        CropTypeId.Starcorn => "starcorn",
         _ => throw new ArgumentOutOfRangeException(nameof(crop)),
     };
 
@@ -115,11 +118,11 @@ public class CropArtTests
         string name = "Part") =>
         new(name, shape, sizeX, sizeY, sizeZ, x, y, z, pitch, yaw, roll, "foliage");
 
-    // ---- AC1: parts for every stage of emberroot and dusktuber, null for the rest, palette roles only ----
+    // ---- AC1: parts for every stage of the drawn crops, null for moonmelon, palette roles only ----
 
     [Theory]
     [MemberData(nameof(DrawnModels))]
-    public void AC1_emberroot_and_dusktuber_have_parts_at_every_stage(CropTypeId crop, GrowthStage stage)
+    public void AC1_drawn_crops_have_parts_at_every_stage(CropTypeId crop, GrowthStage stage)
     {
         var parts = CropArt.Parts(crop, stage);
 
@@ -129,7 +132,7 @@ public class CropArtTests
 
     [Theory]
     [MemberData(nameof(PrototypeModels))]
-    public void AC1_moonmelon_sunbell_and_starcorn_have_no_parts_yet(CropTypeId crop, GrowthStage stage) =>
+    public void AC1_only_moonmelon_has_no_parts_yet(CropTypeId crop, GrowthStage stage) =>
         Assert.Null(CropArt.Parts(crop, stage));
 
     [Theory]
@@ -144,11 +147,29 @@ public class CropArtTests
         }
     }
 
+    /// <summary>Part names identify parts in the table and the tests, so each one is used once per model.</summary>
+    [Theory]
+    [MemberData(nameof(DrawnModels))]
+    public void Every_part_name_is_unique_within_its_model(CropTypeId crop, GrowthStage stage)
+    {
+        var names = PartsOf(crop, stage).Select(part => part.Name).ToList();
+
+        Assert.Equal(names.Count, names.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    /// <summary>The issue's budget: one merged mesh per model, of under about 40 parts, holds 30 fps on a full plot (REQ-14).</summary>
+    [Theory]
+    [MemberData(nameof(DrawnModels))]
+    public void Every_model_has_at_most_40_parts(CropTypeId crop, GrowthStage stage) =>
+        Assert.InRange(PartsOf(crop, stage).Count, 1, 40);
+
     // ---- AC2: each stage is taller or wider than the one before ----
 
     [Theory]
     [InlineData(CropTypeId.Emberroot)]
     [InlineData(CropTypeId.Dusktuber)]
+    [InlineData(CropTypeId.Sunbell)]
+    [InlineData(CropTypeId.Starcorn)]
     public void AC2_each_stage_grows_by_at_least_5cm_in_height_or_width(CropTypeId crop)
     {
         var bounds = StagesInOrder.Select(stage => CropArt.Bounds(PartsOf(crop, stage))).ToArray();
@@ -198,8 +219,134 @@ public class CropArtTests
     [InlineData(CropTypeId.Emberroot, GrowthStage.Sprout)]
     [InlineData(CropTypeId.Dusktuber, GrowthStage.Seed)]
     [InlineData(CropTypeId.Dusktuber, GrowthStage.Sprout)]
+    [InlineData(CropTypeId.Sunbell, GrowthStage.Seed)]
+    [InlineData(CropTypeId.Sunbell, GrowthStage.Sprout)]
+    [InlineData(CropTypeId.Starcorn, GrowthStage.Seed)]
+    [InlineData(CropTypeId.Starcorn, GrowthStage.Sprout)]
     public void AC4_seed_and_sprout_include_a_part_in_the_crops_colour_role(CropTypeId crop, GrowthStage stage) =>
         Assert.Contains(PartsOf(crop, stage), part => part.Role == ColourRole(crop));
+
+    /// <summary>The ripe bounds of every crop other than <paramref name="except"/> that <see cref="CropArt"/> draws.</summary>
+    private static List<(CropTypeId Crop, (float Width, float Height) Bounds)> OtherDrawnRipeBounds(CropTypeId except) =>
+        Enum.GetValues<CropTypeId>()
+            .Where(crop => crop != except)
+            .Select(crop => (Crop: crop, Parts: CropArt.Parts(crop, GrowthStage.Ripe)))
+            .Where(entry => entry.Parts is not null)
+            .Select(entry => (entry.Crop, CropArt.Bounds(entry.Parts!)))
+            .ToList();
+
+    [Fact]
+    public void AC4_ripe_starcorn_is_at_least_1_5_times_as_tall_as_every_other_ripe_crop()
+    {
+        var starcorn = CropArt.Bounds(PartsOf(CropTypeId.Starcorn, GrowthStage.Ripe));
+        var others = OtherDrawnRipeBounds(CropTypeId.Starcorn);
+
+        Assert.NotEmpty(others);
+        foreach (var (crop, bounds) in others)
+        {
+            Assert.True(
+                starcorn.Height >= (1.5f * bounds.Height) - Tolerance,
+                $"ripe starcorn height {starcorn.Height} is not 1.5 x ripe {crop}'s {bounds.Height}");
+        }
+    }
+
+    [Fact]
+    public void AC4_ripe_sunbell_bounds_differ_from_every_other_ripe_crop_by_10cm()
+    {
+        var sunbell = CropArt.Bounds(PartsOf(CropTypeId.Sunbell, GrowthStage.Ripe));
+        var others = OtherDrawnRipeBounds(CropTypeId.Sunbell);
+
+        Assert.NotEmpty(others);
+        foreach (var (crop, bounds) in others)
+        {
+            var dHeight = MathF.Abs(sunbell.Height - bounds.Height);
+            var dWidth = MathF.Abs(sunbell.Width - bounds.Width);
+            Assert.True(
+                dHeight >= 0.1f - Tolerance || dWidth >= 0.1f - Tolerance,
+                $"ripe sunbell {sunbell} is within 0.1 m of ripe {crop} {bounds} in both height and width");
+        }
+    }
+
+    // ---- AC5: sunbell berries hang point down; starcorn's sparkles sit on the cob ----
+
+    [Fact]
+    public void AC5_each_ripe_sunbell_berry_hangs_point_down_below_its_sepals()
+    {
+        var parts = PartsOf(CropTypeId.Sunbell, GrowthStage.Ripe);
+        var berryParts = parts.Where(part => part.Name.StartsWith("Berry", StringComparison.Ordinal)).ToList();
+        var indices = berryParts
+            .Where(part => part.Name.EndsWith("Top", StringComparison.Ordinal))
+            .Select(part => part.Name["Berry".Length..^"Top".Length])
+            .Order(StringComparer.Ordinal)
+            .ToList();
+
+        Assert.Equal(Enumerable.Range(0, 6).Select(i => i.ToString()).Order(StringComparer.Ordinal), indices);
+        for (var i = 0; i < 6; i++)
+        {
+            var top = Assert.Single(parts, part => part.Name == $"Berry{i}Top");
+            var tip = Assert.Single(parts, part => part.Name == $"Berry{i}Tip");
+            var sepals = parts.Where(part => part.Name.StartsWith($"Berry{i}Sepals", StringComparison.Ordinal)).ToList();
+
+            Assert.Equal("sunbell-gold", top.Role);
+            Assert.Equal("sunbell-orange", tip.Role);
+            Assert.NotEmpty(sepals);
+            Assert.All(sepals, sepal => Assert.Equal("foliage", sepal.Role));
+
+            Assert.True(tip.Y < top.Y, $"Berry{i}Tip at y {tip.Y} is not below Berry{i}Top at y {top.Y}");
+            Assert.True(MathF.Abs(tip.X - top.X) <= 0.01f + Tolerance, $"Berry{i}Tip X {tip.X} is not under Top X {top.X}");
+            Assert.True(MathF.Abs(tip.Z - top.Z) <= 0.01f + Tolerance, $"Berry{i}Tip Z {tip.Z} is not under Top Z {top.Z}");
+            foreach (var sepal in sepals)
+            {
+                Assert.True(sepal.Y > top.Y, $"{sepal.Name} at y {sepal.Y} is not above Berry{i}Top at y {top.Y}");
+            }
+
+            // The tip's narrow end points down: a cone, narrow at the bottom, not tipped over.
+            Assert.Equal(CropPartShape.Cylinder, tip.Shape);
+            Assert.True(tip.SizeX < tip.SizeZ, $"Berry{i}Tip bottom {tip.SizeX} is not narrower than its top {tip.SizeZ}");
+            Assert.True(MathF.Abs(tip.PitchDegrees) <= 5f, $"Berry{i}Tip is pitched {tip.PitchDegrees}°");
+            Assert.True(MathF.Abs(tip.RollDegrees) <= 5f, $"Berry{i}Tip is rolled {tip.RollDegrees}°");
+        }
+    }
+
+    [Fact]
+    public void AC5_nothing_on_the_ripe_sunbell_suggests_a_bell() =>
+        Assert.DoesNotContain(
+            PartsOf(CropTypeId.Sunbell, GrowthStage.Ripe),
+            part => part.Name.Contains("Bell", StringComparison.Ordinal));
+
+    [Fact]
+    public void AC5_ripe_starcorn_has_at_least_six_sparkles_on_the_cob_surface()
+    {
+        const float onSurface = 0.03f;
+        var parts = PartsOf(CropTypeId.Starcorn, GrowthStage.Ripe);
+        var cob = Assert.Single(parts, part => part.Name == "Cob");
+        var sparkles = parts.Where(part => part.Role == "starcorn-sparkle").ToList();
+
+        Assert.Equal(CropPartShape.Cylinder, cob.Shape);
+        Assert.True(sparkles.Count >= 6, $"ripe starcorn has {sparkles.Count} starcorn-sparkle parts, not at least 6");
+
+        var inverse = Quaternion.Conjugate(Quaternion.CreateFromYawPitchRoll(
+            cob.YawDegrees * MathF.PI / 180f,
+            cob.PitchDegrees * MathF.PI / 180f,
+            cob.RollDegrees * MathF.PI / 180f));
+        var cobCentre = new Vector3(cob.X, cob.Y, cob.Z);
+        var halfLength = cob.SizeY / 2f;
+
+        foreach (var sparkle in sparkles)
+        {
+            var local = Vector3.Transform(new Vector3(sparkle.X, sparkle.Y, sparkle.Z) - cobCentre, inverse);
+            var r = MathF.Sqrt((local.X * local.X) + (local.Z * local.Z));
+            var t = Math.Clamp((local.Y + halfLength) / cob.SizeY, 0f, 1f);
+            var surface = (cob.SizeX / 2f) + (((cob.SizeZ / 2f) - (cob.SizeX / 2f)) * t);
+
+            Assert.True(
+                MathF.Abs(local.Y) <= halfLength + onSurface,
+                $"{sparkle.Name} is {local.Y} m along the cob, beyond its half-length {halfLength}");
+            Assert.True(
+                MathF.Abs(r - surface) <= onSurface,
+                $"{sparkle.Name} is {r} m from the cob's axis, not within {onSurface} m of its surface radius {surface}");
+        }
+    }
 
     // ---- The named parts the spec calls out ----
 
@@ -251,9 +398,54 @@ public class CropArtTests
         Assert.All(speckles, speckle => Assert.Equal("moonmelon", speckle.Role));
     }
 
+    [Fact]
+    public void Ripe_starcorn_has_a_foliage_stalk_a_starcorn_cob_two_husks_and_gold_tassels()
+    {
+        var parts = PartsOf(CropTypeId.Starcorn, GrowthStage.Ripe);
+        var tassels = parts.Where(part => part.Name.StartsWith("Tassel", StringComparison.Ordinal)).ToList();
+
+        Assert.Contains(parts, part => part.Name == "Stalk" && part.Shape == CropPartShape.Cylinder && part.Role == "foliage");
+        Assert.Contains(parts, part => part.Name == "Cob" && part.Role == "starcorn");
+        Assert.Contains(parts, part => part.Name == "HuskLeft" && part.Role == "grass-mown");
+        Assert.Contains(parts, part => part.Name == "HuskRight" && part.Role == "grass-mown");
+        Assert.NotEmpty(tassels);
+        Assert.All(tassels, tassel => Assert.Equal("sunbell-gold", tassel.Role));
+    }
+
+    [Fact]
+    public void Ripe_sunbell_is_a_bush_of_foliage_spheres()
+    {
+        var foliage = PartsOf(CropTypeId.Sunbell, GrowthStage.Ripe)
+            .Where(part => part.Name.StartsWith("Foliage", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.NotEmpty(foliage);
+        Assert.All(foliage, part =>
+        {
+            Assert.Equal(CropPartShape.Sphere, part.Shape);
+            Assert.Equal("foliage", part.Role);
+        });
+    }
+
+    [Fact]
+    public void Young_sunbell_has_one_small_green_berry()
+    {
+        var berry = Assert.Single(PartsOf(CropTypeId.Sunbell, GrowthStage.Young), part => part.Name == "Berry");
+
+        Assert.Equal("grass-mown", berry.Role);
+    }
+
+    [Fact]
+    public void Young_starcorn_has_a_foliage_stalk() =>
+        Assert.Contains(
+            PartsOf(CropTypeId.Starcorn, GrowthStage.Young),
+            part => part.Name == "Stalk" && part.Role == "foliage");
+
     [Theory]
     [InlineData(CropTypeId.Emberroot)]
     [InlineData(CropTypeId.Dusktuber)]
+    [InlineData(CropTypeId.Sunbell)]
+    [InlineData(CropTypeId.Starcorn)]
     public void Seed_is_a_dirt_path_mound_and_a_seed_in_the_crops_colour(CropTypeId crop)
     {
         var parts = PartsOf(crop, GrowthStage.Seed);
@@ -265,6 +457,8 @@ public class CropArtTests
     [Theory]
     [InlineData(CropTypeId.Emberroot)]
     [InlineData(CropTypeId.Dusktuber)]
+    [InlineData(CropTypeId.Sunbell)]
+    [InlineData(CropTypeId.Starcorn)]
     public void Sprout_is_a_stem_two_seed_leaves_and_a_bud_in_the_crops_colour(CropTypeId crop)
     {
         var parts = PartsOf(crop, GrowthStage.Sprout);
