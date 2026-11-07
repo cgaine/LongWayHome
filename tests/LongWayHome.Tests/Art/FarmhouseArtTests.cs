@@ -101,9 +101,10 @@ public class FarmhouseArtTests
     {
         var actual = ArtPalette.Swatches.Select(swatch => (swatch.Role, swatch.Hex)).ToArray();
 
+        // The palette is append-only, so later swatches may follow these two.
         Assert.True(
-            actual.Length == SwatchesBefore104.Length + 2,
-            $"the palette has {actual.Length} swatches, expected the {SwatchesBefore104.Length} from before #104 plus 2");
+            actual.Length >= SwatchesBefore104.Length + 2,
+            $"the palette has {actual.Length} swatches, expected at least the {SwatchesBefore104.Length} from before #104 plus 2");
         Assert.Equal(SwatchesBefore104, actual[..SwatchesBefore104.Length]);
         Assert.Equal(("door-faded", "#B88464"), actual[SwatchesBefore104.Length]);
         Assert.Equal(("glass-dull", "#8C97A3"), actual[SwatchesBefore104.Length + 1]);

@@ -83,6 +83,17 @@ public static class ArtPalette
         new("seed-pouch", "#D9C39A"),
         new("door-faded", "#B88464"),
         new("glass-dull", "#8C97A3"),
+        new("canopy-spring", "#5FAE8E"),
+        new("canopy-fall", "#A0507A"),
+        new("underside-fall", "#5E3A6E"),
+        new("blossom", "#F2B8DE"),
+        new("wood-cut", "#C9A88E"),
+        new("rosk", "#C77A52"),
+        new("groth", "#59627A"),
+        new("canopy-spring-light", "#8CC8A8"),
+        new("canopy-fall-light", "#C27098"),
+        new("canopy-fall-shade", "#7E3E62"),
+        new("groth-light", "#A3AEC8"),
     ];
 
     /// <summary>The centre of <paramref name="role"/>'s swatch in 0–1 texture space (U right, V down).</summary>

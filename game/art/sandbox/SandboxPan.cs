@@ -16,7 +16,7 @@ public static class SandboxPan
     public const float MetresPerSecond = 6f;
 
     /// <summary>How far the centre may move from the origin along x and z.</summary>
-    public const float Limit = 12f;
+    public const float Limit = 19f;
 
     /// <summary>
     /// The centre after moving for <paramref name="seconds"/> with the input <paramref name="x"/>, <paramref name="y"/>
