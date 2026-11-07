@@ -124,6 +124,17 @@ public class CropArtTests
     public void AC1_parts_reject_an_undefined_crop() =>
         Assert.Throws<ArgumentOutOfRangeException>(() => CropArt.Parts((CropTypeId)999, GrowthStage.Ripe));
 
+    /// <summary>The exception names the argument that has no model: the crop if it is undefined, else the stage.</summary>
+    [Fact]
+    public void Parts_name_the_undefined_argument()
+    {
+        var badCrop = Assert.Throws<ArgumentOutOfRangeException>(() => CropArt.Parts((CropTypeId)999, GrowthStage.Ripe));
+        var badStage = Assert.Throws<ArgumentOutOfRangeException>(() => CropArt.Parts(CropTypeId.Moonmelon, (GrowthStage)9));
+
+        Assert.Equal("crop", badCrop.ParamName);
+        Assert.Equal("stage", badStage.ParamName);
+    }
+
     [Theory]
     [MemberData(nameof(DrawnModels))]
     public void AC1_every_part_role_is_an_art_palette_role(CropTypeId crop, GrowthStage stage)

@@ -20,7 +20,7 @@ namespace LongWayHome.Game.Art;
 /// <c>soil-watered</c>;</item>
 /// <item>the <c>Crops</c> rows in front of the tile slabs (#90): one column per <see cref="CropTypeId"/> and one row per
 /// <see cref="GrowthStage"/>, Seed nearest the camera, each model from <see cref="CropModels.MeshFor"/> on a
-/// <c>soil-tilled</c> slab, for every (crop, stage) drawn to the art direction so far;</item>
+/// <c>soil-tilled</c> slab, for every (crop, stage);</item>
 /// <item>the four sample shapes (low-poly sphere, 6-sided trunk, house, cone tree), once on the left and once on the
 /// right, with a label over each set naming the style it shows.</item>
 /// </list>

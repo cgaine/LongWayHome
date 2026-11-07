@@ -146,14 +146,6 @@ public sealed record CropPart(
 /// </summary>
 public static class CropArt
 {
-    // Ripe moonmelon's sizes (see the notes above): the rib diameter, the ring the ribs' centres sit on, and the vine's
-    // yaw, length and start (its distance out from the centre line).
-    private const float RibSize = 0.26f;
-    private const float RibRing = 0.15f;
-    private const float RipeVineYaw = 40f;
-    private const float RipeVineLength = 0.30f;
-    private const float RipeVineRoot = 0.19f;
-
     private static readonly Dictionary<(CropTypeId Crop, GrowthStage Stage), IReadOnlyList<CropPart>> Models = Build();
 
     /// <summary>
@@ -163,7 +155,8 @@ public static class CropArt
     public static IReadOnlyList<CropPart> Parts(CropTypeId crop, GrowthStage stage) =>
         Models.TryGetValue((crop, stage), out var parts)
             ? parts
-            : throw new ArgumentOutOfRangeException(nameof(crop), (crop, stage), "No crop model for this crop and stage.");
+            : throw new ArgumentOutOfRangeException(
+                Enum.IsDefined(crop) ? nameof(stage) : nameof(crop), (crop, stage), "No crop model for this crop and stage.");
 
     /// <summary>
     /// Width is the larger of the X and Z extents of the parts' axis-aligned bounds (each part's rotated box); Height
@@ -482,27 +475,34 @@ public static class CropArt
     /// </summary>
     private static List<CropPart> MoonmelonRipe()
     {
+        // The ring the ribs' centres sit on, and the vine's yaw, length and start (its distance out from the centre
+        // line): the sizes tuned from #92's defaults (see the notes above).
+        const float ribRing = 0.15f;
+        const float vineYaw = 40f;
+        const float vineLength = 0.30f;
+        const float vineRoot = 0.19f;
+
         var parts = new List<CropPart>();
         for (var i = 0; i < 6; i++)
         {
-            parts.Add(Around($"Rib{i}", CropPartShape.Sphere, RibSize, 0.34f, RibSize, RibRing, 0.15f, yaw: i * 60f, pitch: 0f, "moonmelon"));
+            parts.Add(Around($"Rib{i}", CropPartShape.Sphere, 0.26f, 0.34f, 0.26f, ribRing, 0.15f, yaw: i * 60f, pitch: 0f, "moonmelon"));
         }
 
         parts.Add(Upright("Crown", CropPartShape.Sphere, 0.18f, 0.08f, 0.18f, 0.29f, "moonmelon"));
         parts.Add(new CropPart("Stalk", CropPartShape.Cylinder, 0.04f, 0.08f, 0.03f, 0f, 0.35f, 0f, 15f, 0f, 0f, "foliage"));
 
-        var direction = Vector3.Transform(Vector3.UnitX, Rotation(0f, RipeVineYaw, 0f));
-        var root = new Vector3(0f, 0.015f, 0f) + (direction * RipeVineRoot);
-        var vine = LyingFrom("Vine", RipeVineLength, 0.03f, 0.04f, root, RipeVineYaw, roll: 0f, "foliage");
+        var direction = Vector3.Transform(Vector3.UnitX, Rotation(0f, vineYaw, 0f));
+        var root = new Vector3(0f, 0.015f, 0f) + (direction * vineRoot);
+        var vine = LyingFrom("Vine", vineLength, 0.03f, 0.04f, root, vineYaw, roll: 0f, "foliage");
         var vineCentre = new Vector3(vine.X, vine.Y, vine.Z);
         parts.Add(vine);
-        parts.Add(VineLeaf("Leaf0", vineCentre, RipeVineYaw, along: -0.03f, side: 1f, y: 0.05f));
-        parts.Add(VineLeaf("Leaf1", vineCentre, RipeVineYaw, along: 0.08f, side: -1f, y: 0.05f));
+        parts.Add(VineLeaf("Leaf0", vineCentre, vineYaw, along: -0.03f, side: 1f, y: 0.05f));
+        parts.Add(VineLeaf("Leaf1", vineCentre, vineYaw, along: 0.08f, side: -1f, y: 0.05f));
 
         // The tendril curls up from the vine's end, leaning on along the vine: its +Z lean is yawed onto the vine's +X.
-        var end = root + (direction * RipeVineLength);
+        var end = root + (direction * vineLength);
         parts.Add(RisingFrom(
-            "Tendril", 0.015f, 0.12f, 0.01f, end, pitch: 50f, yaw: RipeVineYaw + 90f, "foliage", CropPartShape.Cylinder));
+            "Tendril", 0.015f, 0.12f, 0.01f, end, pitch: 50f, yaw: vineYaw + 90f, "foliage", CropPartShape.Cylinder));
         return parts;
     }
 
