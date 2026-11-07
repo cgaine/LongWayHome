@@ -131,11 +131,11 @@ game/
       FarmerAnimations.cs     # the farmer's AnimationLibrary (#103): one clip per FarmerClip from FarmerMoves (Application/Art/)
     farm/
       Meadow.tscn             # the farm's ground: meadow, shade patches, mown margin, edging, path, props (#77)
-      MeadowView.cs           # builds its meshes and MultiMeshes from MeadowLayout (Application/Art/MeadowLayout.cs)
+      MeadowView.cs           # builds its meshes and MultiMeshes from MeadowLayout (Application/Art/MeadowLayout.cs), and the wild grass cover: one MultiMesh per GrassTileArt layout over MeadowLayout.GrassCover
       Farmhouse.tscn          # the run-down farmhouse (#104): one Model mesh, no collision (Farm.tscn's House keeps its box)
       FarmhouseView.cs        # merges FarmhouseArt.RunDown (Application/Art/FarmhouseArt.cs) into that one mesh under the shared material
       RoundFarmhouseModels.cs # the concept art's round farmhouse, run-down and restored, from RoundFarmhouseArt (Application/Art/); art sandbox only for now
-      GrassTileModels.cs      # the grass Tile detail meshes: each GrassTileArt layout in each Season's grass, shared by every Tile showing it
+      GrassTileModels.cs      # the grass detail meshes: each GrassTileArt layout in each Season's grass for the plot's Tiles, and its wild MeadowParts for the meadow's cover
       NatureModels.cs         # the Twinbough (TreeArt: each stage and season) and the rocks (RockArt: rock, boulder, Rosk and Groth ore); art sandbox only for now
     town/
       TownModels.cs           # the general store at each StoreStage (GeneralStoreArt) and the carpenter at each CarpenterStage (CarpenterArt), both on the shared RoundBuilding shape, and the rebuild sign (RebuildSignArt), with their night-only lights; art sandbox only for now

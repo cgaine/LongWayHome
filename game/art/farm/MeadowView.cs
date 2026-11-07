@@ -22,7 +22,11 @@ namespace LongWayHome.Game.Art;
 /// <see cref="MeadowLayout.PathStones"/> and <see cref="MeadowLayout.EdgingStones"/>;</item>
 /// <item>the scattered props from <see cref="MeadowLayout.Generate(int)"/> with <see cref="MeadowLayout.FarmSeed"/>:
 /// one <c>MultiMeshInstance3D</c> per part, named <c>&lt;Kind&gt;&lt;Part&gt;</c>, each instance placed with its
-/// prop's yaw and scale.</item>
+/// prop's yaw and scale;</item>
+/// <item>the wild grass cover, built here in code under a <c>GrassCover</c> node: the 1 m patches of
+/// <see cref="MeadowLayout.GrassCover"/>, one <c>MultiMeshInstance3D</c> per <see cref="GrassTileArt"/> layout
+/// (<c>Grass0</c> to <c>Grass7</c>) drawing its <see cref="GrassTileModels.MeadowMeshFor"/> mesh, coloured by its UVs under
+/// the shared material, so the whole meadow's grass is eight draws.</item>
 /// </list>
 /// Every mesh is a low-poly primitive, or several merged into one, and takes its colour from the shared palette
 /// material through <see cref="ArtMaterials.Apply"/> with its <see cref="MeadowLayout.PartRoles"/> role. Nothing here
@@ -30,7 +34,8 @@ namespace LongWayHome.Game.Art;
 /// <para>
 /// The grass follows the Season (#79): after building, and again on <see cref="GameSession.NightCompleted"/>, the only
 /// time the date changes (BR-G1), it reads the <see cref="GameRoot"/> session's <c>Game.Date.Season</c> and applies
-/// <see cref="SeasonGrass.For"/> to <c>Ground</c>, <c>MownMargin</c>, <c>ShadePatches</c> and <c>TuftBlades</c>. With
+/// <see cref="SeasonGrass.For"/> to <c>Ground</c>, <c>MownMargin</c>, <c>ShadePatches</c>, <c>TuftBlades</c> and the
+/// grass cover (each layout's MultiMesh takes the Season's mesh). With
 /// no session (the data failed to load) it stays in summer. Native plants, rocks, stumps, saplings, path and edging
 /// never change. Only reads the date; changes no game state.
 /// </para>
@@ -56,6 +61,9 @@ public partial class MeadowView : Node3D
 
     /// <summary>The tuft props, kept to rebuild the tufts' instance transforms at each Season's height.</summary>
     private List<MeadowProp> _tuftProps = [];
+
+    /// <summary>The grass cover's MultiMeshes, by layout, whose mesh each Season swaps.</summary>
+    private readonly List<(int Variant, MultiMesh Multimesh)> _cover = [];
 
     /// <summary>The Season grass last applied (null before the first), so an unchanged Season does nothing.</summary>
     private SeasonGrass? _applied;
@@ -86,6 +94,7 @@ public partial class MeadowView : Node3D
         Fill("StumpTop", Shapes.StumpTop(), Of("Stump"), shadows: true);
         Fill("SaplingStem", Shapes.SaplingStem(), Of("Sapling"), shadows: true);
         Fill("SaplingCrown", Shapes.SaplingCrown(), Of("Sapling"), shadows: true);
+        BuildGrassCover();
 
         _session = GetNode<GameRoot>(GameRootPath).Session;
         if (_session is null)
@@ -130,6 +139,11 @@ public partial class MeadowView : Node3D
         ArtMaterials.Apply(shadePatches, grass.ShadePatches);
         shadePatches.Visible = grass.ShowShadePatches;
 
+        foreach (var (variant, multimesh) in _cover)
+        {
+            multimesh.Mesh = GrassTileModels.MeadowMeshFor(variant, grass);
+        }
+
         var tufts = GetNode<MultiMeshInstance3D>("TuftBlades");
         ArtMaterials.Apply(tufts, grass.Tufts);
         if (!Mathf.IsEqualApprox(grass.TuftHeightScale, _applied?.TuftHeightScale ?? 1f))
@@ -144,6 +158,41 @@ public partial class MeadowView : Node3D
         }
 
         _applied = grass;
+    }
+
+    /// <summary>
+    /// The wild grass cover: one MultiMesh per layout under a <c>GrassCover</c> node, its instances the layout's patches
+    /// from <see cref="MeadowLayout.GrassCover"/>, coloured by the merged mesh's UVs under the shared material. The mesh
+    /// itself is set for the Season by <see cref="ApplySeason"/>.
+    /// </summary>
+    private void BuildGrassCover()
+    {
+        var root = new Node3D { Name = "GrassCover" };
+        AddChild(root);
+        var patches = MeadowLayout.GrassCover().ToLookup(p => p.Kind);
+        for (var variant = 0; variant < GrassTileArt.Variants; variant++)
+        {
+            var placed = patches[$"Grass{variant}"].ToList();
+            var multimesh = new MultiMesh
+            {
+                TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
+                Mesh = GrassTileModels.MeadowMeshFor(variant, SeasonGrass.For(Season.Summer)),
+                InstanceCount = placed.Count,
+            };
+            for (var i = 0; i < placed.Count; i++)
+            {
+                multimesh.SetInstanceTransform(i, PropTransform(placed[i]));
+            }
+
+            root.AddChild(new MultiMeshInstance3D
+            {
+                Name = $"Grass{variant}",
+                Multimesh = multimesh,
+                MaterialOverride = ArtMaterials.Shared,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+            });
+            _cover.Add((variant, multimesh));
+        }
     }
 
     private void Ground(string name, Mesh mesh)

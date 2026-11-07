@@ -135,6 +135,58 @@ public static class MeadowLayout
         ["SaplingCrown"] = "foliage",
     };
 
+    /// <summary>How far a grass cover patch may reach from its centre: half a metre at its largest scale.</summary>
+    public const float MaxGrassCoverReach = 0.5f * MaxCoverScale * 1.4143f;
+
+    private const float MaxCoverScale = 1.25f;
+
+    /// <summary>The house's walls (x −3..3, z −11..−7), the bin and the shop stall: grass cover keeps off them.</summary>
+    private static readonly Rect[] CoverBlockers =
+    [
+        new(-3f, 3f, -11f, -7f),
+        new(2.4f, 3.6f, -6.4f, -5.6f),
+        new(-11f, -7f, -2f, 2f),
+    ];
+
+    /// <summary>
+    /// The wild grass cover over the meadow (ART_DIRECTION §7.2): one 1 m patch per square metre of the ground, kind
+    /// <c>Grass&lt;variant&gt;</c> (a <see cref="GrassTileArt"/> layout, 0 to 7), each nudged up to 0.35 m off its cell's
+    /// centre, turned to any yaw and scaled 0.9 to 1.25, so no grid shows. A patch keeps its whole reach
+    /// (<see cref="MaxGrassCoverReach"/>) off the plot and its mown margin, the path, the pond's water and the ground's
+    /// edge, and its centre off the house, the bin and the shop stall. The same list every call.
+    /// </summary>
+    public static IReadOnlyList<MeadowProp> GrassCover()
+    {
+        var random = new Random(FarmSeed + 1);
+        var cover = new List<MeadowProp>();
+        for (var cx = -15; cx <= 15; cx++)
+        {
+            for (var cz = -12; cz <= 12; cz++)
+            {
+                // Draw every value for every cell, kept or not, so one cell's rule never shifts another's patch.
+                var x = cx + Between(random, -0.35f, 0.35f);
+                var z = cz + Between(random, -0.35f, 0.35f);
+                var yaw = Yaw(random);
+                var scale = Between(random, 0.9f, MaxCoverScale);
+                var variant = random.Next(GrassTileArt.Variants);
+                if (!CoverAllowed(x, z)) continue;
+                cover.Add(new MeadowProp($"Grass{variant}", x, z, yaw, scale));
+            }
+        }
+
+        return cover;
+    }
+
+    private static bool CoverAllowed(float x, float z)
+    {
+        var reach = MaxGrassCoverReach;
+        if (MathF.Abs(x) > GroundHalfX + 0.5f - reach || MathF.Abs(z) > GroundHalfZ + 0.5f - reach) return false;
+        if (PlotPlusMargin.DistanceTo(x, z) < reach) return false;
+        if (new Rect(-PathHalfWidth, PathHalfWidth, -7f, -5.5f).DistanceTo(x, z) < reach) return false;
+        if (new Circle(10f, 0f, 2.5f + reach).Contains(x, z)) return false;
+        return !CoverBlockers.Any(r => r.Contains(x, z));
+    }
+
     /// <summary>The scattered props and shade patches for <paramref name="seed"/>; the same list for the same seed.</summary>
     public static IReadOnlyList<MeadowProp> Generate(int seed) => Generate(seed, IsAllowed);
 
