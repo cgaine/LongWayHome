@@ -168,7 +168,6 @@ public partial class BackpackMenu : CanvasLayer
 
         // Rebuilt on every open, so a changed hotbar row or a larger Backpack shows.
         RebuildSlots();
-        RefreshGlyphs();
         GetTree().Paused = true;
         _panel.Visible = true;
         FocusFirstSlot();
@@ -260,10 +259,11 @@ public partial class BackpackMenu : CanvasLayer
         if (_held is not { } from)
         {
             // Only a filled Slot can be picked up; an empty one has nothing to lift.
-            if (_session!.BackpackView().Slots[index].Item is not null)
+            var view = _session!.BackpackView();
+            if (view.Slots[index].Item is not null)
             {
                 _held = index;
-                RefreshSlots(_session.BackpackView());
+                RefreshSlots(view);
             }
 
             return;
