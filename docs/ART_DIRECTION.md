@@ -71,6 +71,8 @@ Readability comes first (pillar 4): tilled, watered and planted tiles and each c
 
 ## 3. Light and the sky (draft)
 
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Sky and light page)
+
 Time of day is already a system (6:00 am to 2:00 am). The light should make each part of the day feel different:
 
 | Time | Look |
@@ -86,6 +88,28 @@ Time of day is already a system (6:00 am to 2:00 am). The light should make each
 - Wisp: small, blue-white, crosses the sky faster. Second, cooler light.
 - When both are up, objects cast two faint shadows: a small detail that sells "not Earth".
 - Later idea: the moons' phases could connect to systems (e.g. some glowing plants only bloom when both are full).
+
+**The moons in detail** (colours match the art sandbox, `game/art/sandbox/ArtSandbox.cs`):
+
+| | Hearth | Wisp |
+| --- | --- | --- |
+| Colour | Soft gold `#F2D38A` | Blue-white `#CFE2FF` |
+| Size in the sky | About twice Earth's Moon | About half Hearth's size |
+| Path | Rises in the east at dusk; still up when the day ends at 2 am | Rises about 9 pm, crosses the whole sky and sets about 1 am |
+| Shadow | Higher and brighter: shorter, darker, warm-tinted | Lower and fainter: longer, lighter, cool |
+| Second look | A faint tilted ring | A thin trail of haze behind it as it moves |
+| Phases (draft) | One cycle per Season (28 days), full on day 14 | One cycle a week, full on days 7, 14, 21 and 28 |
+
+So both are full together on day 14 of every Season. Phases are display only for now.
+
+**Sky by time of day:**
+
+| Time | Sky (top → horizon) | Sun and moons |
+| --- | --- | --- |
+| Morning | `#8EC5E8` → mint `#CDE9DA` → peach `#FFE2B8` where the sun rises | Low sun `#FFE2B8` over the mountains; mist bands over the lake and meadow |
+| Day | `#8EC5E8` → mint `#CDE9DA` | High sun, short soft shadows |
+| Dusk | Amber `#F0A060` → rose `#B85C86` | Low orange sun in the west, Hearth rising in the east, windows lit |
+| Night | Indigo `#1B2142` → `#2A3160`, with stars | Hearth and Wisp; two faint shadows; glowing plants, leaf tips and lit windows |
 
 Night must never punish the player (pillar 1): it is darker and moodier, but tiles, crops and prompts stay readable.
 
@@ -186,6 +210,7 @@ The planet's signature. They're picked by hand and only at night (design doc), s
 - **Farm animals:** puffhen, mossback and woolhorn. See section 6.3.
 - **Townsfolk:** see section 6.2.
 - **The farmer:** a human from Earth. See section 6.1.
+- **Tools in hand:** what the farmer carries. See section 6.4.
 
 ### 6.1 The farmer (draft)
 
@@ -220,7 +245,7 @@ Decided: the outfit changes with the story. Draft trigger for each step: a story
 **Readability (pillar 4):**
 
 - From the overhead camera, the cap's brim (later the hat's brim) shows which way he faces. It replaces the prototype's "nose" block.
-- The tool in hand is always visible, so the next action reads at a glance.
+- The tool in hand is always visible, so the next action reads at a glance (section 6.4).
 - Size and collision stay as they are now (capsule 1.6 m tall, radius 0.35) so the art upgrade doesn't change gameplay.
 
 **Build notes:** chunky: about 3 heads tall, with a big head, wide body, short legs and oversized boots and hands, for a cozy read and so the face and the tool read from the overhead camera (decided: chunkier than the first 4-head draft). Low-poly with three tones per part (highlight, lit and shade facets), a soft dark outline, a little contact shadow (under the cap brim, under the chin, on the ground) and small details that read up close: boot toe caps and laces, knee pads, a chest pocket, fabric folds at elbows and knees, stitching on the overalls, a weave on the hat. One material using a palette texture. Rigged to Godot's humanoid skeleton profile so shared animations can be retargeted. First animations needed: idle, walk, hoe swing, watering, plant, harvest, carry, sleep and pass out.
@@ -293,6 +318,45 @@ Three native creatures in familiar farm roles (design doc, Ranch and animals). R
 
 **Still to design:** the coop and barn (grown, like the farmhouse, section 7.1), feed troughs, and products as inventory icons.
 
+### 6.4 Tools in hand (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Tools in hand page)
+
+**Always in hand.** Whatever is selected in the hotbar is in the farmer's hand, so the next action reads at a glance (pillar 4). That includes seeds, which the game already lets him hold. He holds it in the hand without the wrist unit, so both stay visible. Long tools stand head up beside him; the watering can and the seed pouch hang below the hand, so they never read as long tools.
+
+**Short and stocky.** Tools follow the farmer's chunky build (section 6.1): short, thick handles and oversized heads, so a long tool stands only about chest high beside him and the head reads from the camera. The sheet shows him in his "at home" outfit (work shirt, teal overalls, sun hat), the look he farms in for most of the game.
+
+**Mostly familiar.** Tools are made by people, so they keep Earth shapes (section 1). The second look is in the materials: handles of native mauve timber with its wavy grain, and heads of the planet's own metals.
+
+| Item | Status | Silhouette |
+| --- | --- | --- |
+| Hoe | In game, starting tool | An L: the blade juts out from the top of the handle and turns down |
+| Watering can | In game, starting tool | A round body with a long spout and a sprinkler rose, carried by its top handle |
+| Seeds | In game | A cloth pouch tied at the neck; a patch and a few seeds peeking out show the crop's colour |
+| Axe | Planned (Maggie, 50g) | A single wedge head with a pale sharpened edge and a short poll |
+| Pickaxe | Planned (Maggie, 75g) | A curved, double-pointed head: the widest silhouette |
+
+**From above.** The camera rotates freely and tilts toward top-down when zoomed out, so what shows from overhead is the head: a short arm and plate (hoe), a round body with a spout (can), a small pouch (seeds), a wedge on one side (axe) and a long crescent across both sides (pickaxe).
+
+**Upgrade levels.** Mira upgrades every tool through the same four metals (design doc, Tool upgrade levels). Each level reads three ways, so it never relies on colour alone:
+
+| Level | Metal | Head | Handle |
+| --- | --- | --- | --- |
+| Basic | Plain grey `#9A98A2` | Smallest; the basic can is dented | Plain timber |
+| Rosk (copper tier) | Rose copper `#C77A52` | Larger; the can gets rivets | 1 band, cord grip |
+| Groth (iron tier) | Dark blue-grey iron `#59627A` | Larger again; the can's rose widens for 3 tiles | 2 bands, leather grip |
+| Forgelight (steel tier) | Pale steel `#C9D2E0` with an Embrite inlay `#B48CFF` | Largest; the widest can rose for 3 x 3 | 3 bands, ember-orange grip |
+
+The head grows with what the tool covers: the hoe blade widens from 1 tile to 5 x 5, the can's body grows with its uses, and the axe and pickaxe heads grow with what they can break.
+
+**At night.** Ordinary metals darken with the scene but keep their shape. Forgelight's Embrite inlay glows soft violet, the rare glow from the deep mine (section 2), so the best tools read in the dark and carry a little light into the mine.
+
+**Palette:** timber `#9C7E8C` (light `#B396A3`, shade `#7E6474`, grain `#6E5664`), Basic `#9A98A2`, Rosk `#C77A52`, Groth `#59627A`, Forgelight `#C9D2E0`, Embrite `#B48CFF`, Forgelight grip `#E9773A`, seed pouch `#D9C39A`.
+
+**Fits the game:** held tools are visual only. They don't change the farmer's capsule or the tile he targets, and they become the props for the first tool animations (hoe swing, watering, plant, harvest).
+
+**Still to design:** the fishing rod (Clyde's first lantern), sprinklers and other Forgelight parts, tools as hotbar icons, and the tool-use animations.
+
 ## 7. Places
 
 | Place | Mood | Key visual |
@@ -353,7 +417,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 - A mown margin of lighter, shorter grass (`#8CB862`) around the plot.
 - A low edging of rounded lilac-grey stones along all four sides. It's low enough not to block movement or the camera.
 - A dirt path (`#B8946C`, with stepping stones) from the farmhouse door to the plot.
-- The refill pond sits beside the plot, with turquoise shallows and a deeper blue centre, and a coilwillow behind it.
+- The refill pond sits beside the plot, with turquoise shallows and a deeper blue centre, and a coilwillow behind it (section 7.4).
 
 **Tile states (pillar 4).** Each tile is a 1 x 1 m slab with a little visible thickness at the front and side, so the grid reads without drawn lines:
 
@@ -389,6 +453,35 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings p
 
 **Still to design:** the ranch house, the museum, the dock houses for Clyde's family, the bridge, and the town square (paving, well, lamp posts).
 
+### 7.4 The pond and the shipping bin (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Pond and shipping bin page)
+
+The two things beside the plot that the farmer uses every day. Each shows where to stand and what state it's in at a glance (pillar 4).
+
+**The refill pond.** A natural meadow pond with an irregular shoreline, not a perfect circle. Clear turquoise shallows over a pebbly bed shade into a dark blue centre (`#7CC2B4` at the edge to `#173F58` in the middle). It has a damp bank and grass growing to the water's edge, a few lilac-grey stones half in the water, and a coilwillow leaning over it with its reflection upside down in the water.
+
+- **Where to stand:** a flat refill stone on the plot side, inside the 3.8 m refill range. The shoreline is kept steady there so the stone always sits at the water.
+- **Moving water:** shimmer drifting across the surface, ripples spreading now and then, lily pads bobbing, and the willow strands and reeds swaying, so the pond feels alive even when the farmer stands still. In game this is a light water shader, cheap enough for the Steam Deck.
+- **Refilling:** ripples spread from the refill stone and a few drops splash up when the can fills.
+- **Second look:** a warm spring feeds the deep centre, so bubbles rise there all year. Lily pads have violet edges, there are amber bead reeds and curled fronds, and in summer a glassfly with four round wings hovers over the water.
+- **Seasons:** spring pads in flower; summer full pads and the glassfly; fall golden willow leaves floating and olive pads; winter ice on the shallows, but the warm-spring centre steams and stays open, so the can can be refilled all year (pillar 1).
+- **Night:** Hearth and Wisp reflect gold and blue, and the coilwillow's strand tips glow cyan over the water.
+- **Fits the game:** 5 m across with a 3 m deep centre, as now. The bank follows the existing collision edge.
+
+**The shipping bin.** Round, like the round buildings explored on the Town page: a squat drum of mauve timber staves under a small cone of leaves, with a leaf-tip fringe and a sprout for a handle. Two living violet trunk ribs climb its sides, an ember-orange band runs under the lid, and Maggie's round sprout sign on the front marks it as the store's bin.
+
+| State | Look |
+| --- | --- |
+| Empty (morning) | Lid closed, flag down: yesterday's crops have sold |
+| In range (within 1.7 m) | The leaf lid tips back, showing a woven liner, before the prompt appears |
+| Crops waiting | Lid closed with crops peeking out and an ember-orange flag up, like a mailbox: they sell tonight |
+| Night | A small lantern on a rib lights up, so the bin can be found in the dark; the flag still shows |
+
+**Fits the game:** about 1 m across and 0.8 m tall, so its collision becomes a short cylinder instead of today's 1.2 x 0.8 m box. The 1.7 m range stays.
+
+**Palette:** water `#7CC2B4`, `#3F8E98`, `#245E7A`, `#173F58`; bank `#5A4A3A`; stone `#9A95A2`; bin staves `#AC939E` to `#755C6A`, leaf lid `#3E8F82`, band and flag `#E9773A`, sign `#F0E6C0`, lantern light `#FFB04A`.
+
 ## 8. Style and technical direction (draft)
 
 - **Style:** stylised 3D, a step up from the choppy low-poly prototype: cozy, readable and light enough for the Steam Deck. Simple shapes, with colour doing most of the work, and no realistic textures. This builds on what the prototype already uses (REQ-12 "low-poly"), so the upgrade is a better version of the same direction, not a change.
@@ -399,6 +492,42 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings p
 - **Motion:** gentle wind sway on grass, plants and leaves, driven by a shader; slow "breathing" pulses on glows; light ripples on water. Small motion makes a low-poly world feel alive.
 - **Steam Deck first:** every effect must hold the frame rate on the Deck at 1280 x 800 (the risk register in `docs/requirements/technical-blueprint.md` already plans for low-poly art and Deck testing). Effects that cost too much get a lower-cost fallback.
 - **Separate from gameplay:** new art lives in its own folder and scenes, never in the rules (Domain, Application). A gameplay scene adopts a new asset by swapping a model or material, without changing any rules.
+
+### 8.1 HUD and menus (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (HUD and menus page)
+
+**One small UI kit** for the HUD and every menu, drawn at the Steam Deck's 1280 x 800. Warm plum panels and cream text are the town's warm side (section 2); ember is the accent and the focus colour. Type is Nunito (rounded and cozy, clear on the Deck). Every text is 20 px or more, 22 px for body text, as the game's text-size test already requires.
+
+| Role | Colour |
+| --- | --- |
+| Panel | `#241C30` at about 88% opacity, with a mauve `#9C7E8C` line |
+| Text / muted text | `#F6F1E4` / `#CFC6D8` |
+| Accent and focused button | Ember `#E9773A`, with an amber `#FFB04A` focus ring |
+| Energy | Ember to gold `#E9773A` → `#F7C531` |
+| Water | `#6FC3E8` |
+| Gold | `#F7D27A` |
+| Disabled | `#9A92A6`, with a dashed border |
+
+**The HUD** shows what the game shows today:
+
+- **Top left, status:** energy as an ember-to-gold bar with its number; the watering can as 20 water pips, one per charge; gold with a sprout coin. The energy bar turns ember when the farmer is tired.
+- **Top right, clock:** weather icon and time; a day arc from 6 am to 2 am along which the sun (Hearth after dark) moves, with a tick where dusk starts; then the date.
+- **Bottom centre, hotbar:** six slots, ready for the backpack row (REQ-47). Icons instead of words, with the stack count in the corner; the selected slot rises with an ember border and its name shows above. The change-item glyphs sit at each end.
+- **Prompts, above the hotbar:** the Use prompt with its glyph (REQ-12). An interaction (Ship crops, Refill can, Sleep, Shop) stacks above it with an ember border. A rejection ("Already watered") is greyed and dashed, with no glyph.
+- **Glyphs** follow the last device used (REQ-13): keys are square cream chips, controller buttons round ones.
+- The panels are nearly opaque, so the HUD reads the same over morning mist and the indigo night.
+
+**Menus.** Every menu works with a controller alone: one item always has focus, and the glyphs for the current device sit at the bottom.
+
+| Screen | Look |
+| --- | --- |
+| Title | "Long Way Home" over the meadow at dusk with Hearth rising; Continue (with the slot's date and gold), New game, Load game, Quit, as in the game |
+| Shop (Maggie's corner) | Maggie in an arched window beside the list. Each listing has an icon, its Season and grow days, and its price; out-of-season seeds stay listed but greyed, saying why |
+| Pause | "Paused" with the date and time. Proposal: adds Controls and Quit to title to today's Resume, and a line saying the farm was saved last night |
+| Night | The two moons over the lake, "You slept." or "You passed out…", the new date. Proposal: a summary of what sold overnight and the gold earned, then Saved, or the save-failed line in ember |
+
+**Still to design:** the backpack screen (REQ-47), the save slot list and overwrite question, settings, and talking to residents (dialogue boxes and the friendship lanterns).
 
 ## 9. Open questions
 
