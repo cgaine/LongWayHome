@@ -67,7 +67,7 @@ public class ArtPaletteTests
     /// The whole list: the baseline, the Season margins appended by #79, starcorn's sparkle (#91), then the farmer's
     /// skin, skin shade, hair and seed pouch (#102), the farmhouse's faded door and dull glass (#104), then the Twinbough's
     /// spring and fall canopies, fall underside, blossom and cut wood, and the Rosk and Groth ore colours (the art
-    /// sandbox's trees and rocks).
+    /// sandbox's trees and rocks), then their light and shade canopy tones and the Groth crystals' light tips.
     /// </summary>
     private static readonly (string Role, string Hex)[] ExpectedSwatches =
     [
@@ -88,6 +88,10 @@ public class ArtPaletteTests
         ("wood-cut", "#C9A88E"),
         ("rosk", "#C77A52"),
         ("groth", "#59627A"),
+        ("canopy-spring-light", "#8CC8A8"),
+        ("canopy-fall-light", "#C27098"),
+        ("canopy-fall-shade", "#7E3E62"),
+        ("groth-light", "#A3AEC8"),
     ];
 
     /// <summary>The swatches the encoder is given, for the PNG layout tests, which hold for any list length.</summary>
@@ -97,11 +101,11 @@ public class ArtPaletteTests
     // ---- AC1: the swatch list ----
 
     [Fact]
-    public void AC3_palette_lists_the_59_swatches_in_order()
+    public void AC3_palette_lists_the_63_swatches_in_order()
     {
         var actual = ArtPalette.Swatches.Select(s => (s.Role, s.Hex)).ToArray();
 
-        Assert.Equal(59, actual.Length);
+        Assert.Equal(63, actual.Length);
         Assert.Equal(ExpectedSwatches, actual);
     }
 

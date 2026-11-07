@@ -93,21 +93,52 @@ public class TreeAndRockArtTests
     {
         var parts = TreeArt.Twinbough(TreeStage.Full, Season.Summer);
 
-        var west = parts.Single(part => part.Name == "LimbWest");
-        var east = parts.Single(part => part.Name == "LimbEast");
-        Assert.True(west.X < 0f && east.X > 0f, "the limbs don't lean apart");
+        var west = parts.Where(part => Named(part, "LimbWest")).ToList();
+        var east = parts.Where(part => Named(part, "LimbEast")).ToList();
+        Assert.NotEmpty(west);
+        Assert.NotEmpty(east);
+        Assert.True(west.Max(part => part.X) < 0f && east.Min(part => part.X) > 0f, "the limbs don't lean apart");
     }
 
     [Theory]
-    [InlineData(Season.Spring, "canopy-spring")]
-    [InlineData(Season.Summer, "foliage")]
-    [InlineData(Season.Fall, "canopy-fall")]
-    public void The_canopy_takes_its_season_colour(Season season, string role)
+    [InlineData(Season.Spring, "foliage", "canopy-spring", "canopy-spring-light")]
+    [InlineData(Season.Summer, "grass-shade", "foliage", "roof-tips")]
+    [InlineData(Season.Fall, "canopy-fall-shade", "canopy-fall", "canopy-fall-light")]
+    public void The_canopy_takes_its_season_colour_in_three_tones(Season season, string shade, string middle, string light)
     {
-        var canopy = TreeArt.Twinbough(TreeStage.Full, season).Where(part => Named(part, "Canopy")).ToList();
+        var parts = TreeArt.Twinbough(TreeStage.Full, season);
+        var canopy = parts.Where(part => Named(part, "Canopy") || Named(part, "Clump")).ToList();
+        string[] tones = [shade, middle, light];
 
         Assert.NotEmpty(canopy);
-        Assert.All(canopy, part => Assert.Equal(role, part.Role));
+        Assert.All(canopy, part => Assert.Contains(part.Role, tones));
+        Assert.All(tones, tone => Assert.Contains(canopy, part => part.Role == tone));
+        // Lighter on top: the highest puff is the light tone, the lowest the shade.
+        Assert.Equal(light, canopy.Where(part => Named(part, "Canopy")).MaxBy(part => part.Y)!.Role);
+        Assert.Equal(shade, canopy.Where(part => Named(part, "Canopy")).MinBy(part => part.Y)!.Role);
+    }
+
+    [Theory]
+    [MemberData(nameof(EveryTree))]
+    public void Every_tree_stays_within_a_part_budget(TreeStage stage, Season season)
+    {
+        // One merged mesh per tree; the budget keeps a meadow of them affordable on the Steam Deck (REQ-14).
+        Assert.InRange(TreeArt.Twinbough(stage, season).Count, 20, 200);
+    }
+
+    [Fact]
+    public void The_tree_has_round_puffs_bark_roots_and_branches_into_the_canopy()
+    {
+        var parts = TreeArt.Twinbough(TreeStage.Full, Season.Summer);
+
+        Assert.All(parts.Where(part => Named(part, "Canopy")), part => Assert.True(part.Sides >= 12, $"{part.Name} has {part.Sides} sides"));
+        Assert.All(parts.Where(part => Named(part, "Trunk")), part => Assert.Equal(8, part.Sides));
+        Assert.True(parts.Count(part => Named(part, "Clump")) >= 20, "the canopy has too few clumps");
+        Assert.True(parts.Count(part => Named(part, "Root")) >= 5);
+        Assert.Contains(parts, part => Named(part, "Groove") && part.Role == "timber-trim");
+        Assert.Contains(parts, part => Named(part, "Ridge") && part.Role == "timber-side");
+        Assert.Contains(parts, part => Named(part, "Branch"));
+        Assert.True(TreeArt.Twinbough(TreeStage.Full, Season.Winter).Count(part => Named(part, "Twig")) >= 10, "winter has too few twigs");
     }
 
     [Fact]
@@ -175,10 +206,28 @@ public class TreeAndRockArtTests
     }
 
     [Fact]
+    public void Meadow_rocks_have_moss_and_grass_and_ore_rocks_do_not()
+    {
+        foreach (var kind in new[] { RockKind.Rock, RockKind.Boulder })
+        {
+            Assert.Contains(RockArt.For(kind), part => Named(part, "Moss"));
+            Assert.Contains(RockArt.For(kind), part => Named(part, "Tuft"));
+        }
+
+        foreach (var kind in new[] { RockKind.RoskOre, RockKind.GrothOre })
+        {
+            Assert.DoesNotContain(RockArt.For(kind), part => Named(part, "Moss") || Named(part, "Tuft"));
+        }
+    }
+
+    [Fact]
     public void Ore_rocks_show_their_ore()
     {
         Assert.True(RockArt.For(RockKind.RoskOre).Count(part => part.Role == "rosk") >= 6, "Rosk ore has too few veins");
         Assert.True(RockArt.For(RockKind.GrothOre).Count(part => part.Role == "groth") >= 3, "Groth ore has too few crystals");
+        Assert.Equal(
+            RockArt.For(RockKind.GrothOre).Count(part => Named(part, "Crystal") && !Named(part, "CrystalTip")),
+            RockArt.For(RockKind.GrothOre).Count(part => Named(part, "CrystalTip") && part.Role == "groth-light"));
         Assert.DoesNotContain(RockArt.For(RockKind.Rock), part => part.Role is "rosk" or "groth");
     }
 }

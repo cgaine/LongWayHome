@@ -122,7 +122,7 @@ game/
   art/                        # new art, apart from gameplay scenes and scripts (ART_DIRECTION §8)
     ArtMaterials.cs           # Shared palette material; Apply(node, role) colours a code-built shape (#76)
     ArtMeshes.cs              # Merge (one mesh per multi-part shape, #77) and MergeSkinned (one bone per part, #102)
-    PartMeshes.cs             # merges a CropPart table into one mesh (cylinders 1.5 m or wider drawn round), for the sandbox's house, trees and rocks
+    PartMeshes.cs             # merges a CropPart table into one mesh (a part's Sides sets how round it is; cylinders 1.5 m or wider default to round), for the sandbox's house, trees and rocks
     crops/CropModels.cs       # one cached, merged mesh per (crop, stage) from CropArt (Application/Art/CropArt.cs) (#90)
     crops/NightGlowView.cs    # sets the art_night shader global from the clock in the farm (NightGlow.At) (#94)
     farmer/

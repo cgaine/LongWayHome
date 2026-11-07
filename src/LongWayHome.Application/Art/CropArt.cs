@@ -20,6 +20,8 @@ public enum CropPartShape
 /// <c>Node3D.RotationDegrees</c> (Euler YXZ), applied about the part's centre. <c>Glow</c> (0 none to 1 full) is how
 /// strongly the part lights up at night, through the shared shader's <c>art_night</c> emission, and <c>Twinkle</c>
 /// makes it sparkle rather than glow steadily (#94). Only ripe parts glow, so a glow also says "ready to harvest".
+/// <c>Sides</c> asks for a rounder Sphere or Cylinder: the number of sides round it (a Sphere gets half as many rings);
+/// 0 leaves it to the builder's default. Only the art sandbox's builder (<c>PartMeshes</c>) reads it.
 /// </summary>
 public sealed record CropPart(
     string Name,
@@ -35,7 +37,8 @@ public sealed record CropPart(
     float RollDegrees,
     string Role,
     float Glow = 0f,
-    bool Twinkle = false);
+    bool Twinkle = false,
+    int Sides = 0);
 
 /// <summary>
 /// The parts of each (crop, stage) model drawn to ART_DIRECTION §4 (#90). Pure C#, no Godot: the Godot builder

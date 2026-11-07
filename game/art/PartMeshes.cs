@@ -12,8 +12,10 @@ namespace LongWayHome.Game.Art;
 /// rocks: each part becomes a low-poly primitive (Box → <see cref="BoxMesh"/>, Sphere → <see cref="SphereMesh"/> 8 x 4,
 /// Cylinder → <see cref="CylinderMesh"/>, Prism → <see cref="PrismMesh"/>) placed by the part's Euler YXZ rotation, and
 /// <see cref="ArtMeshes.Merge"/> merges them with UVs on each part's palette swatch (and its night glow), to draw with
-/// <see cref="ArtMaterials.Shared"/>. A cylinder <see cref="RoundDiameter"/> or more across gets
-/// <see cref="RoundSides"/> sides so it reads round; smaller ones keep the game's six.
+/// <see cref="ArtMaterials.Shared"/>. A part's <see cref="CropPart.Sides"/>, when set, gives a Sphere that many radial
+/// segments (and half as many rings, at least three) or a Cylinder that many sides. Otherwise a cylinder
+/// <see cref="RoundDiameter"/> or more across gets <see cref="RoundSides"/> sides so it reads round, smaller ones keep the
+/// game's six, and a sphere is 8 x 4.
 /// </summary>
 public static class PartMeshes
 {
@@ -44,15 +46,15 @@ public static class PartMeshes
         {
             Radius = part.SizeX / 2f,
             Height = part.SizeY,
-            RadialSegments = 8,
-            Rings = 4,
+            RadialSegments = part.Sides > 0 ? part.Sides : 8,
+            Rings = part.Sides > 0 ? Mathf.Max(3, part.Sides / 2) : 4,
         },
         CropPartShape.Cylinder => new CylinderMesh
         {
             BottomRadius = part.SizeX / 2f,
             TopRadius = part.SizeZ / 2f,
             Height = part.SizeY,
-            RadialSegments = Mathf.Max(part.SizeX, part.SizeZ) >= RoundDiameter ? RoundSides : 6,
+            RadialSegments = part.Sides > 0 ? part.Sides : Mathf.Max(part.SizeX, part.SizeZ) >= RoundDiameter ? RoundSides : 6,
             Rings = 1,
         },
         CropPartShape.Prism => new PrismMesh { Size = new Vector3(part.SizeX, part.SizeY, part.SizeZ) },

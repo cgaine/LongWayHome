@@ -90,6 +90,10 @@ public static class ArtPalette
         new("wood-cut", "#C9A88E"),
         new("rosk", "#C77A52"),
         new("groth", "#59627A"),
+        new("canopy-spring-light", "#8CC8A8"),
+        new("canopy-fall-light", "#C27098"),
+        new("canopy-fall-shade", "#7E3E62"),
+        new("groth-light", "#A3AEC8"),
     ];
 
     /// <summary>The centre of <paramref name="role"/>'s swatch in 0–1 texture space (U right, V down).</summary>
