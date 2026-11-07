@@ -14,6 +14,68 @@ public class HarvestingTests
     private static readonly CropType Emberroot = TestGames.Crop(CropTypeId.Emberroot);
 
     [Fact]
+    public void AC8_Harvesting_with_no_room_for_the_crop_is_BackpackFull_and_the_planting_stays_ripe()
+    {
+        var ripe = TestGames.Ripe(CropTypeId.Emberroot);
+        var game = TestGames.WithBackpack(
+            TestGames.FullBackpack(), tiles: TestGames.TilledWith(Target, ripe, watered: true));
+        var before = TestGames.Describe(game.Player.Backpack);
+
+        var result = game.Harvest(Target, Emberroot);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
+        Assert.Equal(ripe, game.FarmPlot[Target].Planting);
+        Assert.Equal(PlantingStatus.Ripe, game.FarmPlot[Target].Planting!.StatusFor(Emberroot));
+        Assert.True(game.FarmPlot[Target].Watered);
+        Assert.Equal(before, TestGames.Describe(game.Player.Backpack));
+    }
+
+    [Fact]
+    public void AC8_HarvestRejection_names_BackpackFull_after_NotRipe()
+    {
+        var game = TestGames.WithBackpack(
+            TestGames.FullBackpack(),
+            tiles:
+            [
+                TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)),
+                TestGames.TilledWith(new GridPosition(0, 0), TestGames.PlantingOf(CropTypeId.Emberroot, 1)),
+            ]);
+
+        Assert.Equal(Rejection.BackpackFull, game.HarvestRejection(Target, Emberroot));
+        Assert.Equal(Rejection.NotRipe, game.HarvestRejection(new GridPosition(0, 0), Emberroot));
+        Assert.Equal(Rejection.NoPlanting, game.HarvestRejection(new GridPosition(1, 0), Emberroot));
+    }
+
+    [Fact]
+    public void BR_T6_Harvesting_adds_one_crop_to_the_lowest_free_slot_of_the_backpack()
+    {
+        var game = TestGames.WithBackpack(
+            TestGames.StartingBackpack(), tiles: TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));
+
+        var result = game.Harvest(Target, Emberroot);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Null(game.FarmPlot[Target].Planting);
+        Assert.Equal(TileState.Tilled, game.FarmPlot[Target].State);
+        Assert.Equal("4:Crop:Emberroot:1:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[4]));
+        Assert.Equal(1, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+    }
+
+    [Fact]
+    public void BR_K3_Harvesting_into_a_full_backpack_tops_up_a_crop_stack_below_99()
+    {
+        var game = TestGames.WithBackpack(
+            TestGames.FullBackpack((ItemRef.Crop(CropTypeId.Emberroot), 98)),
+            tiles: TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));
+
+        var result = game.Harvest(Target, Emberroot);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal("2:Crop:Emberroot:99:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+        Assert.Null(game.FarmPlot[Target].Planting);
+    }
+
+    [Fact]
     public void AC5_harvesting_a_ripe_planting_removes_it_adds_a_new_crop_stack_of_1_and_keeps_tile_and_energy()
     {
         var game = TestGames.WithTiles(150, null, TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)));

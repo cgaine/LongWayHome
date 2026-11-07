@@ -46,6 +46,61 @@ public class ShippingTests
     }
 
     [Fact]
+    public void AC10_Ship_all_moves_every_crop_from_every_slot_into_the_bin_and_empties_those_slots()
+    {
+        var game = TestGames.WithBackpack(TestGames.BackpackWith(
+            (ItemRef.Crop(CropTypeId.Emberroot), 150),
+            (ItemRef.Seed(CropTypeId.Emberroot), 10),
+            (ItemRef.Crop(CropTypeId.Dusktuber), 2)));
+
+        var result = game.ShipAll();
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(
+            [new ShippedItem(CropTypeId.Emberroot, 150), new ShippedItem(CropTypeId.Dusktuber, 2)],
+            game.ShippingBin.Items);
+        Assert.Equal(
+            [
+                "0:Tool:Hoe:1:Basic",
+                "1:Tool:WateringCan:1:Basic",
+                "2:-:-:0:-",
+                "3:-:-:0:-",
+                "4:Seed:Emberroot:10:-",
+                .. Enumerable.Range(5, 7).Select(index => $"{index}:-:-:0:-"),
+            ],
+            game.Player.Backpack.Slots.Select(TestGames.DescribeSlot));
+    }
+
+    [Fact]
+    public void BR_S1_Shipping_merges_each_crop_types_quantity_across_slots_into_the_bin()
+    {
+        var bin = new ShippingBin();
+        bin.Add(CropTypeId.Emberroot, 5);
+        var game = TestGames.WithBackpack(
+            TestGames.BackpackWith((ItemRef.Crop(CropTypeId.Emberroot), 120), (ItemRef.Crop(CropTypeId.Emberroot), 3)),
+            bin: bin);
+
+        var result = game.ShipAll();
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal([new ShippedItem(CropTypeId.Emberroot, 128)], game.ShippingBin.Items);
+        Assert.Equal(0, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+    }
+
+    [Fact]
+    public void BR_K6_Shipping_with_only_seeds_and_tools_is_nothing_to_ship_and_keeps_them()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack());
+        var before = TestGames.Describe(game.Player.Backpack);
+
+        var result = game.ShipAll();
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NothingToShip), result);
+        Assert.Equal(before, TestGames.Describe(game.Player.Backpack));
+        Assert.Empty(game.ShippingBin.Items);
+    }
+
+    [Fact]
     public void AC1_ship_all_moves_every_crop_into_the_bin_and_leaves_the_seeds()
     {
         var game = TestGames.WithEnergy(150, Basket());

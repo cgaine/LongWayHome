@@ -99,6 +99,54 @@ public class NewGameFactoryTests
     }
 
     [Fact]
+    public void AC1_New_game_backpack_has_12_slots_hoe_in_slot_0_basic_can_in_slot_1_then_the_starting_seeds()
+    {
+        var backpack = NewGameFactory.Create(Shipped, Now).Player.Backpack;
+
+        Assert.Equal(12, backpack.Capacity);
+        Assert.Equal(0, backpack.HotbarRow);
+        Assert.Equal(
+            [
+                "0:Tool:Hoe:1:Basic",
+                "1:Tool:WateringCan:1:Basic",
+                "2:Seed:Emberroot:10:-",
+                "3:Seed:Dusktuber:5:-",
+                .. Enumerable.Range(4, 8).Select(index => $"{index}:-:-:0:-"),
+            ],
+            backpack.Slots.Select(TestGames.DescribeSlot));
+    }
+
+    [Fact]
+    public void BR_P6_New_game_has_100_gold_150_energy_and_a_full_basic_20_charge_can_in_the_backpack()
+    {
+        var player = NewGameFactory.Create(Shipped, Now).Player;
+
+        Assert.Equal(new Gold(100), player.Gold);
+        Assert.Equal(150, player.Energy);
+        Assert.Equal(ToolTier.Basic, player.Backpack.TierOf(ToolId.Hoe));
+        Assert.Equal(ToolTier.Basic, player.Backpack.TierOf(ToolId.WateringCan));
+        Assert.Equal(20, player.WateringCan.Capacity);
+        Assert.Equal(20, player.WateringCan.Charges);
+        Assert.False(player.WateringCan.Upgraded);
+        Assert.Equal(0, player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+    }
+
+    [Fact]
+    public void BR_P7_Starting_seed_entries_go_through_Add_so_a_crop_listed_twice_shares_a_slot()
+    {
+        var tuning = Shipped.Tuning with
+        {
+            StartingSeeds = [new StartingStack(CropTypeId.Emberroot, 3), new StartingStack(CropTypeId.Emberroot, 4)],
+        };
+        var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
+
+        var backpack = NewGameFactory.Create(data, Now).Player.Backpack;
+
+        Assert.Equal("2:Seed:Emberroot:7:-", TestGames.DescribeSlot(backpack.Slots[2]));
+        Assert.Null(backpack.Slots[3].Item);
+    }
+
+    [Fact]
     public void Game_session_exposes_the_game_and_data_it_was_created_with()
     {
         var game = NewGameFactory.Create(Shipped, Now);

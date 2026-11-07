@@ -27,6 +27,65 @@ public class HotbarTests
     }
 
     [Fact]
+    public void AC17_Held_items_from_the_backpack_are_hoe_can_then_one_seed_type_each_in_crop_type_order()
+    {
+        var session = TestGames.SessionWithBackpack(TestGames.BackpackWith(
+            (ItemRef.Seed(CropTypeId.Starcorn), 4),
+            (ItemRef.Crop(CropTypeId.Moonmelon), 2),
+            (ItemRef.Seed(CropTypeId.Dusktuber), 5),
+            (ItemRef.Seed(CropTypeId.Emberroot), 10)));
+
+        var items = session.HeldItems();
+
+        Assert.Equal(
+            [
+                HeldItem.Of(ToolId.Hoe),
+                HeldItem.Of(ToolId.WateringCan),
+                HeldItem.SeedOf(CropTypeId.Emberroot),
+                HeldItem.SeedOf(CropTypeId.Dusktuber),
+                HeldItem.SeedOf(CropTypeId.Starcorn),
+            ],
+            items);
+    }
+
+    [Fact]
+    public void AC17_New_game_hotbar_from_the_backpack_is_unchanged()
+    {
+        var session = TestGames.SessionWithBackpack(TestGames.StartingBackpack());
+
+        var slots = session.Hotbar(HeldItem.Of(ToolId.Hoe));
+
+        Assert.Equal(
+            ["Hoe", "Watering can", "Emberroot seeds × 10", "Dusktuber seeds × 5"],
+            slots.Select(slot => slot.Label));
+    }
+
+    [Fact]
+    public void BR_P7_Seeds_split_across_slots_are_one_held_item_labelled_with_their_total()
+    {
+        var session = TestGames.SessionWithBackpack(TestGames.BackpackWith(
+            (ItemRef.Seed(CropTypeId.Emberroot), 150),
+            (ItemRef.Seed(CropTypeId.Dusktuber), 5)));
+
+        var slots = session.Hotbar(HeldItem.SeedOf(CropTypeId.Emberroot));
+
+        Assert.Equal(
+            ["Hoe", "Watering can", "Emberroot seeds × 150", "Dusktuber seeds × 5"],
+            slots.Select(slot => slot.Label));
+        Assert.Single(session.HeldItems(), item => item == HeldItem.SeedOf(CropTypeId.Emberroot));
+    }
+
+    [Fact]
+    public void AC17_HeldLabel_shows_the_seed_total_across_slots()
+    {
+        var session = TestGames.SessionWithBackpack(TestGames.BackpackWith((ItemRef.Seed(CropTypeId.Emberroot), 120)));
+
+        Assert.Equal("Emberroot seeds × 120", session.HeldLabel(HeldItem.SeedOf(CropTypeId.Emberroot)));
+        Assert.Equal("Hoe", session.HeldLabel(HeldItem.Of(ToolId.Hoe)));
+        Assert.Equal("Watering can", session.HeldLabel(HeldItem.Of(ToolId.WateringCan)));
+    }
+
+    [Fact]
     public void AC5_Holding_seeds_selects_their_slot()
     {
         var session = TestGames.NewSession();

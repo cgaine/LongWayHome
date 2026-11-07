@@ -43,6 +43,16 @@ public static class CropsText
             .ToList();
     }
 
+    /// <summary>The HUD crops line from the Backpack: per-Crop-type totals across its Slots, text as for stacks.</summary>
+    public static string For(Backpack backpack, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
+
+    /// <summary>The crops row's entries from the Backpack: one per Crop type held, its total across Slots.</summary>
+    public static IReadOnlyList<(CropTypeId Crop, string Text)> Entries(
+        Backpack backpack,
+        IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
+
     private static string NameOf(CropTypeId id, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
         cropTypes.TryGetValue(id, out var cropType) ? cropType.Name : CropLabels.For(id);
 }

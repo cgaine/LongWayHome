@@ -210,6 +210,99 @@ internal static class TestGames
                     $"{tile.Position.X}:{tile.Position.Y}:{tile.State}:{tile.Watered}:{tile.Planting}")),
             string.Join(",", game.Player.Inventory.Stacks.Select(stack => $"{stack.Kind}:{stack.CropTypeId}:{stack.Quantity}")));
 
+    /// <summary>The Crop that fills the free Slots of <see cref="FullBackpack"/>; tests using it avoid this Crop.</summary>
+    public static readonly ItemRef Filler = ItemRef.Crop(CropTypeId.Starcorn);
+
+    /// <summary>A 12-Slot Backpack holding the Basic hoe in Slot 0 and the Basic Watering can in Slot 1.</summary>
+    public static Backpack ToolsOnly()
+    {
+        var backpack = new Backpack();
+        backpack.AddTool(ToolId.Hoe, ToolTier.Basic);
+        backpack.AddTool(ToolId.WateringCan, ToolTier.Basic);
+        return backpack;
+    }
+
+    /// <summary>The two tools, then the given items added in order through <see cref="Backpack.Add"/>.</summary>
+    public static Backpack BackpackWith(params (ItemRef Item, int Quantity)[] items)
+    {
+        var backpack = ToolsOnly();
+        foreach (var (item, quantity) in items)
+        {
+            if (backpack.Add(item, quantity) != 0)
+            {
+                throw new InvalidOperationException($"{quantity} of {item} do not fit in the test Backpack.");
+            }
+        }
+
+        return backpack;
+    }
+
+    /// <summary>The two tools then the shipped starting seeds: 10 emberroot (Slot 2) and 5 dusktuber (Slot 3).</summary>
+    public static Backpack StartingBackpack() =>
+        BackpackWith((ItemRef.Seed(CropTypeId.Emberroot), 10), (ItemRef.Seed(CropTypeId.Dusktuber), 5));
+
+    /// <summary>As <see cref="BackpackWith"/>, then every free Slot filled with 99 of <see cref="Filler"/>.</summary>
+    public static Backpack FullBackpack(params (ItemRef Item, int Quantity)[] items)
+    {
+        var backpack = BackpackWith(items);
+        var free = backpack.Slots.Count(slot => slot.Item is null);
+        if (free > 0 && backpack.Add(Filler, free * Backpack.MaxStack) != 0)
+        {
+            throw new InvalidOperationException("The filler did not fit.");
+        }
+
+        return backpack;
+    }
+
+    /// <summary>
+    /// A Game whose Player carries the given Backpack, with the given gold (100), energy (150), Watering can (a full
+    /// 20-charge can), date (Spring 1) and Shipping Bin, grass except for the given Tiles.
+    /// </summary>
+    public static GameState WithBackpack(
+        Backpack backpack,
+        int gold = 100,
+        int energy = 150,
+        WateringCan? can = null,
+        GameDate? date = null,
+        ShippingBin? bin = null,
+        params Tile[] tiles)
+    {
+        var overrides = tiles.ToDictionary(tile => tile.Position);
+        var all = new List<Tile>();
+        for (var y = 0; y < FarmPlot.Height; y++)
+        {
+            for (var x = 0; x < FarmPlot.Width; x++)
+            {
+                var position = new GridPosition(x, y);
+                all.Add(overrides.TryGetValue(position, out var tile) ? tile : new Tile(position));
+            }
+        }
+
+        return new GameState(
+            Guid.NewGuid(),
+            date ?? FirstDay,
+            360,
+            Weather.Clear,
+            null,
+            Now,
+            Now,
+            new Player(new Gold(gold), energy, can ?? new WateringCan(20), backpack),
+            new FarmPlot(all),
+            bin);
+    }
+
+    /// <summary>A session at 150 energy whose Player carries the given Backpack, grass except for the given Tiles.</summary>
+    public static GameSession SessionWithBackpack(Backpack backpack, params Tile[] tiles) =>
+        new(WithBackpack(backpack, tiles: tiles), Shipped);
+
+    /// <summary>Every Slot as "index:kind:id:quantity:tier", to compare Backpacks or prove nothing changed.</summary>
+    public static string Describe(Backpack backpack) =>
+        string.Join(",", backpack.Slots.Select(DescribeSlot));
+
+    /// <summary>One Slot as "index:kind:id:quantity:tier"; an empty Slot is "index:-:-:0:-".</summary>
+    public static string DescribeSlot(BackpackSlot slot) =>
+        $"{slot.Index}:{slot.Item?.Kind.ToString() ?? "-"}:{(object?)slot.Item?.CropTypeId ?? (object?)slot.Item?.ToolId ?? "-"}:{slot.Quantity}:{slot.ToolTier?.ToString() ?? "-"}";
+
     private static GameData LoadShippedData()
     {
         var folder = Path.Combine(AppContext.BaseDirectory, "data");

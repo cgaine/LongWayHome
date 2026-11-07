@@ -2,7 +2,9 @@ using System.Text.Json.Nodes;
 using LongWayHome.Application.Saves;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Games;
+using LongWayHome.Domain.Players;
 using LongWayHome.Infrastructure.Saves;
+using LongWayHome.Tests.Games;
 
 namespace LongWayHome.Tests.Saves;
 
@@ -39,6 +41,186 @@ public sealed class JsonSaveStoreTests : IDisposable
 
     private static JsonObject PlantedTile(JsonObject document) =>
         Tiles(document).Select(tile => tile!.AsObject()).Single(tile => tile["planting"] is not null);
+
+    // ---- #128: save version 2 and the Backpack ----
+
+    [Fact]
+    public void AC12_A_saved_backpack_loads_back_slot_for_slot()
+    {
+        var game = BackpackSaveGames.Rich();
+
+        Store().Save(1, game);
+        var loaded = new JsonSaveStore(_folder.Path).Load(1);
+
+        Assert.Equal(24, loaded.Player.Backpack.Capacity);
+        Assert.Equal(game.Player.Backpack.HotbarRow, loaded.Player.Backpack.HotbarRow);
+        Assert.Equal(TestGames.Describe(game.Player.Backpack), TestGames.Describe(loaded.Player.Backpack));
+        Assert.Equal(new Gold(1234), loaded.Player.Gold);
+        Assert.Equal(77, loaded.Player.Energy);
+        Assert.Equal((40, 13, true), (loaded.Player.WateringCan.Capacity, loaded.Player.WateringCan.Charges, loaded.Player.WateringCan.Upgraded));
+        Assert.Equal(game.ShippingBin.Items, loaded.ShippingBin.Items);
+        Assert.Equal(game.FarmPlot[SaveGames.Growing].Planting, loaded.FarmPlot[SaveGames.Growing].Planting);
+    }
+
+    [Fact]
+    public void AC12_The_file_has_saveVersion_2_and_writes_every_backpack_slot()
+    {
+        Store().Save(1, BackpackSaveGames.Rich());
+
+        var document = _folder.ReadSlot(1);
+
+        Assert.Equal(2, document["saveVersion"]!.GetValue<int>());
+        var player = document["player"]!.AsObject();
+        Assert.False(player.ContainsKey("tools"));
+        Assert.False(player.ContainsKey("inventory"));
+        var backpack = player["backpack"]!.AsObject();
+        Assert.Equal(24, backpack["capacity"]!.GetValue<int>());
+        Assert.Equal(0, backpack["hotbarRow"]!.GetValue<int>());
+        var slots = backpack["slots"]!.AsArray();
+        Assert.Equal(Enumerable.Range(0, 24), slots.Select(slot => slot!["index"]!.GetValue<int>()));
+        Assert.True(JsonNode.DeepEquals(SaveDocuments.Slot(0, "tool", "hoe", 1, "basic"), slots[0]));
+        Assert.True(JsonNode.DeepEquals(SaveDocuments.Slot(1, "tool", "watering_can", 1, "rosk"), slots[1]));
+        Assert.True(JsonNode.DeepEquals(SaveDocuments.Slot(2, "seed", "sunbell", 99, null), slots[2]));
+        Assert.True(JsonNode.DeepEquals(SaveDocuments.EmptySlot(4), slots[4]), slots[4]?.ToJsonString());
+        Assert.True(JsonNode.DeepEquals(SaveDocuments.Slot(6, "crop", "dusktuber", 4, null), slots[6]));
+        Assert.True(JsonNode.DeepEquals(SaveDocuments.EmptySlot(23), slots[23]));
+    }
+
+    [Fact]
+    public void AC12_A_literal_v2_document_loads_its_backpack()
+    {
+        _folder.WriteSlot(1, SaveDocuments.V2(SaveDocuments.GoodBackpack(), gold: 222));
+
+        var loaded = Store().Load(1);
+
+        Assert.Equal(new Gold(222), loaded.Player.Gold);
+        Assert.Equal(12, loaded.Player.Backpack.Capacity);
+        Assert.Equal(SaveDocuments.GoodBackpackDescribed, TestGames.Describe(loaded.Player.Backpack));
+    }
+
+    /// <summary>Breaks one rule in a valid v2 backpack (BR-K1, BR-K2, BR-K6, the hotbar row, the item id).</summary>
+    private static void Break(JsonObject backpack, string how)
+    {
+        var slots = backpack["slots"]!.AsArray();
+        switch (how)
+        {
+            case "capacity_13":
+                backpack["capacity"] = 13;
+                slots.Add(SaveDocuments.EmptySlot(12));
+                break;
+            case "capacity_24_with_12_slots":
+                backpack["capacity"] = 24;
+                break;
+            case "slot_count_not_capacity":
+                slots.RemoveAt(slots.Count - 1);
+                break;
+            case "duplicate_index":
+                slots[11]!["index"] = 10;
+                break;
+            case "index_out_of_range":
+                slots[11]!["index"] = 12;
+                break;
+            case "item_quantity_0":
+                slots[2]!["quantity"] = 0;
+                break;
+            case "item_quantity_100":
+                slots[2]!["quantity"] = 100;
+                break;
+            case "tool_quantity_2":
+                slots[0]!["quantity"] = 2;
+                break;
+            case "tool_with_no_tier":
+                slots[0]!["toolTier"] = null;
+                break;
+            case "seed_with_a_tier":
+                slots[2]!["toolTier"] = "basic";
+                break;
+            case "empty_slot_with_a_quantity":
+                slots[5]!["quantity"] = 3;
+                break;
+            case "empty_slot_with_a_tier":
+                slots[5]!["toolTier"] = "basic";
+                break;
+            case "hotbar_row_2":
+                backpack["hotbarRow"] = 2;
+                break;
+            case "hotbar_row_negative":
+                backpack["hotbarRow"] = -1;
+                break;
+            case "hoe_missing":
+                slots[0] = SaveDocuments.EmptySlot(0);
+                break;
+            case "hoe_twice":
+                slots[4] = SaveDocuments.Slot(4, "tool", "hoe", 1, "basic");
+                break;
+            case "can_missing":
+                slots[1] = SaveDocuments.EmptySlot(1);
+                break;
+            case "can_twice":
+                slots[4] = SaveDocuments.Slot(4, "tool", "watering_can", 1, "basic");
+                break;
+            case "id_not_matching_kind":
+                slots[2]!["item"] = new JsonObject { ["kind"] = "seed", ["id"] = "hoe" };
+                break;
+            case "backpack_missing_slots":
+                backpack.Remove("slots");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(how), how, null);
+        }
+    }
+
+    [Theory]
+    [InlineData("capacity_13")]
+    [InlineData("capacity_24_with_12_slots")]
+    [InlineData("slot_count_not_capacity")]
+    [InlineData("duplicate_index")]
+    [InlineData("index_out_of_range")]
+    [InlineData("item_quantity_0")]
+    [InlineData("item_quantity_100")]
+    [InlineData("tool_quantity_2")]
+    [InlineData("tool_with_no_tier")]
+    [InlineData("seed_with_a_tier")]
+    [InlineData("empty_slot_with_a_quantity")]
+    [InlineData("empty_slot_with_a_tier")]
+    [InlineData("hotbar_row_2")]
+    [InlineData("hotbar_row_negative")]
+    [InlineData("hoe_missing")]
+    [InlineData("hoe_twice")]
+    [InlineData("can_missing")]
+    [InlineData("can_twice")]
+    [InlineData("id_not_matching_kind")]
+    [InlineData("backpack_missing_slots")]
+    public void AC16_A_v2_backpack_that_breaks_a_rule_is_unreadable_and_the_slot_falls_back_to_its_bak(string how)
+    {
+        var broken = SaveDocuments.GoodBackpack();
+        Break(broken, how);
+        _folder.WriteSlot(1, SaveDocuments.V2(broken, gold: 222));
+        _folder.WriteSlot(1, SaveDocuments.V2(SaveDocuments.GoodBackpack(), gold: 111), ".bak");
+
+        var loaded = Store().Load(1);
+
+        Assert.Equal(new Gold(111), loaded.Player.Gold);
+        Assert.Equal(SaveDocuments.GoodBackpackDescribed, TestGames.Describe(loaded.Player.Backpack));
+        var info = Store().List()[0];
+        Assert.Equal(SaveSlotState.Saved, info.State);
+        Assert.Equal(111, info.Gold);
+    }
+
+    [Theory]
+    [InlineData("capacity_13")]
+    [InlineData("can_missing")]
+    [InlineData("item_quantity_100")]
+    public void AC16_A_broken_v2_backpack_with_no_bak_is_unreadable(string how)
+    {
+        var broken = SaveDocuments.GoodBackpack();
+        Break(broken, how);
+        _folder.WriteSlot(1, SaveDocuments.V2(SaveDocuments.GoodBackpack(), gold: 111));
+        Assert.Equal(111, Store().Load(1).Player.Gold.Value);
+        _folder.WriteSlot(1, SaveDocuments.V2(broken, gold: 222));
+
+        AssertUnreadable();
+    }
 
     [Fact]
     public void AC1_store_round_trips_every_saved_attribute()

@@ -32,6 +32,46 @@ public class PlantingTests
     }
 
     [Fact]
+    public void BR_T3_Planting_takes_one_seed_out_of_the_backpack()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack(), tiles: TestGames.TilledWith(Target, null));
+
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Planting(CropTypeId.Emberroot, TestGames.FirstDay, 0), game.FarmPlot[Target].Planting);
+        Assert.Equal("2:Seed:Emberroot:9:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+    }
+
+    [Fact]
+    public void BR_T3_Planting_the_last_seed_empties_its_slot()
+    {
+        var game = TestGames.WithBackpack(
+            TestGames.BackpackWith((ItemRef.Seed(CropTypeId.Emberroot), 1), (ItemRef.Seed(CropTypeId.Dusktuber), 5)),
+            tiles: TestGames.TilledWith(Target, null));
+
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal("2:-:-:0:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+        Assert.Equal(5, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+    }
+
+    [Fact]
+    public void BR_T3_Planting_a_seed_the_backpack_does_not_hold_is_NoSeed_and_changes_nothing()
+    {
+        var game = TestGames.WithBackpack(
+            TestGames.BackpackWith((ItemRef.Crop(CropTypeId.Emberroot), 4)), tiles: TestGames.TilledWith(Target, null));
+        var before = TestGames.Describe(game.Player.Backpack);
+
+        var result = game.Plant(Target, TestGames.Crop(CropTypeId.Emberroot));
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NoSeed), result);
+        Assert.Null(game.FarmPlot[Target].Planting);
+        Assert.Equal(before, TestGames.Describe(game.Player.Backpack));
+    }
+
+    [Fact]
     public void AC2_planting_on_grass_returns_NotTilled_and_changes_nothing()
     {
         var game = TestGames.NewSession().Game;

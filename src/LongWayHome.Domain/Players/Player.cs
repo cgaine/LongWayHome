@@ -28,6 +28,10 @@ public sealed class Player
         Inventory = inventory;
     }
 
+    /// <summary>A Player carrying the given Backpack (REQ-47); the tools are in its Slots.</summary>
+    public Player(Gold gold, int energy, WateringCan wateringCan, Backpack backpack) =>
+        throw new NotImplementedException();
+
     public Gold Gold { get; private set; }
 
     public int Energy { get; private set; }
@@ -37,6 +41,9 @@ public sealed class Player
     public WateringCan WateringCan { get; }
 
     public Inventory Inventory { get; }
+
+    /// <summary>The Player's Backpack: tools, seeds and crops in Slots (REQ-47).</summary>
+    public Backpack Backpack => throw new NotImplementedException();
 
     /// <summary>Starts a new Day with the given energy (BR-P1, BR-P3).</summary>
     public void StartDay(int energy)

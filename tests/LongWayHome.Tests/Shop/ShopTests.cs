@@ -105,6 +105,82 @@ public class ShopTests
         Assert.Equal(11, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Emberroot));
     }
 
+    /// <summary>Tools, 90 emberroot seeds in Slot 2, every other Slot full: room for exactly 9 more emberroot seeds.</summary>
+    private static Backpack RoomForNineEmberrootSeeds() =>
+        TestGames.FullBackpack((ItemRef.Seed(CropTypeId.Emberroot), 90));
+
+    [Fact]
+    public void AC9_Buying_seeds_that_do_not_all_fit_is_BackpackFull_and_takes_no_gold()
+    {
+        var game = TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 1000);
+        var before = TestGames.Describe(game.Player.Backpack);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 10);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
+        Assert.Equal(new Gold(1000), game.Player.Gold);
+        Assert.Equal(before, TestGames.Describe(game.Player.Backpack));
+    }
+
+    [Fact]
+    public void AC9_Buying_a_seed_type_with_no_free_slot_is_BackpackFull_and_takes_no_gold()
+    {
+        var game = TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 1000);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_dusktuber");
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
+        Assert.Equal(new Gold(1000), game.Player.Gold);
+        Assert.Equal(0, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+    }
+
+    [Fact]
+    public void AC9_Session_buy_of_seeds_that_do_not_fit_raises_nothing()
+    {
+        var session = new GameSession(TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 1000), TestGames.Shipped);
+        var events = RecordEvents(session);
+
+        var result = session.Buy("seed_emberroot", 10);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
+        Assert.Empty(events);
+    }
+
+    [Fact]
+    public void BR_L2_Buying_seeds_that_just_fit_takes_the_gold_and_adds_them_in_the_same_step()
+    {
+        var game = TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 1000);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 9);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(1000 - (9 * 15)), game.Player.Gold);
+        Assert.Equal("2:Seed:Emberroot:99:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+    }
+
+    [Fact]
+    public void BR_P5_Exactly_enough_gold_but_no_room_is_BackpackFull_and_keeps_the_gold()
+    {
+        var game = TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 10 * 15);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 10);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
+        Assert.Equal(new Gold(150), game.Player.Gold);
+    }
+
+    [Fact]
+    public void BR_L2_Bought_seeds_go_into_the_backpack()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack());
+
+        var result = ShopService.Buy(game, TestGames.Shipped, "seed_dusktuber", 2);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(100 - (2 * 30)), game.Player.Gold);
+        Assert.Equal("3:Seed:Dusktuber:7:-", TestGames.DescribeSlot(game.Player.Backpack.Slots[3]));
+    }
+
     [Fact]
     public void BR_P7_bought_seeds_merge_into_the_existing_stack()
     {
@@ -400,6 +476,41 @@ public class ShopTests
         var game = TestGames.WithGold(1000, TestGames.FirstDay, can: UpgradedCan(40));
 
         Assert.Equal(["seed_emberroot", "seed_dusktuber"], OfferIds(game));
+    }
+
+    [Fact]
+    public void AC11_Buying_the_can_upgrade_sets_the_cans_tier_to_rosk_and_its_capacity_to_40()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack(), gold: 500, can: new WateringCan(20, 5, false));
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(ToolTier.Rosk, game.Player.Backpack.TierOf(ToolId.WateringCan));
+        Assert.Equal("1:Tool:WateringCan:1:Rosk", TestGames.DescribeSlot(game.Player.Backpack.Slots[1]));
+        Assert.Equal(40, game.Player.WateringCan.Capacity);
+    }
+
+    [Fact]
+    public void BR_W1_After_the_can_upgrade_the_rosk_can_holds_40_charges_and_the_hoe_stays_basic()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack(), gold: 500, can: new WateringCan(20, 5, false));
+
+        ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal((40, 40, true), CanState(game));
+        Assert.Equal(ToolTier.Basic, game.Player.Backpack.TierOf(ToolId.Hoe));
+    }
+
+    [Fact]
+    public void AC11_A_can_upgrade_refused_for_gold_leaves_the_can_basic()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack(), gold: 199);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, CanUpgrade);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotEnoughGold), result);
+        Assert.Equal(ToolTier.Basic, game.Player.Backpack.TierOf(ToolId.WateringCan));
     }
 
     [Fact]

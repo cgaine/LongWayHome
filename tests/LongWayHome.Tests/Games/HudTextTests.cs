@@ -158,9 +158,54 @@ public class HudTextTests
     [Fact]
     public void AC4_Crops_entries_null_arguments_throw()
     {
-        Assert.Throws<ArgumentNullException>(() => CropsText.Entries(null!, TestGames.Shipped.CropTypes));
+        Assert.Throws<ArgumentNullException>(() => CropsText.Entries((IReadOnlyList<InventoryStack>)null!, TestGames.Shipped.CropTypes));
         Assert.Throws<ArgumentNullException>(() => CropsText.Entries([], null!));
         Assert.Throws<ArgumentNullException>(() => CropsText.Heading(null!));
+    }
+
+    [Fact]
+    public void AC17_Crops_text_from_the_backpack_matches_the_text_for_the_same_crops()
+    {
+        var backpack = TestGames.BackpackWith(
+            (ItemRef.Crop(CropTypeId.Dusktuber), 2),
+            (ItemRef.Seed(CropTypeId.Emberroot), 10),
+            (ItemRef.Crop(CropTypeId.Emberroot), 9));
+
+        var text = CropsText.For(backpack, TestGames.Shipped.CropTypes);
+
+        Assert.Equal("Crops: Emberroot × 9, Dusktuber × 2", text);
+    }
+
+    [Fact]
+    public void AC17_Crops_text_from_a_backpack_with_no_crops_is_Crops_none()
+    {
+        Assert.Equal("Crops: none", CropsText.For(TestGames.StartingBackpack(), TestGames.Shipped.CropTypes));
+    }
+
+    [Fact]
+    public void AC17_Crops_entries_from_the_backpack_are_one_per_crop_type_in_crop_type_order()
+    {
+        var backpack = TestGames.BackpackWith(
+            (ItemRef.Crop(CropTypeId.Moonmelon), 1),
+            (ItemRef.Crop(CropTypeId.Emberroot), 3));
+
+        var entries = CropsText.Entries(backpack, TestGames.ShippedWithout(CropTypeId.Moonmelon).CropTypes);
+
+        Assert.Equal(
+            [(CropTypeId.Emberroot, "Emberroot × 3"), (CropTypeId.Moonmelon, "Moonmelon × 1")],
+            entries);
+    }
+
+    [Fact]
+    public void BR_P7_Crops_split_across_slots_are_one_entry_with_their_total()
+    {
+        var backpack = TestGames.BackpackWith(
+            (ItemRef.Crop(CropTypeId.Emberroot), 150),
+            (ItemRef.Crop(CropTypeId.Dusktuber), 2));
+
+        Assert.Equal(
+            "Crops: Emberroot × 150, Dusktuber × 2",
+            CropsText.For(backpack, TestGames.Shipped.CropTypes));
     }
 
     [Fact]
@@ -170,7 +215,7 @@ public class HudTextTests
     [Fact]
     public void Crops_text_rejects_null_arguments()
     {
-        Assert.Throws<ArgumentNullException>(() => CropsText.For(null!, TestGames.Shipped.CropTypes));
+        Assert.Throws<ArgumentNullException>(() => CropsText.For((IReadOnlyList<InventoryStack>)null!, TestGames.Shipped.CropTypes));
         Assert.Throws<ArgumentNullException>(() => CropsText.For([], null!));
     }
 }

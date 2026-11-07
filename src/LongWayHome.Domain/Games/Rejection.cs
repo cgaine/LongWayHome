@@ -19,4 +19,5 @@ public enum Rejection
     NothingToShip,
     NotOffered,
     NotEnoughGold,
+    BackpackFull,
 }
