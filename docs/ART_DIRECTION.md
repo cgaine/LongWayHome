@@ -486,9 +486,9 @@ The two things beside the plot that the farmer uses every day. Each shows where 
 
 Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town square page: the concept, day one vs restored vs night, and the square's props)
 
-**The heart of the town, and where progress shows.** The plaza is round, like the town's round buildings, with a well at its centre. Progress can be seen from the square (section 7), but the town around it is not a neat ring: buildings are spread loosely at different distances and angles, some up short paths of their own, so it reads as a village that grew over time rather than a planned layout.
+**The heart of the town, and where progress shows.** The plaza is roughly round, like the town's round buildings, but its edge is worn and uneven and breaks up into loose stones in the grass. The well sits just off its centre. Progress can be seen from the square (section 7), but the town around it is not a neat ring: buildings are spread loosely at different distances and angles, some up short paths of their own, so it reads as a village that grew over time rather than a planned layout.
 
-**Set back from the water.** The town sits a short walk from the lake and the river, not on their banks. Belts of native trees (spirepine and twinbough) lie between the town and the water, and winding dirt paths lead through them to the dock and the bridge.
+**Set back from the water.** The town sits a short walk from the lake and the river, not on their banks. Belts of native trees (spirepine and twinbough) lie between the town and the water, and winding dirt paths lead through them to the dock and the bridge. A gap in the trees to the south-east keeps the lake in view from the square.
 
 **Layout** (draft; follows the design doc's world layout):
 
@@ -496,7 +496,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town square page
 | --- | --- |
 | North | The general store at the head of the square; the forest path to the farm leaves to its north-west |
 | West | The carpenter, set back from the plaza; homes scattered along the path west |
-| North-east | The blacksmith, up its own short path; the path to the bridge over the river to the ranch winds past it through the trees |
+| North-east | The blacksmith and a small home, each up its own short path; the path to the bridge over the river to the ranch winds past it through the trees |
 | East | June's café, on the way down to the dock |
 | South-west and south | More homes, at the ends of short paths |
 | South-east | The path through the trees to the dock on the lake, with a drowned rooftop in the shallows |
