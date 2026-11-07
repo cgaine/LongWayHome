@@ -416,7 +416,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Farm plot and me
 - A mown margin of lighter, shorter grass (`#8CB862`) around the plot.
 - A low edging of rounded lilac-grey stones along all four sides. It's low enough not to block movement or the camera.
 - A dirt path (`#B8946C`, with stepping stones) from the farmhouse door to the plot.
-- The refill pond sits beside the plot, with turquoise shallows and a deeper blue centre, and a coilwillow behind it.
+- The refill pond sits beside the plot, with turquoise shallows and a deeper blue centre, and a coilwillow behind it (section 7.4).
 
 **Tile states (pillar 4).** Each tile is a 1 x 1 m slab with a little visible thickness at the front and side, so the grid reads without drawn lines:
 
@@ -451,6 +451,35 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings p
 **At night.** Amber windows and string lights are the town's warm light (section 2). The forge glows orange, sap barrels glow amber and the leaf tips glow cyan. Homes show **friendship lanterns** in the window, one per friendship step, as the design doc proposes, so the town visibly gets brighter as friendships grow.
 
 **Still to design:** the ranch house, the museum, the dock houses for Clyde's family, the bridge, and the town square (paving, well, lamp posts).
+
+### 7.4 The pond and the shipping bin (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Pond and shipping bin page)
+
+The two things beside the plot that the farmer uses every day. Each shows where to stand and what state it's in at a glance (pillar 4).
+
+**The refill pond.** A natural meadow pond with an irregular shoreline, not a perfect circle. Clear turquoise shallows over a pebbly bed shade into a dark blue centre (`#7CC2B4` at the edge to `#173F58` in the middle). It has a damp bank and grass growing to the water's edge, a few lilac-grey stones half in the water, and a coilwillow leaning over it with its reflection upside down in the water.
+
+- **Where to stand:** a flat refill stone on the plot side, inside the 3.8 m refill range. The shoreline is kept steady there so the stone always sits at the water.
+- **Moving water:** shimmer drifting across the surface, ripples spreading now and then, lily pads bobbing, and the willow strands and reeds swaying, so the pond feels alive even when the farmer stands still. In game this is a light water shader, cheap enough for the Steam Deck.
+- **Refilling:** ripples spread from the refill stone and a few drops splash up when the can fills.
+- **Second look:** a warm spring feeds the deep centre, so bubbles rise there all year. Lily pads have violet edges, there are amber bead reeds and curled fronds, and in summer a glassfly with four round wings hovers over the water.
+- **Seasons:** spring pads in flower; summer full pads and the glassfly; fall golden willow leaves floating and olive pads; winter ice on the shallows, but the warm-spring centre steams and stays open, so the can can be refilled all year (pillar 1).
+- **Night:** Hearth and Wisp reflect gold and blue, and the coilwillow's strand tips glow cyan over the water.
+- **Fits the game:** 5 m across with a 3 m deep centre, as now. The bank follows the existing collision edge.
+
+**The shipping bin.** Round, like the round buildings explored on the Town page: a squat drum of mauve timber staves under a small cone of leaves, with a leaf-tip fringe and a sprout for a handle. Two living violet trunk ribs climb its sides, an ember-orange band runs under the lid, and Maggie's round sprout sign on the front marks it as the store's bin.
+
+| State | Look |
+| --- | --- |
+| Empty (morning) | Lid closed, flag down: yesterday's crops have sold |
+| In range (within 1.7 m) | The leaf lid tips back, showing a woven liner, before the prompt appears |
+| Crops waiting | Lid closed with crops peeking out and an ember-orange flag up, like a mailbox: they sell tonight |
+| Night | A small lantern on a rib lights up, so the bin can be found in the dark; the flag still shows |
+
+**Fits the game:** about 1 m across and 0.8 m tall, so its collision becomes a short cylinder instead of today's 1.2 x 0.8 m box. The 1.7 m range stays.
+
+**Palette:** water `#7CC2B4`, `#3F8E98`, `#245E7A`, `#173F58`; bank `#5A4A3A`; stone `#9A95A2`; bin staves `#AC939E` to `#755C6A`, leaf lid `#3E8F82`, band and flag `#E9773A`, sign `#F0E6C0`, lantern light `#FFB04A`.
 
 ## 8. Style and technical direction (draft)
 
