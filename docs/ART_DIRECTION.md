@@ -451,7 +451,7 @@ Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town buildings p
 
 **At night.** Amber windows and string lights are the town's warm light (section 2). The forge glows orange, sap barrels glow amber and the leaf tips glow cyan. Homes show **friendship lanterns** in the window, one per friendship step, as the design doc proposes, so the town visibly gets brighter as friendships grow.
 
-**Still to design:** the ranch house, the museum, the dock houses for Clyde's family, the bridge, and the town square (paving, well, lamp posts).
+**Still to design:** the ranch house, the museum, the dock houses for Clyde's family, and the bridge (only sketched in the town square's mood sketch). The town square is section 7.5.
 
 ### 7.4 The pond and the shipping bin (draft)
 
@@ -481,6 +481,92 @@ The two things beside the plot that the farmer uses every day. Each shows where 
 **Fits the game:** about 1 m across and 0.8 m tall, so its collision becomes a short cylinder instead of today's 1.2 x 0.8 m box. The 1.7 m range stays.
 
 **Palette:** water `#7CC2B4`, `#3F8E98`, `#245E7A`, `#173F58`; bank `#5A4A3A`; stone `#9A95A2`; bin staves `#AC939E` to `#755C6A`, leaf lid `#3E8F82`, band and flag `#E9773A`, sign `#F0E6C0`, lantern light `#FFB04A`.
+
+### 7.5 The town square (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Town square page: the concept, day one vs restored vs night, and the square's props)
+
+**The heart of the town, and where progress shows.** The plaza is roughly round, like the town's round buildings, but its edge is worn and uneven and breaks up into loose stones in the grass. The well sits just off its centre. Progress can be seen from the square (section 7), but the town around it is not a neat ring: buildings are spread loosely at different distances and angles, some up short paths of their own, so it reads as a village that grew over time rather than a planned layout.
+
+**Set back from the water.** The town sits a short walk from the lake and the river, not on their banks. Belts of native trees (spirepine and twinbough) lie between the town and the water, and winding dirt paths lead through them to the dock and the bridge. A gap in the trees to the south-east keeps the lake in view from the square.
+
+**Layout** (draft; follows the design doc's world layout):
+
+| Direction | What's there |
+| --- | --- |
+| North | The general store at the head of the square; the forest path to the farm leaves to its north-west |
+| West | The carpenter, set back from the plaza; homes scattered along the path west |
+| North-east | The blacksmith and a small home, each up its own short path; the path to the bridge over the river to the ranch winds past it through the trees |
+| East | June's café, on the way down to the dock |
+| South-west and south | More homes, at the ends of short paths |
+| South-east | The path through the trees to the dock on the lake, with a drowned rooftop in the shallows |
+
+**The plaza.** Lilac-grey paving `#B3ADB8` laid in rings around the well, with darker joints `#9A94A2`. An ember sandstone spiral `#D49A6E` winds out from the centre: the planet's spiral motif, set in stone. Paths out of the square are packed dirt `#B8946C`, like the farm path. **Second look:** moss in the spiral's joints glows faint cyan after dark.
+
+**Props.** Grown like the buildings, so each one comes back to life with the town:
+
+| Prop | Restored | Day one |
+| --- | --- | --- |
+| Well | A low stone drum; two living trunk posts arch over it to a small leaf cone with a sprouting crown; a rope and a timber bucket; clear blue water `#2D6A86`. **Second look:** the water glows cyan `#6FF2E0` at night | Wilted roof with gaps, grey posts, no bucket, dark still water, weeds |
+| Lamp posts (an uneven ring at the plaza's edge, then more along the paths to the dock, bridge, farm and homes) | A living trunk that curls at the top like a fern frond, with a cream lantern and an ember cap hanging from the curl; amber light `#FFB04A` at night | Grey post, cracked dark lantern. Only the lamp by Maggie's corner works |
+| Rebuild signs | Each building's sign out front (design doc, Restoration order): a grown board with leaf trim and three pips for wood, stone and gold that fill as each is delivered. A thin amber outline at night keeps it findable. Gone once the building is rebuilt | One in front of every empty building |
+| Benches | Curved timber seat and back on two trunk legs, with a sprout at one end | Faded grey timber |
+| Flower beds | Round stone beds of native flowers that glow violet at night | Not there yet |
+| String lights | From the store to the café; ready for the Ember Festival | Not there yet |
+
+**Day one to restored:**
+
+| State | Look |
+| --- | --- |
+| Day one | Every building wilted, with a rebuild sign out front, except Maggie's corner of the store (section 7.3). Cracked paving with weeds and fallen leaves, stones missing from the spiral, the well dry and dark, the path lanterns dead, the bridge broken. At night only Maggie's window and one lamp give warm light |
+| Restored | Every building grown back. The spiral whole, benches and flower beds back, string lights up, the bridge mended, residents out |
+| Restored at night | The brightest place on the map: amber windows, lanterns and string lights, cyan leaf tips, the glowing well and spiral. Residents are told apart by their glow (section 6.2) |
+
+**Lamps show progress (draft).** Each rebuild relights the lamps nearest that building, so the square and then the paths out of it fill with light as the town comes back. Restored, the lanterns lead the way to the dock and the bridge after dark.
+
+**Fits the game (draft):** a plaza about 24 m across, a 3 m well and 3 m lamp posts. The well's collision is a short cylinder; benches and beds stay off the walking lines between the paths. Everything must read from the overhead camera and from every rotation (section 9, Camera).
+
+**Still open:** whether the well can refill the watering can in town, and how the square is dressed for the Ember Festival.
+
+### 7.6 The early mine, levels 1 to 5 (draft)
+
+Concept art: https://claude.ai/artifact/AByqzWrCTcYWpQ89e8FKuf (Early mine page: level 1, the entrance, level 5 flooded and drained, and the mine's props)
+
+**The old miners' tunnels.** The mine opens when you buy the pickaxe (design doc, Early mine). The upper levels are timber and lantern light (section 7): warm pools of light in the dark, with the planet's glow showing in the corners. They feel quiet and a little eerie, never threatening; there's no danger in this version.
+
+**Shape.** Rounded chambers joined by short tunnels, seen from above like the farm. Packed-earth floor `#7A685E`, rock walls `#6E6070` with strata and, on a second look, a faint teal band in the rock. Rails and an old ore cart run through.
+
+**Timber frames.** The miners' supports are square, braced frames of mauve native timber `#9C7E8C`. They were cut, not grown, because people made them (section 1, "Mostly familiar"). A frame marks every tunnel mouth, so the way on reads from overhead.
+
+**Light.** It's dark between lanterns. Old lanterns hang from the frames and wall hooks, and the farmer carries a small belt lantern that lights a pool around him. Glimmercaps glow cyan in the corners, so nothing is pure black. Draft: a level's lanterns relight once it's cleared, so cleared levels are warm and new ones are dark (the same idea as the town square's lamps, section 7.5).
+
+**Roots from above.** Twinbough roots break through the ceiling with glowing amber sap seams: the forest overhead, and a hint of the sap that seals the planks for the deeper levels.
+
+**What's in it:**
+
+| Thing | Look | Notes |
+| --- | --- | --- |
+| Rock | Faceted lilac-grey `#8F8A96` | Gives stone |
+| Rosk ore | A rock with rose-copper veins `#C77A52` that curl into little spirals, with bright flecks | Levels 1 to 15 |
+| Groth ore | A rock with blocky dark blue-grey crystals `#59627A` | Small deposits from level 3 (design doc, Early Groth) |
+| Debris | Rubble with broken old beams | Blocks tunnels and hides the way down; cleared with the pickaxe |
+| Glimmercaps | Grey-teal caps that glow cyan (section 5.2) | Forage; small light sources |
+| Relic | A miner's old lunch tin with the town's spiral stamped on the lid, half-buried, with a glint | For the museum |
+| Stairs down | A round stone shaft with steps spiralling down: the spiral motif | Every fifth cleared level adds a shortcut from the entrance (design doc) |
+
+Each ore reads by shape as well as colour (pillar 4).
+
+**The entrance.** A heavy timber portal in the lilac-grey mountainside among spirepines, near the crash site, with a pick in a circle carved on the lintel and rails running out. Before you buy the pickaxe, it's boarded up, with a creeper and weeds. When Maggie tells the mine's story, the boards come down and are stacked beside the mouth, lanterns hang on either side, and warm light shows from inside.
+
+**How levels 1 to 5 change:**
+
+| Levels | Feel | Second look |
+| --- | --- | --- |
+| 1 and 2 | Dry, warm, the most lanterns; daylight down the entrance steps on level 1 | Twinbough roots with glowing sap; a teal band in the rock |
+| 3 and 4 | Damper and darker: drips, puddles, fewer working lanterns, more glimmercaps; the first Groth | Glimmercaps in clusters |
+| 5 | The first flooded level. The low chamber is under still, dark water, with Harlan's rusted, broken pump on the shore. Once drained with Mira's first pump (bright rose copper on a sealed-plank base, with a lit gauge and a pipe up the wall), a few puddles stay and the stairs down are uncovered | A faint violet light `#B48CFF` far down under the water: the "lights in the deep levels that weren't lanterns" from Maggie's story |
+
+**Fits the game (draft):** each level is a small map read from the overhead camera. Walls on the camera side are low and show only their tops, so the farmer is never hidden; frames and lanterns sit on the back walls. Whether level 5 is a plain pump or the first water-flow puzzle is still open (design doc, open question 4).
 
 ## 8. Style and technical direction (draft)
 
