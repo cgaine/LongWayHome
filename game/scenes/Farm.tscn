@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3]
+[gd_scene load_steps=41 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://ui/ShopMenu.tscn" id="12_shopmenu"]
 [ext_resource type="PackedScene" path="res://art/farm/Meadow.tscn" id="13_meadow"]
 [ext_resource type="Material" path="res://art/materials/palette.tres" id="14_palette"]
+[ext_resource type="Script" path="res://art/crops/NightGlowView.cs" id="15_nightglowview"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -273,6 +274,9 @@ lifetime = 0.8
 visibility_aabb = AABB(-22, -14, -18, 44, 16, 36)
 process_material = SubResource("ParticleProcess_rain")
 draw_pass_1 = SubResource("BoxMesh_raindrop")
+
+[node name="NightGlowView" type="Node" parent="."]
+script = ExtResource("15_nightglowview")
 
 [node name="Hud" parent="." instance=ExtResource("4_hud")]
 

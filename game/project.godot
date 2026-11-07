@@ -146,3 +146,7 @@ art_stepped_shading={
 "type": "bool",
 "value": false
 }
+art_night={
+"type": "float",
+"value": 0.0
+}

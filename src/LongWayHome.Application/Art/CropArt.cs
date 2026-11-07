@@ -17,7 +17,9 @@ public enum CropPartShape
 /// One part of a crop model (#90). Sizes are full extents in metres (for a Sphere, <c>SizeX</c> is the diameter and
 /// <c>SizeY</c> the height; for a Cylinder, <c>SizeX</c> is the bottom diameter, <c>SizeZ</c> the top diameter and
 /// <c>SizeY</c> the height). The position is the part's centre with y 0 at the slab top. Rotations follow Godot's
-/// <c>Node3D.RotationDegrees</c> (Euler YXZ), applied about the part's centre.
+/// <c>Node3D.RotationDegrees</c> (Euler YXZ), applied about the part's centre. <c>Glow</c> (0 none to 1 full) is how
+/// strongly the part lights up at night, through the shared shader's <c>art_night</c> emission, and <c>Twinkle</c>
+/// makes it sparkle rather than glow steadily (#94). Only ripe parts glow, so a glow also says "ready to harvest".
 /// </summary>
 public sealed record CropPart(
     string Name,
@@ -148,6 +150,12 @@ public sealed record CropPart(
 /// </summary>
 public static class CropArt
 {
+    /// <summary>The night glow of emberroot's core, dusktuber's speckles and starcorn's sparkles (#94).</summary>
+    private const float FullGlow = 1f;
+
+    /// <summary>Moonmelon's soft night glow over the whole gourd, its ribs and crown (#94).</summary>
+    private const float SoftGlow = 0.6f;
+
     private static readonly Dictionary<(CropTypeId Crop, GrowthStage Stage), IReadOnlyList<CropPart>> Models = Build();
 
     /// <summary>
@@ -277,7 +285,7 @@ public static class CropArt
         var parts = new List<CropPart>
         {
             Upright("Shoulder", CropPartShape.Cylinder, 0.14f, 0.14f, 0.22f, 0.05f, "ember"),
-            Upright("Core", CropPartShape.Sphere, 0.10f, 0.04f, 0.10f, 0.12f, "lantern"),
+            Upright("Core", CropPartShape.Sphere, 0.10f, 0.04f, 0.10f, 0.12f, "lantern") with { Glow = FullGlow },
         };
         var root = new Vector3(0f, 0.13f, 0f);
         for (var i = 0; i < 7; i++)
@@ -438,7 +446,20 @@ public static class CropArt
             var at = cobCentre + Vector3.Transform(
                 new Vector3(radius * MathF.Cos(around), along, radius * MathF.Sin(around)), cobRotation);
             parts.Add(new CropPart(
-                $"Sparkle{i}", CropPartShape.Box, 0.025f, 0.025f, 0.025f, at.X, at.Y, at.Z, 45f, 0f, 45f, "starcorn-sparkle"));
+                $"Sparkle{i}",
+                CropPartShape.Box,
+                0.025f,
+                0.025f,
+                0.025f,
+                at.X,
+                at.Y,
+                at.Z,
+                45f,
+                0f,
+                45f,
+                "starcorn-sparkle",
+                FullGlow,
+                Twinkle: true));
         }
 
         // The tassel rises from just inside the stalk top, so its three prisms are centred at y 1.0.
@@ -487,10 +508,11 @@ public static class CropArt
         var parts = new List<CropPart>();
         for (var i = 0; i < 6; i++)
         {
-            parts.Add(Around($"Rib{i}", CropPartShape.Sphere, 0.26f, 0.34f, 0.26f, ribRing, 0.15f, yaw: i * 60f, pitch: 0f, "moonmelon"));
+            parts.Add(Around($"Rib{i}", CropPartShape.Sphere, 0.26f, 0.34f, 0.26f, ribRing, 0.15f, yaw: i * 60f, pitch: 0f, "moonmelon")
+                with { Glow = SoftGlow });
         }
 
-        parts.Add(Upright("Crown", CropPartShape.Sphere, 0.18f, 0.08f, 0.18f, 0.29f, "moonmelon"));
+        parts.Add(Upright("Crown", CropPartShape.Sphere, 0.18f, 0.08f, 0.18f, 0.29f, "moonmelon") with { Glow = SoftGlow });
         parts.Add(new CropPart("Stalk", CropPartShape.Cylinder, 0.04f, 0.08f, 0.03f, 0f, 0.35f, 0f, 15f, 0f, 0f, "foliage"));
 
         var direction = Vector3.Transform(Vector3.UnitX, Rotation(0f, vineYaw, 0f));
@@ -547,7 +569,8 @@ public static class CropArt
     private static CropPart Speckle(string name, float radius, float y, float yaw)
     {
         var at = Vector3.Transform(new Vector3(radius, y, 0f), Rotation(0f, yaw, 0f));
-        return new CropPart(name, CropPartShape.Sphere, 0.035f, 0.035f, 0.035f, at.X, at.Y, at.Z, 0f, 0f, 0f, "moonmelon");
+        return new CropPart(
+            name, CropPartShape.Sphere, 0.035f, 0.035f, 0.035f, at.X, at.Y, at.Z, 0f, 0f, 0f, "moonmelon", FullGlow, Twinkle: true);
     }
 
     /// <summary>An unrotated part centred on the slab's centre line at height <paramref name="y"/>.</summary>

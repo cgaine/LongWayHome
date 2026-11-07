@@ -29,7 +29,7 @@ public readonly record struct SandboxLook(LightPreset Preset, StyleMode Mode, bo
     public SandboxLook NextMode() => this with { Mode = Step(Mode, 1) };
 
     /// <summary>The <c>art_night</c> shader global for this look (#94): 1 under the Night preset, 0 under the others.</summary>
-    public float ArtNight => throw new NotImplementedException();
+    public float ArtNight => Preset == LightPreset.Night ? 1f : 0f;
 
     /// <summary>The on-screen label, "&lt;Preset&gt; · &lt;mode&gt;", e.g. "Dusk · Flat only".</summary>
     public string Label => $"{Preset} · {ModeName(Mode)}";

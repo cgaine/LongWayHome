@@ -17,9 +17,16 @@
 // SPECULAR, and since light() replaces Godot's own lighting it also adds a Blinn-Phong sheen to SPECULAR_LIGHT, scaled
 // by `wet`. At wet = 0 the sheen term is zero, so every other mesh looks exactly as before. Only watered tile slabs and
 // furrows set it (TileView).
+// Night glow (#94): a merged mesh whose parts glow carries UV2 = (glow 0 to 1, twinkle 0 or 1) on every vertex
+// (ArtMeshes.Merge). vertex() scales UV2.x by the global shader uniform `art_night` (0 by day to 1 at night,
+// [shader_globals] in project.godot, set by NightGlowView from the clock and by the art sandbox's Night preset) and by
+// a pulse: a slow breathing for a steady glow, out of step between neighbouring crops, or a sharp flash per speck for a
+// twinkle. fragment() adds it as EMISSION in the part's own palette colour. A mesh with no UV2 reads it as zero, and
+// at art_night = 0 the term is zero too, so every other mesh looks exactly as before. No bloom (REQ-14).
 shader_type spatial;
 
 global uniform bool art_stepped_shading;
+global uniform float art_night;
 
 uniform sampler2D palette : source_color, filter_nearest;
 uniform vec4 tint : source_color = vec4(1.0);
@@ -34,13 +41,27 @@ instance uniform float wet = 0.0;
 const float WET_SHININESS = 64.0;
 const float WET_SHEEN = 0.06;
 
+// How bright a full glow is at full night (#94), as a multiple of the part's palette colour.
+const float GLOW_ENERGY = 1.6;
+
 // Instance uniforms can't be read in light(), so the style and wetness are worked out once per vertex and passed on.
 varying flat int v_stepped;
 varying flat float v_wet;
+// The night glow of this vertex (#94): UV2.x x art_night x the pulse, 0 on a mesh with no UV2.
+varying float v_glow;
 
 void vertex() {
 	v_stepped = style_override < 0 ? (art_stepped_shading ? 1 : 0) : style_override;
 	v_wet = wet;
+	float pulse;
+	if (UV2.y < 0.5) {
+		// Steady: a slow breathing, offset by the crop's position so neighbours aren't in step (ART_DIRECTION §8).
+		pulse = 0.85 + 0.15 * sin(TIME * 1.5 + NODE_POSITION_WORLD.x + NODE_POSITION_WORLD.z);
+	} else {
+		// Twinkle: a sharp flash, offset by the vertex's position so each speck flashes on its own.
+		pulse = 0.35 + 0.65 * pow(0.5 + 0.5 * sin(TIME * 5.0 + dot(VERTEX, vec3(91.0, 37.0, 53.0))), 4.0);
+	}
+	v_glow = UV2.x * art_night * pulse;
 }
 
 void fragment() {
@@ -48,6 +69,7 @@ void fragment() {
 	ROUGHNESS = mix(1.0, 0.25, wet);
 	SPECULAR = mix(0.5, 0.7, wet);
 	METALLIC = 0.0;
+	EMISSION = ALBEDO * v_glow * GLOW_ENERGY;
 	if (v_stepped == 0) {
 		// VERTEX is in view space here. The face normal's sign depends on the derivatives' screen orientation,
 		// so turn it towards the camera (at the view-space origin): a visible face always faces the camera.

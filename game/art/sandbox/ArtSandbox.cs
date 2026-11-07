@@ -40,6 +40,8 @@ public partial class ArtSandbox : Node3D
 {
     private const string SteppedGlobal = "art_stepped_shading";
 
+    private const string NightGlobal = "art_night";
+
     private const string StyleOverride = "style_override";
 
     private const string TitleScene = "res://scenes/Main.tscn";
@@ -168,6 +170,8 @@ public partial class ArtSandbox : Node3D
     {
         // Flat only and Stepped only override the project-wide style; don't let that leak into the next scene.
         RenderingServer.GlobalShaderParameterSet(SteppedGlobal, _projectStepped);
+        // The Night preset lights the crop glows (#94); the next scene starts without them.
+        RenderingServer.GlobalShaderParameterSet(NightGlobal, 0f);
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -227,6 +231,7 @@ public partial class ArtSandbox : Node3D
     private void Apply()
     {
         ApplyLight(Presets[_look.Preset]);
+        RenderingServer.GlobalShaderParameterSet(NightGlobal, _look.ArtNight);
 
         var leftStepped = SteppedIn(_look.Mode, inBoth: _look.SidesSwapped);
         var rightStepped = SteppedIn(_look.Mode, inBoth: !_look.SidesSwapped);

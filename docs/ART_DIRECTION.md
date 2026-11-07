@@ -120,6 +120,7 @@ Each stage is taller or wider than the last, so stage reads from size as well as
 **Soil (pillar 4):** dry tilled soil `#8A5A3C` with furrows; watered soil `#4A3226`, much darker with a wet sheen, so the watered state reads at every stage and under every crop.
 
 **Night:** four of the six crops have a night detail (glow or sparkle), which rewards going out after dark and ties the farm to the glowing plants. Night stays readable: crops are darker, but every crop and stage is still recognisable.
+Crop glows show only on ripe crops, so a glow also means "ready to harvest"; they wake between 19:30 and 20:30 and stay on until the day ends (#94).
 
 ## 5. Plants, trees and glowing plants (draft)
 

@@ -43,7 +43,7 @@ public static class CropModels
             Mathf.DegToRad(part.YawDegrees),
             Mathf.DegToRad(part.RollDegrees));
         var at = new Transform3D(Basis.FromEuler(euler, EulerOrder.Yxz), new Vector3(part.X, part.Y, part.Z));
-        return new MeshPart(Primitive(part), at, part.Role);
+        return new MeshPart(Primitive(part), at, part.Role, part.Glow, part.Twinkle);
     }
 
     private static Mesh Primitive(CropPart part) => part.Shape switch
