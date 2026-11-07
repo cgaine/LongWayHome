@@ -21,8 +21,8 @@ public static class SandboxPan
     /// <summary>How far back the centre may move (z −21).</summary>
     public const float MinZ = -21f;
 
-    /// <summary>How far forward the centre may move (z 37).</summary>
-    public const float MaxZ = 37f;
+    /// <summary>How far forward the centre may move (z 49).</summary>
+    public const float MaxZ = 49f;
 
     /// <summary>
     /// The centre after moving for <paramref name="seconds"/> with the input <paramref name="x"/>, <paramref name="y"/>
