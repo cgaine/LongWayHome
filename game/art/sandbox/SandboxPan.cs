@@ -15,20 +15,26 @@ public static class SandboxPan
     /// <summary>How fast a full stick or a held D-pad direction moves the centre, in metres per second.</summary>
     public const float MetresPerSecond = 6f;
 
-    /// <summary>How far the centre may move from the origin along x and z.</summary>
-    public const float Limit = 19f;
+    /// <summary>How far the centre may move left and right of the origin (x −25..25).</summary>
+    public const float LimitX = 25f;
+
+    /// <summary>How far back the centre may move (z −21).</summary>
+    public const float MinZ = -21f;
+
+    /// <summary>How far forward the centre may move (z 37).</summary>
+    public const float MaxZ = 37f;
 
     /// <summary>
     /// The centre after moving for <paramref name="seconds"/> with the input <paramref name="x"/>, <paramref name="y"/>
     /// (from <c>Input.GetVector</c>: x positive = right, y negative = up) under <paramref name="view"/>, kept within
-    /// ±<see cref="Limit"/> on both axes.
+    /// x ±<see cref="LimitX"/> and z <see cref="MinZ"/>..<see cref="MaxZ"/>, over the sandbox's ground.
     /// </summary>
     public static (float X, float Z) Moved((float X, float Z) centre, float x, float y, CameraView view, float seconds)
     {
         var (dx, dz) = view.ToWorldMove(x, y);
         var step = MetresPerSecond * seconds;
         return (
-            Math.Clamp(centre.X + dx * step, -Limit, Limit),
-            Math.Clamp(centre.Z + dz * step, -Limit, Limit));
+            Math.Clamp(centre.X + dx * step, -LimitX, LimitX),
+            Math.Clamp(centre.Z + dz * step, MinZ, MaxZ));
     }
 }
