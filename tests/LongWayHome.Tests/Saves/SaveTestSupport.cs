@@ -104,10 +104,12 @@ internal static class SaveGames
         Weather weather = Weather.Rain,
         bool withBin = true)
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Sunbell, 4);
-        inventory.Add(ItemKind.Seed, CropTypeId.Starcorn, 2);
-        inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 7);
+        // The Can upgrade was bought, so the can is a Rosk can (BR-W1).
+        var inventory = TestGames.ToolsOnly();
+        inventory.SetTier(ToolId.WateringCan, ToolTier.Rosk);
+        inventory.Add(ItemRef.Seed(CropTypeId.Sunbell), 4);
+        inventory.Add(ItemRef.Seed(CropTypeId.Starcorn), 2);
+        inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 7);
 
         var tiles = new List<Tile>();
         for (var y = 0; y < FarmPlot.Height; y++)
@@ -141,12 +143,7 @@ internal static class SaveGames
             lastDayEnd,
             CreatedAt,
             SavedAt,
-            new Player(
-                new Gold(gold),
-                77,
-                new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
-                new WateringCan(40, 13, true),
-                inventory),
+            new Player(new Gold(gold), 77, new WateringCan(40, 13, true), inventory),
             new FarmPlot(tiles),
             bin);
     }
@@ -170,13 +167,12 @@ internal static class SavedState
 
         Assert.Equal(expected.Player.Gold, actual.Player.Gold);
         Assert.Equal(expected.Player.Energy, actual.Player.Energy);
-        Assert.True(
-            expected.Player.Tools.SetEquals(actual.Player.Tools),
-            $"Tools differ: {string.Join(",", expected.Player.Tools)} vs {string.Join(",", actual.Player.Tools)}");
         Assert.Equal(expected.Player.WateringCan.Capacity, actual.Player.WateringCan.Capacity);
         Assert.Equal(expected.Player.WateringCan.Charges, actual.Player.WateringCan.Charges);
         Assert.Equal(expected.Player.WateringCan.Upgraded, actual.Player.WateringCan.Upgraded);
-        Assert.Equal(expected.Player.Inventory.Stacks, actual.Player.Inventory.Stacks);
+        Assert.Equal(expected.Player.Backpack.Capacity, actual.Player.Backpack.Capacity);
+        Assert.Equal(expected.Player.Backpack.HotbarRow, actual.Player.Backpack.HotbarRow);
+        Assert.Equal(TestGames.Describe(expected.Player.Backpack), TestGames.Describe(actual.Player.Backpack));
 
         Assert.Equal(expected.FarmPlot.Tiles.Count, actual.FarmPlot.Tiles.Count);
         foreach (var tile in expected.FarmPlot.Tiles)

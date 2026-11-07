@@ -27,30 +27,30 @@ public class SeasonalPlantingTests
     private static CropType Crop(CropTypeId id) => TestGames.CanonicalCrops[id];
 
     /// <summary>An inventory holding 3 seeds of every Crop type.</summary>
-    private static Inventory EverySeed()
+    private static Backpack EverySeed()
     {
-        var inventory = new Inventory();
+        var inventory = TestGames.ToolsOnly();
         foreach (var id in Enum.GetValues<CropTypeId>())
         {
-            inventory.Add(ItemKind.Seed, id, 3);
+            inventory.Add(ItemRef.Seed(id), 3);
         }
 
         return inventory;
     }
 
-    private static Inventory Seeds(CropTypeId id, int quantity)
+    private static Backpack Seeds(CropTypeId id, int quantity)
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, id, quantity);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(id), quantity);
         return inventory;
     }
 
     /// <summary>A Game on the date with every seed, one empty tilled Tile at Spot.</summary>
-    private static GameState TilledOn(GameDate date, Inventory? inventory = null) =>
+    private static GameState TilledOn(GameDate date, Backpack? inventory = null) =>
         TestGames.OnDate(date, inventory ?? EverySeed(), TestGames.TilledWith(Spot, null));
 
     /// <summary>A session (never-rain Nights) on the date with the inventory and an empty tilled Tile at Spot.</summary>
-    private static GameSession SessionOn(GameDate date, Inventory inventory) =>
+    private static GameSession SessionOn(GameDate date, Backpack inventory) =>
         new(TilledOn(date, inventory), TestGames.Shipped);
 
     // ---- AC3 / BR-C1 / BR-T3: moonmelon in spring ----
@@ -67,7 +67,7 @@ public class SeasonalPlantingTests
         Assert.Equal(Rejection.OutOfSeason, rejection);
         Assert.Equal(ActionResult.Rejected(Rejection.OutOfSeason), result);
         Assert.Null(game.FarmPlot[Spot].Planting);
-        Assert.Equal(2, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Moonmelon));
+        Assert.Equal(2, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Moonmelon)));
         Assert.Equal(before, TestGames.FullSnapshot(game));
     }
 
@@ -122,9 +122,9 @@ public class SeasonalPlantingTests
     public void AC4_in_summer_a_session_plants_sunbell_and_starcorn_using_one_seed_each()
     {
         var other = new GridPosition(5, 2);
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Sunbell, 3);
-        inventory.Add(ItemKind.Seed, CropTypeId.Starcorn, 2);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Sunbell), 3);
+        inventory.Add(ItemRef.Seed(CropTypeId.Starcorn), 2);
         var session = new GameSession(
             TestGames.OnDate(SummerDay, inventory, TestGames.TilledWith(Spot, null), TestGames.TilledWith(other, null)),
             TestGames.Shipped);
@@ -138,8 +138,8 @@ public class SeasonalPlantingTests
         Assert.Equal(ActionResult.Ok, starcorn);
         Assert.Equal(new Planting(CropTypeId.Sunbell, SummerDay, 0), session.Game.FarmPlot[Spot].Planting);
         Assert.Equal(new Planting(CropTypeId.Starcorn, SummerDay, 0), session.Game.FarmPlot[other].Planting);
-        Assert.Equal(2, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Sunbell));
-        Assert.Equal(1, session.Game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Starcorn));
+        Assert.Equal(2, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Sunbell)));
+        Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Starcorn)));
     }
 
     [Fact]
@@ -164,8 +164,8 @@ public class SeasonalPlantingTests
         Assert.Null(game.PlantRejection(Spot, Crop(CropTypeId.Moonmelon)));
         Assert.Equal(ActionResult.Ok, game.Plant(Spot, Crop(CropTypeId.Moonmelon)));
         Assert.Equal(new Planting(CropTypeId.Moonmelon, FallDay, 0), game.FarmPlot[Spot].Planting);
-        Assert.Equal(2, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Moonmelon));
-        Assert.Equal(3, game.Player.Inventory.Quantity(ItemKind.Seed, CropTypeId.Sunbell));
+        Assert.Equal(2, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Moonmelon)));
+        Assert.Equal(3, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Sunbell)));
     }
 
     [Theory]
@@ -242,7 +242,7 @@ public class SeasonalPlantingTests
         Assert.Equal(PlantingStatus.Ripe, session.PlantingStatusAt(Spot));
         Assert.Equal(ActionResult.Ok, session.Harvest(Spot));
         Assert.Null(session.Game.FarmPlot[Spot].Planting);
-        Assert.Equal(1, session.Game.Player.Inventory.Quantity(ItemKind.Crop, CropTypeId.Dusktuber));
+        Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Dusktuber)));
     }
 
     [Fact]
@@ -330,7 +330,7 @@ public class SeasonalPlantingTests
         Assert.Equal(PlantingStatus.Ripe, session.PlantingStatusAt(Spot));
         Assert.Equal(nights, session.Game.FarmPlot[Spot].Planting!.DaysGrown);
         Assert.Equal(ActionResult.Ok, session.Harvest(Spot));
-        Assert.Equal(1, session.Game.Player.Inventory.Quantity(ItemKind.Crop, id));
+        Assert.Equal(1, session.Game.Player.Backpack.Quantity(ItemRef.Crop(id)));
     }
 
     // ---- Edge: a seed with no data row ----

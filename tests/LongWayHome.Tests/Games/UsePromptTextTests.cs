@@ -99,6 +99,54 @@ public class UsePromptTextTests
     }
 
     [Fact]
+    public void AC8_BackpackFull_prompts_Backpack_full_as_a_non_action()
+    {
+        var prompt = UsePromptText.For(
+            new UsePreview(null, Rejection.BackpackFull), Hoe, null, TestGames.Shipped.CropTypes);
+
+        AssertPrompt("Backpack full", false, prompt);
+    }
+
+    [Theory]
+    [InlineData("hoe")]
+    [InlineData("can")]
+    [InlineData("emberroot_seeds")]
+    public void AC8_Ripe_tile_with_no_room_previews_BackpackFull_and_prompts_Backpack_full(string heldName)
+    {
+        var held = heldName switch
+        {
+            "hoe" => Hoe,
+            "can" => Can,
+            _ => HeldItem.SeedOf(CropTypeId.Emberroot),
+        };
+        var session = TestGames.SessionWithBackpack(
+            TestGames.FullBackpack((ItemRef.Seed(CropTypeId.Emberroot), 10)),
+            TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Dusktuber)));
+
+        var preview = session.PreviewUse(Target, held);
+        var prompt = UsePromptText.For(preview, held, session.Game.FarmPlot[Target].Planting, session.Data.CropTypes);
+
+        Assert.Equal(new UsePreview(null, Rejection.BackpackFull), preview);
+        AssertPrompt("Backpack full", false, prompt);
+    }
+
+    [Fact]
+    public void AC8_Use_on_a_ripe_tile_with_no_room_is_BackpackFull_and_keeps_the_planting()
+    {
+        var ripe = TestGames.Ripe(CropTypeId.Dusktuber);
+        var session = TestGames.SessionWithBackpack(TestGames.FullBackpack(), TestGames.TilledWith(Target, ripe));
+        var events = 0;
+        session.TileChanged += _ => events++;
+        session.InventoryChanged += () => events++;
+
+        var result = session.Use(Target, Hoe);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
+        Assert.Equal(ripe, session.Game.FarmPlot[Target].Planting);
+        Assert.Equal(0, events);
+    }
+
+    [Fact]
     public void BR_T6_growing_dusktuber_targeted_with_the_hoe_never_prompts_Harvest()
     {
         var session = TestGames.SessionWithTiles(
@@ -163,8 +211,8 @@ public class UsePromptTextTests
     [Fact]
     public void AC8_moonmelon_seeds_held_in_spring_over_empty_tilled_soil_prompt_Out_of_season_plant_in_Fall()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemKind.Seed, CropTypeId.Moonmelon, 2);
+        var inventory = TestGames.ToolsOnly();
+        inventory.Add(ItemRef.Seed(CropTypeId.Moonmelon), 2);
         var session = new GameSession(
             TestGames.OnDate(new GameDate(1, Season.Spring, 5), inventory, TestGames.TilledWith(Target, null)),
             TestGames.Shipped);

@@ -42,7 +42,7 @@ public sealed class SaveGuardTests : IDisposable
     public void Migrator_refuses_a_step_count_that_does_not_match_the_target()
     {
         Assert.Throws<ArgumentException>(() => new SaveMigrator(3, [doc => doc]));
-        Assert.Throws<ArgumentException>(() => new SaveMigrator([doc => doc]));
+        Assert.Throws<ArgumentException>(() => new SaveMigrator([]));
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class SaveGuardTests : IDisposable
 
     public static TheoryData<JsonNode?> RefusedVersions => new()
     {
-        JsonValue.Create(2),
+        JsonValue.Create(3),
         JsonValue.Create(0),
         JsonValue.Create("1"),
         JsonValue.Create(1.5),
@@ -130,26 +130,34 @@ public sealed class SaveGuardTests : IDisposable
         { "null farm plot", document => document["farmPlot"] = null },
         { "null shipping bin", document => document["shippingBin"] = null },
         { "null date", document => document["date"] = null },
-        { "null tools", document => document["player"]!["tools"] = null },
+        { "null backpack", document => document["player"]!["backpack"] = null },
         { "null can", document => document["player"]!["wateringCan"] = null },
-        { "null inventory", document => document["player"]!["inventory"] = null },
+        { "null backpack slots", document => document["player"]!["backpack"]!["slots"] = null },
         { "null tiles", document => document["farmPlot"]!["tiles"] = null },
         { "null tile", document => document["farmPlot"]!["tiles"]![0] = null },
         { "null tile position", document => document["farmPlot"]!["tiles"]![0]!["position"] = null },
         { "null bin items", document => document["shippingBin"]!["items"] = null },
         { "null bin item", document => document["shippingBin"]!["items"]![0] = null },
-        { "null stack", document => document["player"]!["inventory"]![0] = null },
+        { "null slot", document => document["player"]!["backpack"]!["slots"]![2] = null },
+        { "null slot item id", document => document["player"]!["backpack"]!["slots"]![2]!["item"]!["id"] = null },
+        { "unknown slot tier", document => document["player"]!["backpack"]!["slots"]![0]!["toolTier"] = "mithril" },
         { "negative clock", document => document["clock"] = -1 },
         { "missing clock", document => document.Remove("clock") },
         { "unknown field", document => document["extra"] = 1 },
-        { "duplicate tool", document => document["player"]!["tools"] = new JsonArray("hoe", "hoe") },
+        {
+            "duplicate tool", document => document["player"]!["backpack"]!["slots"]![1]!["item"] =
+                new JsonObject { ["kind"] = "tool", ["id"] = "hoe" }
+        },
         // Sunbell (3) | Starcorn (4) is 7, not a CropTypeId: the enum converter parses it, the store refuses it.
         { "combined enum", document => document["shippingBin"]!["items"]![0]!["cropTypeId"] = "sunbell, starcorn" },
-        { "unknown tool", document => document["player"]!["tools"] = new JsonArray("axe") },
+        { "unknown tool", document => document["player"]!["backpack"]!["slots"]![0]!["item"]!["id"] = "axe" },
+        { "unknown crop in a slot", document => document["player"]!["backpack"]!["slots"]![2]!["item"]!["id"] = "nope" },
+        { "unknown item kind", document => document["player"]!["backpack"]!["slots"]![2]!["item"]!["kind"] = "material" },
         {
-            "duplicate stack", document => document["player"]!["inventory"]!.AsArray().Add(
-                document["player"]!["inventory"]![0]!.DeepClone())
+            "duplicate slot", document => document["player"]!["backpack"]!["slots"]!.AsArray().Add(
+                document["player"]!["backpack"]!["slots"]![2]!.DeepClone())
         },
+        { "old tools field", document => document["player"]!["tools"] = new JsonArray("hoe", "watering_can") },
         {
             "duplicate shipped item", document => document["shippingBin"]!["items"]!.AsArray().Add(
                 document["shippingBin"]!["items"]![0]!.DeepClone())

@@ -1,4 +1,5 @@
 using LongWayHome.Domain.Players;
+using LongWayHome.Tests.Games;
 
 namespace LongWayHome.Tests.Players;
 
@@ -82,38 +83,32 @@ public class PlayerTests
     }
 
     [Fact]
-    public void Player_rejects_null_tools_can_or_inventory()
+    public void Player_rejects_a_null_can_or_backpack()
     {
-        var tools = new HashSet<ToolId> { ToolId.Hoe };
-
-        Assert.Throws<ArgumentNullException>(() => new Player(new Gold(0), 0, null!, new WateringCan(20), new Inventory()));
-        Assert.Throws<ArgumentNullException>(() => new Player(new Gold(0), 0, tools, null!, new Inventory()));
-        Assert.Throws<ArgumentNullException>(() => new Player(new Gold(0), 0, tools, new WateringCan(20), null!));
+        Assert.Throws<ArgumentNullException>(() => new Player(new Gold(0), 0, null!, TestGames.ToolsOnly()));
+        Assert.Throws<ArgumentNullException>(() => new Player(new Gold(0), 0, new WateringCan(20), null!));
     }
 
     [Fact]
-    public void Player_tools_are_a_copy_of_the_set_passed_in()
+    public void Player_tools_are_in_the_backpack_it_was_created_with()
     {
-        var tools = new HashSet<ToolId> { ToolId.Hoe };
-        var player = new Player(new Gold(0), 0, tools, new WateringCan(20), new Inventory());
+        var player = new Player(new Gold(0), 0, new WateringCan(20), TestGames.ToolsOnly());
 
-        tools.Add(ToolId.WateringCan);
-
-        Assert.True(player.Tools.SetEquals([ToolId.Hoe]));
+        Assert.Equal(ToolTier.Basic, player.Backpack.TierOf(ToolId.Hoe));
+        Assert.Equal(ToolTier.Basic, player.Backpack.TierOf(ToolId.WateringCan));
     }
 
     [Fact]
     public void Player_exposes_the_values_it_was_created_with()
     {
         var can = new WateringCan(20);
-        var inventory = new Inventory();
+        var backpack = TestGames.ToolsOnly();
 
-        var player = new Player(new Gold(42), 10, new HashSet<ToolId>(), can, inventory);
+        var player = new Player(new Gold(42), 10, can, backpack);
 
         Assert.Equal(new Gold(42), player.Gold);
         Assert.Same(can, player.WateringCan);
-        Assert.Same(inventory, player.Inventory);
-        Assert.Empty(player.Tools);
+        Assert.Same(backpack, player.Backpack);
     }
 
     [Fact]
@@ -200,7 +195,6 @@ public class PlayerTests
         new(
             new Gold(100),
             energy,
-            new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
             new WateringCan(20),
-            new Inventory());
+            TestGames.ToolsOnly());
 }

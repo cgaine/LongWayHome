@@ -40,10 +40,11 @@ public static class ShopText
     /// <summary>"Gold 100".</summary>
     public static string Gold(int gold) => GoldText.For(gold);
 
-    /// <summary>"Not enough gold" or "Not sold this season".</summary>
+    /// <summary>"Not enough gold", "Backpack full" or "Not sold this season".</summary>
     public static string Rejection(Domain.Games.Rejection rejection) => rejection switch
     {
         Domain.Games.Rejection.NotEnoughGold => "Not enough gold",
+        Domain.Games.Rejection.BackpackFull => "Backpack full",
         Domain.Games.Rejection.NotOffered => "Not sold this season",
         _ => throw new ArgumentOutOfRangeException(nameof(rejection), rejection, "Not a shop rejection."),
     };

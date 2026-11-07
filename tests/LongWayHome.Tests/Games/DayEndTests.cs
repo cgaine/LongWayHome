@@ -27,7 +27,7 @@ public class DayEndTests
             TestGames.TilledWith(new GridPosition(4, 2), TestGames.PlantingOf(CropTypeId.Dusktuber, 2), watered: false),
             TestGames.TilledWith(new GridPosition(5, 2), TestGames.Ripe(CropTypeId.Moonmelon), watered: true),
             TestGames.TilledWith(new GridPosition(6, 2), null, watered: true));
-        game.Player.Inventory.Add(ItemKind.Crop, CropTypeId.Emberroot, 3);
+        game.Player.Backpack.Add(ItemRef.Crop(CropTypeId.Emberroot), 3);
         return new GameSession(game, TestGames.Shipped);
     }
 

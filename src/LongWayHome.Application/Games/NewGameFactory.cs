@@ -14,20 +14,25 @@ public static class NewGameFactory
         ArgumentNullException.ThrowIfNull(data);
         var tuning = data.Tuning;
 
-        // BR-P6: starting gold, energy, tools, a full can and the starting Seeds, all from the tuning.
-        var inventory = new Inventory();
+        // BR-P6, BR-K1: starting gold, energy, a 12-Slot Backpack with the Basic hoe (Slot 0) and the full Basic can
+        // (Slot 1), then the starting Seeds, all from the tuning.
+        var backpack = new Backpack();
+        backpack.AddTool(ToolId.Hoe, ToolTier.Basic);
+        backpack.AddTool(ToolId.WateringCan, ToolTier.Basic);
         foreach (var seeds in tuning.StartingSeeds)
         {
-            // BR-P7: a crop listed twice merges into one stack.
-            inventory.Add(ItemKind.Seed, seeds.CropTypeId, seeds.Quantity);
+            // BR-K3: a crop listed twice tops up its stack. Starting Seeds that fit nowhere are bad tuning data.
+            if (backpack.Add(ItemRef.Seed(seeds.CropTypeId), seeds.Quantity) != 0)
+            {
+                throw new InvalidOperationException("The tuning's starting seeds don't fit in the Backpack.");
+            }
         }
 
         var player = new Player(
             new Gold(tuning.StartingGold),
             tuning.MaxEnergy,
-            new HashSet<ToolId> { ToolId.Hoe, ToolId.WateringCan },
             new WateringCan(tuning.CanCapacity),
-            inventory);
+            backpack);
 
         // BR-G1: a new Game starts on Year 1, Spring 1. BR-T1: a fresh 12 x 9 plot of grass.
         return new Game(

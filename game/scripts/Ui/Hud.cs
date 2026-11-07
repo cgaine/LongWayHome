@@ -330,7 +330,7 @@ public partial class Hud : CanvasLayer
     {
         // "Crops:" then, per carried crop, its icon and "Emberroot × 9" (", " after all but the last). Rebuild the
         // entry nodes only when the entries change, as the hotbar does with its slots.
-        var entries = CropsText.Entries(player.Inventory.Stacks, _session!.Data.CropTypes);
+        var entries = CropsText.Entries(player.Backpack, _session!.Data.CropTypes);
         _cropsLabel.Text = CropsText.Heading(entries);
         if (entries.SequenceEqual(_cropEntries))
         {
@@ -387,13 +387,13 @@ public partial class Hud : CanvasLayer
             child.QueueFree();
         }
 
-        var inventory = _session!.Game.Player.Inventory;
+        var backpack = _session!.Game.Player.Backpack;
         foreach (var slot in _hotbarSlots)
         {
             var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
             panel.AddThemeStyleboxOverride("panel", slot.Selected ? _selectedSlotStyle : _slotStyle);
             var text = compact && slot.Item.Seed is { } seed
-                ? HotbarText.Compact(slot.Item, inventory.Quantity(ItemKind.Seed, seed))
+                ? HotbarText.Compact(slot.Item, backpack.Quantity(ItemRef.Seed(seed)))
                 : slot.Label;
             var label = OutlinedLabel(text, SlotFontSize);
             if (ItemIcons.For(slot.Item) is { } icon)

@@ -78,7 +78,7 @@ public class GameTests
         Assert.Equal(400, game.ClockMinutes);
         Assert.Equal(
             [(ItemKind.Seed, CropTypeId.Starcorn, 2)],
-            game.Player.Inventory.Stacks.Select(stack => (stack.Kind, stack.CropTypeId, stack.Quantity)));
+            TestGames.Stacks(game.Player.Backpack));
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class GameTests
         new(Guid.NewGuid(), new GameDate(1, Season.Spring, 1), 360, Weather.Clear, null, Now, Now, player, farmPlot);
 
     private static Player CreatePlayer() =>
-        new(new Gold(100), 150, new HashSet<ToolId> { ToolId.Hoe }, new WateringCan(20), new Inventory());
+        new(new Gold(100), 150, new WateringCan(20), TestGames.ToolsOnly());
 
     private static GameTuning CreateTuning() => new()
     {

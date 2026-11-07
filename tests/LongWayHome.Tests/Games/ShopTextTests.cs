@@ -50,6 +50,12 @@ public class ShopTextTests
     }
 
     [Fact]
+    public void AC9_A_purchase_refused_for_room_reads_Backpack_full()
+    {
+        Assert.Equal("Backpack full", ShopText.Rejection(Rejection.BackpackFull));
+    }
+
+    [Fact]
     public void Row_of_a_seed_listing_with_no_crop_type_throws()
     {
         var listing = new ShopListing("seed_nothing", ShopItemKind.Seed, null, new Gold(10));
