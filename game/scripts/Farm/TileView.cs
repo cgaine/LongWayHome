@@ -13,8 +13,9 @@ namespace LongWayHome.Game.Farm;
 
 /// <summary>
 /// Draws one Tile of the Farm plot as the 1 x 1 m slab of ART_DIRECTION §7.2 (#78), in the state
-/// <see cref="TileLook.For"/> picks: grass (a green slab with three small tufts and, on about one Tile in six, a native
-/// frond or puffball), tilled (a brown slab with three east–west furrows) or watered (the same, much darker, with the
+/// <see cref="TileLook.For(Tile, Season)"/> picks: grass (a slab in the Season's ground colour, <see cref="SeasonGrass"/>
+/// (#79), with three small tufts in its tuft colour and height and, on about one Tile in six, a native frond or
+/// puffball), tilled (the same all year, BR-T8) (a brown slab with three east–west furrows) or watered (the same, much darker, with the
 /// shader's wet sheen). The slab is 0.96 m square, so the dark plot base under the plot shows through the 4 cm gaps as
 /// grooves and the grid reads without drawn lines. Any Planting on it stands on the slab top as a low-poly model for
 /// its <see cref="GrowthStage"/>: a seed mound, a sprout, a young plant tinted toward its crop's colour, or a
@@ -23,7 +24,8 @@ namespace LongWayHome.Game.Farm;
 /// The slab and furrows are built once when ready; the tufts and native plant on the first <see cref="Refresh"/>,
 /// which brings the Tile's grid position for their <see cref="TileDecoration"/>, and only if the Tile is still grass
 /// (a tilled Tile never reverts, BR-T8). After that <see cref="Refresh"/> only swaps palette roles, sets the
-/// <c>wet</c> instance parameter and shows or hides parts, and only when the look changes. Each (stage, crop) model is
+/// <c>wet</c> instance parameter, scales the tufts' height and shows or hides parts, and only when the look or the
+/// Season's tufts change. Each (stage, crop) model is
 /// built once, the first time it is shown. Every lit tile mesh uses the one shared palette material. Holds no rules.
 /// </para>
 /// </summary>
@@ -67,6 +69,9 @@ public partial class TileView : Node3D
 
     private MeshInstance3D? _nativePlant;
 
+    /// <summary>The palette role last given to the tufts, so a Season's role is applied only when it changes.</summary>
+    private string? _tuftRole;
+
     private bool _decorated;
 
     private TileLook? _look;
@@ -77,14 +82,16 @@ public partial class TileView : Node3D
 
     /// <summary>
     /// Redraws this view from <paramref name="tile"/>'s state and its Planting's <paramref name="stage"/> (null when
-    /// the Tile has no Planting), as decided by <c>GameSession.GrowthStageAt</c>.
+    /// the Tile has no Planting), as decided by <c>GameSession.GrowthStageAt</c>, in the current
+    /// <paramref name="season"/>, whose grass colours a grass Tile's slab and tufts (#79).
     /// </summary>
-    public void Refresh(Tile tile, GrowthStage? stage)
+    public void Refresh(Tile tile, GrowthStage? stage, Season season)
     {
         EnsureBuilt();
-        var look = TileLook.For(tile);
+        var look = TileLook.For(tile, season);
         EnsureDecorated(tile.Position, look);
         ApplyLook(look);
+        ApplyTufts(SeasonGrass.For(season));
 
         var model = tile.Planting is { } planting && stage is { } shownStage
             ? ModelFor(shownStage, planting.CropTypeId)
@@ -139,6 +146,31 @@ public partial class TileView : Node3D
         }
 
         _look = look;
+    }
+
+    /// <summary>
+    /// Gives the tufts the Season's role and height, when either has changed. The blades stand on the slab top, so the
+    /// node is scaled on Y about that height (not about y 0) to keep their feet on the slab.
+    /// </summary>
+    private void ApplyTufts(SeasonGrass grass)
+    {
+        if (_tufts is null)
+        {
+            return;
+        }
+
+        if (grass.Tufts != _tuftRole)
+        {
+            ArtMaterials.Apply(_tufts, grass.Tufts);
+            _tuftRole = grass.Tufts;
+        }
+
+        var scale = grass.TuftHeightScale;
+        if (!Mathf.IsEqualApprox(_tufts.Scale.Y, scale))
+        {
+            _tufts.Scale = new Vector3(1f, scale, 1f);
+            _tufts.Position = new Vector3(0f, SurfaceHeight * (1f - scale), 0f);
+        }
     }
 
     private Node3D ModelFor(GrowthStage stage, CropTypeId crop)
@@ -222,7 +254,6 @@ public partial class TileView : Node3D
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
             Visible = false,
         };
-        ArtMaterials.Apply(_tufts, "grass-lit");
         AddChild(_tufts);
 
         if (decoration.NativePlant == NativePlantKind.None)

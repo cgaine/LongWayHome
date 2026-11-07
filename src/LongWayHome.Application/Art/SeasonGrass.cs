@@ -14,6 +14,26 @@ public sealed record SeasonGrass(
     float TuftHeightScale,
     bool ShowShadePatches)
 {
-    /// <summary>The grass look for <paramref name="season"/>.</summary>
-    public static SeasonGrass For(Season season) => throw new NotImplementedException();
+    private static readonly SeasonGrass Spring = new("grass-mown", "grass-spring-mown", "grass-mown", "grass-shade", 1f, true);
+
+    private static readonly SeasonGrass Summer = new("grass-lit", "grass-mown", "grass-lit", "grass-shade", 1f, true);
+
+    private static readonly SeasonGrass Fall = new("grass-fall", "grass-fall-mown", "grass-fall", "grass-shade", 1f, true);
+
+    /// <summary>Snow, with short grass tips showing through it and the shade patches hidden under it.</summary>
+    private static readonly SeasonGrass Winter = new("snow", "snow", "grass-shade", "grass-shade", 0.5f, false);
+
+    /// <summary>
+    /// The grass look for <paramref name="season"/>: fresh green in spring, meadow green in summer, golden in fall and
+    /// snow with grass tips in winter. The mown margin is a lighter shade of each Season's meadow.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="season"/> is not a defined Season.</exception>
+    public static SeasonGrass For(Season season) => season switch
+    {
+        Season.Spring => Spring,
+        Season.Summer => Summer,
+        Season.Fall => Fall,
+        Season.Winter => Winter,
+        _ => throw new ArgumentOutOfRangeException(nameof(season), season, "not a Season"),
+    };
 }

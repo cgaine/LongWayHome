@@ -56,6 +56,12 @@ public class SeasonGrassTests
         }
     }
 
+    [Fact]
+    public void AC1_an_undefined_season_is_rejected()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => SeasonGrass.For((Season)99));
+    }
+
     // ---- AC2: readability against soil ----
 
     [Theory]

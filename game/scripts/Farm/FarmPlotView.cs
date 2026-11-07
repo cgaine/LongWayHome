@@ -12,7 +12,8 @@ namespace LongWayHome.Game.Farm;
 /// <summary>
 /// Draws the Farm plot of the current Game: one <see cref="TileView"/> per Tile, placed at
 /// <see cref="FarmGrid.ToWorld"/>, and redraws a Tile when the session raises <see cref="GameSession.TileChanged"/>
-/// and every Tile on <see cref="GameSession.NightCompleted"/>. Under the Tiles lies the <c>PlotBase</c>, a dark
+/// and every Tile on <see cref="GameSession.NightCompleted"/>, the only time the Season, whose grass colours the grass
+/// Tiles (#79), can change (BR-G1). Under the Tiles lies the <c>PlotBase</c>, a dark
 /// 12 x 9 m soil plane (#78) that shows through the gaps between the Tiles' slabs as grooves, so the grid reads without
 /// drawn lines. Reads state from the <see cref="GameRoot"/> session. Holds no rules.
 /// </summary>
@@ -46,7 +47,7 @@ public partial class FarmPlotView : Node3D
                 Position = FarmGrid.ToWorld(tile.Position),
             };
             AddChild(view);
-            view.Refresh(tile, _session.GrowthStageAt(tile.Position));
+            view.Refresh(tile, _session.GrowthStageAt(tile.Position), _session.Game.Date.Season);
             _views[tile.Position] = view;
         }
 
@@ -91,7 +92,7 @@ public partial class FarmPlotView : Node3D
     {
         if (_views.TryGetValue(position, out var view))
         {
-            view.Refresh(_session!.Game.FarmPlot[position], _session.GrowthStageAt(position));
+            view.Refresh(_session!.Game.FarmPlot[position], _session.GrowthStageAt(position), _session.Game.Date.Season);
         }
     }
 }

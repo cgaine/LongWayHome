@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using LongWayHome.Application.Art;
+using LongWayHome.Application.Games;
+using LongWayHome.Domain.Catalog;
+using LongWayHome.Game.Core;
 
 namespace LongWayHome.Game.Art;
 
@@ -23,7 +26,14 @@ namespace LongWayHome.Game.Art;
 /// </list>
 /// Every mesh is a low-poly primitive, or several merged into one, and takes its colour from the shared palette
 /// material through <see cref="ArtMaterials.Apply"/> with its <see cref="MeadowLayout.PartRoles"/> role. Nothing here
-/// has collision, so the meadow never blocks the Player or the camera. Reads and changes no game state.
+/// has collision, so the meadow never blocks the Player or the camera.
+/// <para>
+/// The grass follows the Season (#79): after building, and again on <see cref="GameSession.NightCompleted"/>, the only
+/// time the date changes (BR-G1), it reads the <see cref="GameRoot"/> session's <c>Game.Date.Season</c> and applies
+/// <see cref="SeasonGrass.For"/> to <c>Ground</c>, <c>MownMargin</c>, <c>ShadePatches</c> and <c>TuftBlades</c>. With
+/// no session (the data failed to load) it stays in summer. Native plants, rocks, stumps, saplings, path and edging
+/// never change. Only reads the date; changes no game state.
+/// </para>
 /// </summary>
 public partial class MeadowView : Node3D
 {
@@ -40,6 +50,16 @@ public partial class MeadowView : Node3D
     private const float MarginY = 0.006f;
     private const float PathY = 0.008f;
 
+    private const string GameRootPath = "/root/GameRoot";
+
+    private GameSession? _session;
+
+    /// <summary>The tuft props, kept to rebuild the tufts' instance transforms at each Season's height.</summary>
+    private List<MeadowProp> _tuftProps = [];
+
+    /// <summary>The Season grass last applied (null before the first), so an unchanged Season does nothing.</summary>
+    private SeasonGrass? _applied;
+
     public override void _Ready()
     {
         var props = MeadowLayout.Generate(MeadowLayout.FarmSeed).ToLookup(p => p.Kind);
@@ -53,7 +73,8 @@ public partial class MeadowView : Node3D
         Fill("PathStones", Shapes.PathStone(), MeadowLayout.PathStones(), shadows: false);
         Fill("Edging", Shapes.EdgingStone(), MeadowLayout.EdgingStones(), shadows: false);
 
-        Fill("TuftBlades", Shapes.TuftBlades(), Of("Tuft"), shadows: false);
+        _tuftProps = Of("Tuft");
+        Fill("TuftBlades", Shapes.TuftBlades(), _tuftProps, shadows: false);
         Fill("FrondFrond", Shapes.FrondFrond(), Of("Frond"), shadows: false);
         Fill("FrondCurl", Shapes.FrondCurl(), Of("Frond"), shadows: false);
         Fill("PuffballStem", Shapes.PuffballStem(), Of("Puffball"), shadows: false);
@@ -65,6 +86,64 @@ public partial class MeadowView : Node3D
         Fill("StumpTop", Shapes.StumpTop(), Of("Stump"), shadows: true);
         Fill("SaplingStem", Shapes.SaplingStem(), Of("Sapling"), shadows: true);
         Fill("SaplingCrown", Shapes.SaplingCrown(), Of("Sapling"), shadows: true);
+
+        _session = GetNode<GameRoot>(GameRootPath).Session;
+        if (_session is null)
+        {
+            // The data failed to load and GameRoot is already quitting: the meadow stays in summer.
+            ApplySeason(Season.Summer);
+            return;
+        }
+
+        _session.NightCompleted += OnNightCompleted;
+        OnNightCompleted();
+    }
+
+    public override void _ExitTree()
+    {
+        if (_session is not null)
+        {
+            _session.NightCompleted -= OnNightCompleted;
+        }
+    }
+
+    /// <summary>Shows the current Season's grass: on ready, and after each Night, the only time it changes (BR-G1).</summary>
+    private void OnNightCompleted() => ApplySeason(_session!.Game.Date.Season);
+
+    /// <summary>
+    /// Gives the ground, the mown margin and the tufts <paramref name="season"/>'s roles, sets the tufts' height and
+    /// shows or hides the shade patches. Only swaps swatches, visibility and instance transforms; creates and frees no
+    /// nodes, so the swap costs nothing on the Night it happens.
+    /// </summary>
+    private void ApplySeason(Season season)
+    {
+        var grass = SeasonGrass.For(season);
+        if (grass == _applied)
+        {
+            return;
+        }
+
+        ArtMaterials.Apply(GetNode<MeshInstance3D>("Ground"), grass.Ground);
+        ArtMaterials.Apply(GetNode<MeshInstance3D>("MownMargin"), grass.Margin);
+
+        var shadePatches = GetNode<MeshInstance3D>("ShadePatches");
+        ArtMaterials.Apply(shadePatches, grass.ShadePatches);
+        shadePatches.Visible = grass.ShowShadePatches;
+
+        var tufts = GetNode<MultiMeshInstance3D>("TuftBlades");
+        ArtMaterials.Apply(tufts, grass.Tufts);
+        if (!Mathf.IsEqualApprox(grass.TuftHeightScale, _applied?.TuftHeightScale ?? 1f))
+        {
+            // Rebuilt from the props each time, so the heights never compound across Seasons.
+            var height = new Vector3(1f, grass.TuftHeightScale, 1f);
+            for (var i = 0; i < _tuftProps.Count; i++)
+            {
+                var t = PropTransform(_tuftProps[i]);
+                tufts.Multimesh.SetInstanceTransform(i, t with { Basis = t.Basis.Scaled(height) });
+            }
+        }
+
+        _applied = grass;
     }
 
     private void Ground(string name, Mesh mesh)
@@ -85,9 +164,7 @@ public partial class MeadowView : Node3D
         };
         for (var i = 0; i < props.Count; i++)
         {
-            var p = props[i];
-            var basis = new Basis(Vector3.Up, Mathf.DegToRad(p.YawDegrees)).Scaled(Vector3.One * p.Scale);
-            multimesh.SetInstanceTransform(i, new Transform3D(basis, new Vector3(p.X, 0f, p.Z)));
+            multimesh.SetInstanceTransform(i, PropTransform(props[i]));
         }
 
         var node = GetNode<MultiMeshInstance3D>(name);
@@ -97,6 +174,11 @@ public partial class MeadowView : Node3D
             : GeometryInstance3D.ShadowCastingSetting.Off;
         Colour(node);
     }
+
+    /// <summary>A prop standing on the ground at its position, turned by its yaw and sized by its scale.</summary>
+    private static Transform3D PropTransform(MeadowProp p) => new(
+        new Basis(Vector3.Up, Mathf.DegToRad(p.YawDegrees)).Scaled(Vector3.One * p.Scale),
+        new Vector3(p.X, 0f, p.Z));
 
     private static void Colour(GeometryInstance3D node) =>
         ArtMaterials.Apply(node, MeadowLayout.PartRoles[node.Name.ToString()]);

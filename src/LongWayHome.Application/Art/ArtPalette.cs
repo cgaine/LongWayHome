@@ -74,6 +74,8 @@ public static class ArtPalette
         new("roof-rows", "#2F7266"),
         new("roof-tips", "#4FA294"),
         new("roof-far", "#2F6B60"),
+        new("grass-spring-mown", "#A6D07C"),
+        new("grass-fall-mown", "#C0BC72"),
     ];
 
     /// <summary>The centre of <paramref name="role"/>'s swatch in 0–1 texture space (U right, V down).</summary>

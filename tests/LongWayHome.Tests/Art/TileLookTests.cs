@@ -171,6 +171,20 @@ public class TileLookTests
         }
     }
 
+    [Fact]
+    public void AC5_the_seasonless_look_is_the_summer_look()
+    {
+        foreach (var tile in new[]
+                 {
+                     new Tile(Position),
+                     new Tile(Position, TileState.Tilled, false, null),
+                     new Tile(Position, TileState.Tilled, true, null),
+                 })
+        {
+            Assert.Equal(TileLook.For(tile, Season.Summer), TileLook.For(tile));
+        }
+    }
+
     [Theory]
     [MemberData(nameof(Seasons))]
     public void AC5_grass_tile_slab_takes_the_seasons_ground(Season season)
