@@ -88,6 +88,44 @@ public class SmokeChecklistTests
         }
     }
 
+    /// <summary>#103 AC14: each action's step says the farmer plays its animation.</summary>
+    [Theory]
+    [MemberData(nameof(Passes))]
+    public void AC14_each_pass_checks_the_farmers_animation_for_every_action(string pass)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        foreach (var action in new[] { "till", "plant", "water", "refill", "harvest", "ship", "sleep" })
+        {
+            Assert.True(
+                steps.Any(step =>
+                    step.Contains(action, StringComparison.OrdinalIgnoreCase) &&
+                    step.Contains("animation", StringComparison.OrdinalIgnoreCase)),
+                $"The {pass} pass has no step mentioning both '{action}' and the farmer's animation");
+        }
+    }
+
+    /// <summary>#103 AC14: each pass lets the clock reach 2:00 am and sees the pass out before the night fade.</summary>
+    [Theory]
+    [MemberData(nameof(Passes))]
+    public void AC14_each_pass_checks_the_pass_out_at_2am_before_the_night_fade(string pass)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        var step = steps.FirstOrDefault(s =>
+            s.Contains("2:00", StringComparison.Ordinal) &&
+            Regex.IsMatch(s, @"\bpass(?:es|ed)?\s+out\b", RegexOptions.IgnoreCase));
+        Assert.True(step is not null, $"The {pass} pass has no step where the clock reaches 2:00 and the farmer passes out");
+
+        var passOut = Regex.Match(step, @"\bpass(?:es|ed)?\s+out\b", RegexOptions.IgnoreCase);
+        var fade = step.IndexOf("fade", StringComparison.OrdinalIgnoreCase);
+        Assert.True(fade > passOut.Index, $"The {pass} pass's 2:00 step does not put the night fade after the pass out: {step}");
+    }
+
     [Fact]
     public void AC8_blueprint_testing_section_links_the_checklist()
     {
@@ -132,6 +170,13 @@ public class SmokeChecklistTests
         var match = Regex.Match(body, @"^Buttons:.*?(?=^\s*$|\z)", RegexOptions.Multiline | RegexOptions.Singleline);
         return match.Success ? match.Value : null;
     }
+
+    /// <summary>The pass's tick-box steps, each from its <c>- [ ]</c> up to the next step or blank line, so a step
+    /// wrapped over several source lines stays whole.</summary>
+    private static List<string> ReadSteps(string body) =>
+        Regex.Matches(body, @"^- \[ \].*?(?=^- \[ \]|^\s*$|\z)", RegexOptions.Multiline | RegexOptions.Singleline)
+            .Select(match => match.Value)
+            .ToList();
 
     private static List<(string Heading, string Body)> ReadSections(string markdown)
     {
