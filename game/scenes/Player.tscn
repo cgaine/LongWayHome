@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/Player/PlayerController.cs" id="1_player"]
 [ext_resource type="Script" path="res://scripts/Player/FollowCamera.cs" id="2_camera"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/Player/ToolUse.cs" id="5_tooluse"]
 [ext_resource type="PackedScene" path="res://art/farmer/Farmer.tscn" id="6_farmer"]
 [ext_resource type="Script" path="res://scripts/Player/HeldItemView.cs" id="7_heldview"]
+[ext_resource type="Script" path="res://scripts/Player/FarmerAnimator.cs" id="8_animator"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -40,3 +41,6 @@ script = ExtResource("5_tooluse")
 
 [node name="HeldItemView" type="Node" parent="."]
 script = ExtResource("7_heldview")
+
+[node name="FarmerAnimator" type="Node" parent="."]
+script = ExtResource("8_animator")

@@ -18,21 +18,22 @@ pause `(Start)`, close a menu `(B)`, turn the camera `(R stick)` left and right,
 
 - [ ] Before you begin, the mouse cursor is hidden once the controller is used, and stays hidden for the whole pass.
 - [ ] Title screen: start a new game, or load a saved game, with the D-pad and `(A)`; `(B)` goes back from the slot list.
-- [ ] Walk with `(L stick)`, and run by holding `(B)`.
+- [ ] Walk with `(L stick)`, and run by holding `(B)`; the farmer plays the walk animation, the run animation while running, and the idle animation when he stops.
 - [ ] Turn the camera all the way round with `(R stick)` left and right, and zoom to the nearest and farthest limits with `(R stick)` up and down; zoomed out looks steeply down, zoomed in looks lower. The prompts keep showing controller buttons.
 - [ ] With the camera turned to face east, south, west and a diagonal, push forward: the farmer walks away from the camera. Stop: the farmer faces the outlined tile, the outline is visible even behind the farmer when zoomed in, and the Use prompt names what Use does to that tile; press use and it does that.
 - [ ] Cycle the held item with `(LB)` and `(RB)`; the hotbar hint reads `(LB) (RB) Change item`.
-- [ ] Till a Tile with the Hoe, plant a seed and water it, each with `(A)`; the prompt reads `(A) Till`, `(A) Plant …` and `(A) Water`.
-- [ ] Refill the can at the pond with `(X)`; the hint reads `(X) Refill can`.
-- [ ] Harvest a ripe crop with `(A)`; the prompt reads `(A) Harvest …`.
-- [ ] Ship the crops at the bin with `(X)`; the hint reads `(X) Ship crops`.
+- [ ] Till a Tile with the Hoe, plant a seed and water it, each with `(A)`; the prompt reads `(A) Till`, `(A) Plant …` and `(A) Water`; the farmer plays the matching animation for each (the hoe swing for till, then the plant and water animations), and a rejected Use (watering with an empty can) plays no animation.
+- [ ] Refill the can at the pond with `(X)`; the hint reads `(X) Refill can`; the farmer plays the refill animation.
+- [ ] Harvest a ripe crop with `(A)`; the prompt reads `(A) Harvest …`; the farmer plays the harvest animation.
+- [ ] Ship the crops at the bin with `(X)`; the hint reads `(X) Ship crops`; the farmer plays the ship animation.
 - [ ] Open the shop with `(X)` (the hint reads `(X) Shop`); the Close button reads `(B) Close`.
 - [ ] In the shop, buy a seed with the D-pad and `(A)`; the gold goes down and the seed count goes up.
 - [ ] In the shop, after the focus is lost, a D-pad press gives the first button focus again.
 - [ ] Close the shop with `(B)`; play and the clock resume.
 - [ ] Pause with `(Start)` (the panel reads `(Start) Resume`), then resume with `(Start)`.
-- [ ] Sleep at the door with `(X)`; the hint reads `(X) Sleep`.
+- [ ] Sleep at the door with `(X)`; the hint reads `(X) Sleep`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am, with the shipped crops paid.
+- [ ] On another Day, let the clock reach 2:00 am: the farmer passes out (the pass out animation, ending on the ground), then the night fade plays and "You passed out…" shows; he wakes standing at the door playing the idle animation and can move and use tools at once.
 
 ## Keyboard-and-mouse-only pass
 
@@ -43,21 +44,22 @@ press with `[Enter]`, or are clicked with the mouse.
 
 - [ ] Before you begin, the mouse cursor is visible, and stays visible for the whole pass.
 - [ ] Title screen: start a new game, or load a saved game, with the arrow keys and `[Enter]` or a mouse click; `[Esc]` goes back from the slot list.
-- [ ] Walk with `[WASD]`, and run by holding `[Shift]`.
+- [ ] Walk with `[WASD]`, and run by holding `[Shift]`; the farmer plays the walk animation, the run animation while running, and the idle animation when he stops.
 - [ ] Turn the camera all the way round with `[Z]` (left) and `[C]` (right), and zoom to the nearest and farthest limits with `[R]` (in) and `[V]` (out); zoomed out looks steeply down, zoomed in looks lower. The prompts keep showing keyboard keys.
 - [ ] With the camera turned to face east, south, west and a diagonal, push forward: the farmer walks away from the camera. Stop: the farmer faces the outlined tile, the outline is visible even behind the farmer when zoomed in, and the Use prompt names what Use does to that tile; press use and it does that.
 - [ ] Cycle the held item with `[Q]` and `[E]` and with the mouse wheel; the hotbar hint reads `[Q] [E] Change item`.
-- [ ] Till a Tile with the Hoe, plant a seed and water it, each with `[Space]` or left click; the prompt reads `[Space] Till`, `[Space] Plant …` and `[Space] Water`.
-- [ ] Refill the can at the pond with `[F]`; the hint reads `[F] Refill can`.
-- [ ] Harvest a ripe crop with `[Space]`; the prompt reads `[Space] Harvest …`.
-- [ ] Ship the crops at the bin with `[F]`; the hint reads `[F] Ship crops`.
+- [ ] Till a Tile with the Hoe, plant a seed and water it, each with `[Space]` or left click; the prompt reads `[Space] Till`, `[Space] Plant …` and `[Space] Water`; the farmer plays the matching animation for each (the hoe swing for till, then the plant and water animations), and a rejected Use (watering with an empty can) plays no animation.
+- [ ] Refill the can at the pond with `[F]`; the hint reads `[F] Refill can`; the farmer plays the refill animation.
+- [ ] Harvest a ripe crop with `[Space]`; the prompt reads `[Space] Harvest …`; the farmer plays the harvest animation.
+- [ ] Ship the crops at the bin with `[F]`; the hint reads `[F] Ship crops`; the farmer plays the ship animation.
 - [ ] Open the shop with `[F]` (the hint reads `[F] Shop`); the Close button reads `[Esc] Close`.
 - [ ] In the shop, buy a seed with the arrow keys and `[Enter]`, and another with a mouse click; the gold goes down and the seed count goes up.
 - [ ] In the shop, click empty panel space so nothing has focus, then press an arrow key: the first button has focus again.
 - [ ] Close the shop with `[Esc]`; play and the clock resume.
 - [ ] Pause with `[Esc]` (the panel reads `[Esc] Resume`), then resume with `[Esc]`.
-- [ ] Sleep at the door with `[F]`; the hint reads `[F] Sleep`.
+- [ ] Sleep at the door with `[F]`; the hint reads `[F] Sleep`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am, with the shipped crops paid.
+- [ ] On another Day, let the clock reach 2:00 am: the farmer passes out (the pass out animation, ending on the ground), then the night fade plays and "You passed out…" shows; he wakes standing at the door playing the idle animation and can move and use tools at once.
 
 ## Steam Deck (Game Mode) pass
 
@@ -69,15 +71,16 @@ requested on issue #71's pull request.
 
 - [ ] Once a Deck control is pressed, no mouse cursor shows in the middle of the screen.
 - [ ] Title screen: start a new game, or load a saved game, with the D-pad and `(A)`.
-- [ ] Walk with the left stick, and run by holding `(B)`.
+- [ ] Walk with the left stick, and run by holding `(B)`; the farmer plays the walk animation, the run animation while running, and the idle animation when he stops.
 - [ ] Turn the camera all the way round and zoom it to the nearest and farthest limits with the right stick; the prompts keep showing controller glyphs. With the camera turned, push the left stick forward: the farmer walks away from the camera. Stop: the farmer faces the outlined tile, and the outline is visible even behind the farmer when zoomed in.
 - [ ] Cycle the held item with L1 and R1; the hotbar hint reads `(LB) (RB) Change item`.
-- [ ] Till a Tile, plant a seed and water it, each with `(A)`; every prompt shows a controller glyph.
-- [ ] Refill the can at the pond with `(X)`.
-- [ ] Harvest a ripe crop with `(A)`.
-- [ ] Ship the crops at the bin with `(X)`.
+- [ ] Till a Tile, plant a seed and water it, each with `(A)`; every prompt shows a controller glyph; the farmer plays the matching animation for each (the hoe swing for till, then the plant and water animations), and a rejected Use (watering with an empty can) plays no animation.
+- [ ] Refill the can at the pond with `(X)`; the farmer plays the refill animation.
+- [ ] Harvest a ripe crop with `(A)`; the farmer plays the harvest animation.
+- [ ] Ship the crops at the bin with `(X)`; the farmer plays the ship animation.
 - [ ] Open the shop with `(X)`, buy a seed with the D-pad and `(A)`, and close the shop with `(B)`; the Close button reads `(B) Close`.
 - [ ] Touch the touchscreen inside the shop, then press the D-pad: the first button has focus again.
 - [ ] Pause with ☰ (`(Start)`), then resume with ☰.
-- [ ] Sleep at the door with `(X)`.
+- [ ] Sleep at the door with `(X)`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am.
+- [ ] On another Day, let the clock reach 2:00 am: the farmer passes out (the pass out animation, ending on the ground), then the night fade plays and "You passed out…" shows; he wakes standing at the door playing the idle animation and can move and use tools at once.

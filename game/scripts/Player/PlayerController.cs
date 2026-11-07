@@ -11,7 +11,8 @@ namespace LongWayHome.Game.Player;
 /// run speeds from the tuning data, and tracks which way the Player faces. Walking follows the camera's facing:
 /// forward walks away from the <see cref="FollowCamera"/>, whichever way it has turned (REQ-52). On
 /// <see cref="GameSession.NightCompleted"/> it returns to where the scene placed it, in front of the house door, at
-/// rest. Holds no rules.
+/// rest. While the <see cref="FarmerAnimator"/> locks movement (falling asleep or passing out, #103) the Player
+/// stands still and keeps the way he faces. Holds no rules.
 /// </summary>
 public partial class PlayerController : CharacterBody3D
 {
@@ -24,6 +25,7 @@ public partial class PlayerController : CharacterBody3D
     private float _runSpeed;
     private GameSession? _session;
     private Vector3 _startPosition;
+    private FarmerAnimator? _animator;
 
     /// <summary>
     /// The last non-zero world move direction snapped to north (0,-1), south (0,1), west (-1,0) or east (1,0), where
@@ -36,6 +38,7 @@ public partial class PlayerController : CharacterBody3D
         AddToGroup(Group);
         _model = GetNode<Node3D>("Model");
         _camera = GetNode<FollowCamera>("FollowCamera");
+        _animator = GetNodeOrNull<FarmerAnimator>(nameof(FarmerAnimator));
         _startPosition = GlobalPosition;
 
         var root = GetNode<GameRoot>("/root/GameRoot");
@@ -75,6 +78,13 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _PhysicsProcess(double delta)
     {
+        if (_animator?.LocksMovement == true)
+        {
+            // He is falling asleep or passing out: no move, and no turn away from where the clip faces him.
+            Velocity = Vector3.Zero;
+            return;
+        }
+
         // Capped at length 1 with the actions' deadzone applied: analog tilt scales speed, and a diagonal is no
         // faster than a straight line. Opposite directions cancel out.
         var move = Input.GetVector("move_left", "move_right", "move_up", "move_down");

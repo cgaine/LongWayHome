@@ -14,8 +14,7 @@ namespace LongWayHome.Game.Art;
 /// it builds, under the <c>Farmer</c> node:
 /// <list type="bullet">
 /// <item>a <see cref="Skeleton3D"/> <c>Skeleton</c> from <see cref="FarmerArt.Bones"/>, each rest pose the bone's
-/// position relative to its parent and no rotation (the rest pose is the "A" pose; the animations are a later
-/// feature);</item>
+/// position relative to its parent and no rotation (the rest pose is the "A" pose);</item>
 /// <item>under it one skinned <see cref="MeshInstance3D"/> <c>Body</c>: every <see cref="FarmerArt.Parts"/> entry
 /// merged by <see cref="ArtMeshes.MergeSkinned"/>, each vertex weighted fully to its part's bone, with a
 /// <see cref="Skin"/> binding each bone at rest. It draws with a copy of the shared palette material whose next pass
@@ -25,6 +24,9 @@ namespace LongWayHome.Game.Art;
 /// <item>a <see cref="BoneAttachment3D"/> <c>HeldItem</c> on the <c>RightHand</c> bone holding one mesh per item kind,
 /// built on first show from <see cref="HeldItemArt.PartsFor"/>, shown one at a time by <see cref="ShowHeld"/>.</item>
 /// </list>
+/// It also gives the scene's <c>Animations</c> <see cref="AnimationPlayer"/> the clips of
+/// <see cref="FarmerAnimations.Build"/> as its default library (#103); <c>FarmerAnimator</c> on the Player, or the art
+/// sandbox, plays them.
 /// The meshes, skin and materials are built once and shared by every farmer (the art sandbox shows several). The
 /// farmer faces +Z with his left on +X, so <c>PlayerController</c> keeps rotating its <c>Model</c> as before. A
 /// handful of draws: the body, its outline, the shadow and the held item (REQ-14).
@@ -34,6 +36,9 @@ public partial class FarmerModel : Node3D
     private const string OutlineShaderPath = "res://art/shaders/outline.gdshader";
 
     private const string HandBone = "RightHand";
+
+    /// <summary>The scene's <see cref="AnimationPlayer"/>, given <see cref="FarmerAnimations.Build"/> as its default library.</summary>
+    private const string AnimationsNode = "Animations";
 
     private const float ShadowDiameter = 0.6f;
 
@@ -98,6 +103,13 @@ public partial class FarmerModel : Node3D
         Skeleton.AddChild(_hand);
 
         ShowHeld(_held);
+
+        // #103: the clips, on the scene's AnimationPlayer. Its root node is this Farmer, so the tracks'
+        // "Skeleton:<Bone>" paths resolve to the skeleton just built (the player resolves them when it first plays).
+        if (GetNodeOrNull<AnimationPlayer>(AnimationsNode) is { } animations && !animations.HasAnimationLibrary(""))
+        {
+            animations.AddAnimationLibrary("", FarmerAnimations.Build());
+        }
     }
 
     /// <summary>Shows <paramref name="held"/> in his right hand and hides the rest.</summary>
