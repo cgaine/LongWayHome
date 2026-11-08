@@ -279,9 +279,10 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Gains a non-tool item: what fits goes in the Backpack (BR-K3), the rest drops at <paramref name="feet"/> as
-    /// DroppedItems of at most 99 each (BR-K2), each a new entry never merged with one already there. A tool throws
-    /// (BR-K6) and a quantity below 1 throws, both changing nothing.
+    /// Gains a non-tool item: what fits goes in the Backpack (BR-K3), the rest drops at <paramref name="feet"/> in
+    /// <paramref name="area"/> (the farm by default) as DroppedItems of at most 99 each (BR-K2), each a new entry never
+    /// merged with one already there. A tool throws (BR-K6) and a quantity below 1 throws, both changing nothing; so does
+    /// a <paramref name="feet"/> off the Area's grid once anything drops.
     /// </summary>
     public GainResult Gain(ItemRef item, int quantity, GridPosition feet, AreaId area = AreaId.Farm)
     {
@@ -304,7 +305,7 @@ public sealed class Game
         while (left > 0)
         {
             var chunk = Math.Min(Backpack.MaxStack, left);
-            dropped.Add(new DroppedItem(AreaId.Farm, null, feet, item, chunk));
+            dropped.Add(new DroppedItem(area, null, feet, item, chunk));
             left -= chunk;
         }
 
@@ -879,7 +880,8 @@ public sealed class Game
 
     /// <summary>
     /// Swings the axe or pickaxe at the node on <paramref name="target"/>: spends the energy (BR-P2) and counts the
-    /// swing; on the tier's count (BR-N2) the node is removed and its yield gained at <paramref name="feet"/> (BR-N3,
+    /// swing; on the tier's count (BR-N2) the node is removed and its yield gained at <paramref name="feet"/> in
+    /// <paramref name="area"/> (BR-N3,
     /// BR-K3), one <see cref="GainResult"/> per yield stack in yield order. A refused swing changes nothing. Tuning
     /// with no count of at least 1 for <paramref name="tier"/>, or a yield stack below 1, throws and changes nothing.
     /// </summary>
@@ -936,7 +938,7 @@ public sealed class Game
         }
 
         var gained = yields
-            .Select(stack => Gain(ItemRef.Material(stack.Material), stack.Quantity, feet))
+            .Select(stack => Gain(ItemRef.Material(stack.Material), stack.Quantity, feet, area))
             .ToList()
             .AsReadOnly();
         return new SwingResult(ActionResult.Ok, true, gained);

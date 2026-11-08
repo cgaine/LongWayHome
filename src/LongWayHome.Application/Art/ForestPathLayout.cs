@@ -1,4 +1,6 @@
+using LongWayHome.Application.Games;
 using LongWayHome.Domain.Farming;
+using LongWayHome.Domain.Games;
 
 namespace LongWayHome.Application.Art;
 
@@ -6,8 +8,9 @@ namespace LongWayHome.Application.Art;
 /// The forest path's layout (#136, ART_DIRECTION §7): a 14 x 40 m strip running north–south (x −7..7, z −20..20, north
 /// is −z, towards the farm), a dirt path winding down it between Twinbough trees, and the river along its east side
 /// (x <see cref="RiverWestX"/>..7). The path is at x = 0 at both ends, where the exits to the farm (north) and the
-/// town (south) are. Trees stand clear of the path, the river, each other and the exits. Pure C#, no Godot; placement is
-/// art only and changes no rule (the scene gives each trunk its collision).
+/// town (south) are. Trees stand clear of the path, the river, each other and the exits. Pure C#, no Godot. Since #154
+/// the trees are ResourceNodes: <see cref="TreeTiles"/> gave the forest path's <c>tree</c> spawn points in
+/// <c>nodes.json</c>, and the nodes view draws them (with their trunk colliders) from the session.
 /// </summary>
 public static class ForestPathLayout
 {
@@ -75,7 +78,12 @@ public static class ForestPathLayout
             IsClearForTree);
 
     /// <summary>The forest path Tile containing each tree's trunk, in <see cref="Trees"/> order (#154).</summary>
-    public static IReadOnlyList<GridPosition> TreeTiles() => throw new NotImplementedException();
+    public static IReadOnlyList<GridPosition> TreeTiles() =>
+        Trees()
+            .Select(tree => ForestPathGrid.CellAt(tree.X, tree.Z))
+            .Select(cell => AreaGrid.Position(AreaId.ForestPath, cell.X, cell.Y))
+            .ToList()
+            .AsReadOnly();
 
     /// <summary>Whether a tree may stand at (x, z): off the path by its clearance and out of the exits.</summary>
     public static bool IsClearForTree(float x, float z) =>

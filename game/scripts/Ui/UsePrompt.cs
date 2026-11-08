@@ -64,7 +64,7 @@ public partial class UsePrompt : Label
         var target = _targeting.Target;
         var held = _session!.HeldItemAt(_selection.Position);
         var preview = _session.PreviewUse(target, _selection.Position);
-        var planting = target is { } position ? _session.Game.FarmPlot[position].Planting : null;
+        var planting = _session.PlantingAt(target);
 
         // Only redraw when what the prompt is drawn from changes, so an unchanged prompt costs no allocation per frame.
         var device = LastInputDevice.DeviceOf(_device);

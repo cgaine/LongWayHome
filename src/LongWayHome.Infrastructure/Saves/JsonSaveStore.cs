@@ -44,6 +44,17 @@ public sealed class JsonSaveStore : ISaveStore
             .Where(spawn => spawn.AtStart && !(spawn.Area == AreaId.Farm && FarmPlot.Phase1Block.Contains(spawn.Position)))
             .ToList()
             .AsReadOnly();
+        _startSpawns = (nodeSpawns ?? []).Where(spawn => spawn.AtStart).ToList().AsReadOnly();
+
+        // Load always tops up every Area with atStart spawn points, so a loaded or new Game has placed all of them.
+        _nodeAreasPlaced = _startSpawns
+            .Select(spawn => spawn.Area)
+            .Append(AreaId.Farm)
+            .Distinct()
+            .Select(AreaCodes.Code)
+            .Order(StringComparer.Ordinal)
+            .ToList()
+            .AsReadOnly();
     }
 
     public string Folder { get; }
@@ -52,6 +63,12 @@ public sealed class JsonSaveStore : ISaveStore
 
     /// <summary>The spawn points a file without <c>resourceNodes</c> gets a node at (AC8).</summary>
     private readonly IReadOnlyList<NodeSpawn> _legacyNodeSpawns;
+
+    /// <summary>Every atStart spawn point, whatever its Area: an Area missing from <c>nodeAreasPlaced</c> gets these.</summary>
+    private readonly IReadOnlyList<NodeSpawn> _startSpawns;
+
+    /// <summary>What every save writes as <c>nodeAreasPlaced</c> (#154): the farm and each Area with atStart spawns.</summary>
+    private readonly IReadOnlyList<string> _nodeAreasPlaced;
 
     public IReadOnlyList<SaveSlotInfo> List()
     {
@@ -185,7 +202,7 @@ public sealed class JsonSaveStore : ISaveStore
     private static string OneLine(string message) =>
         message.ReplaceLineEndings(" ").Trim();
 
-    private static SaveFileDto ToDto(Game game) => new()
+    private SaveFileDto ToDto(Game game) => new()
     {
         SaveVersion = SaveMigrator.CurrentVersion,
         Id = game.Id,
@@ -245,6 +262,7 @@ public sealed class JsonSaveStore : ISaveStore
         NodeRegrowths = game.NodeRegrowths
             .Select(regrowth => new NodeRegrowthDto { SpawnId = regrowth.SpawnId, ClearedOn = ToDto(regrowth.ClearedOn) })
             .ToList(),
+        NodeAreasPlaced = _nodeAreasPlaced,
     };
 
     /// <summary>Every Slot is written, an empty one with a null item, quantity 0 and a null tier.</summary>
@@ -297,7 +315,7 @@ public sealed class JsonSaveStore : ISaveStore
             ToResidents(dto.Residents),
             openingDone: dto.OpeningDone ?? true, // BR-I1: a save from before #139 is past the Opening
             purchasedListings: ToPurchasedListings(dto.PurchasedListings),
-            resourceNodes: ToResourceNodes(dto.ResourceNodes, plot),
+            resourceNodes: ToResourceNodes(dto.ResourceNodes, dto.NodeAreasPlaced, plot),
             nodeRegrowths: ToNodeRegrowths(dto.NodeRegrowths));
     }
 
@@ -330,8 +348,12 @@ public sealed class JsonSaveStore : ISaveStore
     /// that isn't grass, since a version 2 file from #150 may hold soil tilled anywhere on the meadow. Otherwise each entry
     /// is placed on its spawn point's Tile; one whose spawn point isn't in <c>nodes.json</c> is dropped (AC7). A null
     /// entry or spawn id, an undefined kind or negative swings are refused; the Game constructor refuses a repeat.
+    /// Then each Area not in <c>nodeAreasPlaced</c> (#154; missing counts as <c>["farm"]</c>) gets a node at each of its
+    /// atStart spawn points whose Tile is free (on the farm, also grass), so a save from before the forest path's
+    /// nodes gains them once.
     /// </summary>
-    private IReadOnlyList<ResourceNode> ToResourceNodes(IReadOnlyList<ResourceNodeDto?>? nodes, FarmPlot farmPlot)
+    private IReadOnlyList<ResourceNode> ToResourceNodes(
+        IReadOnlyList<ResourceNodeDto?>? nodes, IReadOnlyList<string?>? nodeAreasPlaced, FarmPlot farmPlot)
     {
         if (nodes is null)
         {
@@ -359,7 +381,44 @@ public sealed class JsonSaveStore : ISaveStore
             }
         }
 
+        // #154: the Areas this Game hasn't placed starting nodes in yet get them now.
+        var placed = ToNodeAreasPlaced(nodeAreasPlaced);
+        var occupied = restored.Select(node => (node.Area, node.Position)).ToHashSet();
+        foreach (var spawn in _startSpawns.Where(spawn => !placed.Contains(spawn.Area)))
+        {
+            var onFreeTile = spawn.Area != AreaId.Farm || farmPlot[spawn.Position].State == TileState.Grass;
+            if (onFreeTile && occupied.Add((spawn.Area, spawn.Position)))
+            {
+                restored.Add(ResourceNode.FromSpawn(spawn));
+            }
+        }
+
         return restored;
+    }
+
+    /// <summary>
+    /// No <c>nodeAreasPlaced</c> (a version 2 file from before #154) is the farm alone. Each entry must be an AreaId
+    /// code exactly; a null or unknown one is refused.
+    /// </summary>
+    private static HashSet<AreaId> ToNodeAreasPlaced(IReadOnlyList<string?>? codes)
+    {
+        if (codes is null)
+        {
+            return [AreaId.Farm];
+        }
+
+        var areas = new HashSet<AreaId>();
+        foreach (var code in codes)
+        {
+            if (!AreaCodes.TryParse(Required(code, "nodeAreasPlaced[]"), out var area))
+            {
+                throw new InvalidDataException($"nodeAreasPlaced[] '{code}' is not a known AreaId code.");
+            }
+
+            areas.Add(area);
+        }
+
+        return areas;
     }
 
     /// <summary>

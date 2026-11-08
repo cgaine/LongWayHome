@@ -3,6 +3,7 @@
 using Godot;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Farming;
+using LongWayHome.Domain.Games;
 using LongWayHome.Game.Core;
 using LongWayHome.Game.Farm;
 
@@ -45,15 +46,17 @@ public partial class PlayerController : CharacterBody3D
     public Vector2I Facing { get; private set; } = new(0, 1);
 
     /// <summary>
-    /// The farmer's feet tile: the plot tile nearest the farmer (<see cref="FeetTile.Nearest"/>), so dropping and
-    /// picking up beside the plot use the same tile (#130).
+    /// The farmer's feet tile: the tile of the current Area's grid nearest the farmer (<see cref="FeetTile.Nearest"/>
+    /// on <see cref="FarmGrid.CellAt(AreaId, Vector3)"/>; the forest path has its own 14 x 40 grid, #154), so dropping
+    /// and picking up beside the grid use the same tile (#130).
     /// </summary>
     public GridPosition Feet
     {
         get
         {
-            var cell = FarmGrid.CellAt(GlobalPosition);
-            return FeetTile.Nearest(cell.X, cell.Y);
+            var area = _session?.CurrentArea ?? AreaId.Farm;
+            var cell = FarmGrid.CellAt(area, GlobalPosition);
+            return FeetTile.Nearest(area, cell.X, cell.Y);
         }
     }
 

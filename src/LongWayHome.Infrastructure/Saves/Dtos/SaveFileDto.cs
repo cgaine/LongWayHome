@@ -58,4 +58,10 @@ internal sealed record SaveFileDto
     /// version 2 file written before #153 lacks it and loads with none.
     /// </summary>
     public IReadOnlyList<NodeRegrowthDto?>? NodeRegrowths { get; init; }
+
+    /// <summary>
+    /// The AreaId codes of the Areas whose starting (atStart) nodes this Game has placed (#154), sorted ordinal.
+    /// Always written; optional on load: a version 2 file written before #154 lacks it and counts as <c>["farm"]</c>.
+    /// </summary>
+    public IReadOnlyList<string?>? NodeAreasPlaced { get; init; }
 }
