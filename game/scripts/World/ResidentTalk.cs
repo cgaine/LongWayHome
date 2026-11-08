@@ -2,6 +2,7 @@
 
 using Godot;
 using LongWayHome.Application.Games;
+using LongWayHome.Game.Player;
 using LongWayHome.Game.Ui;
 
 namespace LongWayHome.Game.World;
@@ -29,6 +30,13 @@ public partial class ResidentTalk : Node
             || !_point.IsPlayerInRange
             || GetTree().Paused
             || !ResidentCodes.TryParse(_point.PointId, out var id))
+        {
+            return;
+        }
+
+        // He is falling asleep or passing out: nothing interrupts that, as with the door and his tools.
+        if (GetTree().GetFirstNodeInGroup(PlayerController.Group)?.GetNodeOrNull<FarmerAnimator>(nameof(FarmerAnimator))
+            is { LocksMovement: true })
         {
             return;
         }

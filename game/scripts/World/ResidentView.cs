@@ -71,8 +71,19 @@ public partial class ResidentView : Node3D
             Position = new Vector3(0f, ColliderHeight / 2f, 0f),
         });
         AddChild(body);
-        SetProcess(true);
+        _point.PlayerEntered += OnPlayerEntered;
+        SetProcess(_point.IsPlayerInRange);
     }
+
+    public override void _ExitTree()
+    {
+        if (IsInstanceValid(_point))
+        {
+            _point.PlayerEntered -= OnPlayerEntered;
+        }
+    }
+
+    private void OnPlayerEntered() => SetProcess(true);
 
     public override void _Process(double delta)
     {
@@ -88,6 +99,14 @@ public partial class ResidentView : Node3D
         }
 
         var yaw = _model!.Rotation.Y;
+        if (!_point.IsPlayerInRange && Mathf.Abs(Mathf.AngleDifference(yaw, target)) < 1e-3f)
+        {
+            // Back at rest with nobody near: stop turning until the Player comes in range again.
+            _model.Rotation = Vector3.Zero;
+            SetProcess(false);
+            return;
+        }
+
         var step = 1f - Mathf.Exp(-TurnRate * (float)delta);
         _model.Rotation = new Vector3(0f, Mathf.LerpAngle(yaw, target, step), 0f);
     }

@@ -40,6 +40,10 @@ public partial class DialogueBox : CanvasLayer
 
     private Label _skipHint = null!;
 
+    /// <summary>Whether the tree was already paused when the box opened, so closing restores that rather than resuming
+    /// a tree something else had paused.</summary>
+    private bool _treeWasPaused;
+
     /// <summary>Whether a conversation is showing.</summary>
     public bool IsOpen => _flow.IsOpen;
 
@@ -71,7 +75,7 @@ public partial class DialogueBox : CanvasLayer
         }
 
         // Leaving the scene must not leave the tree paused with nothing to resume it.
-        if (_flow.IsOpen)
+        if (_flow.IsOpen && !_treeWasPaused)
         {
             GetTree().Paused = false;
         }
@@ -84,6 +88,11 @@ public partial class DialogueBox : CanvasLayer
     /// </summary>
     public void Show(string speaker, IReadOnlyList<string> lines)
     {
+        if (!_flow.IsOpen)
+        {
+            _treeWasPaused = GetTree().Paused;
+        }
+
         _flow.Start(speaker, lines);
         GetTree().Paused = true;
         _panel.Visible = true;
@@ -122,7 +131,7 @@ public partial class DialogueBox : CanvasLayer
     private void OnFlowFinished()
     {
         _panel.Visible = false;
-        GetTree().Paused = false;
+        GetTree().Paused = _treeWasPaused;
         EmitSignal(SignalName.Finished);
     }
 
