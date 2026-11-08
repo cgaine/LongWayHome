@@ -4,6 +4,7 @@ using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Game.Core;
+using LongWayHome.Game.Opening;
 using LongWayHome.Game.Player;
 
 namespace LongWayHome.Game.World;
@@ -19,6 +20,10 @@ namespace LongWayHome.Game.World;
 /// turns him to face the door (north, −Z), plays the clip and sleeps when it finishes. Otherwise it sleeps at once
 /// with no clip, as before, so a press before 02:00 is never turned into a pass out (BR-G3). The clip pauses with the
 /// tree, and so does the clock, so the Day still ends by Sleep when it finishes.
+/// </para>
+/// <para>
+/// #139: while the farm's <see cref="OpeningSequence"/> is playing the Opening (BR-I1) a press does nothing (and the
+/// Hud hides the Sleep hint).
 /// </para>
 /// </summary>
 public partial class DoorSleep : Node
@@ -41,7 +46,8 @@ public partial class DoorSleep : Node
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (@event.IsActionPressed("interact", allowEcho: false) && _point.IsPlayerInRange)
+        if (@event.IsActionPressed("interact", allowEcho: false) && _point.IsPlayerInRange
+            && !OpeningSequence.IsActiveIn(this))
         {
             GetViewport().SetInputAsHandled();
             var player = GetTree().GetFirstNodeInGroup(PlayerController.Group) as Node3D;

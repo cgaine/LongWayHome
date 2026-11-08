@@ -219,6 +219,7 @@ public sealed class JsonSaveStore : ISaveStore
         Residents = game.Residents
             .Select(resident => new ResidentDto { Id = ResidentCodes.Code(resident.Id), Present = resident.Present })
             .ToList(),
+        OpeningDone = game.OpeningDone,
     };
 
     /// <summary>Every Slot is written, an empty one with a null item, quantity 0 and a null tier.</summary>
@@ -271,7 +272,8 @@ public sealed class JsonSaveStore : ISaveStore
             ToPlayer(player),
             ToFarmPlot(farmPlot),
             ToShippingBin(shippingBin),
-            ToResidents(dto.Residents));
+            ToResidents(dto.Residents),
+            openingDone: dto.OpeningDone ?? true); // BR-I1: a save from before #139 is past the Opening
     }
 
     /// <summary>

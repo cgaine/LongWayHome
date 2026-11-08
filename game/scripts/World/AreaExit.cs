@@ -4,6 +4,7 @@ using Godot;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Games;
 using LongWayHome.Game.Core;
+using LongWayHome.Game.Opening;
 using LongWayHome.Game.Player;
 
 namespace LongWayHome.Game.World;
@@ -15,7 +16,8 @@ namespace LongWayHome.Game.World;
 /// <see cref="GameRoot.PendingArrivalId"/> and changes to the target's scene from <see cref="AreaScenes"/>, deferred
 /// because the physics callback must not take the scene out of the tree. On a rejection it does nothing. While a menu
 /// is open the tree is paused, so the trigger can't fire. Holds no rules: whether the area is open is the session's
-/// (BR-A1).
+/// (BR-A1). While the farm's <see cref="OpeningSequence"/> is playing the Opening (#139, BR-I1) it does nothing, so the
+/// Player can't leave the farm before Maggie has finished.
 /// </summary>
 public partial class AreaExit : Area3D
 {
@@ -44,7 +46,7 @@ public partial class AreaExit : Area3D
     {
         // A pending night message means the Day has just ended here and NightReturn is already taking him home.
         if (_leaving || !body.IsInGroup(PlayerController.Group) || _root?.Session is not { } session
-            || _root.PendingNight is not null)
+            || _root.PendingNight is not null || OpeningSequence.IsActiveIn(this))
         {
             return;
         }

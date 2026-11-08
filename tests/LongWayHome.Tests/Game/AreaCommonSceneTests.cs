@@ -43,7 +43,8 @@ public class AreaCommonSceneTests
     {
         var text = ReadScene(scene);
         var exits = Blocks(text).Where(b => b.Type == "Area3D").ToList();
-        var arrivals = Blocks(text).Where(b => b.Type == "Marker3D").ToList();
+        // The arrivals are the Marker3Ds naming an ArrivalId; the farm's Opening waypoints (#139) are Marker3Ds too.
+        var arrivals = Blocks(text).Where(b => b.Type == "Marker3D" && b.Body.Contains("ArrivalId")).ToList();
         Assert.NotEmpty(exits);
         Assert.Equal(exits.Count, arrivals.Count);
 

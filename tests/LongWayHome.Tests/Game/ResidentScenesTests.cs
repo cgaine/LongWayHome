@@ -107,13 +107,25 @@ public class ResidentScenesTests
     [Theory]
     [InlineData("Town", "clyde")]
     [InlineData("Lakeshore", "maggie")]
-    [InlineData("Farm", "maggie")]
     [InlineData("Farm", "clyde")]
     public void AC7_Each_resident_stands_only_in_their_own_area(string sceneName, string code)
     {
         var scene = ReadRepoFile("game", "scenes", $"{sceneName}.tscn");
 
         Assert.DoesNotContain(InstancesOf(scene, ResidentScene), node => Property(node, "ResidentId") == code);
+    }
+
+    [Fact]
+    public void AC7_The_farms_only_maggie_is_the_openings()
+    {
+        // #139 (BR-I1): Maggie stands on the farm only for the Opening, as a child of its OpeningSequence, which
+        // removes her when the Opening is done or was never to play.
+        var scene = ReadRepoFile("game", "scenes", "Farm.tscn");
+
+        var maggies = InstancesOf(scene, ResidentScene).Where(node => Property(node, "ResidentId") == "maggie").ToList();
+
+        Assert.Single(maggies);
+        Assert.Equal("OpeningSequence", maggies[0].Parent);
     }
 
     // ---- AC7: ResidentView and ResidentModels ----

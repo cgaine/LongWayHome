@@ -86,7 +86,19 @@ internal static class TestGames
             bin);
     }
 
-    public static GameSession NewSession() => new(NewGameFactory.Create(Shipped, Now), Shipped);
+    /// <summary>
+    /// A session over a new Game once Maggie has handed over the starter Seeds (BR-P6, #139): the hoe, the can, 10
+    /// emberroot and 5 dusktuber. The Opening is still not done.
+    /// </summary>
+    public static GameSession NewSession()
+    {
+        var session = new GameSession(NewGameFactory.Create(Shipped, Now), Shipped);
+        session.GiveStarterSeeds();
+        return session;
+    }
+
+    /// <summary>A new Game holding the starter Seeds Maggie gives in the Opening (BR-P6, #139).</summary>
+    public static GameState NewGameWithSeeds() => NewSession().Game;
 
     public static GameSession SessionWithEnergy(int energy, GameData? data = null) =>
         new(WithEnergy(energy), data ?? Shipped);

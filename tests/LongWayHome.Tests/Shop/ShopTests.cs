@@ -96,7 +96,8 @@ public class ShopTests
     [Fact]
     public void AC3_BR_L2_buying_emberroot_in_a_new_game_takes_15_gold_and_adds_one_seed()
     {
-        var game = NewGameFactory.Create(TestGames.Shipped, TestGames.Now);
+        // BR-P6 (#139): a new Game holding the starter Seeds Maggie gives.
+        var game = TestGames.NewGameWithSeeds();
 
         var result = ShopService.Buy(game, TestGames.Shipped, "seed_emberroot");
 

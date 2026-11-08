@@ -204,4 +204,23 @@ public sealed class SaveV1ToV2Tests : IDisposable
         Assert.Equal(2, migrated["saveVersion"]!.GetValue<int>());
         Assert.Equal(6, (migrated["residents"] as JsonArray)?.Count ?? 0);
     }
+
+    // ---- #139: a Phase 1 Game is past the Opening ----
+
+    [Fact]
+    public void AC5_A_migrated_version_1_save_loads_with_the_opening_done()
+    {
+        var game = Load(SaveDocuments.V1(new JsonArray(SaveDocuments.Stack("seed", "emberroot", 10))));
+
+        Assert.True(game.OpeningDone);
+    }
+
+    [Fact]
+    public void AC5_The_step_writes_openingDone_true()
+    {
+        var migrated = SaveMigrator.Default.Migrate(SaveDocuments.V1([]));
+
+        Assert.True(migrated["openingDone"] is JsonValue, "the migrated document has no openingDone value");
+        Assert.True(migrated["openingDone"]!.GetValue<bool>());
+    }
 }
