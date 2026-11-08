@@ -52,15 +52,35 @@ public static class ShopText
     /// <summary>The message after a successful purchase: <see cref="SeedsDropped"/> when any dropped, else "".</summary>
     public static string AfterBuy(bool dropped) => dropped ? SeedsDropped : "";
 
+    /// <summary>The Sell section's header, below the buy rows in town (BR-L3).</summary>
+    public const string SellHeader = "Sell";
+
+    /// <summary>The line shown in the Sell section instead of its rows when no Crop can be sold.</summary>
+    public const string NothingToSell = "No crops to sell";
+
+    /// <summary>"Sell all crops — 495g": the sell-all row with what it would pay.</summary>
+    public static string SellAllRow(int total) => $"Sell all crops — {total}g";
+
+    /// <summary>"Emberroot × 12 — 420g": a Crop type's name from data, the quantity carried and what selling it pays.</summary>
+    public static string SellRow(string name, int quantity, int total) => $"{name} × {quantity} — {total}g";
+
+    /// <summary>"Sold for 420g": the message after a sale.</summary>
+    public static string AfterSell(int total) => $"Sold for {total}g";
+
     /// <summary>"Gold 100".</summary>
     public static string Gold(int gold) => GoldText.For(gold);
 
-    /// <summary>"Not enough gold", "Backpack full" or "Not sold this season".</summary>
+    /// <summary>
+    /// "Not enough gold", "Backpack full" or "Not sold this season" when buying; "No crops to sell" or "Maggie can't buy
+    /// that" when selling.
+    /// </summary>
     public static string Rejection(Domain.Games.Rejection rejection) => rejection switch
     {
         Domain.Games.Rejection.NotEnoughGold => "Not enough gold",
         Domain.Games.Rejection.BackpackFull => "Backpack full",
         Domain.Games.Rejection.NotOffered => "Not sold this season",
+        Domain.Games.Rejection.NothingToSell => NothingToSell,
+        Domain.Games.Rejection.NotSellable => "Maggie can't buy that",
         _ => throw new ArgumentOutOfRangeException(nameof(rejection), rejection, "Not a shop rejection."),
     };
 }

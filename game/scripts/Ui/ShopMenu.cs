@@ -5,6 +5,7 @@ using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Games;
 using LongWayHome.Game.Core;
 using LongWayHome.Game.Player;
 using LongWayHome.Game.World;
@@ -27,8 +28,16 @@ namespace LongWayHome.Game.Ui;
 /// button, or a press of <c>ui_cancel</c>, <c>interact</c> or <c>pause</c>, closes the panel and resumes the tree;
 /// those presses are handled in <c>_Input</c> while open, so the <see cref="PauseMenu"/> never also toggles. Opening is in <c>_UnhandledInput</c>, after <c>_Input</c>, so the
 /// press that opens the menu cannot also close it, and it sits before <see cref="NightTransition"/> in the Farm
-/// scene so the night fade still swallows <c>interact</c> first. Always processes. Holds no rules: what is offered,
-/// the prices and whether a purchase happens are decided by <see cref="GameSession"/> (BR-L1, BR-L2, BR-L4, BR-L5).
+/// scene so the night fade still swallows <c>interact</c> first. When <see cref="GameSession.CanSellToMaggie"/> (at
+/// Maggie's counter in town, never at the farm stall), a Sell section follows the buy rows in the same list: a
+/// <see cref="ShopText.SellHeader"/> label, then a <see cref="ShopText.SellAllRow"/> button and one
+/// <see cref="ShopText.SellRow"/> button per <see cref="GameSession.SellableCrops"/> entry with its
+/// <see cref="ItemIcons.CropIcon"/>, or the <see cref="ShopText.NothingToSell"/> line when there are none. Pressing one
+/// sells through <see cref="GameSession.SellToMaggie"/> or <see cref="GameSession.SellAllToMaggie"/>; a sale refreshes
+/// the gold line, shows <see cref="ShopText.AfterSell"/> and rebuilds the rows with focus on the first button, and a
+/// rejection shows <see cref="ShopText.Rejection"/>. Always processes. Holds no rules: what is offered, what Maggie
+/// buys, the prices and whether a purchase or sale happens are decided by <see cref="GameSession"/> (BR-L1, BR-L2,
+/// BR-L3, BR-L4, BR-L5).
 /// </summary>
 public partial class ShopMenu : CanvasLayer
 {
@@ -171,6 +180,57 @@ public partial class ShopMenu : CanvasLayer
             row.Pressed += () => Buy(listing);
             _items.AddChild(row);
         }
+
+        // BR-L3: Maggie buys Crops only at the general store; the session decides where that is.
+        if (_session.CanSellToMaggie)
+        {
+            AddSellSection();
+        }
+    }
+
+    private void AddSellSection()
+    {
+        _items.AddChild(StyledLabel(ShopText.SellHeader));
+
+        var crops = _session!.SellableCrops();
+        if (crops.Count == 0)
+        {
+            _items.AddChild(StyledLabel(ShopText.NothingToSell));
+            return;
+        }
+
+        // The session's checked total, so the row shows exactly what Sell all pays (BR-P5).
+        var total = _session.SellAllPayout();
+        var sellAll = StyledButton(ShopText.SellAllRow(total));
+        sellAll.Pressed += () => Sell(() => _session.SellAllToMaggie(), total);
+        _items.AddChild(sellAll);
+
+        foreach (var crop in crops)
+        {
+            var row = StyledButton(ShopText.SellRow(crop.Name, crop.Quantity, crop.Payout));
+            row.Icon = IconTextures.Get(ItemIcons.CropIcon(crop.CropTypeId));
+            row.AddThemeConstantOverride("icon_max_width", RowIconSize);
+            var cropTypeId = crop.CropTypeId;
+            var payout = crop.Payout;
+            row.Pressed += () => Sell(() => _session.SellToMaggie(cropTypeId), payout);
+            _items.AddChild(row);
+        }
+    }
+
+    private void Sell(System.Func<ActionResult> sell, int payout)
+    {
+        // The rows are built from the session's payouts while the tree is paused, so a sale pays what its row showed.
+        var result = sell();
+        if (result.Rejection is { } rejection)
+        {
+            _messageLabel.Text = ShopText.Rejection(rejection);
+            return;
+        }
+
+        RefreshGold();
+        _messageLabel.Text = ShopText.AfterSell(payout);
+        RebuildItems();
+        FocusFirstButton();
     }
 
     private void Buy(ShopListing listing)

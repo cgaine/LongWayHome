@@ -143,7 +143,9 @@ public class GameOpeningTests
     {
         var values = Enum.GetValues<Rejection>();
 
-        Assert.Equal(Rejection.OpeningOver, values[^1]);
-        Assert.Equal(Rejection.AreaClosed, values[^2]);
+        // #146 appends NothingToSell and NotSellable after it.
+        var index = Array.IndexOf(values, Rejection.OpeningOver);
+        Assert.Equal(Rejection.AreaClosed, values[index - 1]);
+        Assert.Equal(Rejection.NothingToSell, values[index + 1]);
     }
 }
