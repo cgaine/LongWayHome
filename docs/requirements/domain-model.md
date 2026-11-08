@@ -567,7 +567,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 
 - BR-L1: The Shop offers Seeds only for Crop types whose `season` is the current Season; in a Season with no such Crop types it offers no Seeds. The Can upgrade is offered until bought. (REQ-9, REQ-10) *(changed 2026-11-07, REQ-58: Maggie's store offers every in-season Seed from stage 1; the Can upgrade is no longer offered)*
 - BR-L2: A purchase happens only if the Player's gold is at least the price. It takes the price in gold and adds the item in the same step. (REQ-9)
-- BR-L3: Maggie buys Crops at the general store for their `sellPrice` and pays at once. Seeds, materials, tools and placeables can't be sold. *(planned, REQ-58)*
+- BR-L3: Maggie buys Crops at the general store for their `sellPrice` and pays at once. Seeds, materials, tools and placeables can't be sold.
 - BR-L4: The axe and pickaxe are sold at Maggie's store from stage 1, once each per Game. Each joins the Backpack at Basic tier; a purchase that finds no free Slot is refused and costs nothing.
 - BR-L5: A listing is offered only when its vendor Building is at or above its `requiresStage`, and a `oncePerGame` listing only until bought. Buying a backpack upgrade sets the Backpack's capacity to that size and adds empty Slots. *(backpack upgrade planned, REQ-47)*
 

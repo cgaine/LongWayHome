@@ -615,21 +615,110 @@ public sealed class Game
         return total;
     }
 
-    /// <summary>Sells every carried Crop of one type to Maggie for its sellPrice, paid at once (BR-L3). Stub (#146).</summary>
-    public ActionResult SellCrop(CropTypeId cropTypeId, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
-        throw new NotImplementedException();
+    /// <summary>
+    /// Sells every carried Crop of one type to Maggie for quantity × sellPrice, paid at once (BR-L3), across every Slot
+    /// of that type (BR-K2). NothingToSell when none are carried; NotSellable when the Crop type has no data row, so it
+    /// stays. Only Crops are sold, never that type's Seeds or a tool (BR-L3, BR-K6). An overflowing total throws and
+    /// changes nothing (BR-P5). Costs no energy and leaves the Shipping Bin alone (BR-P2).
+    /// </summary>
+    public ActionResult SellCrop(CropTypeId cropTypeId, IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
+        ArgumentNullException.ThrowIfNull(cropTypes);
 
-    /// <summary>Sells every carried Crop type with a data row to Maggie, as one step (BR-L3). Stub (#146).</summary>
-    public ActionResult SellAllCrops(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
-        throw new NotImplementedException();
+        // BR-L3, BR-K6: only the Crop kind is counted, so Seeds of the same type and tools are never sold.
+        var crop = ItemRef.Crop(cropTypeId);
+        var quantity = Player.Backpack.Quantity(crop);
+        if (quantity == 0)
+        {
+            return ActionResult.Rejected(Rejection.NothingToSell);
+        }
 
-    /// <summary>What <see cref="SellCrop"/> would pay, changing nothing. Stub (#146).</summary>
-    public int SellPayout(CropTypeId cropTypeId, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
-        throw new NotImplementedException();
+        // BR-L3: with no data row there is no price, so Maggie can't buy it and it stays carried.
+        if (!cropTypes.ContainsKey(cropTypeId))
+        {
+            return ActionResult.Rejected(Rejection.NotSellable);
+        }
 
-    /// <summary>What <see cref="SellAllCrops"/> would pay, changing nothing. Stub (#146).</summary>
-    public int SellAllPayout(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
-        throw new NotImplementedException();
+        // BR-P5: the total and the gold it leaves are checked before anything changes.
+        var total = SellPayout(cropTypeId, cropTypes);
+
+        // BR-L3, BR-P2: the Crops go and the gold is earned at once, with no energy spent and no Shipping Bin.
+        Player.Backpack.Remove(crop, quantity);
+        Player.EarnGold(total);
+        return ActionResult.Ok;
+    }
+
+    /// <summary>
+    /// Sells every carried Crop type that has a data row to Maggie, as one step (BR-L3); types with no data row stay.
+    /// NothingToSell when there are none of those. The whole total is checked first: an overflow throws and changes
+    /// nothing (BR-P5). Costs no energy and leaves the Shipping Bin alone (BR-P2).
+    /// </summary>
+    public ActionResult SellAllCrops(IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
+        ArgumentNullException.ThrowIfNull(cropTypes);
+
+        // BR-L3, BR-K6: only Crops with a price are sold, never Seeds or tools.
+        var sellable = SellableTotals(cropTypes);
+        if (sellable.Count == 0)
+        {
+            return ActionResult.Rejected(Rejection.NothingToSell);
+        }
+
+        // BR-P5: the whole total and the gold it leaves are checked before any Slot changes.
+        var total = SellAllPayout(cropTypes);
+
+        // BR-L3, BR-K2, BR-P2: every sold Slot empties and the gold is earned at once, with no energy spent.
+        foreach (var stack in sellable)
+        {
+            Player.Backpack.Remove(ItemRef.Crop(stack.CropTypeId), stack.Quantity);
+        }
+
+        Player.EarnGold(total);
+        return ActionResult.Ok;
+    }
+
+    /// <summary>
+    /// What <see cref="SellCrop"/> would pay (BR-L3), changing nothing: carried quantity × sellPrice, or 0 when none are
+    /// carried or the type has no data row. Throws on overflow, or when the Player's gold plus the total would
+    /// overflow (BR-P5).
+    /// </summary>
+    public int SellPayout(CropTypeId cropTypeId, IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
+        ArgumentNullException.ThrowIfNull(cropTypes);
+
+        var total = 0;
+        if (cropTypes.TryGetValue(cropTypeId, out var cropType))
+        {
+            total = checked(Player.Backpack.Quantity(ItemRef.Crop(cropTypeId)) * cropType.SellPrice.Value);
+        }
+
+        // BR-P5: the gold the sale would leave must fit too.
+        _ = checked(Player.Gold.Value + total);
+        return total;
+    }
+
+    /// <summary>
+    /// What <see cref="SellAllCrops"/> would pay (BR-L3), changing nothing: Σ quantity × sellPrice over the carried Crop
+    /// types with a data row. Throws on overflow, or when the Player's gold plus the total would overflow (BR-P5).
+    /// </summary>
+    public int SellAllPayout(IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
+        ArgumentNullException.ThrowIfNull(cropTypes);
+
+        var total = 0;
+        foreach (var stack in SellableTotals(cropTypes))
+        {
+            total = checked(total + (stack.Quantity * cropTypes[stack.CropTypeId].SellPrice.Value));
+        }
+
+        // BR-P5: the gold the sale would leave must fit too.
+        _ = checked(Player.Gold.Value + total);
+        return total;
+    }
+
+    // BR-L3: the carried Crop totals whose type has a data row, so a price; the rest can't be sold.
+    private List<(CropTypeId CropTypeId, int Quantity)> SellableTotals(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        Player.Backpack.Totals(ItemKind.Crop).Where(stack => cropTypes.ContainsKey(stack.CropTypeId)).ToList();
 
     // BR-T3, BR-C1: the checks in order: tilled, empty, a Seed held, then its Crop type's Season.
     private Rejection? PlantRejection(GridPosition position, Season? season, bool hasSeed)

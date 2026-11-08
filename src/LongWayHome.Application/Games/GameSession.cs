@@ -566,17 +566,52 @@ public sealed class GameSession
         return result;
     }
 
-    /// <summary>Whether Maggie buys Crops here: only in town (BR-L3). Stub (#146).</summary>
-    public bool CanSellToMaggie => throw new NotImplementedException();
+    /// <summary>
+    /// Whether Maggie buys Crops here: only while the Player is in town, at the general store (BR-L3). The shop menu
+    /// shows its Sell section only when this is true.
+    /// </summary>
+    public bool CanSellToMaggie => CurrentArea == AreaId.Town;
 
-    /// <summary>The carried Crop types with a data row, ordered by CropTypeId, with quantity and payout. Stub (#146).</summary>
-    public IReadOnlyList<SellableCrop> SellableCrops() => throw new NotImplementedException();
+    /// <summary>
+    /// The Sell section's rows (BR-L3): each carried Crop type with a data row, ordered by CropTypeId, with its name from
+    /// data, the quantity carried and what <see cref="SellToMaggie"/> would pay. Types with no data row are left out.
+    /// </summary>
+    public IReadOnlyList<SellableCrop> SellableCrops() =>
+        Game.Player.Backpack.Totals(ItemKind.Crop)
+            .Where(stack => Data.CropTypes.ContainsKey(stack.CropTypeId))
+            .Select(stack => new SellableCrop(
+                stack.CropTypeId,
+                Data.CropTypes[stack.CropTypeId].Name,
+                stack.Quantity,
+                Game.SellPayout(stack.CropTypeId, Data.CropTypes)))
+            .ToList();
 
-    /// <summary>Sells every carried Crop of one type to Maggie (BR-L3). Stub (#146).</summary>
-    public ActionResult SellToMaggie(CropTypeId cropTypeId) => throw new NotImplementedException();
+    /// <summary>
+    /// Sells every carried Crop of one type to Maggie through <see cref="Game.SellCrop"/>, paid at once (BR-L3).
+    /// NotOffered and no change outside town. Raises PlayerChanged and InventoryChanged on success, and nothing on a
+    /// rejection.
+    /// </summary>
+    public ActionResult SellToMaggie(CropTypeId cropTypeId) =>
+        RaiseIfSold(CanSellToMaggie ? Game.SellCrop(cropTypeId, Data.CropTypes) : ActionResult.Rejected(Rejection.NotOffered));
 
-    /// <summary>Sells every carried Crop with a data row to Maggie (BR-L3). Stub (#146).</summary>
-    public ActionResult SellAllToMaggie() => throw new NotImplementedException();
+    /// <summary>
+    /// Sells every carried Crop with a data row to Maggie through <see cref="Game.SellAllCrops"/>, as one step (BR-L3).
+    /// NotOffered and no change outside town. Raises PlayerChanged and InventoryChanged on success, and nothing on a
+    /// rejection.
+    /// </summary>
+    public ActionResult SellAllToMaggie() =>
+        RaiseIfSold(CanSellToMaggie ? Game.SellAllCrops(Data.CropTypes) : ActionResult.Rejected(Rejection.NotOffered));
+
+    private ActionResult RaiseIfSold(ActionResult result)
+    {
+        if (result.IsOk)
+        {
+            PlayerChanged?.Invoke();
+            InventoryChanged?.Invoke();
+        }
+
+        return result;
+    }
 
     /// <summary>The HUD label for a held item: "Hoe", "Watering can", or "Emberroot seeds × 9".</summary>
     public string HeldLabel(HeldItem held)
