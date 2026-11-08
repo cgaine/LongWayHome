@@ -300,11 +300,9 @@ public sealed class Game
     }
 
     /// <summary>Fills the can to capacity at no energy cost (BR-W3).</summary>
-    public ActionResult RefillCan()
+    public ActionResult RefillCan(WaterSource source)
     {
-        // BR-W3: always allowed, even when full; BR-P2: refilling costs no energy.
-        Player.WateringCan.Refill();
-        return ActionResult.Ok;
+        throw new NotImplementedException();
     }
 
     /// <summary>

@@ -433,15 +433,9 @@ public sealed class GameSession
     }
 
     /// <summary>Refills the can at the Pond (BR-W3). Raises PlayerChanged.</summary>
-    public ActionResult RefillCan()
+    public ActionResult RefillCan(WaterSource source)
     {
-        var result = Game.RefillCan();
-        if (result.IsOk)
-        {
-            PlayerChanged?.Invoke();
-        }
-
-        return result;
+        throw new NotImplementedException();
     }
 
     /// <summary>

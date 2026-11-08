@@ -890,7 +890,7 @@ public class UseTests
         session.TileChanged += _ => tiles++;
         session.PlayerChanged += () => players++;
 
-        var result = session.RefillCan();
+        var result = session.RefillCan(WaterSource.Pond);
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(session.Game.Player.WateringCan.Capacity, session.Game.Player.WateringCan.Charges);
@@ -907,7 +907,7 @@ public class UseTests
         session.PlayerChanged += () => players++;
         var before = TestGames.WaterSnapshot(session.Game);
 
-        var result = session.RefillCan();
+        var result = session.RefillCan(WaterSource.Pond);
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(before, TestGames.WaterSnapshot(session.Game));

@@ -3,6 +3,7 @@
 using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
+using LongWayHome.Domain.Games;
 using LongWayHome.Game.Core;
 using LongWayHome.Game.Player;
 
@@ -36,7 +37,7 @@ public partial class PondRefill : Node
     {
         if (@event.IsActionPressed("interact", allowEcho: false) && _point.IsPlayerInRange)
         {
-            var result = _session!.RefillCan();
+            var result = _session!.RefillCan(WaterSource.Pond);
             GetViewport().SetInputAsHandled();
             if (result.IsOk && FindAnimator() is { } animator)
             {

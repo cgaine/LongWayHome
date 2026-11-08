@@ -121,7 +121,7 @@ public class WateringTests
     {
         var game = TestGames.WithCan(110, TestGames.CanWith(0), null);
 
-        var result = game.RefillCan();
+        var result = game.RefillCan(WaterSource.Pond);
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(20, game.Player.WateringCan.Charges);
@@ -135,7 +135,7 @@ public class WateringTests
         var game = TestGames.NewSession().Game;
         var before = TestGames.WaterSnapshot(game);
 
-        var result = game.RefillCan();
+        var result = game.RefillCan(WaterSource.Pond);
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(20, game.Player.WateringCan.Charges);
@@ -151,7 +151,7 @@ public class WateringTests
         positions.Take(20).ToList().ForEach(position => game.Water(position, ToolEnergyCost));
 
         var empty = game.Water(positions[20], ToolEnergyCost);
-        game.RefillCan();
+        game.RefillCan(WaterSource.Pond);
         var refilled = game.Water(positions[20], ToolEnergyCost);
 
         Assert.Equal(ActionResult.Rejected(Rejection.CanEmpty), empty);
@@ -332,7 +332,7 @@ public class WateringTests
     {
         var game = TestGames.WithCan(0, TestGames.CanWith(3), null);
 
-        var result = game.RefillCan();
+        var result = game.RefillCan(WaterSource.Pond);
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal(0, game.Player.Energy);
