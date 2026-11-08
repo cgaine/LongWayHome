@@ -168,7 +168,7 @@ Stored with each tool's Backpack Slot and in tool-upgrade Orders.
 
 ---
 
-## AreaId *(planned, REQ-49, REQ-48)*
+## AreaId
 
 | Code Value | Display Label | Opens |
 |------------|---------------|-------|
