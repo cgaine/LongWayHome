@@ -587,6 +587,12 @@ public sealed class GameSession
             .ToList();
 
     /// <summary>
+    /// What <see cref="SellAllToMaggie"/> would pay (BR-L3), from <see cref="Game.SellAllPayout"/>, changing nothing.
+    /// Throws on overflow (BR-P5).
+    /// </summary>
+    public int SellAllPayout() => Game.SellAllPayout(Data.CropTypes);
+
+    /// <summary>
     /// Sells every carried Crop of one type to Maggie through <see cref="Game.SellCrop"/>, paid at once (BR-L3).
     /// NotOffered and no change outside town. Raises PlayerChanged and InventoryChanged on success, and nothing on a
     /// rejection.

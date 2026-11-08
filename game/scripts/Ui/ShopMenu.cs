@@ -199,7 +199,8 @@ public partial class ShopMenu : CanvasLayer
             return;
         }
 
-        var total = crops.Sum(crop => crop.Payout);
+        // The session's checked total, so the row shows exactly what Sell all pays (BR-P5).
+        var total = _session.SellAllPayout();
         var sellAll = StyledButton(ShopText.SellAllRow(total));
         sellAll.Pressed += () => Sell(() => _session.SellAllToMaggie(), total);
         _items.AddChild(sellAll);

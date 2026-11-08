@@ -665,7 +665,7 @@ public sealed class Game
         }
 
         // BR-P5: the whole total and the gold it leaves are checked before any Slot changes.
-        var total = SellAllPayout(cropTypes);
+        var total = SellAllTotal(sellable, cropTypes);
 
         // BR-L3, BR-K2, BR-P2: every sold Slot empties and the gold is earned at once, with no energy spent.
         foreach (var stack in sellable)
@@ -705,8 +705,16 @@ public sealed class Game
     {
         ArgumentNullException.ThrowIfNull(cropTypes);
 
+        return SellAllTotal(SellableTotals(cropTypes), cropTypes);
+    }
+
+    // BR-L3, BR-P5: Σ quantity × sellPrice over the given sellable totals; throws when it, or the gold it leaves, overflows.
+    private int SellAllTotal(
+        IEnumerable<(CropTypeId CropTypeId, int Quantity)> sellable,
+        IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+    {
         var total = 0;
-        foreach (var stack in SellableTotals(cropTypes))
+        foreach (var stack in sellable)
         {
             total = checked(total + (stack.Quantity * cropTypes[stack.CropTypeId].SellPrice.Value));
         }

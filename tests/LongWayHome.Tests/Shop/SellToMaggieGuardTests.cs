@@ -23,4 +23,19 @@ public class SellToMaggieGuardTests
         Assert.Equal(100, game.Player.Gold.Value);
         Assert.Equal(3, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
     }
+
+    [Fact]
+    public void Session_sell_all_payout_is_what_sell_all_pays_and_changes_nothing()
+    {
+        // 12 × 35 + 1 × 130 = 550, the Sell-all row's total; the payout itself sells nothing.
+        var session = new Application.Games.GameSession(
+            TestGames.WithBackpack(
+                TestGames.BackpackWith((ItemRef.Crop(CropTypeId.Emberroot), 12), (ItemRef.Crop(CropTypeId.Starcorn), 1)),
+                gold: 100),
+            TestGames.Shipped);
+
+        Assert.Equal(550, session.SellAllPayout());
+        Assert.Equal(100, session.Game.Player.Gold.Value);
+        Assert.Equal(12, session.Game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
+    }
 }
