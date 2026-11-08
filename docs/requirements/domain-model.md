@@ -44,7 +44,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Material** | A gathered or made item used for rebuilds, orders and pumps: wood, sap, stone, Rosk ore, Groth ore, glimmercap, plank, sealed plank, Rosk pump. |
 | **Resource node** | A tree, stump, rock, ore deposit, glimmercap or debris pile the Player breaks with the axe or pickaxe for materials. |
 | **Spawn point** | A fixed place in an Area where a tree, rock, deposit or glimmercap grows back after it is cleared. |
-| **Area** | *(planned, REQ-49)* A part of the world the Player walks in: the farm (the meadow), the forest path, the town, the lakeshore, across the river, and the mine. |
+| **Area** | *(built for the four start areas in #136; across the river and the mine planned, REQ-48, REQ-49)* A part of the world the Player walks in: the farm (the meadow), the forest path, the town, the lakeshore, across the river, and the mine. |
 | **Building** | *(planned, REQ-45)* A town building the Player restores stage by stage: the general store, the carpenter, Mira's house and the blacksmith. |
 | **Stage** | *(planned, REQ-45)* One step of a Building's restoration. Each has a cost and unlocks goods, services or Residents. |
 | **Rebuild sign** | *(planned, REQ-45)* The sign in front of a Building where the Player delivers the next Stage's materials and gold. |
@@ -625,7 +625,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-M5: Mine levels hold rocks, Rosk ore deposits and glimmercaps; levels 3–5 also hold a few small Groth deposits. These grow back by BR-N4; debris doesn't (BR-N5). *(planned, REQ-49)*
 - BR-M6: Setting foot on a level marks it `reached`. The mine has no danger; passing out there ends the Day as anywhere else (BR-G3, BR-P4) and the next Day starts at the farmhouse. *(planned, REQ-49, REQ-50)*
 
-### Areas and water *(planned, REQ-48, REQ-49)*
+### Areas and water *(BR-A1 built for the four start areas in #136; the mine and across the river planned, REQ-48, REQ-49)*
 
 - BR-A1: The farm, forest path, town and lakeshore are open from the start; the mine from BR-M1; across the river once the carpenter is at stage 2. An Area never closes again. Built for the four start areas (#136: `Game.IsAreaOpen`, `GameSession.EnterArea`); the mine and across the river stay closed until BR-M1 and the carpenter's stage 2 are built. *(planned for the mine and across the river, REQ-48, REQ-49)*
 - BR-A2: The pond is on the farm, the river runs along the meadow and through town, and the lake is at the lakeshore. Each is a Water source for BR-W3.
