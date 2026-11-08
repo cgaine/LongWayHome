@@ -1,3 +1,6 @@
+using LongWayHome.Domain.Nodes;
+using LongWayHome.Domain.Players;
+
 namespace LongWayHome.Domain.Catalog;
 
 /// <summary>The game's tuning constants, loaded from <c>tuning.json</c>.</summary>
@@ -30,4 +33,11 @@ public sealed record GameTuning
     public required double WalkSpeedTilesPerSecond { get; init; }
 
     public required double RunSpeedTilesPerSecond { get; init; }
+
+    /// <summary>The swings that clear a node, per tool tier (BR-N2): basic 4, rosk 3, groth 2.</summary>
+    public IReadOnlyDictionary<ToolTier, int> SwingsToClear { get; init; } = new Dictionary<ToolTier, int>();
+
+    /// <summary>What clearing a node gives, per node kind (BR-N3).</summary>
+    public IReadOnlyDictionary<NodeKind, IReadOnlyList<MaterialStack>> NodeYields { get; init; } =
+        new Dictionary<NodeKind, IReadOnlyList<MaterialStack>>();
 }

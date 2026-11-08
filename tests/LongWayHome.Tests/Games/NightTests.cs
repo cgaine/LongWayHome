@@ -491,13 +491,50 @@ public class NightTests
 
         var payout = source.IndexOf("game.PayOutShippingBin(", StringComparison.Ordinal);
         var clear = source.IndexOf("game.ClearDroppedItems()", StringComparison.Ordinal);
+        var reset = source.IndexOf("game.ResetSwings()", StringComparison.Ordinal);
         var date = source.IndexOf("game.AdvanceDate()", StringComparison.Ordinal);
         var save = source.IndexOf("save(game)", StringComparison.Ordinal);
 
         Assert.True(clear >= 0, "NightProcessor never calls game.ClearDroppedItems()");
         Assert.True(payout < clear, "ClearDroppedItems must come after PayOutShippingBin");
         Assert.True(clear < date, "ClearDroppedItems must come before AdvanceDate");
+
+        // #152 AC9, BR-N2: the swing reset sits in the node-regrowth slot (BR-N4), after the clear, before the date.
+        Assert.True(reset >= 0, "NightProcessor never calls game.ResetSwings()");
+        Assert.True(clear < reset, "ResetSwings must come after ClearDroppedItems");
+        Assert.True(reset < date, "ResetSwings must come before AdvanceDate");
+        var slotComment = source.LastIndexOf("BR-N4", reset, StringComparison.Ordinal);
+        Assert.True(slotComment > clear, "the ResetSwings call has no BR-N4 comment marking the regrowth slot");
+
         Assert.True(date < save, "the save must stay the last step");
+    }
+
+    [Fact]
+    public void AC9_a_tree_with_2_swings_taken_has_0_after_the_night()
+    {
+        var game = NodeGames.WithEnergyAndNodes(
+            150,
+            NodeGames.Node(10, 20, Domain.Nodes.NodeKind.Tree, swingsTaken: 2),
+            NodeGames.Node(12, 20, Domain.Nodes.NodeKind.Rock, swingsTaken: 3));
+
+        Night(game);
+
+        Assert.Equal(
+            ["farm-10-20:Tree:Farm:10:20:0", "farm-12-20:Rock:Farm:12:20:0"],
+            NodeGames.Describe(game.ResourceNodes));
+    }
+
+    [Fact]
+    public void BR_N2_the_swing_reset_has_happened_by_the_save()
+    {
+        var game = NodeGames.WithEnergyAndNodes(150, NodeGames.Node(10, 20, Domain.Nodes.NodeKind.Tree, swingsTaken: 2));
+        int? swingsAtSave = null;
+
+        NightProcessor.Run(
+            game, TestGames.Shipped, DayEndReason.Slept, NeverRainSource.Instance,
+            saved => swingsAtSave = saved.ResourceNodes.Single().SwingsTaken);
+
+        Assert.Equal(0, swingsAtSave);
     }
 
     [Fact]

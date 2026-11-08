@@ -810,4 +810,30 @@ public sealed class Game
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slotIndex, Player.Backpack.Capacity);
         return Player.Backpack.Slots[slotIndex].Item == ItemRef.Seed(cropTypeId);
     }
+
+    /// <summary>
+    /// Why a swing of <paramref name="tool"/> at <paramref name="tier"/> at the node on <paramref name="target"/> would
+    /// be refused, or null: NothingToDo (BR-N1), then NeedsGrothAxe (BR-N6), then TooTired (BR-P2).
+    /// </summary>
+    public Rejection? SwingRejection(AreaId area, GridPosition target, ToolId tool, ToolTier tier, int toolEnergyCost) =>
+        throw new NotImplementedException();
+
+    /// <summary>
+    /// Swings the axe or pickaxe at the node on <paramref name="target"/>: spends the energy (BR-P2) and counts the
+    /// swing; on the tier's count (BR-N2) the node is removed and its yield gained at <paramref name="feet"/> (BR-N3,
+    /// BR-K3). A refused swing changes nothing.
+    /// </summary>
+    public SwingResult Swing(
+        AreaId area,
+        GridPosition target,
+        ToolId tool,
+        ToolTier tier,
+        int toolEnergyCost,
+        IReadOnlyDictionary<ToolTier, int> swingsToClear,
+        IReadOnlyDictionary<NodeKind, IReadOnlyList<MaterialStack>> nodeYields,
+        GridPosition feet) =>
+        throw new NotImplementedException();
+
+    /// <summary>The Night's node-regrowth slot (BR-N2): every node's SwingsTaken goes back to 0.</summary>
+    public void ResetSwings() => throw new NotImplementedException();
 }

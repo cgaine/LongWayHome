@@ -17,6 +17,8 @@ public enum FarmerClip
     Ship,
     Sleep,
     PassOut,
+    AxeSwing,
+    PickaxeSwing,
 }
 
 /// <summary>

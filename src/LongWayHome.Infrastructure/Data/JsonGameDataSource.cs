@@ -28,6 +28,7 @@ public sealed class JsonGameDataSource : IGameDataSource
     public const string ShopFileName = "shop.json";
     public const string TuningFileName = "tuning.json";
     public const string NodesFileName = "nodes.json";
+    public const string MaterialsFileName = "materials.json";
 
     private readonly string _cropsJson;
     private readonly string _shopJson;
@@ -45,6 +46,11 @@ public sealed class JsonGameDataSource : IGameDataSource
         _tuningJson = tuningJson;
         _nodesJson = nodesJson;
     }
+
+    /// <summary>As the four-file constructor, with <c>materials.json</c> (#152).</summary>
+    public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson, string nodesJson, string materialsJson)
+        : this(cropsJson, shopJson, tuningJson, nodesJson) =>
+        throw new NotImplementedException();
 
     /// <summary>
     /// The serializer options for the data files: camelCase properties, enums as snake_case codes

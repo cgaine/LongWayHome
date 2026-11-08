@@ -1,5 +1,6 @@
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Nodes;
+using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Application.Data;
 
@@ -11,4 +12,8 @@ public sealed record GameData(
 {
     /// <summary>The node spawn points from <c>nodes.json</c>; never null.</summary>
     public IReadOnlyList<NodeSpawn> NodeSpawns { get; init; } = [];
+
+    /// <summary>The material types from <c>materials.json</c>, keyed by id; never null.</summary>
+    public IReadOnlyDictionary<MaterialId, MaterialType> MaterialTypes { get; init; } =
+        new Dictionary<MaterialId, MaterialType>();
 }

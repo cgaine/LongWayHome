@@ -6,13 +6,15 @@ namespace LongWayHome.Domain.Players;
 /// What a Backpack Slot holds: a kind plus exactly one id that matches it — a Crop type for <c>seed</c> and
 /// <c>crop</c>, a tool for <c>tool</c>.
 /// </summary>
-public readonly record struct ItemRef(ItemKind Kind, CropTypeId? CropTypeId, ToolId? ToolId)
+public readonly record struct ItemRef(ItemKind Kind, CropTypeId? CropTypeId, ToolId? ToolId, MaterialId? MaterialId = null)
 {
     public static ItemRef Seed(CropTypeId cropTypeId) => new(ItemKind.Seed, cropTypeId, null);
 
     public static ItemRef Crop(CropTypeId cropTypeId) => new(ItemKind.Crop, cropTypeId, null);
 
     public static ItemRef Tool(ToolId toolId) => new(ItemKind.Tool, null, toolId);
+
+    public static ItemRef Material(MaterialId materialId) => throw new NotImplementedException();
 
     /// <summary>Whether exactly one id is set and it matches the kind.</summary>
     public bool IsValid => Kind switch
