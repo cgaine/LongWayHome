@@ -40,6 +40,10 @@ public static class MeadowLayout
     private const float BandX = 12f;
     private const float BandZ = 9f;
 
+    /// <summary>The river's west bank down the farm's east edge (#137): the meadow ground's east edge and the face of
+    /// the scene's <c>Boundary/East</c> wall.</summary>
+    public const float RiverWestX = 16f;
+
     /// <summary>Half the plot's width: the plot is x −6..6.</summary>
     public const float PlotHalfX = 6f;
 

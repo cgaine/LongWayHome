@@ -1,6 +1,7 @@
 #nullable enable
 
 using Godot;
+using LongWayHome.Application.Art;
 
 namespace LongWayHome.Game.Art;
 
@@ -13,7 +14,7 @@ namespace LongWayHome.Game.Art;
 public partial class FarmRiverView : Node3D
 {
     /// <summary>The meadow's east edge and the river's west bank.</summary>
-    private const float BankX = 16f;
+    private const float BankX = MeadowLayout.RiverWestX;
 
     private const float MinZ = -16f;
 
