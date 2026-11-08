@@ -648,7 +648,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 | CropType, ShopListing | Reference data shipped with the game build, not part of a save. A save stores only `CropTypeId` values, so later builds can retune prices without breaking saves. |
 | Past Days | Not kept. Only the current state is saved; there is no history of earlier Days. |
 | Phase 2 Game state (ResourceNodes; *(planned, REQ-45 to REQ-50)* Backpack, DroppedItems, NodeRegrowths, PlacedObjects, Buildings, Orders, MineLevels, Residents, Game flags) | Part of the Game in its save slot, overwritten each Night like the rest. DroppedItems never outlive a Night (BR-K4), so a save never holds one. |
-| NodeSpawn; *(planned)* MaterialType, BuildingStage, OrderRecipe, ToolTierEffect | Reference data shipped with the build. A save stores only ids, positions and counts, so costs and yields can be retuned without breaking saves. |
+| NodeSpawn, MaterialType; *(planned)* BuildingStage, OrderRecipe, ToolTierEffect | Reference data shipped with the build. A save stores only ids, positions and counts, so costs and yields can be retuned without breaking saves. |
 
 Each save file carries a save-format version (`saveVersion`, currently 2), so later phases (backpack slots, buildings) can migrate Phase 1 saves.
 
@@ -775,7 +775,7 @@ Place a plank Order at the carpenter *(planned, REQ-48)*:
 }
 ```
 
-Chop a tree with a full Backpack *(planned, REQ-44, REQ-47)*:
+Chop a tree with a full Backpack:
 
 ```json
 {
