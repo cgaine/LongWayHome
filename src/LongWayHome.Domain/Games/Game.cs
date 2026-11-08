@@ -23,7 +23,8 @@ public sealed class Game
         FarmPlot farmPlot,
         ShippingBin? shippingBin = null,
         IReadOnlyList<Resident>? residents = null,
-        bool openingDone = true)
+        bool openingDone = true,
+        IReadOnlySet<string>? purchasedListings = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -44,6 +45,12 @@ public sealed class Game
     }
 
     public Guid Id { get; }
+
+    /// <summary>The ids of the once-per-game Shop listings bought (BR-L5).</summary>
+    public IReadOnlySet<string> PurchasedListings { get; } = new HashSet<string>(); // TODO(#145)
+
+    /// <summary>Records a once-per-game listing as bought (BR-L5); recording it again changes nothing.</summary>
+    public void RecordPurchase(string listingId) => throw new NotImplementedException(); // TODO(#145)
 
     /// <summary>
     /// Whether Maggie's Opening has finished (BR-I1). A new Game starts with it false; every Game saved before the

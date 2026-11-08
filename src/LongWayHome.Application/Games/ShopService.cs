@@ -27,6 +27,9 @@ public static class ShopService
             .AsReadOnly();
     }
 
+    /// <summary>The vendor Building's stage: 1 for the general store and 0 for every other Building, until #124.</summary>
+    public static int VendorStage(Game game, BuildingId vendor) => throw new NotImplementedException(); // TODO(#145)
+
     /// <summary>
     /// Buys a quantity of an offered listing: takes the price and gains the seeds, or applies the Can upgrade, in one
     /// step (BR-L2, BR-W4). Seeds that fit nowhere drop at <paramref name="feet"/>, or at plot tile (0, 0) when it is

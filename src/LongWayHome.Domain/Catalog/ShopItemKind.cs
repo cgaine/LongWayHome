@@ -5,4 +5,5 @@ public enum ShopItemKind
 {
     Seed,
     CanUpgrade,
+    Tool,
 }

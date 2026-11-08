@@ -90,7 +90,8 @@ public class ShopTests
         Assert.Equal("can_upgrade", offers[^1].Id);
         Assert.Equal(ShopItemKind.CanUpgrade, offers[^1].Kind);
         Assert.Single(offers, listing => listing.Kind == ShopItemKind.CanUpgrade);
-        Assert.All(offers.SkipLast(1), listing => Assert.Equal(ShopItemKind.Seed, listing.Kind));
+        // #145: the axe and pickaxe come between the seeds and the Can upgrade.
+        Assert.All(offers.SkipLast(1), listing => Assert.Contains(listing.Kind, new[] { ShopItemKind.Seed, ShopItemKind.Tool }));
     }
 
     [Fact]
@@ -461,6 +462,10 @@ public class ShopTests
 
     private const string CanUpgrade = "can_upgrade";
 
+    private const string Axe = "tool_axe";
+
+    private const string Pickaxe = "tool_pickaxe";
+
     private static int UpgradePrice => TestGames.Shipped.ShopListings.Single(listing => listing.Id == CanUpgrade).Price.Value;
 
     private static int UpgradedCapacity => TestGames.Shipped.Tuning.CanUpgradedCapacity;
@@ -483,15 +488,17 @@ public class ShopTests
     {
         var game = NewGameFactory.Create(TestGames.Shipped, TestGames.Now);
 
-        Assert.Equal(["seed_emberroot", "seed_dusktuber", CanUpgrade], OfferIds(game));
+        // #145: the axe and pickaxe come between the seeds and the Can upgrade.
+        Assert.Equal(["seed_emberroot", "seed_dusktuber", Axe, Pickaxe, CanUpgrade], OfferIds(game));
     }
 
     [Fact]
-    public void AC1_winter_offers_the_can_upgrade_alone()
+    public void AC1_winter_offers_the_tools_and_the_can_upgrade_alone()
     {
         var game = TestGames.WithGold(1000, SeasonDay(Season.Winter));
 
-        Assert.Equal([CanUpgrade], OfferIds(game));
+        // #145: no seeds in winter; the axe and pickaxe are offered in every Season.
+        Assert.Equal([Axe, Pickaxe, CanUpgrade], OfferIds(game));
     }
 
     [Theory]
@@ -507,7 +514,7 @@ public class ShopTests
                 && TestGames.Shipped.CropTypes[listing.CropTypeId!.Value].Season == season)
             .Select(listing => listing.Id);
 
-        Assert.Equal([.. seeds, CanUpgrade], OfferIds(game));
+        Assert.Equal([.. seeds, Axe, Pickaxe, CanUpgrade], OfferIds(game));
     }
 
     [Fact]
@@ -515,7 +522,7 @@ public class ShopTests
     {
         var game = TestGames.WithGold(1000, TestGames.FirstDay, can: UpgradedCan(40));
 
-        Assert.Equal(["seed_emberroot", "seed_dusktuber"], OfferIds(game));
+        Assert.Equal(["seed_emberroot", "seed_dusktuber", Axe, Pickaxe], OfferIds(game));
     }
 
     [Fact]
@@ -801,7 +808,7 @@ public class ShopTests
 
         var offers = ShopService.Offers(game, data).Select(listing => listing.Id);
 
-        Assert.Equal(["seed_emberroot", "seed_dusktuber", CanUpgrade], offers);
+        Assert.Equal(["seed_emberroot", "seed_dusktuber", Axe, Pickaxe, CanUpgrade], offers);
     }
 
     [Fact]
@@ -825,5 +832,380 @@ public class ShopTests
 
         Assert.Throws<ArgumentOutOfRangeException>(() => ShopService.Buy(game, TestGames.Shipped, CanUpgrade));
         Assert.Equal(before, (Snapshot(game), CanState(game)));
+    }
+
+    // ---- #145: Maggie's counter — the axe, the pickaxe, vendor stages and once-per-game listings ----
+
+    /// <summary>The tools in Slots 0 and 1, 10 emberroot seeds in Slot 3, and Slot 2 empty: the lowest free Slot is 2.</summary>
+    private static Backpack GapAtSlot2() =>
+        TestGames.RestoredBackpack(new BackpackSlot(3, ItemRef.Seed(CropTypeId.Emberroot), 10, null));
+
+    /// <summary>The same Game rebuilt through the constructor with the given purchased listings.</summary>
+    private static GameState WithPurchases(GameState game, params string[] purchased) =>
+        new(
+            game.Id,
+            game.Date,
+            game.ClockMinutes,
+            game.Weather,
+            game.LastDayEnd,
+            game.CreatedAt,
+            game.SavedAt,
+            game.Player,
+            game.FarmPlot,
+            game.ShippingBin,
+            game.Residents,
+            game.OpeningDone,
+            new HashSet<string>(purchased));
+
+    /// <summary>Gold, the Backpack and the purchased listings, to prove a tool purchase changed nothing.</summary>
+    private static (int Gold, string Backpack, string Purchased) ToolState(GameState game) =>
+        (game.Player.Gold.Value,
+            TestGames.Describe(game.Player.Backpack),
+            string.Join(",", game.PurchasedListings.Order(StringComparer.Ordinal)));
+
+    [Fact]
+    public void AC1_Spring_1_of_a_new_game_offers_emberroot_dusktuber_the_axe_the_pickaxe_then_the_can_upgrade()
+    {
+        var session = TestGames.NewSession();
+
+        Assert.Equal(
+            ["seed_emberroot", "seed_dusktuber", Axe, Pickaxe, CanUpgrade],
+            session.ShopOffers().Select(listing => listing.Id));
+    }
+
+    [Fact]
+    public void AC1_In_summer_the_seeds_offered_are_sunbell_and_starcorn_before_the_tools()
+    {
+        var game = TestGames.WithGold(100, SeasonDay(Season.Summer));
+
+        Assert.Equal(["seed_sunbell", "seed_starcorn", Axe, Pickaxe, CanUpgrade], OfferIds(game));
+    }
+
+    [Fact]
+    public void AC2_Buying_the_axe_with_100_gold_leaves_50_and_the_axe_basic_in_the_lowest_free_slot()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 100);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, Axe);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(new Gold(50), game.Player.Gold);
+        Assert.Equal("2:Tool:Axe:1:Basic", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+    }
+
+    [Fact]
+    public void AC2_A_bought_axe_is_no_longer_offered()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 100);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Axe));
+
+        Assert.DoesNotContain(Axe, OfferIds(game));
+        Assert.Contains(Pickaxe, OfferIds(game));
+    }
+
+    [Fact]
+    public void AC2_Buying_the_axe_records_tool_axe_in_the_purchased_listings()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 100);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Axe));
+
+        Assert.Equal([Axe], game.PurchasedListings);
+    }
+
+    [Fact]
+    public void AC3_Buying_the_pickaxe_with_74_gold_is_NotEnoughGold_and_changes_nothing()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 74);
+        var before = ToolState(game);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, Pickaxe);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotEnoughGold), result);
+        Assert.Equal(before, ToolState(game));
+        Assert.Contains(Pickaxe, OfferIds(game));
+    }
+
+    [Fact]
+    public void AC4_Buying_the_axe_with_every_slot_full_is_BackpackFull_and_changes_nothing()
+    {
+        var game = TestGames.WithBackpack(TestGames.FullBackpack(), gold: 1000);
+        var before = ToolState(game);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, Axe);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), result);
+        Assert.Equal(before, ToolState(game));
+    }
+
+    [Fact]
+    public void AC4_An_axe_refused_for_a_full_backpack_is_still_offered()
+    {
+        var game = TestGames.WithBackpack(TestGames.FullBackpack(), gold: 1000);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), ShopService.Buy(game, TestGames.Shipped, Axe));
+
+        Assert.Contains(Axe, OfferIds(game));
+    }
+
+    [Fact]
+    public void AC4_Not_enough_gold_is_reported_before_backpack_full()
+    {
+        var game = TestGames.WithBackpack(TestGames.FullBackpack(), gold: 10);
+        var before = ToolState(game);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotEnoughGold), ShopService.Buy(game, TestGames.Shipped, Axe));
+        Assert.Equal(before, ToolState(game));
+    }
+
+    [Fact]
+    public void AC5_Buying_the_axe_a_second_time_is_NotOffered_and_changes_nothing()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 500);
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Axe));
+        var before = ToolState(game);
+
+        var result = ShopService.Buy(game, TestGames.Shipped, Axe);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotOffered), result);
+        Assert.Equal(before, ToolState(game));
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(5)]
+    public void AC5_Buying_a_tool_in_a_quantity_other_than_1_throws_and_changes_nothing(int quantity)
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 500);
+        var before = ToolState(game);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => ShopService.Buy(game, TestGames.Shipped, Axe, quantity));
+        Assert.Equal(before, ToolState(game));
+    }
+
+    /// <summary>
+    /// The shipped data plus a general store listing needing stage 2, a carpenter listing needing stage 1 and a
+    /// carpenter listing needing stage 0 (spring seeds, so the in-season rule alone would offer them).
+    /// </summary>
+    private static Application.Data.GameData WithStagedListings() => TestGames.Shipped with
+    {
+        ShopListings =
+        [
+            .. TestGames.Shipped.ShopListings,
+            new ShopListing("store_stage_2", ShopItemKind.Seed, CropTypeId.Emberroot, new Gold(15), BuildingId.GeneralStore, 2, null, false),
+            new ShopListing("carpenter_stage_1", ShopItemKind.Seed, CropTypeId.Dusktuber, new Gold(30), BuildingId.Carpenter, 1, null, false),
+            new ShopListing("carpenter_stage_0", ShopItemKind.Seed, CropTypeId.Dusktuber, new Gold(30), BuildingId.Carpenter, 0, null, false),
+        ],
+    };
+
+    [Fact]
+    public void AC6_A_general_store_listing_needing_stage_2_is_not_offered()
+    {
+        var game = TestGames.WithGold(1000, TestGames.FirstDay);
+
+        Assert.DoesNotContain("store_stage_2", ShopService.Offers(game, WithStagedListings()).Select(listing => listing.Id));
+    }
+
+    [Fact]
+    public void AC6_A_carpenter_listing_needing_stage_1_is_not_offered()
+    {
+        var game = TestGames.WithGold(1000, TestGames.FirstDay);
+
+        Assert.DoesNotContain("carpenter_stage_1", ShopService.Offers(game, WithStagedListings()).Select(listing => listing.Id));
+    }
+
+    [Theory]
+    [InlineData("store_stage_2")]
+    [InlineData("carpenter_stage_1")]
+    public void AC6_Buying_a_listing_above_its_vendors_stage_is_NotOffered_and_changes_nothing(string listingId)
+    {
+        var game = TestGames.WithGold(1000, TestGames.FirstDay);
+        var before = ToolState(game);
+
+        var result = ShopService.Buy(game, WithStagedListings(), listingId);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotOffered), result);
+        Assert.Equal(before, ToolState(game));
+    }
+
+    [Fact]
+    public void BR_L5_A_listing_at_its_vendors_stage_is_offered()
+    {
+        var game = TestGames.WithGold(1000, TestGames.FirstDay);
+
+        var offers = ShopService.Offers(game, WithStagedListings()).Select(listing => listing.Id).ToList();
+
+        Assert.Contains("carpenter_stage_0", offers);
+        Assert.Contains("seed_emberroot", offers);
+    }
+
+    [Theory]
+    [InlineData(BuildingId.GeneralStore, 1)]
+    [InlineData(BuildingId.Carpenter, 0)]
+    [InlineData(BuildingId.MirasHouse, 0)]
+    [InlineData(BuildingId.Blacksmith, 0)]
+    public void BR_L5_VendorStage_is_1_for_the_general_store_and_0_for_every_other_building(BuildingId vendor, int stage)
+    {
+        var game = TestGames.WithGold(100);
+
+        Assert.Equal(stage, ShopService.VendorStage(game, vendor));
+    }
+
+    [Fact]
+    public void BR_L5_A_once_per_game_listing_already_purchased_is_not_offered()
+    {
+        // The pickaxe is not in the Backpack, so only the purchase record keeps it off the shelf.
+        var game = WithPurchases(TestGames.WithGold(1000), Pickaxe);
+
+        Assert.DoesNotContain(Pickaxe, OfferIds(game));
+        Assert.Contains(Axe, OfferIds(game));
+    }
+
+    [Fact]
+    public void BR_L5_Buying_the_can_upgrade_records_can_upgrade_in_the_purchased_listings()
+    {
+        var game = TestGames.WithGold(1000);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, CanUpgrade));
+
+        Assert.Equal([CanUpgrade], game.PurchasedListings);
+    }
+
+    [Fact]
+    public void BR_L5_Buying_seeds_records_no_purchase()
+    {
+        // Characterization: seed listings are not once-per-game, so nothing is recorded (passes before #145 too).
+        var game = TestGames.WithGold(1000);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, "seed_emberroot", 3));
+
+        Assert.Empty(game.PurchasedListings);
+    }
+
+    [Fact]
+    public void BR_L4_A_tool_already_in_the_backpack_is_not_offered()
+    {
+        var backpack = TestGames.RestoredBackpack(new BackpackSlot(5, ItemRef.Tool(ToolId.Axe), 1, ToolTier.Basic));
+        var game = TestGames.WithBackpack(backpack, gold: 1000);
+
+        Assert.DoesNotContain(Axe, OfferIds(game));
+        Assert.Contains(Pickaxe, OfferIds(game));
+    }
+
+    [Fact]
+    public void BR_L4_Buying_the_pickaxe_with_75_gold_adds_it_at_basic_and_records_it()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 75);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Pickaxe));
+
+        Assert.Equal(new Gold(0), game.Player.Gold);
+        Assert.Equal("2:Tool:Pickaxe:1:Basic", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+        Assert.Equal([Pickaxe], game.PurchasedListings);
+        Assert.DoesNotContain(Pickaxe, OfferIds(game));
+    }
+
+    [Fact]
+    public void BR_L4_Buying_both_tools_puts_them_in_successive_free_slots()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 125);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Axe));
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Pickaxe));
+
+        Assert.Equal(new Gold(0), game.Player.Gold);
+        Assert.Equal("2:Tool:Axe:1:Basic", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+        Assert.Equal("4:Tool:Pickaxe:1:Basic", TestGames.DescribeSlot(game.Player.Backpack.Slots[4]));
+        Assert.Equal([Axe, Pickaxe], game.PurchasedListings.Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void BR_L2_Buying_the_axe_with_49_gold_is_NotEnoughGold_and_changes_nothing()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 49);
+        var before = ToolState(game);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.NotEnoughGold), ShopService.Buy(game, TestGames.Shipped, Axe));
+        Assert.Equal(before, ToolState(game));
+    }
+
+    [Fact]
+    public void BR_P5_Exactly_50_gold_buys_the_axe_and_leaves_0_gold()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 50);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Axe));
+
+        Assert.Equal(new Gold(0), game.Player.Gold);
+        Assert.Equal("2:Tool:Axe:1:Basic", TestGames.DescribeSlot(game.Player.Backpack.Slots[2]));
+    }
+
+    [Fact]
+    public void BR_K2_The_bought_axe_fills_one_slot_with_exactly_one_tool_and_its_tier()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 100);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Axe));
+
+        var slot = Assert.Single(game.Player.Backpack.Slots, slot => slot.Item == ItemRef.Tool(ToolId.Axe));
+        Assert.Equal((1, (ToolTier?)ToolTier.Basic), (slot.Quantity, slot.ToolTier));
+    }
+
+    [Fact]
+    public void BR_P2_Buying_the_axe_costs_no_energy()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 100, energy: 37);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Axe));
+
+        Assert.Equal(37, game.Player.Energy);
+    }
+
+    [Fact]
+    public void BR_P2_Buying_the_pickaxe_with_0_energy_still_succeeds()
+    {
+        var game = TestGames.WithBackpack(GapAtSlot2(), gold: 100, energy: 0);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, Pickaxe));
+
+        Assert.Equal(0, game.Player.Energy);
+        Assert.Equal(new Gold(25), game.Player.Gold);
+    }
+
+    [Fact]
+    public void BR_L1_Seed_offers_follow_the_season_and_the_tools_come_after_them()
+    {
+        // BR-L1 still governs the seeds; the tools are offered in every Season.
+        var winter = TestGames.WithGold(1000, SeasonDay(Season.Winter));
+        var fall = TestGames.WithGold(1000, SeasonDay(Season.Fall));
+
+        Assert.Equal([Axe, Pickaxe, CanUpgrade], OfferIds(winter));
+        Assert.Equal(["seed_moonmelon", Axe, Pickaxe, CanUpgrade], OfferIds(fall));
+    }
+
+    [Fact]
+    public void BR_L4_Session_buy_of_the_axe_raises_player_and_inventory_changed_and_drops_its_row()
+    {
+        var session = new GameSession(TestGames.WithBackpack(GapAtSlot2(), gold: 100), TestGames.Shipped);
+        var events = RecordEvents(session);
+
+        Assert.Equal(ActionResult.Ok, session.Buy(Axe));
+
+        Assert.Equal(["InventoryChanged", "PlayerChanged"], events.Order());
+        Assert.DoesNotContain(session.ShopOffers(), listing => listing.Id == Axe);
+    }
+
+    [Fact]
+    public void AC12_Buying_a_seed_costs_and_gains_the_same_as_before()
+    {
+        // Characterization (#145 AC12): seed buying is unchanged; passes before #145 too.
+        var game = TestGames.WithGold(415);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, TestGames.Shipped, "seed_dusktuber", 4));
+
+        Assert.Equal(new Gold(295), game.Player.Gold);
+        Assert.Equal(9, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+        Assert.Empty(game.PurchasedListings);
     }
 }

@@ -42,6 +42,67 @@ public class GameTests
         Assert.Same(plot, game.FarmPlot);
     }
 
+    // ---- #145: once-per-game purchases ----
+
+    [Fact]
+    public void BR_L5_A_game_created_without_purchases_has_none()
+    {
+        // Characterization: the constructor default is empty (passes before #145 too).
+        var game = CreateGame(CreatePlayer(), new FarmPlot());
+
+        Assert.Empty(game.PurchasedListings);
+    }
+
+    [Fact]
+    public void BR_L5_RecordPurchase_adds_the_listing_id()
+    {
+        var game = CreateGame(CreatePlayer(), new FarmPlot());
+
+        game.RecordPurchase("tool_axe");
+
+        Assert.Equal(["tool_axe"], game.PurchasedListings);
+    }
+
+    [Fact]
+    public void BR_L5_RecordPurchase_of_an_id_already_recorded_changes_nothing()
+    {
+        var game = CreateGame(CreatePlayer(), new FarmPlot());
+        game.RecordPurchase("tool_axe");
+
+        game.RecordPurchase("tool_axe");
+
+        Assert.Equal(["tool_axe"], game.PurchasedListings);
+    }
+
+    [Fact]
+    public void BR_L5_RecordPurchase_keeps_every_id_recorded()
+    {
+        var game = CreateGame(CreatePlayer(), new FarmPlot());
+
+        game.RecordPurchase("tool_pickaxe");
+        game.RecordPurchase("can_upgrade");
+
+        Assert.Equal(["can_upgrade", "tool_pickaxe"], game.PurchasedListings.Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void BR_L5_The_constructor_keeps_the_given_purchased_listings()
+    {
+        var game = new GameState(
+            Guid.NewGuid(),
+            new GameDate(1, Season.Spring, 1),
+            360,
+            Weather.Clear,
+            null,
+            Now,
+            Now,
+            CreatePlayer(),
+            new FarmPlot(),
+            purchasedListings: new HashSet<string> { "tool_axe", "can_upgrade" });
+
+        Assert.Equal(["can_upgrade", "tool_axe"], game.PurchasedListings.Order(StringComparer.Ordinal));
+    }
+
     [Fact]
     public void Game_session_rejects_a_null_game_or_data()
     {

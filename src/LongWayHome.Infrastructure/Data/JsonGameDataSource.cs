@@ -326,7 +326,8 @@ public sealed class JsonGameDataSource : IGameDataSource
         dto.Regrows);
 
     private static ShopListing ToShopListing(ShopListingDto dto) =>
-        new(dto.Id, dto.Kind, dto.CropTypeId, new Gold(dto.Price));
+        // TODO(#145): parse vendor, requiresStage, toolId and oncePerGame.
+        new(dto.Id, dto.Kind, dto.CropTypeId, new Gold(dto.Price), BuildingId.GeneralStore, 0, null, false);
 
     private static GameTuning ToGameTuning(TuningDto dto) => new()
     {
