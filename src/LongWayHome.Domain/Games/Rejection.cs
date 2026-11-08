@@ -20,4 +20,5 @@ public enum Rejection
     NotOffered,
     NotEnoughGold,
     BackpackFull,
+    AreaClosed,
 }

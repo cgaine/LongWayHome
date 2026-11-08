@@ -79,7 +79,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `PlaceableId` | *(planned, REQ-48)* `fence`, `chest` | PlacedObject, BackpackSlot, ShopListing |
 | `ItemRef` | `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
 | `NodeKind` | *(planned, REQ-44, REQ-49)* `tree`, `stump`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`, `debris` | ResourceNode, NodeSpawn |
-| `AreaId` | *(planned, REQ-49, REQ-48)* `farm`, `forest_path`, `town`, `lakeshore`, `across_river`, `mine` | ResourceNode, DroppedItem, NodeSpawn |
+| `AreaId` | `farm`, `forest_path`, `town`, `lakeshore`, `across_river`, `mine` | ResourceNode, DroppedItem, NodeSpawn |
 | `BuildingId` | *(planned, REQ-45)* `general_store`, `carpenter`, `miras_house`, `blacksmith` | Building, BuildingStage |
 | `OrderKind` | *(planned, REQ-48, REQ-57)* `plank`, `sealed_plank`, `tool_upgrade`, `rosk_pump` | Order |
 | `Provider` | *(planned, REQ-48, REQ-57)* `carpenter`, `blacksmith` | Order |
@@ -626,7 +626,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 
 ### Areas and water *(planned, REQ-48, REQ-49, REQ-51)*
 
-- BR-A1: The farm, forest path, town and lakeshore are open from the start; the mine from BR-M1; across the river once the carpenter is at stage 2. An Area never closes again. *(planned, REQ-48, REQ-49)*
+- BR-A1: The farm, forest path, town and lakeshore are open from the start; the mine from BR-M1; across the river once the carpenter is at stage 2. An Area never closes again. Built for the four start areas (#136: `Game.IsAreaOpen`, `GameSession.EnterArea`); the mine and across the river stay closed until BR-M1 and the carpenter's stage 2 are built. *(planned for the mine and across the river, REQ-48, REQ-49)*
 - BR-A2: The pond is on the farm, the river runs along the meadow and through town, and the lake is at the lakeshore. Each is a Water source for BR-W3. *(planned, REQ-51)*
 
 ### Residents *(planned, REQ-50)*

@@ -22,7 +22,7 @@ public enum CarpenterStage
 /// Tom's carpenter, in the round, grown style of the concept art's "Round buildings" page ("Two drums grown together: the
 /// workshop with braced double doors, and a taller drum behind for the family upstairs") and ART_DIRECTION §7.3 ("Big
 /// braced double doors, plank stacks, saw sign"). Pure C#, no Godot: the sandbox's builder merges these parts into one
-/// mesh under the shared palette material. For now it is shown only in the art sandbox.
+/// mesh under the shared palette material. The art sandbox shows every stage; the town (#136) shows Empty.
 /// <para>
 /// <b>Shape.</b> Building-local metres, origin at the workshop drum's centre on the ground, the doors facing +Z. The
 /// workshop drum is 5.4 m across with 3 m walls under a leaf cone reaching 3.6 m out to an apex at 6.5 m; its braced

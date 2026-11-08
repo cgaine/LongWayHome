@@ -115,6 +115,10 @@ public class CropGlowSourceTests
     /// <summary>Constraint guard (REQ-14): no bloom in the farm or the sandbox. Passes before and after #94.</summary>
     [Theory]
     [InlineData("game/scenes/Farm.tscn")]
+    [InlineData("game/scenes/AreaCommon.tscn")]
+    [InlineData("game/scenes/ForestPath.tscn")]
+    [InlineData("game/scenes/Town.tscn")]
+    [InlineData("game/scenes/Lakeshore.tscn")]
     [InlineData("game/art/sandbox/ArtSandbox.tscn")]
     [InlineData("game/art/sandbox/ArtSandbox.cs")]
     [InlineData("game/scripts/World/RainView.cs")]
@@ -169,16 +173,25 @@ public class CropGlowSourceTests
     [Fact]
     public void AC6_farm_scene_has_a_night_glow_view_node_with_the_script()
     {
-        var farm = ReadRepoFile("game", "scenes", "Farm.tscn");
+        // #136 moved the shared gameplay nodes into AreaCommon.tscn, which Farm.tscn (and every area scene) instances.
+        var common = ReadRepoFile("game", "scenes", "AreaCommon.tscn");
 
         var resource = Regex.Match(
-            farm,
+            common,
             @"\[ext_resource\s+type=""Script""[^\]]*path=""res://art/crops/NightGlowView\.cs""[^\]]*id=""(?<id>[^""]+)""\]");
-        Assert.True(resource.Success, "Farm.tscn has no ext_resource for res://art/crops/NightGlowView.cs");
+        Assert.True(resource.Success, "AreaCommon.tscn has no ext_resource for res://art/crops/NightGlowView.cs");
         var id = Regex.Escape(resource.Groups["id"].Value);
 
         Assert.Matches(
             @"\[node\s+name=""NightGlowView""\s+type=""Node""\s+parent=""\.""\]\s*\r?\nscript\s*=\s*ExtResource\(""" + id + @"""\)",
+            common);
+
+        var farm = ReadRepoFile("game", "scenes", "Farm.tscn");
+        var commonResource = Regex.Match(
+            farm, @"\[ext_resource\s+type=""PackedScene""[^\]]*path=""res://scenes/AreaCommon\.tscn""[^\]]*id=""([^""]+)""");
+        Assert.True(commonResource.Success, "Farm.tscn has no PackedScene ext_resource for res://scenes/AreaCommon.tscn");
+        Assert.Matches(
+            @"\[node\s+name=""[^""]+""\s+parent=""\.""\s+instance=ExtResource\(""" + Regex.Escape(commonResource.Groups[1].Value) + @"""\)\]",
             farm);
     }
 

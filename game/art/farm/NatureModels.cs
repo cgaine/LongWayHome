@@ -10,8 +10,8 @@ namespace LongWayHome.Game.Art;
 /// <summary>
 /// The meshes of the trees and rocks the axe and pickaxe gather from (ART_DIRECTION §5.1 and §7.6): the Twinbough from
 /// <see cref="TreeArt"/> at each stage and season, and each <see cref="RockKind"/> from <see cref="RockArt"/>, each one
-/// merged mesh under the shared material by <see cref="PartMeshes"/>. Each mesh is built once and shared. Shown only in
-/// the art sandbox for now.
+/// merged mesh under the shared material by <see cref="PartMeshes"/>. Each mesh is built once and shared. Shown in the
+/// art sandbox, and as scenery by the forest path, town and lakeshore views (#136).
 /// </summary>
 public static class NatureModels
 {

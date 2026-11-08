@@ -6,6 +6,7 @@ using Godot;
 using LongWayHome.Application.Data;
 using LongWayHome.Application.Games;
 using LongWayHome.Application.Saves;
+using LongWayHome.Domain.Games;
 using LongWayHome.Infrastructure.Data;
 using LongWayHome.Infrastructure.Random;
 using LongWayHome.Infrastructure.Saves;
@@ -21,7 +22,8 @@ namespace LongWayHome.Game.Core;
 /// <c>user://saves</c>, then replaces <see cref="Session"/> through <see cref="StartNewGame"/> or
 /// <see cref="LoadGame"/> (via <see cref="GameStarter"/>, with a <see cref="SystemRandomSource"/> for each Night's
 /// weather roll) before changing to the farm; that session saves to its slot each Night (BR-G5). A failed nightly
-/// save is pushed to the error log. Holds no rules.
+/// save is pushed to the error log. Between area scenes (#136) it carries the <see cref="PendingArrivalId"/> and the
+/// <see cref="PendingNight"/> message, both cleared when a new session starts. Holds no rules.
 /// </summary>
 public partial class GameRoot : Node
 {
@@ -36,6 +38,19 @@ public partial class GameRoot : Node
 
     /// <summary>The current Game session. Set once the data has loaded; null only while the game is quitting.</summary>
     public GameSession Session { get; private set; } = null!;
+
+    /// <summary>
+    /// The <c>AreaArrival</c> the Player walks in at when the next area scene loads (#136), set by the <c>AreaExit</c>
+    /// he left through and cleared by the arrival that places him. Null when the scene should leave him where it put
+    /// him (starting or loading a Game, waking on the farm).
+    /// </summary>
+    public string? PendingArrivalId { get; set; }
+
+    /// <summary>
+    /// The night message still to show after a Night that ended away from the farm (#136): the area scene changes to
+    /// the farm on NightCompleted, and the farm's <c>NightTransition</c> shows this on start and clears it.
+    /// </summary>
+    public PendingNightMessage? PendingNight { get; set; }
 
     public override void _Ready()
     {
@@ -111,6 +126,8 @@ public partial class GameRoot : Node
         }
 
         Session = session;
+        PendingArrivalId = null;
+        PendingNight = null;
         Session.SaveFailed += OnSaveFailed;
     }
 
@@ -130,3 +147,8 @@ public partial class GameRoot : Node
         return contents;
     }
 }
+
+/// <summary>The night message to show on the farm after a Night that ended in another area (#136).</summary>
+/// <param name="Reason">How the Day ended: "You slept." or "You passed out…".</param>
+/// <param name="SaveFailed">Whether that Night's save failed, so the second line shows too.</param>
+public sealed record PendingNightMessage(DayEndReason Reason, bool SaveFailed);

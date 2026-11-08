@@ -12,7 +12,7 @@ namespace LongWayHome.Game.Art;
 /// blacksmith at each <see cref="BlacksmithStage"/> from <see cref="BlacksmithArt"/>,
 /// with their night-only window lights, and the rebuild sign from <see cref="RebuildSignArt"/>
 /// with its night-only amber outline, each one merged mesh under the shared material by <see cref="PartMeshes"/>. Each
-/// mesh is built once and shared. Shown only in the art sandbox for now.
+/// mesh is built once and shared. Shown in the art sandbox, and by the town's <c>TownView</c> at the starting stages (#136).
 /// </summary>
 public static class TownModels
 {

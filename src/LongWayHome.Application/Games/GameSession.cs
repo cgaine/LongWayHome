@@ -83,16 +83,17 @@ public sealed class GameSession
     /// <summary>Whether the last successful purchase dropped anything at the farmer's feet.</summary>
     public bool LastBuyDropped { get; private set; }
 
-    /// <summary>Whether any DroppedItem lies at <paramref name="feet"/>.</summary>
-    public bool HasDroppedItemsAt(GridPosition feet) => Game.HasDroppedItemsAt(feet);
+    /// <summary>Whether any DroppedItem lies at <paramref name="feet"/> in <see cref="CurrentArea"/>.</summary>
+    public bool HasDroppedItemsAt(GridPosition feet) => Game.HasDroppedItemsAt(feet, CurrentArea);
 
     /// <summary>
-    /// Picks up the DroppedItems at the farmer's feet (BR-K4). Raises InventoryChanged and DroppedItemsChanged when
-    /// anything moved, and nothing otherwise. Costs no energy (BR-P2).
+    /// Picks up the DroppedItems at the farmer's feet in <see cref="CurrentArea"/> (BR-K4); items in other areas stay
+    /// where they are. Raises InventoryChanged and DroppedItemsChanged when anything moved, and nothing otherwise.
+    /// Costs no energy (BR-P2).
     /// </summary>
     public bool PickUp(GridPosition feet)
     {
-        var picked = Game.PickUp(feet);
+        var picked = Game.PickUp(feet, CurrentArea);
         if (picked)
         {
             InventoryChanged?.Invoke();
@@ -100,6 +101,45 @@ public sealed class GameSession
         }
 
         return picked;
+    }
+
+    /// <summary>
+    /// The area the Player is in this session: the farm when the session is created (for a new or a loaded Game) and
+    /// after every Night. Not saved.
+    /// </summary>
+    public AreaId CurrentArea { get; private set; } = AreaId.Farm;
+
+    /// <summary>
+    /// Whether the Player is where the FarmPlot's Tiles are: only on the farm. Off it a grid position names no Tile, so
+    /// tools have no target there: Use, Till, Water, Plant and Harvest are Rejected(NoTarget) and change nothing.
+    /// </summary>
+    public bool IsOnFarmPlot => CurrentArea == AreaId.Farm;
+
+    /// <summary>
+    /// Raised after <see cref="EnterArea"/> moves the Player to another area. The Night's return to the farm does not
+    /// raise it: NightCompleted already tells every listener that the new Day starts on the farm.
+    /// </summary>
+    public event Action<AreaId>? AreaChanged;
+
+    /// <summary>
+    /// Moves the Player to <paramref name="area"/>. An area that isn't open (BR-A1, <see cref="Game.IsAreaOpen"/>) is
+    /// Rejected(AreaClosed) and changes nothing; entering the current area is Ok and raises nothing; otherwise
+    /// CurrentArea changes and AreaChanged is raised. Costs no energy and does not move the clock.
+    /// </summary>
+    public ActionResult EnterArea(AreaId area)
+    {
+        if (!Game.IsAreaOpen(area))
+        {
+            return ActionResult.Rejected(Rejection.AreaClosed);
+        }
+
+        if (area != CurrentArea)
+        {
+            CurrentArea = area;
+            AreaChanged?.Invoke(area);
+        }
+
+        return ActionResult.Ok;
     }
 
     /// <summary>Raised after <see cref="AdvanceClock"/> moves the clock by at least one minute.</summary>
@@ -294,7 +334,8 @@ public sealed class GameSession
     // The Use decision: harvest first (BR-T6), then the held item. With a slotIndex, a seed plants from that Slot only.
     private UsePreview PreviewUse(GridPosition? target, HeldItem? held, int? slotIndex)
     {
-        if (target is not { } position)
+        // Tiles exist only on the farm: off the farm a grid position names no Tile, so there is no target.
+        if (!IsOnFarmPlot || target is not { } position)
         {
             return Rejected(Rejection.NoTarget);
         }
@@ -358,6 +399,11 @@ public sealed class GameSession
     /// <summary>Tills a Tile, spending the tuning's tool energy cost (BR-P2). Raises the change events on success.</summary>
     public ActionResult Till(GridPosition position)
     {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
         var result = Game.Till(position, Data.Tuning.ToolEnergyCost);
         if (result.IsOk)
         {
@@ -371,6 +417,11 @@ public sealed class GameSession
     /// <summary>Waters a Tile (BR-T9, BR-W2, BR-P2). Raises TileChanged and PlayerChanged on success.</summary>
     public ActionResult Water(GridPosition position)
     {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
         var result = Game.Water(position, Data.Tuning.ToolEnergyCost);
         if (result.IsOk)
         {
@@ -400,6 +451,11 @@ public sealed class GameSession
     /// </summary>
     public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
     {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
         // A Crop type with no data row always has a rejection (OutOfSeason at the latest), so it is never planted.
         var result = Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
             ? Game.Plant(position, cropType)
@@ -440,6 +496,11 @@ public sealed class GameSession
     /// </summary>
     public ActionResult Harvest(GridPosition position, GridPosition? feet = null)
     {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
         if (Game.FarmPlot[position].Planting is not { } planting)
         {
             return ActionResult.Rejected(Rejection.NoPlanting);
@@ -576,7 +637,9 @@ public sealed class GameSession
     /// <summary>
     /// Ends the Day (BR-G3): raises DayEnded, runs the Night ending with the save (BR-G5), then raises NightCompleted.
     /// A failed save does not undo the Night: it raises SaveFailed with the reason, before NightCompleted. The
-    /// part-minute carried by the clock is dropped so the next Day starts at exactly DayStartMinutes.
+    /// part-minute carried by the clock is dropped so the next Day starts at exactly DayStartMinutes, and the Player
+    /// wakes on the farm whichever area the Day ended in: CurrentArea is Farm when NightCompleted is raised (without
+    /// AreaChanged).
     /// </summary>
     private void EndDay(DayEndReason reason)
     {
@@ -591,6 +654,8 @@ public sealed class GameSession
             SaveFailed?.Invoke(saveFailure);
         }
 
+        // Every Day starts at the farmhouse door.
+        CurrentArea = AreaId.Farm;
         NightCompleted?.Invoke();
     }
 

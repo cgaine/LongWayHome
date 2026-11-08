@@ -23,7 +23,7 @@ public enum TreeStage
 /// The Twinbough, the meadow's oak-like native tree (ART_DIRECTION §5.1 and the concept art's Trees page): a twisted
 /// violet trunk that splits in two, a puffy blue-green canopy with a violet underside, and an amber sap seam in the bark
 /// that glows at night. Pure C#, no Godot: the sandbox's builder <c>NatureModels</c> merges these parts into one mesh
-/// under the shared palette material. For now it is shown only in the art sandbox.
+/// under the shared palette material. The art sandbox shows it, and the forest path and town (#136) use the full tree as scenery.
 /// <para>
 /// <b>Conventions.</b> The <see cref="CropPart"/> conventions (sizes in metres, Godot's Euler YXZ rotations about the
 /// part's centre), with the origin at the foot of the trunk <b>on the ground</b> (y 0). A full tree is about 4.9 m tall

@@ -33,7 +33,10 @@ public class ArtSandboxSceneTests
     [Fact]
     public void AC10_gameplay_does_not_reference_the_art_folder()
     {
-        var scenes = new[] { "Farm.tscn", "Player.tscn", "Main.tscn" }
+        var scenes = new[]
+            {
+                "Farm.tscn", "Player.tscn", "Main.tscn", "AreaCommon.tscn", "ForestPath.tscn", "Town.tscn", "Lakeshore.tscn",
+            }
             .Select(name => GamePath("scenes", name))
             .ToList();
         Assert.All(scenes, path => Assert.True(File.Exists(path), $"{path} is missing"));

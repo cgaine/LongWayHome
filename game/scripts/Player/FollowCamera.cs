@@ -9,7 +9,7 @@ namespace LongWayHome.Game.Player;
 /// Follows its parent (the Player) with smoothing, and turns a full circle around it and zooms in and out on the
 /// <c>camera_rotate_*</c> and <c>camera_zoom_*</c> actions (REQ-52). The turn and zoom maths is
 /// <see cref="CameraView"/>; this node only reads the actions, follows the farmer and always looks at it. The view
-/// starts at <see cref="CameraView.Default"/> whenever the farm scene loads and is not saved. The node is pausable,
+/// starts at <see cref="CameraView.Default"/> whenever an area scene loads and is not saved. The node is pausable,
 /// so it does not respond while a menu or the pause panel has paused the tree. Holds no rules.
 /// </summary>
 public partial class FollowCamera : Camera3D
@@ -44,6 +44,13 @@ public partial class FollowCamera : Camera3D
         // Only the follow point is smoothed; turn and zoom apply directly so the camera stays on its circle.
         var weight = 1f - Mathf.Exp(-Sharpness * seconds);
         _followPoint = _followPoint.Lerp(_target.GlobalPosition, weight);
+        PlaceAroundFollowPoint();
+    }
+
+    /// <summary>Catches up with the Player at once, with no smoothing: after he is placed at an area's arrival (#136).</summary>
+    public void SnapToTarget()
+    {
+        _followPoint = _target.GlobalPosition;
         PlaceAroundFollowPoint();
     }
 
