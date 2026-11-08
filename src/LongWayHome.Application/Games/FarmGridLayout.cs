@@ -9,11 +9,14 @@ namespace LongWayHome.Application.Games;
 /// </summary>
 public static class FarmGridLayout
 {
-    /// <summary>How far west of world x 0 the grid's west edge lies: the Phase 1 block's west edge stays at x −6.</summary>
-    private const float OriginX = 36f;
+    /// <summary>
+    /// How far west of world x 0 the grid's west edge lies: the Phase 1 block stays centred on world x 0, where the old
+    /// 12 x 9 plot was, so its west edge stays at x −6.
+    /// </summary>
+    private static readonly float OriginX = FarmPlot.Phase1Block.OriginX + (FarmPlot.Phase1Block.Width / 2f);
 
-    /// <summary>How far north of world z 0 the grid's north edge lies: row 0 stays at z −4.5.</summary>
-    private const float OriginZ = 4.5f;
+    /// <summary>How far north of world z 0 the grid's north edge lies: the Phase 1 block stays centred on world z 0.</summary>
+    private static readonly float OriginZ = FarmPlot.Phase1Block.OriginY + (FarmPlot.Phase1Block.Height / 2f);
 
     /// <summary>The world ground centre (x, z) of the tile at <paramref name="p"/>.</summary>
     public static (float X, float Z) ToWorld(GridPosition p) => (p.X - OriginX + 0.5f, p.Y - OriginZ + 0.5f);

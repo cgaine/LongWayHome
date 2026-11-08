@@ -201,14 +201,14 @@ shape = SubResource("BoxShape_wall_south")
 [node name="Exits" type="Node3D" parent="."]
 
 [node name="SouthExitPath" type="MeshInstance3D" parent="Exits"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, 32.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, 33)
 cast_shadow = 0
 material_override = ExtResource("14_palette")
 instance_shader_parameters/swatch = Vector2(0.6875, 0.09375)
 mesh = SubResource("PlaneMesh_exitpath")
 
 [node name="SouthExit" type="Area3D" parent="Exits"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 32.5)
 script = ExtResource("20_areaexit")
 TargetArea = "forest_path"
 ArrivalId = "forest_path_north"
@@ -217,7 +217,7 @@ ArrivalId = "forest_path_north"
 shape = SubResource("BoxShape_exit")
 
 [node name="SouthArrival" type="Marker3D" parent="Exits"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30.5)
 script = ExtResource("21_areaarrival")
 ArrivalId = "farm_south"
 
@@ -491,7 +491,7 @@ Source = "river"
 script = ExtResource("23_opening")
 
 [node name="Maggie" parent="OpeningSequence" instance=ExtResource("24_resident")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 30.5)
 ResidentId = "maggie"
 
 [node name="Waypoints" type="Node3D" parent="OpeningSequence"]
@@ -506,7 +506,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, -2)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, -6.6)
 
 [node name="ExitPoint" type="Marker3D" parent="OpeningSequence"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 33)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 33.5)
 
 [node name="Common" parent="." instance=ExtResource("19_areacommon")]
 

@@ -22,7 +22,7 @@ namespace LongWayHome.Game.Farm;
 /// draws it. A Tile that isn't grass gets its own <see cref="TileView"/>, placed at <see cref="FarmGrid.ToWorld"/>.
 /// <para>
 /// On <see cref="GameSession.TileChanged"/> a Tile's view is redrawn; a Tile that has just left grass (tilled) gets its
-/// view at once and the batches are rebuilt without it. It never goes back (BR-T8). On
+/// view at once and its batch instances are hidden. It never goes back (BR-T8). On
 /// <see cref="GameSession.NightCompleted"/>, the only time the Season, whose grass colours the grass (#79), can change
 /// (BR-G1), every view is redrawn and the batches are rebuilt for the Season. Under the Tiles lies the <c>PlotBase</c>,
 /// a dark 72 x 36 m soil plane (#78) that shows through the gaps between the slabs as grooves, so the grid reads without
@@ -41,6 +41,12 @@ public partial class FarmPlotView : Node3D
     private GameSession? _session;
 
     private Node3D? _batches;
+
+    /// <summary>Every batch instance drawing a grass Tile, so a Tile that leaves grass is hidden without a rebuild.</summary>
+    private readonly Dictionary<GridPosition, List<(MultiMesh Batch, int Index)>> _grassInstances = new();
+
+    /// <summary>A transform scaled to nothing, which hides one batch instance.</summary>
+    private static readonly Transform3D Hidden = new(Basis.Identity.Scaled(Vector3.Zero), Vector3.Zero);
 
     public override void _Ready()
     {
@@ -112,9 +118,23 @@ public partial class FarmPlotView : Node3D
             return;
         }
 
-        // The Tile has just left grass: it gets its own view now and leaves the batches.
+        // The Tile has just left grass: it gets its own view now and its batch instances are hidden, so a till costs
+        // no rebuild of the whole plot's batches; the next Night's rebuild drops them.
         AddView(position);
-        RebuildGrassBatches();
+        HideGrassInstances(position);
+    }
+
+    private void HideGrassInstances(GridPosition position)
+    {
+        if (!_grassInstances.Remove(position, out var instances))
+        {
+            return;
+        }
+
+        foreach (var (batch, index) in instances)
+        {
+            batch.SetInstanceTransform(index, Hidden);
+        }
     }
 
     /// <summary>Makes the <see cref="TileView"/> of the (non-grass) Tile at <paramref name="position"/> and draws it.</summary>
@@ -148,13 +168,14 @@ public partial class FarmPlotView : Node3D
 
         _batches = new Node3D { Name = "GrassBatches" };
         AddChild(_batches);
+        _grassInstances.Clear();
 
         var plot = _session!.Game.FarmPlot;
         var grass = SeasonGrass.For(_session.Game.Date.Season);
         var positions = GrassBatches.GrassPositions(plot);
 
         var slabLift = new Vector3(0f, TileView.SurfaceHeight / 2f, 0f);
-        var slabs = AddBatch("GrassSlabs", TileView.SlabMesh, positions.Select(p => new Transform3D(Basis.Identity, FarmGrid.ToWorld(p) + slabLift)));
+        var slabs = AddBatch("GrassSlabs", TileView.SlabMesh, positions.Select(p => (p, new Transform3D(Basis.Identity, FarmGrid.ToWorld(p) + slabLift))));
         if (slabs is not null)
         {
             // A grass slab's role in the Season, as TileLook gives a grass Tile.
@@ -168,9 +189,9 @@ public partial class FarmPlotView : Node3D
             var tufts = AddBatch(
                 $"Grass{variant}",
                 GrassTileModels.MeshFor(variant, grass),
-                batch.Select(entry => new Transform3D(
+                batch.Select(entry => (entry.Position, new Transform3D(
                     new Basis(Vector3.Up, Mathf.DegToRad(90f * entry.QuarterTurns)),
-                    FarmGrid.ToWorld(entry.Position) + topLift)));
+                    FarmGrid.ToWorld(entry.Position) + topLift))));
             if (tufts is not null)
             {
                 tufts.MaterialOverride = ArtMaterials.Shared;
@@ -182,9 +203,9 @@ public partial class FarmPlotView : Node3D
             var plants = AddBatch(
                 $"Native{kind}",
                 TileView.NativePlantMesh(kind),
-                batch.Select(p => new Transform3D(
+                batch.Select(p => (p, new Transform3D(
                         new Basis(Vector3.Up, Mathf.DegToRad(TileView.NativePlantYawDegrees(p))),
-                        FarmGrid.ToWorld(p))));
+                        FarmGrid.ToWorld(p)))));
             if (plants is not null)
             {
                 plants.MaterialOverride = ArtMaterials.Shared;
@@ -192,8 +213,11 @@ public partial class FarmPlotView : Node3D
         }
     }
 
-    /// <summary>Adds one batch of <paramref name="mesh"/> at each transform; none when there are no transforms.</summary>
-    private MultiMeshInstance3D? AddBatch(string name, Mesh mesh, IEnumerable<Transform3D> transforms)
+    /// <summary>
+    /// Adds one batch of <paramref name="mesh"/> at each Tile's transform, recording each instance against its Tile;
+    /// none when there are no transforms.
+    /// </summary>
+    private MultiMeshInstance3D? AddBatch(string name, Mesh mesh, IEnumerable<(GridPosition Position, Transform3D Transform)> transforms)
     {
         var placed = transforms.ToList();
         if (placed.Count == 0)
@@ -209,7 +233,15 @@ public partial class FarmPlotView : Node3D
         };
         for (var i = 0; i < placed.Count; i++)
         {
-            multimesh.SetInstanceTransform(i, placed[i]);
+            var (position, transform) = placed[i];
+            multimesh.SetInstanceTransform(i, transform);
+            if (!_grassInstances.TryGetValue(position, out var instances))
+            {
+                instances = [];
+                _grassInstances[position] = instances;
+            }
+
+            instances.Add((multimesh, i));
         }
 
         var node = new MultiMeshInstance3D

@@ -36,7 +36,7 @@ namespace LongWayHome.Game.Art;
 /// time the date changes (BR-G1), it reads the <see cref="GameRoot"/> session's <c>Game.Date.Season</c> and applies
 /// <see cref="SeasonGrass.For"/> to <c>Ground</c>, <c>ShadePatches</c>, <c>TuftBlades</c> and the
 /// grass cover (each layout's MultiMesh takes the Season's mesh). With
-/// no session (the data failed to load) it stays in summer. Native plants, rocks, stumps, saplings, path and edging
+/// no session (the data failed to load) it stays in summer. Native plants, rocks, stumps, saplings and path
 /// never change. Only reads the date; changes no game state.
 /// </para>
 /// </summary>
