@@ -197,6 +197,42 @@ public class NewGameFactoryTests
             NewGameFactory.Create(Shipped, Now).Residents.Select(resident => ResidentCodes.Code(resident.Id)));
     }
 
+    // ---- #139: the Opening hands over the seeds ----
+
+    [Fact]
+    public void AC1_A_new_game_has_not_finished_the_opening()
+    {
+        var game = NewGameFactory.Create(Shipped, Now);
+
+        Assert.False(game.OpeningDone);
+    }
+
+    [Fact]
+    public void AC1_A_new_games_backpack_holds_only_the_hoe_in_slot_0_and_the_full_basic_can_in_slot_1()
+    {
+        var player = NewGameFactory.Create(Shipped, Now).Player;
+
+        Assert.Equal(
+            [
+                "0:Tool:Hoe:1:Basic",
+                "1:Tool:WateringCan:1:Basic",
+                .. Enumerable.Range(2, 10).Select(index => $"{index}:-:-:0:-"),
+            ],
+            player.Backpack.Slots.Select(TestGames.DescribeSlot));
+        Assert.Equal(20, player.WateringCan.Charges);
+        Assert.Equal(new Gold(100), player.Gold);
+        Assert.Equal(150, player.Energy);
+    }
+
+    [Fact]
+    public void BR_P6_A_new_game_holds_no_seeds_until_maggie_gives_them()
+    {
+        var backpack = NewGameFactory.Create(Shipped, Now).Player.Backpack;
+
+        Assert.Empty(TestGames.Stacks(backpack));
+        Assert.NotEmpty(Shipped.Tuning.StartingSeeds);
+    }
+
     private static GameData LoadShippedData()
     {
         var folder = Path.Combine(AppContext.BaseDirectory, "data");

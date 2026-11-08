@@ -233,6 +233,43 @@ public sealed class GameStarterTests : IDisposable
         Assert.Equal(3, error.Slot);
     }
 
+    // ---- #139: the Opening ----
+
+    [Fact]
+    public void AC4_A_new_game_saved_at_once_loads_with_the_opening_not_done()
+    {
+        StartNew(1);
+
+        Assert.False(Load(1).Game.OpeningDone);
+    }
+
+    [Fact]
+    public void AC4_BR_G5_Quitting_mid_opening_and_loading_plays_the_opening_again_with_no_seeds()
+    {
+        var session = StartNew(1);
+        Assert.True(session.GiveStarterSeeds().IsOk);
+        session.CompleteOpening();
+
+        var loaded = Load(1).Game;
+
+        Assert.False(loaded.OpeningDone);
+        Assert.Equal(0, loaded.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
+        Assert.Equal(0, loaded.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+    }
+
+    [Fact]
+    public void AC6_Sleeping_on_the_first_day_without_finishing_the_opening_loads_it_done_with_the_15_seeds()
+    {
+        var session = StartNew(1);
+
+        Assert.True(session.Sleep().IsOk);
+
+        var loaded = Load(1).Game;
+        Assert.True(loaded.OpeningDone);
+        Assert.Equal(10, loaded.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Emberroot)));
+        Assert.Equal(5, loaded.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
+    }
+
     [Fact]
     public void A_new_game_whose_save_fails_throws_the_store_error()
     {

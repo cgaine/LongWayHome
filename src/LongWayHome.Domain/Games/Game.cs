@@ -22,7 +22,8 @@ public sealed class Game
         Player player,
         FarmPlot farmPlot,
         ShippingBin? shippingBin = null,
-        IReadOnlyList<Resident>? residents = null)
+        IReadOnlyList<Resident>? residents = null,
+        bool openingDone = true)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -42,6 +43,15 @@ public sealed class Game
     }
 
     public Guid Id { get; }
+
+    /// <summary>Whether Maggie's Opening has finished (BR-I1). Stub for #139 (red).</summary>
+    public bool OpeningDone => throw new NotImplementedException();
+
+    /// <summary>Marks the Opening done (BR-I1); idempotent. Stub for #139 (red).</summary>
+    public void CompleteOpening() => throw new NotImplementedException();
+
+    /// <summary>Maggie's starter Seeds (BR-P6). Stub for #139 (red).</summary>
+    public ActionResult GiveStarterSeeds(IReadOnlyList<StartingStack> seeds) => throw new NotImplementedException();
 
     /// <summary>Today's date; only the Night moves it on (BR-G1).</summary>
     public GameDate Date { get; private set; }

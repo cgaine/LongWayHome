@@ -21,4 +21,5 @@ public enum Rejection
     NotEnoughGold,
     BackpackFull,
     AreaClosed,
+    OpeningOver,
 }

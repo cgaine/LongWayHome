@@ -43,6 +43,59 @@ public sealed class JsonSaveStoreTests : IDisposable
     private static JsonObject PlantedTile(JsonObject document) =>
         Tiles(document).Select(tile => tile!.AsObject()).Single(tile => tile["planting"] is not null);
 
+    // ---- #139: openingDone ----
+
+    [Fact]
+    public void AC4_A_game_saved_after_CompleteOpening_loads_with_the_opening_done()
+    {
+        var game = OpeningGames.WithOpening(SaveGames.Rich(), openingDone: false);
+        game.CompleteOpening();
+
+        Store().Save(1, game);
+
+        Assert.True(Store().Load(1).OpeningDone);
+    }
+
+    [Fact]
+    public void AC4_A_game_saved_with_the_opening_unfinished_loads_with_it_unfinished()
+    {
+        Store().Save(1, OpeningGames.WithOpening(SaveGames.Rich(), openingDone: false));
+
+        Assert.False(Store().Load(1).OpeningDone);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AC4_The_file_always_writes_openingDone_as_a_bool(bool openingDone)
+    {
+        Store().Save(1, OpeningGames.WithOpening(SaveGames.Rich(), openingDone));
+        var document = _folder.ReadSlot(1);
+
+        Assert.Equal(2, document["saveVersion"]!.GetValue<int>());
+        Assert.True(document["openingDone"] is JsonValue, "the saved file has no openingDone value");
+        Assert.Equal(openingDone, document["openingDone"]!.GetValue<bool>());
+    }
+
+    [Fact]
+    public void AC5_A_version_2_save_without_openingDone_loads_with_the_opening_done()
+    {
+        _folder.WriteSlot(1, SaveDocuments.V2(SaveDocuments.GoodBackpack()));
+
+        Assert.True(Store().Load(1).OpeningDone);
+    }
+
+    [Fact]
+    public void AC5_A_saved_file_with_its_openingDone_removed_loads_with_the_opening_done()
+    {
+        Store().Save(1, OpeningGames.WithOpening(SaveGames.Rich(), openingDone: false));
+        var document = _folder.ReadSlot(1);
+        document.Remove("openingDone");
+        _folder.WriteSlot(1, document);
+
+        Assert.True(Store().Load(1).OpeningDone);
+    }
+
     // ---- #138: the Residents ----
 
     private static string DescribeResidents(LongWayHome.Domain.Games.Game game) =>

@@ -642,6 +642,12 @@ public sealed class GameSession
     /// wakes on the farm whichever area the Day ended in: CurrentArea is Farm when NightCompleted is raised (without
     /// AreaChanged).
     /// </summary>
+    /// <summary>Maggie hands over the tuning's starter Seeds (BR-P6, BR-I1). Stub for #139 (red).</summary>
+    public ActionResult GiveStarterSeeds() => throw new NotImplementedException();
+
+    /// <summary>Marks the Opening done (BR-I1). Stub for #139 (red).</summary>
+    public void CompleteOpening() => throw new NotImplementedException();
+
     private void EndDay(DayEndReason reason)
     {
         _clockRemainderMinutes = 0;
