@@ -3,23 +3,28 @@ using LongWayHome.Application.Art;
 namespace LongWayHome.Tests.Art;
 
 /// <summary>
-/// The meadow layout (#77): the seeded prop scatter, its exclusion zones and overgrown band, the stone edging around
-/// the plot, the path's stepping stones and the palette role of every mesh under <c>Meadow</c>. The zones, band,
-/// plot and edging geometry are re-encoded here from the issue's Specification, not taken from production code.
+/// The meadow layout (#77, grown in #150): the seeded prop scatter, its exclusion zones, the path's stepping stones and
+/// the palette role of every mesh under <c>Meadow</c>. Since #150 the 72 x 36 grid (world x −36..36, z −4.5..31.5)
+/// is farm ground, so every prop lies outside it, in the strip north of it, and the mown margin and stone edging round
+/// the old plot are gone. The zones and grid geometry are re-encoded here from the issues' Specifications, not taken
+/// from production code.
 /// </summary>
 public class MeadowLayoutTests
 {
     private const float Eps = 1e-4f;
 
-    // The plot (FarmGrid): x -6..6, z -4.5..4.5. North is negative z (the house is at z -9).
-    private const float PlotHalfX = 6f;
-    private const float PlotHalfZ = 4.5f;
+    // The grid (FarmGridLayout): x -36..36, z -4.5..31.5. North is negative z (the house is at z -9).
+    private const float GridMinX = -36f;
+    private const float GridMaxX = 36f;
+    private const float GridMinZ = -4.5f;
+    private const float GridMaxZ = 31.5f;
 
-    // Edging stones are centred 0.15 m outside the plot edge.
-    private const float EdgeX = 6.15f;
-    private const float EdgeZ = 4.65f;
-    private const float StoneSpacing = 0.3f;
-    private const float StoneRadius = 0.125f;
+    // The farm inside its walls: the west wall's face at x -36, the river bank at x 36.5, the north wall's face at
+    // z -13 and the south wall's face at z 31.5.
+    private const float FarmMinX = -36f;
+    private const float FarmMaxX = 36.5f;
+    private const float FarmMinZ = -13f;
+    private const float FarmMaxZ = 31.5f;
 
     private static readonly Dictionary<string, int> ExpectedCounts = new()
     {
@@ -39,6 +44,13 @@ public class MeadowLayoutTests
     {
         public bool StrictlyContains(float x, float z) =>
             x > MinX + Eps && x < MaxX - Eps && z > MinZ + Eps && z < MaxZ - Eps;
+
+        public float DistanceTo(float x, float z)
+        {
+            var dx = MathF.Max(0f, MathF.Max(MinX - x, x - MaxX));
+            var dz = MathF.Max(0f, MathF.Max(MinZ - z, z - MaxZ));
+            return MathF.Sqrt(dx * dx + dz * dz);
+        }
     }
 
     private sealed record Circle(string Name, float X, float Z, float Radius)
@@ -47,31 +59,31 @@ public class MeadowLayoutTests
             MathF.Sqrt((x - X) * (x - X) + (z - Z) * (z - Z)) < Radius - Eps;
     }
 
-    private static readonly Rect PlotPlusMargin = new("plot plus margin", -7f, 7f, -5.5f, 5.5f);
+    private static readonly Rect Grid = new("the grid", GridMinX, GridMaxX, GridMinZ, GridMaxZ);
 
     private static readonly Rect[] ExclusionRects =
     [
-        PlotPlusMargin,
-        new("path corridor", -1f, 1f, -7f, -5.5f),
+        Grid,
+        new("path corridor", -1f, 1f, -7f, -4.5f),
         new("house footprint plus 1 m", -4f, 4f, -12f, -6f),
         new("shipping bin plus 1 m", 1.4f, 4.6f, -7.4f, -4.6f),
-        new("shop stall area", -11f, -7f, -2f, 2f),
+        new("shop stall area (moved north, #150)", -11f, -7f, -11f, -7f),
     ];
 
     private static readonly Circle[] ExclusionCircles =
     [
         new("door point range + 0.5", 0f, -7f, 1.25f + 0.5f),
         new("bin point range + 0.5", 3f, -6f, 1.7f + 0.5f),
-        new("shop point range + 0.5", -9f, 0f, 2.2f + 0.5f),
-        new("pond point range + 0.5", 10f, 0f, 3.8f + 0.5f),
+        new("shop point range + 0.5", -9f, -9f, 2.2f + 0.5f),
+        new("pond point range + 0.5", 10f, -9f, 3.8f + 0.5f),
         new("player start + 1 m", 0f, -5.8f, 1f),
     ];
 
-    private static bool InOvergrownBand(MeadowProp p) =>
-        MathF.Abs(p.X) >= 12f - Eps || MathF.Abs(p.Z) >= 9f - Eps;
+    /// <summary>The overgrown band is everything of the farm outside the grid (#150).</summary>
+    private static bool InOvergrownBand(MeadowProp p) => !Grid.StrictlyContains(p.X, p.Z);
 
     private static bool OnGround(MeadowProp p) =>
-        p.X >= -15.5f - Eps && p.X <= 15.5f + Eps && p.Z >= -12.5f - Eps && p.Z <= 12.5f + Eps;
+        p.X >= FarmMinX - Eps && p.X <= FarmMaxX + Eps && p.Z >= FarmMinZ - Eps && p.Z <= FarmMaxZ + Eps;
 
     /// <summary>Every zone the prop (not a shade patch) sits inside; empty when it is clear of them all.</summary>
     private static IEnumerable<string> ZonesHit(MeadowProp p) =>
@@ -86,9 +98,9 @@ public class MeadowLayoutTests
 
             if (p.Kind == "ShadePatch")
             {
-                Assert.False(
-                    PlotPlusMargin.StrictlyContains(p.X, p.Z),
-                    $"{context}: shade patch {p} is centred inside the plot plus margin");
+                Assert.True(
+                    Grid.DistanceTo(p.X, p.Z) >= MeadowLayout.MaxShadePatchRadius - Eps,
+                    $"{context}: shade patch {p} reaches onto the grid");
                 continue;
             }
 
@@ -154,18 +166,27 @@ public class MeadowLayoutTests
         var props = MeadowLayout.Generate(MeadowLayout.FarmSeed);
         Assert.NotEmpty(props);
 
-        Assert.All(props, p => Assert.True(OnGround(p), $"{p} lies off the ground x -15.5..15.5, z -12.5..12.5"));
+        Assert.All(props, p => Assert.True(OnGround(p), $"{p} lies off the ground x -36..36.5, z -13..31.5"));
     }
 
     [Fact]
-    public void AC3_shade_patches_lie_outside_the_plot_plus_margin()
+    public void AC3_shade_patches_lie_wholly_off_the_grid()
     {
         var patches = MeadowLayout.Generate(MeadowLayout.FarmSeed).Where(p => p.Kind == "ShadePatch").ToList();
         Assert.NotEmpty(patches);
 
-        Assert.All(patches, p => Assert.False(
-            PlotPlusMargin.StrictlyContains(p.X, p.Z),
-            $"shade patch {p} is centred inside x -7..7, z -5.5..5.5"));
+        Assert.All(patches, p => Assert.True(
+            Grid.DistanceTo(p.X, p.Z) >= MeadowLayout.MaxShadePatchRadius - Eps,
+            $"shade patch {p} reaches onto the grid x -36..36, z -4.5..31.5"));
+    }
+
+    [Fact]
+    public void AC3_props_spread_along_the_whole_north_strip()
+    {
+        var props = MeadowLayout.Generate(MeadowLayout.FarmSeed);
+
+        Assert.Contains(props, p => p.X < -24f);
+        Assert.Contains(props, p => p.X > 24f);
     }
 
     // ---- AC4 ----
@@ -178,7 +199,7 @@ public class MeadowLayoutTests
             .ToList();
         Assert.NotEmpty(props);
 
-        Assert.All(props, p => Assert.True(InOvergrownBand(p), $"{p} is not in |x| >= 12 or |z| >= 9"));
+        Assert.All(props, p => Assert.True(InOvergrownBand(p), $"{p} is on the grid x -36..36, z -4.5..31.5"));
     }
 
     [Fact]
@@ -194,120 +215,13 @@ public class MeadowLayoutTests
         });
     }
 
-    // ---- AC5 / BR-T1: edging and path stones ----
-
-    public enum Side { North, South, West, East }
-
-    private static IEnumerable<Side> SidesOf(MeadowProp s)
-    {
-        if (MathF.Abs(s.Z + EdgeZ) <= Eps && MathF.Abs(s.X) <= EdgeX + Eps) yield return Side.North;
-        if (MathF.Abs(s.Z - EdgeZ) <= Eps && MathF.Abs(s.X) <= EdgeX + Eps) yield return Side.South;
-        if (MathF.Abs(s.X + EdgeX) <= Eps && MathF.Abs(s.Z) <= EdgeZ + Eps) yield return Side.West;
-        if (MathF.Abs(s.X - EdgeX) <= Eps && MathF.Abs(s.Z) <= EdgeZ + Eps) yield return Side.East;
-    }
-
-    /// <summary>Positions along a side, sorted: x for north and south, z for west and east.</summary>
-    private static List<float> Along(IReadOnlyList<MeadowProp> stones, Side side) =>
-        stones.Where(s => SidesOf(s).Contains(side))
-            .Select(s => side is Side.North or Side.South ? s.X : s.Z)
-            .OrderBy(v => v)
-            .ToList();
-
-    private static List<(float From, float To)> GapsOver(List<float> along, float limit)
-    {
-        var gaps = new List<(float, float)>();
-        for (var i = 1; i < along.Count; i++)
-        {
-            if (along[i] - along[i - 1] > limit + Eps)
-            {
-                gaps.Add((along[i - 1], along[i]));
-            }
-        }
-
-        return gaps;
-    }
+    // ---- AC5 / BR-T1: no margin or edging on the grid; the path's stones ----
 
     [Fact]
-    public void AC5_edging_stones_are_centred_0_15_m_outside_the_plot_edge()
+    public void BR_T1_meadow_has_no_mown_margin_or_edging_on_farmable_tiles()
     {
-        var stones = MeadowLayout.EdgingStones();
-        Assert.NotEmpty(stones);
-
-        Assert.All(stones, s =>
-        {
-            Assert.Equal("EdgingStone", s.Kind);
-            Assert.True(SidesOf(s).Any(), $"{s} is not on x = ±6.15 or z = ±4.65 within the edging rectangle");
-        });
-    }
-
-    [Fact]
-    public void AC5_edging_reaches_every_corner()
-    {
-        var stones = MeadowLayout.EdgingStones();
-        Assert.NotEmpty(stones);
-
-        foreach (var (cx, cz) in new[] { (-EdgeX, -EdgeZ), (EdgeX, -EdgeZ), (-EdgeX, EdgeZ), (EdgeX, EdgeZ) })
-        {
-            Assert.True(
-                stones.Any(s => MathF.Sqrt((s.X - cx) * (s.X - cx) + (s.Z - cz) * (s.Z - cz)) <= 0.16f + Eps),
-                $"no edging stone within 0.16 m of the corner ({cx}, {cz})");
-        }
-
-        foreach (var side in Enum.GetValues<Side>())
-        {
-            var along = Along(stones, side);
-            var half = side is Side.North or Side.South ? EdgeX : EdgeZ;
-            Assert.True(along.Count > 0, $"the {side} side has no stones");
-            Assert.True(along[0] <= -half + 0.16f + Eps, $"the {side} side starts at {along[0]}, short of its corner");
-            Assert.True(along[^1] >= half - 0.16f - Eps, $"the {side} side ends at {along[^1]}, short of its corner");
-        }
-    }
-
-    [Theory]
-    [InlineData(Side.South)]
-    [InlineData(Side.West)]
-    [InlineData(Side.East)]
-    public void AC5_edging_runs_unbroken_on_the_east_south_and_west_sides(Side side)
-    {
-        var along = Along(MeadowLayout.EdgingStones(), side);
-        Assert.True(along.Count > 1, $"the {side} side has {along.Count} stones");
-
-        var gaps = GapsOver(along, StoneSpacing);
-        Assert.True(gaps.Count == 0, $"the {side} side has gaps over 0.3 m: {string.Join(", ", gaps)}");
-    }
-
-    [Fact]
-    public void AC5_north_edging_leaves_a_1_2_m_gap_for_the_path_and_is_unbroken_elsewhere()
-    {
-        var along = Along(MeadowLayout.EdgingStones(), Side.North);
-        Assert.True(along.Count > 1, $"the north side has {along.Count} stones");
-
-        Assert.DoesNotContain(along, x => MathF.Abs(x) < 0.6f - Eps);
-        Assert.Contains(along, x => x < 0f && x >= -0.9f - Eps);
-        Assert.Contains(along, x => x > 0f && x <= 0.9f + Eps);
-
-        var gaps = GapsOver(along, StoneSpacing);
-        Assert.True(
-            gaps.Count == 1 && gaps[0].From < 0f && gaps[0].To > 0f,
-            $"the north side should break only across x = 0, but has gaps over 0.3 m at {string.Join(", ", gaps)}");
-    }
-
-    [Fact]
-    public void BR_T1_no_edging_stone_sits_on_a_tile()
-    {
-        var stones = MeadowLayout.EdgingStones();
-        Assert.NotEmpty(stones);
-
-        Assert.All(stones, s =>
-        {
-            // Distance from the stone's centre to the plot rectangle x -6..6, z -4.5..4.5 (0 when inside).
-            var dx = MathF.Max(0f, MathF.Abs(s.X) - PlotHalfX);
-            var dz = MathF.Max(0f, MathF.Abs(s.Z) - PlotHalfZ);
-            var distance = MathF.Sqrt(dx * dx + dz * dz);
-            Assert.True(
-                distance >= StoneRadius - Eps,
-                $"{s} (a {StoneRadius} m radius stone) overlaps the plot by {StoneRadius - distance} m");
-        });
+        Assert.DoesNotContain("MownMargin", MeadowLayout.PartRoles.Keys);
+        Assert.DoesNotContain("Edging", MeadowLayout.PartRoles.Keys);
     }
 
     [Fact]
@@ -331,10 +245,8 @@ public class MeadowLayoutTests
     {
         ["Ground"] = "grass-lit",
         ["ShadePatches"] = "grass-shade",
-        ["MownMargin"] = "grass-mown",
         ["Path"] = "dirt-path",
         ["PathStones"] = "stone",
-        ["Edging"] = "rock",
         ["TuftBlades"] = "grass-lit",
         ["FrondFrond"] = "foliage",
         ["FrondCurl"] = "leaf-underside",

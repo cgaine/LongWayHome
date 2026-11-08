@@ -46,17 +46,17 @@ public class NewGameFactoryTests
     }
 
     [Fact]
-    public void AC3_BR_T1_new_game_plot_is_12_by_9_grass_unwatered_tiles()
+    public void AC3_BR_T1_new_game_plot_is_72_by_36_grass_unwatered_tiles()
     {
         var plot = NewGameFactory.Create(Shipped, Now).FarmPlot;
 
-        Assert.Equal(12, FarmPlot.Width);
-        Assert.Equal(9, FarmPlot.Height);
-        Assert.Equal(108, plot.Tiles.Count);
+        Assert.Equal(72, FarmPlot.Width);
+        Assert.Equal(36, FarmPlot.Height);
+        Assert.Equal(2592, plot.Tiles.Count);
 
         var expectedPositions =
-            from y in Enumerable.Range(0, 9)
-            from x in Enumerable.Range(0, 12)
+            from y in Enumerable.Range(0, 36)
+            from x in Enumerable.Range(0, 72)
             select (x, y);
         Assert.Equal(
             expectedPositions.OrderBy(p => p),

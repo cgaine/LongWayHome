@@ -147,13 +147,13 @@ public class AreaScenesTests
         var scene = ReadRepoFile("game", "scenes", "Farm.tscn");
         var boxWidths = BoxShapeWidths(scene);
 
-        // The south wall: the Boundary's collision shapes at the farm's south edge (z = 13.5).
+        // The south wall: the Boundary's collision shapes at the farm's south edge (z = 32, #150).
         var south = Nodes(scene)
             .Where(node => node.Parent == "Boundary" && node.Type == "CollisionShape3D")
             .Select(node => (node.Name, Origin: Origin(node), Shape: ShapeId(node)))
-            .Where(wall => wall.Origin is { } origin && Math.Abs(origin.Z - 13.5) < 0.75)
+            .Where(wall => wall.Origin is { } origin && Math.Abs(origin.Z - 32.0) < 0.75)
             .ToList();
-        Assert.True(south.Count > 0, "Farm.tscn's Boundary has no wall at the south edge (z = 13.5)");
+        Assert.True(south.Count > 0, "Farm.tscn's Boundary has no wall at the south edge (z = 32, #150)");
 
         foreach (var (name, origin, shape) in south)
         {

@@ -43,7 +43,7 @@ public class MeadowLayoutGeneratorTests
     }
 
     [Fact]
-    public void AC3_shade_patch_outlines_have_6_to_9_points_and_stay_outside_the_plot_plus_margin()
+    public void AC3_shade_patch_outlines_have_6_to_9_points_and_stay_off_the_grid()
     {
         var patches = MeadowLayout.Generate(MeadowLayout.FarmSeed).Where(p => p.Kind == "ShadePatch").ToList();
         Assert.Equal(10, patches.Count);
@@ -55,9 +55,10 @@ public class MeadowLayoutGeneratorTests
             Assert.Equal(outline, MeadowLayout.ShadePatchOutline(patch));
             foreach (var (x, z) in outline)
             {
+                // #150: the grid, x -36..36, z -4.5..31.5, is farm ground.
                 Assert.False(
-                    x > -7f && x < 7f && z > -5.5f && z < 5.5f,
-                    $"shade patch {patch} has an outline point ({x}, {z}) inside the plot plus margin");
+                    x > -36f && x < 36f && z > -4.5f && z < 31.5f,
+                    $"shade patch {patch} has an outline point ({x}, {z}) on the grid");
                 var r = MathF.Sqrt((x - patch.X) * (x - patch.X) + (z - patch.Z) * (z - patch.Z));
                 Assert.True(r <= MeadowLayout.ShadePatchRadius * patch.Scale + 1e-4f, $"{patch} point at {r} m");
             }

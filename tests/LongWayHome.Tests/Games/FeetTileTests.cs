@@ -28,6 +28,21 @@ public class FeetTileTests
     {
         Assert.Equal(new GridPosition(x, y), FeetTile.Nearest(cellX, cellY));
     }
+
+    // #150: the feet clamp to the grown 72 x 36 grid (0..71, 0..35).
+    [Theory]
+    [InlineData(71, 35, 71, 35)]
+    [InlineData(35, 20, 35, 20)]
+    [InlineData(72, 10, 71, 10)]
+    [InlineData(40, 36, 40, 35)]
+    [InlineData(500, 500, 71, 35)]
+    [InlineData(36, -1, 36, 0)]
+    public void Edge_feet_clamp_to_the_72_by_36_grid(int cellX, int cellY, int x, int y)
+    {
+        var feet = FeetTile.Nearest(cellX, cellY);
+
+        Assert.Equal((x, y), (feet.X, feet.Y));
+    }
 }
 
 /// <summary>Where each DroppedItem on one tile is drawn (#130, AC12): <see cref="DroppedItemLayout.Offset"/>.</summary>

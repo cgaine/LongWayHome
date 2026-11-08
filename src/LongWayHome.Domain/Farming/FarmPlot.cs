@@ -7,6 +7,9 @@ public sealed class FarmPlot
 
     public const int Height = 9;
 
+    /// <summary>Where the Phase 1 12 x 9 plot sits in the grown grid (BR-T1, #150).</summary>
+    public static PlotBlock Phase1Block => throw new NotImplementedException();
+
     private readonly Tile[] _tiles;
 
     /// <summary>Creates a fresh Farm plot of 108 grass, unwatered Tiles.</summary>

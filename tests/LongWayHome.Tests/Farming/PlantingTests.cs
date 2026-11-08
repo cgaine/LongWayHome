@@ -284,7 +284,7 @@ public class PlantingTests
 
         var game = TestGames.WithTiles(150, null, TestGames.TilledWith(Target, planting, watered: true));
 
-        Assert.Equal(108, game.FarmPlot.Tiles.Count);
+        Assert.Equal(2592, game.FarmPlot.Tiles.Count);
         Assert.Equal(planting, game.FarmPlot[Target].Planting);
         Assert.True(game.FarmPlot[Target].Watered);
         Assert.Equal(TileState.Grass, game.FarmPlot[new GridPosition(0, 0)].State);

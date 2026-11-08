@@ -1,11 +1,14 @@
 using System.Text.Json.Nodes;
+using LongWayHome.Application.Games;
 using LongWayHome.Application.Saves;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
 using LongWayHome.Domain.Residents;
 using LongWayHome.Infrastructure.Saves;
 using LongWayHome.Tests.Games;
+using GameState = LongWayHome.Domain.Games.Game;
 
 namespace LongWayHome.Tests.Saves;
 
@@ -692,9 +695,9 @@ public sealed class JsonSaveStoreTests : IDisposable
 
         var document = _folder.ReadSlot(1);
 
-        Assert.Equal(12, document["farmPlot"]!["width"]!.GetValue<int>());
-        Assert.Equal(9, document["farmPlot"]!["height"]!.GetValue<int>());
-        Assert.Equal(108, Tiles(document).Count);
+        Assert.Equal(72, document["farmPlot"]!["width"]!.GetValue<int>());
+        Assert.Equal(36, document["farmPlot"]!["height"]!.GetValue<int>());
+        Assert.Equal(2592, Tiles(document).Count);
         Assert.Equal(780, document["clock"]!.GetValue<int>());
         Assert.Equal(1234, document["player"]!["gold"]!.GetValue<int>());
         Assert.Equal(40, document["player"]!["wateringCan"]!["capacity"]!.GetValue<int>());
@@ -862,7 +865,7 @@ public sealed class JsonSaveStoreTests : IDisposable
     }
 
     [Fact]
-    public void BR_T1_107_tiles_is_unreadable()
+    public void BR_T1_one_tile_short_of_the_plot_is_unreadable()
     {
         SaveThenEdit(document => Tiles(document).RemoveAt(Tiles(document).Count - 1));
 
@@ -943,5 +946,127 @@ public sealed class JsonSaveStoreTests : IDisposable
         Store().Save(1, SaveGames.Rich(clock: 360));
 
         Assert.Equal(360, Store().Load(1).ClockMinutes);
+    }
+
+    // ---- #150: Phase 1 Tiles move into the grown 72 x 36 grid ----
+
+    /// <summary>The position, failing the test (not throwing) when it isn't on the plot.</summary>
+    private static GridPosition At(int x, int y)
+    {
+        Assert.True(GridPosition.TryCreate(x, y, out var position), $"({x}, {y}) is not on the Farm plot");
+        return position;
+    }
+
+    /// <summary>On the 12 x 9 plot: (0, 0) tilled, watered, growing starcorn; (5, 4) tilled and watered; (11, 8) tilled, dry.</summary>
+    private static void SetPhase1Tiles(JsonObject document)
+    {
+        SaveDocuments.SetTile(document, 0, 0, "tilled", watered: true, cropTypeId: "starcorn", daysGrown: 3);
+        SaveDocuments.SetTile(document, 5, 4, "tilled", watered: true);
+        SaveDocuments.SetTile(document, 11, 8, "tilled", watered: false);
+    }
+
+    /// <summary>The three saved Tiles at (x + 30, y), every other Tile grass, unwatered and empty.</summary>
+    private static void AssertPhase1TilesInBlock(GameState loaded)
+    {
+        Assert.Equal(2592, loaded.FarmPlot.Tiles.Count);
+
+        var growing = loaded.FarmPlot[At(30, 0)];
+        Assert.Equal(TileState.Tilled, growing.State);
+        Assert.True(growing.Watered);
+        Assert.Equal(new Planting(CropTypeId.Starcorn, new GameDate(2, Season.Summer, 10), 3), growing.Planting);
+
+        var wateredEmpty = loaded.FarmPlot[At(35, 4)];
+        Assert.Equal(TileState.Tilled, wateredEmpty.State);
+        Assert.True(wateredEmpty.Watered);
+        Assert.Null(wateredEmpty.Planting);
+
+        var dry = loaded.FarmPlot[At(41, 8)];
+        Assert.Equal(TileState.Tilled, dry.State);
+        Assert.False(dry.Watered);
+        Assert.Null(dry.Planting);
+
+        var moved = new[] { At(30, 0), At(35, 4), At(41, 8) };
+        Assert.All(loaded.FarmPlot.Tiles.Where(tile => !moved.Contains(tile.Position)), tile =>
+        {
+            Assert.Equal(TileState.Grass, tile.State);
+            Assert.False(tile.Watered);
+            Assert.Null(tile.Planting);
+        });
+    }
+
+    [Fact]
+    public void AC5_v1_save_places_phase1_tiles_in_block()
+    {
+        var document = SaveDocuments.V1(new JsonArray());
+        SetPhase1Tiles(document);
+        _folder.WriteSlot(1, document);
+
+        AssertPhase1TilesInBlock(Store().Load(1));
+    }
+
+    [Fact]
+    public void AC6_v2_save_with_a_12_by_9_plot_loads_its_tiles_into_the_phase1_block()
+    {
+        var document = SaveDocuments.V2(SaveDocuments.GoodBackpack(), plotWidth: 12, plotHeight: 9);
+        SetPhase1Tiles(document);
+        _folder.WriteSlot(1, document);
+
+        AssertPhase1TilesInBlock(Store().Load(1));
+    }
+
+    [Fact]
+    public void AC6_v2_save_with_a_72_by_36_plot_round_trips_unchanged()
+    {
+        var game = TestGames.WithTiles(
+            150,
+            null,
+            TestGames.TilledWith(At(0, 0), TestGames.PlantingOf(CropTypeId.Emberroot, 2), watered: true),
+            TestGames.TilledWith(At(71, 35), null),
+            TestGames.TilledWith(At(35, 20), null, watered: true));
+
+        Store().Save(1, game);
+        var document = _folder.ReadSlot(1);
+        var loaded = Store().Load(1);
+
+        Assert.Equal(2, document["saveVersion"]!.GetValue<int>());
+        Assert.Equal(72, document["farmPlot"]!["width"]!.GetValue<int>());
+        Assert.Equal(36, document["farmPlot"]!["height"]!.GetValue<int>());
+        SavedState.AssertSame(game, loaded);
+    }
+
+    [Theory]
+    [InlineData(12, 36)]
+    [InlineData(72, 9)]
+    [InlineData(13, 9)]
+    [InlineData(11, 9)]
+    [InlineData(71, 36)]
+    [InlineData(72, 35)]
+    [InlineData(73, 36)]
+    public void AC6_v2_save_of_any_other_size_is_refused_with_the_BR_T1_message(int width, int height)
+    {
+        _folder.WriteSlot(1, SaveDocuments.V2(SaveDocuments.GoodBackpack(), plotWidth: width, plotHeight: height));
+
+        var thrown = Assert.Throws<SaveStoreException>(() => Store().Load(1));
+
+        Assert.Contains("72 x 36", thrown.Reason, StringComparison.Ordinal);
+        Assert.Contains("BR-T1", thrown.Reason, StringComparison.Ordinal);
+        Assert.Equal(SaveSlotState.Unreadable, Store().List()[0].State);
+    }
+
+    [Fact]
+    public void BR_G5_moved_save_resumes_at_0600()
+    {
+        var document = SaveDocuments.V1(new JsonArray());
+        document["clock"] = TestGames.Shipped.Tuning.DayStartMinutes;
+        SaveDocuments.SetTile(document, 2, 3, "tilled", watered: false);
+        _folder.WriteSlot(1, document);
+
+        var loaded = GameStarter.Load(
+            TestGames.Shipped, Store(), 1, new FixedRandom(99), new FixedTimeProvider(SaveGames.SavedAt)).Game;
+
+        Assert.Equal(2592, loaded.FarmPlot.Tiles.Count);
+        Assert.Equal(new GameDate(2, Season.Summer, 14), loaded.Date);
+        Assert.Equal(360, loaded.ClockMinutes);
+        Assert.Equal(TileState.Tilled, loaded.FarmPlot[At(32, 3)].State);
     }
 }
