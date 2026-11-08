@@ -87,15 +87,15 @@ internal static class TestGames
     }
 
     /// <summary>
-    /// A session over a new Game once Maggie has handed over the starter Seeds (BR-P6, #139): the hoe, the can, 10
-    /// emberroot and 5 dusktuber. The Opening is still not done.
-    /// </summary>
-    /// <summary>
     /// The shipped data with no node spawn points (#151), for tests that need every Tile of a new Game's plot to be
     /// tillable rather than overgrown.
     /// </summary>
     public static readonly GameData ShippedWithoutNodes = Shipped with { NodeSpawns = [] };
 
+    /// <summary>
+    /// A session over a new Game once Maggie has handed over the starter Seeds (BR-P6, #139): the hoe, the can, 10
+    /// emberroot and 5 dusktuber. The Opening is still not done.
+    /// </summary>
     public static GameSession NewSession(GameData? data = null)
     {
         data ??= Shipped;
