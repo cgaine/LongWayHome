@@ -52,4 +52,10 @@ internal sealed record SaveFileDto
     /// point outside the old plot's block (<c>FarmPlot.Phase1Block</c>).
     /// </summary>
     public IReadOnlyList<ResourceNodeDto?>? ResourceNodes { get; init; }
+
+    /// <summary>
+    /// The cleared respawning spawn points waiting to grow back (BR-N4, #153). Always written; optional on load: a
+    /// version 2 file written before #153 lacks it and loads with none.
+    /// </summary>
+    public IReadOnlyList<NodeRegrowthDto?>? NodeRegrowths { get; init; }
 }

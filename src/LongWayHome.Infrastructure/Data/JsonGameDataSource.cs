@@ -384,6 +384,10 @@ public sealed class JsonGameDataSource : IGameDataSource
         Check(tuning.WalkSpeedTilesPerSecond > 0, "walkSpeedTilesPerSecond", "above 0", tuning.WalkSpeedTilesPerSecond);
         Check(tuning.RunSpeedTilesPerSecond >= tuning.WalkSpeedTilesPerSecond, "runSpeedTilesPerSecond", $"at least walkSpeedTilesPerSecond ({tuning.WalkSpeedTilesPerSecond.ToString(CultureInfo.InvariantCulture)})", tuning.RunSpeedTilesPerSecond);
         ValidateSwingTuning(tuning, errors);
+        if (tuning.NodeRegrowthNights is { } regrowthNights)
+        {
+            Check(regrowthNights >= 1, "nodeRegrowthNights", "at least 1 (BR-N4)", regrowthNights);
+        }
 
         if (tuning.StartingSeeds is null)
         {
@@ -614,6 +618,7 @@ public sealed class JsonGameDataSource : IGameDataSource
                     .ToList()
                     .AsReadOnly())
             .AsReadOnly(),
+        NodeRegrowthNights = dto.NodeRegrowthNights ?? GameTuning.DefaultNodeRegrowthNights,
     };
 
     // The enum value whose canonical code is <paramref name="code"/>; validation has already refused unknown codes.

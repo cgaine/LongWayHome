@@ -43,7 +43,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Hotbar row** | The 6-Slot row of the Backpack shown on screen. The Player cycles which row it is. |
 | **Material** | A gathered or made item used for rebuilds, orders and pumps: wood, sap, stone, Rosk ore, Groth ore, glimmercap, plank, sealed plank, Rosk pump. |
 | **Resource node** | A tree, stump, rock, ore deposit, glimmercap or debris pile the Player breaks with the axe or pickaxe for materials. |
-| **Spawn point** | *(planned, REQ-44)* A fixed place in an Area where a tree, rock, deposit or glimmercap grows back after it is cleared. |
+| **Spawn point** | A fixed place in an Area where a tree, rock, deposit or glimmercap grows back after it is cleared. |
 | **Area** | *(planned, REQ-49)* A part of the world the Player walks in: the farm (the meadow), the forest path, the town, the lakeshore, across the river, and the mine. |
 | **Building** | *(planned, REQ-45)* A town building the Player restores stage by stage: the general store, the carpenter, Mira's house and the blacksmith. |
 | **Stage** | *(planned, REQ-45)* One step of a Building's restoration. Each has a cost and unlocks goods, services or Residents. |
@@ -291,7 +291,7 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 | `kind` | NodeKind | Copied from the spawn point. |
 | `swingsTaken` | int | 0 up to the swings needed at the tool's tier. Reset each Night. |
 
-#### NodeRegrowth (child of Game, zero or more) *(planned, REQ-44)*
+#### NodeRegrowth (child of Game, zero or more)
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
@@ -494,7 +494,7 @@ stateDiagram-v2
 | placed → ready | Game (Night) | BR-O2 |
 | ready → collected | Player | BR-O3 |
 
-### Resource node *(planned, REQ-44: regrow)*
+### Resource node
 
 ```mermaid
 stateDiagram-v2
@@ -580,13 +580,13 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-K5: The hotbar is the 6 Slots of `hotbarRow`. Cycling moves to the next row and wraps back to row 0.
 - BR-K6: Tools can't be dropped, sold, shipped, stored in a chest or lost; they leave the Backpack only while an upgrade Order holds them (BR-O4). *(planned, REQ-57: the upgrade Order)*
 
-### Resource nodes *(planned, REQ-44, REQ-16, REQ-49)*
+### Resource nodes *(planned, REQ-49)*
 
 - BR-N1: The axe works on trees and stumps; the pickaxe on rocks, ore deposits and debris. Glimmercaps are picked by hand. A swing on any other node does nothing and costs nothing. *(planned, REQ-49)*
 - BR-N2: Each swing costs 2 energy (BR-P2). A node is cleared on the swing that reaches its tier's count: Basic 4, Rosk 3, Groth 2. Swings taken on a node not cleared are forgotten in the Night. *(planned, REQ-57)*
 - BR-N3: Clearing a node gives its yield (NodeSpawn yields, tier bonus by tuning) through BR-K3 and frees its Tile.
-- BR-N4: In the Night, a respawning spawn point whose node was cleared at least 2 Nights before (tuning) grows its node back, unless its Tile is tilled, holds a Placed object, or is within 3 tiles of a tilled Tile. A blocked spawn point keeps waiting. *(planned, REQ-44)*
-- BR-N5: Stumps and debris never grow back. *(planned, REQ-16, REQ-49)*
+- BR-N4: In the Night, a respawning spawn point whose node was cleared at least 2 Nights before (tuning) grows its node back, unless its Tile is tilled, holds a Placed object, or is within 3 tiles of a tilled Tile. A blocked spawn point keeps waiting.
+- BR-N5: Stumps and debris never grow back. *(planned, REQ-49: debris)*
 - BR-N6: A stump can be cleared only with a Groth axe. *(planned, REQ-57)*
 - BR-N7: A new Game places a node at every `atStart` spawn point. The farm's cleared 6 x 6 by the farmhouse has none.
 
@@ -647,7 +647,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 | Game (with Player, WateringCan, InventoryStacks, FarmPlot, Tiles, Plantings, ShippingBin) | Kept in the save slot on the player's machine until the player deletes or overwrites that slot. Overwritten in place each Night. |
 | CropType, ShopListing | Reference data shipped with the game build, not part of a save. A save stores only `CropTypeId` values, so later builds can retune prices without breaking saves. |
 | Past Days | Not kept. Only the current state is saved; there is no history of earlier Days. |
-| Phase 2 Game state (ResourceNodes; *(planned, REQ-45 to REQ-50)* Backpack, DroppedItems, NodeRegrowths, PlacedObjects, Buildings, Orders, MineLevels, Residents, Game flags) | Part of the Game in its save slot, overwritten each Night like the rest. DroppedItems never outlive a Night (BR-K4), so a save never holds one. |
+| Phase 2 Game state (ResourceNodes, NodeRegrowths; *(planned, REQ-45 to REQ-50)* Backpack, DroppedItems, PlacedObjects, Buildings, Orders, MineLevels, Residents, Game flags) | Part of the Game in its save slot, overwritten each Night like the rest. DroppedItems never outlive a Night (BR-K4), so a save never holds one. |
 | NodeSpawn, MaterialType; *(planned)* BuildingStage, OrderRecipe, ToolTierEffect | Reference data shipped with the build. A save stores only ids, positions and counts, so costs and yields can be retuned without breaking saves. |
 
 Each save file carries a save-format version (`saveVersion`, currently 2), so later phases (backpack slots, buildings) can migrate Phase 1 saves.

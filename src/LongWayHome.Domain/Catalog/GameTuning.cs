@@ -6,6 +6,9 @@ namespace LongWayHome.Domain.Catalog;
 /// <summary>The game's tuning constants, loaded from <c>tuning.json</c>.</summary>
 public sealed record GameTuning
 {
+    /// <summary>The shipped Night wait before a cleared node grows back (BR-N4), used when the tuning doesn't set one.</summary>
+    public const int DefaultNodeRegrowthNights = 2;
+
     public required int StartingGold { get; init; }
 
     public required IReadOnlyList<StartingStack> StartingSeeds { get; init; }
@@ -41,6 +44,6 @@ public sealed record GameTuning
     public IReadOnlyDictionary<NodeKind, IReadOnlyList<MaterialStack>> NodeYields { get; init; } =
         new Dictionary<NodeKind, IReadOnlyList<MaterialStack>>();
 
-    /// <summary>The Nights a cleared respawning node waits before it grows back (BR-N4).</summary>
-    public int NodeRegrowthNights { get; init; }
+    /// <summary>The Nights a cleared respawning node waits before it grows back (BR-N4), at least 1.</summary>
+    public int NodeRegrowthNights { get; init; } = DefaultNodeRegrowthNights;
 }

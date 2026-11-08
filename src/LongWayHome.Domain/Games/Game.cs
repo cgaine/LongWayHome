@@ -49,18 +49,9 @@ public sealed class Game
         _purchasedListings = ValidPurchasedListings(purchasedListings);
         (_resourceNodes, _nodesByTile) = ValidResourceNodes(resourceNodes ?? []);
         ResourceNodes = _resourceNodes.AsReadOnly();
-        _nodeRegrowths = (nodeRegrowths ?? []).ToList();
+        _nodeRegrowths = ValidNodeRegrowths(nodeRegrowths ?? [], _resourceNodes);
         NodeRegrowths = _nodeRegrowths.AsReadOnly();
     }
-
-    private readonly List<NodeRegrowth> _nodeRegrowths;
-
-    /// <summary>The cleared respawning spawn points waiting to grow back (BR-N4), at most one per spawn point.</summary>
-    public IReadOnlyList<NodeRegrowth> NodeRegrowths { get; }
-
-    /// <summary>The Night's regrowth step (BR-N4, BR-N5). Red stub for #153.</summary>
-    public void RegrowNodes(IReadOnlyList<NodeSpawn> spawns, int nights) =>
-        throw new NotImplementedException();
 
     public Guid Id { get; }
 
@@ -210,6 +201,44 @@ public sealed class Game
         }
 
         return (resourceNodes.ToList(), byTile);
+    }
+
+    /// <summary>The cleared respawning spawn points waiting to grow back (BR-N4), at most one per spawn point.</summary>
+    public IReadOnlyList<NodeRegrowth> NodeRegrowths { get; }
+
+    private readonly List<NodeRegrowth> _nodeRegrowths;
+
+    /// <summary>
+    /// At most one NodeRegrowth per spawn point, none null and none for a spawn point whose node stands, or the list
+    /// is refused.
+    /// </summary>
+    private static List<NodeRegrowth> ValidNodeRegrowths(
+        IReadOnlyList<NodeRegrowth> nodeRegrowths, IReadOnlyList<ResourceNode> standing)
+    {
+        var spawnIds = new HashSet<string>(StringComparer.Ordinal);
+        var standingIds = standing.Select(node => node.SpawnId).ToHashSet(StringComparer.Ordinal);
+        foreach (var regrowth in nodeRegrowths)
+        {
+            if (regrowth?.SpawnId is null)
+            {
+                throw new ArgumentException(
+                    "A Game's NodeRegrowths can't contain null or a null spawn id.", nameof(nodeRegrowths));
+            }
+
+            if (!spawnIds.Add(regrowth.SpawnId))
+            {
+                throw new ArgumentException(
+                    $"Two NodeRegrowths share the spawn point '{regrowth.SpawnId}'.", nameof(nodeRegrowths));
+            }
+
+            if (standingIds.Contains(regrowth.SpawnId))
+            {
+                throw new ArgumentException(
+                    $"The spawn point '{regrowth.SpawnId}' has a standing node and a NodeRegrowth.", nameof(nodeRegrowths));
+            }
+        }
+
+        return nodeRegrowths.ToList();
     }
 
     /// <summary>Whether <paramref name="id"/>'s Resident is present (BR-R1).</summary>
@@ -899,6 +928,13 @@ public sealed class Game
         // BR-N3: the node is gone and its Tile free; the yield goes through BR-K3 (tier bonus 0 until #127).
         _resourceNodes.Remove(node);
         _nodesByTile.Remove((node.Area, node.Position));
+
+        // BR-N4: a respawning spawn point waits to grow back from today; BR-N5: a stump or debris records nothing.
+        if (node.Respawns)
+        {
+            _nodeRegrowths.Add(new NodeRegrowth(node.SpawnId, Date));
+        }
+
         var gained = yields
             .Select(stack => Gain(ItemRef.Material(stack.Material), stack.Quantity, feet))
             .ToList()
@@ -913,6 +949,76 @@ public sealed class Game
         {
             node.SwingsTaken = 0;
         }
+    }
+
+    /// <summary>
+    /// The Night's regrowth step (BR-N4), run before the date step, so the Night in progress counts: a NodeRegrowth
+    /// grows back once at least <paramref name="nights"/> Nights have passed since it was cleared and its spawn point
+    /// is free. On the farm a spawn point is free when no Tile within 3 tiles of it (its own included) is tilled; off
+    /// the farm only the wait applies. A grown node is fresh (0 swings) and its NodeRegrowth goes; a blocked one keeps
+    /// waiting. A NodeRegrowth whose spawn point is not in <paramref name="spawns"/> is dropped, as it can never grow.
+    /// </summary>
+    public void RegrowNodes(IReadOnlyList<NodeSpawn> spawns, int nights)
+    {
+        ArgumentNullException.ThrowIfNull(spawns);
+        ArgumentOutOfRangeException.ThrowIfLessThan(nights, 1);
+
+        var spawnsById = new Dictionary<string, NodeSpawn>(StringComparer.Ordinal);
+        foreach (var spawn in spawns)
+        {
+            ArgumentNullException.ThrowIfNull(spawn, nameof(spawns));
+            spawnsById.TryAdd(spawn.Id, spawn);
+        }
+
+        _nodeRegrowths.RemoveAll(regrowth =>
+        {
+            if (!spawnsById.TryGetValue(regrowth.SpawnId, out var spawn))
+            {
+                return true;
+            }
+
+            var nightsPassed = Date.DaysSince(regrowth.ClearedOn) + 1;
+            if (nightsPassed < nights || !IsFreeForRegrowth(spawn))
+            {
+                return false;
+            }
+
+            var node = ResourceNode.FromSpawn(spawn);
+            _resourceNodes.Add(node);
+            _nodesByTile.Add((node.Area, node.Position), node);
+            return true;
+        });
+    }
+
+    // BR-N4: the Chebyshev distance within which a tilled Tile blocks a farm spawn point.
+    private const int RegrowthTilledClearance = 3;
+
+    // BR-N4: no node already on the Tile and, on the farm, no tilled Tile in the 7 x 7 square clipped to the plot.
+    private bool IsFreeForRegrowth(NodeSpawn spawn)
+    {
+        if (NodeAt(spawn.Area, spawn.Position) is not null)
+        {
+            return false;
+        }
+
+        if (spawn.Area != AreaId.Farm)
+        {
+            return true;
+        }
+
+        var (cx, cy) = (spawn.Position.X, spawn.Position.Y);
+        for (var y = Math.Max(0, cy - RegrowthTilledClearance); y <= Math.Min(FarmPlot.Height - 1, cy + RegrowthTilledClearance); y++)
+        {
+            for (var x = Math.Max(0, cx - RegrowthTilledClearance); x <= Math.Min(FarmPlot.Width - 1, cx + RegrowthTilledClearance); x++)
+            {
+                if (FarmPlot[new GridPosition(x, y)].State == TileState.Tilled)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     // BR-N1: which tool works on which node kind; glimmercaps are picked by hand.

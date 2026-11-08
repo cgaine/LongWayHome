@@ -11,7 +11,8 @@ public sealed class ResourceNode
 {
     public ResourceNode(string spawnId, NodeKind kind, AreaId area, GridPosition position, int swingsTaken = 0, bool? respawns = null)
     {
-        Respawns = respawns ?? false;
+        // BR-N5: stumps and debris never grow back; every other kind does unless its spawn point says otherwise.
+        Respawns = respawns ?? kind is not (NodeKind.Stump or NodeKind.Debris);
         SpawnId = spawnId;
         Kind = kind;
         Area = area;

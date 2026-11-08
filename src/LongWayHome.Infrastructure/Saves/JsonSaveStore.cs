@@ -242,6 +242,9 @@ public sealed class JsonSaveStore : ISaveStore
         ResourceNodes = game.ResourceNodes
             .Select(node => new ResourceNodeDto { SpawnId = node.SpawnId, Kind = node.Kind, SwingsTaken = node.SwingsTaken })
             .ToList(),
+        NodeRegrowths = game.NodeRegrowths
+            .Select(regrowth => new NodeRegrowthDto { SpawnId = regrowth.SpawnId, ClearedOn = ToDto(regrowth.ClearedOn) })
+            .ToList(),
     };
 
     /// <summary>Every Slot is written, an empty one with a null item, quantity 0 and a null tier.</summary>
@@ -294,7 +297,31 @@ public sealed class JsonSaveStore : ISaveStore
             ToResidents(dto.Residents),
             openingDone: dto.OpeningDone ?? true, // BR-I1: a save from before #139 is past the Opening
             purchasedListings: ToPurchasedListings(dto.PurchasedListings),
-            resourceNodes: ToResourceNodes(dto.ResourceNodes, plot));
+            resourceNodes: ToResourceNodes(dto.ResourceNodes, plot),
+            nodeRegrowths: ToNodeRegrowths(dto.NodeRegrowths));
+    }
+
+    /// <summary>
+    /// No <c>nodeRegrowths</c> (a version 2 file from before #153) is none waiting. An entry whose spawn point isn't in
+    /// <c>nodes.json</c> is dropped, as it can never grow back. A null entry or spawn id, or a null or invalid
+    /// <c>clearedOn</c>, is refused; the Game constructor refuses a repeat.
+    /// </summary>
+    private List<NodeRegrowth> ToNodeRegrowths(IReadOnlyList<NodeRegrowthDto?>? regrowths)
+    {
+        var restored = new List<NodeRegrowth>();
+        foreach (var entry in regrowths ?? [])
+        {
+            var regrowth = Required(entry, "nodeRegrowths[]");
+            var spawnId = Required(regrowth.SpawnId, "nodeRegrowths[].spawnId");
+            var clearedOn = ToGameDate(
+                Required(regrowth.ClearedOn, "nodeRegrowths[].clearedOn"), "nodeRegrowths[].clearedOn");
+            if (_spawnsById.ContainsKey(spawnId))
+            {
+                restored.Add(new NodeRegrowth(spawnId, clearedOn));
+            }
+        }
+
+        return restored;
     }
 
     /// <summary>
@@ -328,7 +355,7 @@ public sealed class JsonSaveStore : ISaveStore
 
             if (_spawnsById.TryGetValue(spawnId, out var spawn))
             {
-                restored.Add(new ResourceNode(spawnId, kind, spawn.Area, spawn.Position, node.SwingsTaken));
+                restored.Add(new ResourceNode(spawnId, kind, spawn.Area, spawn.Position, node.SwingsTaken, spawn.Respawns));
             }
         }
 
