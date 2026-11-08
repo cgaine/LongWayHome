@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
 [ext_resource type="Script" path="res://scripts/Farm/FarmPlotView.cs" id="3_plotview"]
-[ext_resource type="Script" path="res://scripts/World/PondRefill.cs" id="5_pondrefill"]
+[ext_resource type="Script" path="res://scripts/World/WaterRefill.cs" id="5_waterrefill"]
 [ext_resource type="Script" path="res://scripts/World/DoorSleep.cs" id="8_doorsleep"]
 [ext_resource type="Script" path="res://scripts/World/BinShip.cs" id="11_binship"]
 [ext_resource type="PackedScene" path="res://art/farm/Meadow.tscn" id="13_meadow"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/AreaCommon.tscn" id="19_areacommon"]
 [ext_resource type="Script" path="res://scripts/World/AreaExit.cs" id="20_areaexit"]
 [ext_resource type="Script" path="res://scripts/World/AreaArrival.cs" id="21_areaarrival"]
+[ext_resource type="Script" path="res://art/areas/FarmRiverView.cs" id="22_riverview"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -103,6 +104,9 @@ transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0
 shadow_enabled = true
 
 [node name="Meadow" parent="." instance=ExtResource("13_meadow")]
+
+[node name="FarmRiverView" type="Node3D" parent="."]
+script = ExtResource("22_riverview")
 
 [node name="FarmPlotView" type="Node3D" parent="."]
 script = ExtResource("3_plotview")
@@ -247,8 +251,139 @@ script = ExtResource("2_point")
 PointId = "pond"
 Range = 3.8
 
-[node name="PondRefill" type="Node" parent="InteractionPoints/PondPoint"]
-script = ExtResource("5_pondrefill")
+[node name="WaterRefill" type="Node" parent="InteractionPoints/PondPoint"]
+script = ExtResource("5_waterrefill")
+Source = "pond"
+
+[node name="RiverPoint01" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -12)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint01"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint02" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -10)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint02"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint03" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -8)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint03"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint04" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -6)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint04"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint05" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -4)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint05"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint06" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -2)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint06"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint07" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 0)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint07"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint08" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 2)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint08"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint09" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 4)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint09"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint10" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 6)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint10"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint11" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 8)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint11"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint12" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 10)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint12"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint13" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 12)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint13"]
+script = ExtResource("5_waterrefill")
+Source = "river"
 
 [node name="Common" parent="." instance=ExtResource("19_areacommon")]
 

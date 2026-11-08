@@ -99,18 +99,18 @@ public class FarmerAnimatorSourceTests
     // ---- AC7: refill and ship ----
 
     [Fact]
-    public void AC7_pond_refill_plays_refill_on_success()
+    public void AC7_water_refill_plays_refill_on_success()
     {
-        var source = ReadRepoFile("game", "scripts", "World", "PondRefill.cs");
+        var source = ReadRepoFile("game", "scripts", "World", "WaterRefill.cs");
 
-        AssertPlaysAfterIsOk(source, "FarmerClip.Refill", "PondRefill.cs");
+        AssertPlaysAfterIsOk(source, "FarmerClip.Refill", "WaterRefill.cs");
         Assert.Matches(@"PlayOneShot\s*\(\s*FarmerClip\.Refill\b", source);
     }
 
     [Fact]
-    public void AC7_pond_refill_finds_the_animator_through_the_player_group()
+    public void AC7_water_refill_finds_the_animator_through_the_player_group()
     {
-        var source = ReadRepoFile("game", "scripts", "World", "PondRefill.cs");
+        var source = ReadRepoFile("game", "scripts", "World", "WaterRefill.cs");
 
         Assert.Contains("PlayerController.Group", source, StringComparison.Ordinal);
         Assert.Contains("FarmerAnimator", source, StringComparison.Ordinal);

@@ -177,6 +177,32 @@ public class SmokeChecklistTests
             $"The {pass} pass has no step opening the backpack with {button}, moving an item and closing it");
     }
 
+    /// <summary>#137 AC4–AC6: each pass refills the can at the river on the farm, the river in town and the lake's
+    /// dock.</summary>
+    [Theory]
+    [InlineData("controller", "river", "farm")]
+    [InlineData("keyboard", "river", "farm")]
+    [InlineData("steam deck", "river", "farm")]
+    [InlineData("controller", "river", "town")]
+    [InlineData("keyboard", "river", "town")]
+    [InlineData("steam deck", "river", "town")]
+    [InlineData("controller", "lake", "dock")]
+    [InlineData("keyboard", "lake", "dock")]
+    [InlineData("steam deck", "lake", "dock")]
+    public void AC4_pass_has_a_step_refilling_the_can_at_the_water(string pass, string water, string place)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        Assert.True(
+            steps.Any(step =>
+                Regex.IsMatch(step, @"\brefill", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\b" + water + @"\b", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\b" + place + @"\b", RegexOptions.IgnoreCase)),
+            $"The {pass} pass has no step refilling the can at the {water} ({place})");
+    }
+
     [Fact]
     public void AC8_blueprint_testing_section_links_the_checklist()
     {

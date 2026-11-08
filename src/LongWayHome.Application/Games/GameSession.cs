@@ -432,10 +432,11 @@ public sealed class GameSession
         return result;
     }
 
-    /// <summary>Refills the can at the Pond (BR-W3). Raises PlayerChanged.</summary>
-    public ActionResult RefillCan()
+    /// <summary>Refills the can at <paramref name="source"/> (BR-W3). Raises PlayerChanged.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not a <see cref="WaterSource"/> member.</exception>
+    public ActionResult RefillCan(WaterSource source)
     {
-        var result = Game.RefillCan();
+        var result = Game.RefillCan(source);
         if (result.IsOk)
         {
             PlayerChanged?.Invoke();

@@ -705,7 +705,7 @@ public class ShopTests
         positions.ForEach(position => session.Water(position));
         var energy = session.Game.Player.Energy;
 
-        var result = session.RefillCan();
+        var result = session.RefillCan(WaterSource.Pond);
 
         Assert.Equal(ActionResult.Ok, result);
         Assert.Equal((40, 40, true), CanState(session.Game));

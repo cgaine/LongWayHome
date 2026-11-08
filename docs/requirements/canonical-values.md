@@ -227,7 +227,7 @@ Stored with each tool's Backpack Slot and in tool-upgrade Orders.
 
 ---
 
-## WaterSource *(planned, REQ-51)*
+## WaterSource
 
 | Code Value | Display Label | Where |
 |------------|---------------|-------|

@@ -450,7 +450,7 @@ public class WeatherTests
         Unchanged();
         Assert.True(session.Harvest(Other).IsOk);
         Unchanged();
-        session.RefillCan();
+        session.RefillCan(WaterSource.Pond);
         Unchanged();
         foreach (var held in Enumerable.Range(0, Backpack.RowLength))
         {
@@ -475,7 +475,7 @@ public class WeatherTests
         game.Water(Spot, ToolCost);
         game.Plant(Spot, TestGames.Crop(CropTypeId.Emberroot));
         game.Harvest(Other, TestGames.Crop(CropTypeId.Emberroot));
-        game.RefillCan();
+        game.RefillCan(WaterSource.Pond);
         game.AdvanceClock(600, TestGames.Shipped.Tuning.DayEndMinutes - 1);
 
         Assert.Equal(Weather.Rain, game.Weather);
