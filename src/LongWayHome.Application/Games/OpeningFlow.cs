@@ -155,6 +155,14 @@ public sealed class OpeningFlow : IDisposable
                 break;
             case OpeningStep.WaterLine:
                 MoveTo(OpeningStep.Water);
+
+                // The Player watered the soil before planting on it: a planted Tile is already watered, and watering
+                // it again is refused (BR-T9), so the step is already done.
+                if (_session.Game.FarmPlot.Tiles.Any(tile => tile.Planting is not null && tile.Watered))
+                {
+                    MoveTo(OpeningStep.Farewell);
+                }
+
                 break;
             case OpeningStep.Farewell:
                 // BR-I1: the Opening ends with her last line and is never played again.
@@ -192,7 +200,8 @@ public sealed class OpeningFlow : IDisposable
         {
             OpeningStep.Till => !before.Tilled && after.Tilled,
             OpeningStep.Plant => !before.Planted && after.Planted,
-            OpeningStep.Water => after.Planted && !before.Watered && after.Watered,
+            // Watering a planted Tile, or planting on one already watered: either way a planted Tile is now watered.
+            OpeningStep.Water => after is { Planted: true, Watered: true } && !(before.Planted && before.Watered),
             _ => false,
         };
 

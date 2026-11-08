@@ -252,7 +252,7 @@ public partial class Hud : CanvasLayer
         {
             _door.PlayerEntered += ShowSleepHint;
             _door.PlayerExited += HideSleepHint;
-            _sleepHint.Visible = _door.IsPlayerInRange && !IsOpeningActive;
+            RefreshSleepHint();
         }
 
         _bin = InteractionPoint.Find(GetTree().Root, BinPointId);
@@ -383,14 +383,17 @@ public partial class Hud : CanvasLayer
     private void HideRefillHint() => _refillHint.Visible = false;
 
     // #139: the door doesn't sleep while the Opening plays, so its hint waits too.
-    private void ShowSleepHint() => _sleepHint.Visible = !IsOpeningActive;
+    private void ShowSleepHint() => RefreshSleepHint();
+
+    private void RefreshSleepHint() =>
+        _sleepHint.Visible = _door is not null && IsInstanceValid(_door) && _door.IsPlayerInRange && !IsOpeningActive;
 
     private bool IsOpeningActive => _opening is not null && IsInstanceValid(_opening) && _opening.IsOpeningActive;
 
     private void OnOpeningChanged()
     {
         RefreshStepHint();
-        _sleepHint.Visible = _door is not null && IsInstanceValid(_door) && _door.IsPlayerInRange && !IsOpeningActive;
+        RefreshSleepHint();
     }
 
     private void RefreshStepHint()

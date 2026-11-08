@@ -176,7 +176,9 @@ public partial class OpeningSequence : Node3D
 
     public override void _Input(InputEvent @event)
     {
-        if (_crash is null || !IsInstanceValid(_crash) || !_crash.IsPlaying)
+        // Guarded until the fade in ends, not just while the crash plays: the tree stays paused through the fade, and a
+        // pause menu opened then would be left showing over a resumed tree when the fade unpauses it.
+        if (_crash is null || !IsInstanceValid(_crash))
         {
             return;
         }

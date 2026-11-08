@@ -93,8 +93,9 @@ public class OpeningEdgeTests
     }
 
     [Fact]
-    public void BR_I1_Planting_on_a_tile_watered_before_the_water_step_does_not_pass_it()
+    public void BR_I1_Planting_on_a_tile_watered_before_the_water_step_passes_it()
     {
+        // A planted Tile is now watered; watering it again would be refused (BR-T9), so the step is done.
         var (session, flow) = NewFlow();
         FinishLinesUntil(flow, OpeningStep.Till);
         Assert.Equal(ActionResult.Ok, session.Till(Soil));
@@ -106,7 +107,26 @@ public class OpeningEdgeTests
 
         Assert.Equal(ActionResult.Ok, session.Plant(Other, CropTypeId.Emberroot));
 
-        Assert.Equal(OpeningStep.Water, flow.Current);
+        Assert.Equal(OpeningStep.Farewell, flow.Current);
+    }
+
+    [Fact]
+    public void BR_I1_A_seed_planted_in_watered_soil_in_the_plant_step_has_the_water_step_already_done()
+    {
+        var (session, flow) = NewFlow();
+        FinishLinesUntil(flow, OpeningStep.Till);
+        Assert.Equal(ActionResult.Ok, session.Till(Soil));
+        FinishLinesUntil(flow, OpeningStep.Plant);
+        Assert.Equal(ActionResult.Ok, session.Water(Soil));
+        Assert.Equal(ActionResult.Ok, session.Plant(Soil, CropTypeId.Emberroot));
+        Assert.Equal(OpeningStep.WaterLine, flow.Current);
+        var seen = new List<OpeningStep>();
+        flow.StepChanged += () => seen.Add(flow.Current);
+
+        flow.LinesFinished();
+
+        Assert.Equal([OpeningStep.Water, OpeningStep.Farewell], seen);
+        Assert.False(session.Water(Soil).IsOk);
     }
 
     [Fact]
