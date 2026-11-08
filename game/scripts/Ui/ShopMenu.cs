@@ -16,24 +16,25 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="InteractionPoint"/> and the tree is not already paused, it pauses the tree (which stops the day clock,
 /// BR-G2) and shows a centred "Shop" panel: "Gold &lt;n&gt;", one button per listing in
 /// <see cref="GameSession.ShopOffers"/> labelled <see cref="ShopText.Row"/> (the seed rows, each with its
-/// <see cref="ItemIcons.SeedIcon"/>, then the Watering can upgrade, with no icon, while it is offered; a <see cref="ShopText.NoSeeds"/> line stands in for the seed rows when there are none),
+/// <see cref="ItemIcons.SeedIcon"/>, then the axe and pickaxe with their tool icons, then the Watering can upgrade, with no
+/// icon, each while it is offered; a <see cref="ShopText.NoSeeds"/> line stands in for the seed rows when there are none),
 /// a Close button labelled <see cref="InputGlyphs.CloseLabel"/> ("[Esc] Close" / "(B) Close", following
 /// <see cref="LastInputDevice"/> while open), and a message line. The first button takes focus, so
 /// <c>ui_up</c>/<c>ui_down</c> move between rows and <c>ui_accept</c> presses one; when nothing has focus (e.g. a
 /// mouse click on empty panel space cleared it), a navigation or accept press gives the first button focus back
 /// through <see cref="MenuFocusRecovery"/> and is consumed, without touching the pause (BR-G2). Pressing a listing asks the session to buy one at the farmer's feet tile; a rejection shows
-/// <see cref="ShopText.Rejection"/>, a purchase shows <see cref="ShopText.AfterBuy"/> ("Some seeds dropped at your feet" when any dropped), and buying the Watering can upgrade rebuilds the rows so its row goes. The Close
+/// <see cref="ShopText.Rejection"/>, a purchase shows <see cref="ShopText.AfterBuy"/> ("Some seeds dropped at your feet" when any dropped), and buying a once-per-game listing (a tool or the Watering can upgrade) rebuilds the rows so its row goes. The Close
 /// button, or a press of <c>ui_cancel</c>, <c>interact</c> or <c>pause</c>, closes the panel and resumes the tree;
 /// those presses are handled in <c>_Input</c> while open, so the <see cref="PauseMenu"/> never also toggles. Opening is in <c>_UnhandledInput</c>, after <c>_Input</c>, so the
 /// press that opens the menu cannot also close it, and it sits before <see cref="NightTransition"/> in the Farm
 /// scene so the night fade still swallows <c>interact</c> first. Always processes. Holds no rules: what is offered,
-/// the prices and whether a purchase happens are decided by <see cref="GameSession"/> (BR-L1, BR-L2).
+/// the prices and whether a purchase happens are decided by <see cref="GameSession"/> (BR-L1, BR-L2, BR-L4, BR-L5).
 /// </summary>
 public partial class ShopMenu : CanvasLayer
 {
     private const string ShopPointId = "shop";
 
-    private const int SeedIconSize = 32;
+    private const int RowIconSize = 32;
 
     private GameSession? _session;
 
@@ -154,7 +155,7 @@ public partial class ShopMenu : CanvasLayer
         var offers = _session!.ShopOffers();
         if (!offers.Any(listing => listing.Kind == ShopItemKind.Seed))
         {
-            // Offers list the seeds first, so this line sits above the Can upgrade row (BR-L1).
+            // Offers list the seeds first, so this line sits above the tool and Can upgrade rows (BR-L1).
             _items.AddChild(StyledLabel(ShopText.NoSeeds));
         }
 
@@ -164,7 +165,7 @@ public partial class ShopMenu : CanvasLayer
             if (ItemIcons.For(listing) is { } icon)
             {
                 row.Icon = IconTextures.Get(icon);
-                row.AddThemeConstantOverride("icon_max_width", SeedIconSize);
+                row.AddThemeConstantOverride("icon_max_width", RowIconSize);
             }
 
             row.Pressed += () => Buy(listing);
@@ -186,8 +187,8 @@ public partial class ShopMenu : CanvasLayer
         RefreshGold();
         _messageLabel.Text = ShopText.AfterBuy(_session.LastBuyDropped);
 
-        // BR-L1: the Can upgrade is offered only until bought, so its row goes once it is.
-        if (listing.Kind == ShopItemKind.CanUpgrade)
+        // BR-L5: a once-per-game listing (a tool or the Can upgrade) is offered only until bought, so its row goes.
+        if (listing.OncePerGame)
         {
             RebuildItems();
             FocusFirstButton();

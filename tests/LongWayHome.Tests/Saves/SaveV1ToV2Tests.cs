@@ -223,4 +223,24 @@ public sealed class SaveV1ToV2Tests : IDisposable
         Assert.True(migrated["openingDone"] is JsonValue, "the migrated document has no openingDone value");
         Assert.True(migrated["openingDone"]!.GetValue<bool>());
     }
+
+    // ---- #145: a Phase 1 save has bought nothing once-per-game ----
+
+    [Fact]
+    public void AC8_A_migrated_version_1_save_has_no_purchased_listings()
+    {
+        // Characterization while PurchasedListings is always empty; guards the migration once it is real.
+        var game = Load(SaveDocuments.V1(new JsonArray(SaveDocuments.Stack("seed", "emberroot", 10))));
+
+        Assert.Empty(game.PurchasedListings);
+    }
+
+    [Fact]
+    public void AC8_The_step_writes_an_empty_purchasedListings_array()
+    {
+        var migrated = SaveV1ToV2.Migrate(SaveDocuments.V1([]));
+
+        Assert.True(migrated["purchasedListings"] is JsonArray, "the migrated document has no purchasedListings array");
+        Assert.Empty(migrated["purchasedListings"]!.AsArray());
+    }
 }

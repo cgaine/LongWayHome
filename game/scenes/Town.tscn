@@ -259,6 +259,12 @@ Range = 1.5
 script = ExtResource("6_waterrefill")
 Source = "river"
 
+[node name="StoreCounter" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.6, 0, -3.6)
+script = ExtResource("5_point")
+PointId = "shop"
+Range = 1.5
+
 [node name="Maggie" parent="." instance=ExtResource("7_resident")]
 transform = Transform3D(0.5, 0, 0.866025, 0, 1, 0, -0.866025, 0, 0.5, -11.6, 0, -2)
 ResidentId = "maggie"

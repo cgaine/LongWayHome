@@ -1,10 +1,12 @@
 {
   "listings": [
-    { "id": "seed_emberroot", "kind": "seed", "cropTypeId": "emberroot", "price": 15 },
-    { "id": "seed_dusktuber", "kind": "seed", "cropTypeId": "dusktuber", "price": 30 },
-    { "id": "seed_moonmelon", "kind": "seed", "cropTypeId": "moonmelon", "price": 60 },
-    { "id": "seed_sunbell",   "kind": "seed", "cropTypeId": "sunbell",   "price": 20 },
-    { "id": "seed_starcorn",  "kind": "seed", "cropTypeId": "starcorn",  "price": 45 },
-    { "id": "can_upgrade",    "kind": "can_upgrade", "cropTypeId": null, "price": 200 }
+    { "id": "seed_emberroot", "kind": "seed",        "cropTypeId": "emberroot", "toolId": null,      "price": 15,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "seed_dusktuber", "kind": "seed",        "cropTypeId": "dusktuber", "toolId": null,      "price": 30,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "seed_moonmelon", "kind": "seed",        "cropTypeId": "moonmelon", "toolId": null,      "price": 60,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "seed_sunbell",   "kind": "seed",        "cropTypeId": "sunbell",   "toolId": null,      "price": 20,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "seed_starcorn",  "kind": "seed",        "cropTypeId": "starcorn",  "toolId": null,      "price": 45,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "tool_axe",       "kind": "tool",        "cropTypeId": null,        "toolId": "axe",     "price": 50,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": true },
+    { "id": "tool_pickaxe",   "kind": "tool",        "cropTypeId": null,        "toolId": "pickaxe", "price": 75,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": true },
+    { "id": "can_upgrade",    "kind": "can_upgrade", "cropTypeId": null,        "toolId": null,      "price": 200, "vendor": "general_store", "requiresStage": 1, "oncePerGame": true }
   ]
 }

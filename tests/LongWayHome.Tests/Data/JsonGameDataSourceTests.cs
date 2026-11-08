@@ -24,9 +24,10 @@ public class JsonGameDataSourceTests
     private const string ValidShop = """
         {
           "listings": [
-            { "id": "seed_emberroot", "kind": "seed", "cropTypeId": "emberroot", "price": 15 },
-            { "id": "seed_moonmelon", "kind": "seed", "cropTypeId": "moonmelon", "price": 60 },
-            { "id": "can_upgrade", "kind": "can_upgrade", "cropTypeId": null, "price": 200 }
+            { "id": "seed_emberroot", "kind": "seed", "cropTypeId": "emberroot", "toolId": null, "price": 15, "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+            { "id": "seed_moonmelon", "kind": "seed", "cropTypeId": "moonmelon", "toolId": null, "price": 60, "vendor": "carpenter", "requiresStage": 0, "oncePerGame": false },
+            { "id": "can_upgrade", "kind": "can_upgrade", "cropTypeId": null, "toolId": null, "price": 200, "vendor": "general_store", "requiresStage": 1, "oncePerGame": true },
+            { "id": "tool_axe", "kind": "tool", "cropTypeId": null, "toolId": "axe", "price": 50, "vendor": "general_store", "requiresStage": 1, "oncePerGame": true }
           ]
         }
         """;
@@ -62,9 +63,11 @@ public class JsonGameDataSourceTests
             data.CropTypes[CropTypeId.Moonmelon]);
         Assert.Equal(
             [
-                new ShopListing("seed_emberroot", ShopItemKind.Seed, CropTypeId.Emberroot, new Gold(15)),
-                new ShopListing("seed_moonmelon", ShopItemKind.Seed, CropTypeId.Moonmelon, new Gold(60)),
-                new ShopListing("can_upgrade", ShopItemKind.CanUpgrade, null, new Gold(200)),
+                // #145: every listing carries its vendor, the vendor's stage, its tool and the once-per-game flag.
+                new ShopListing("seed_emberroot", ShopItemKind.Seed, CropTypeId.Emberroot, new Gold(15), BuildingId.GeneralStore, 1, null, false),
+                new ShopListing("seed_moonmelon", ShopItemKind.Seed, CropTypeId.Moonmelon, new Gold(60), BuildingId.Carpenter, 0, null, false),
+                new ShopListing("can_upgrade", ShopItemKind.CanUpgrade, null, new Gold(200), BuildingId.GeneralStore, 1, null, true),
+                new ShopListing("tool_axe", ShopItemKind.Tool, null, new Gold(50), BuildingId.GeneralStore, 1, ToolId.Axe, true),
             ],
             data.ShopListings);
         Assert.Equal([new StartingStack(CropTypeId.Emberroot, 10)], data.Tuning.StartingSeeds);
@@ -216,7 +219,7 @@ public class JsonGameDataSourceTests
     public void Two_seed_listings_for_one_crop_type_are_rejected()
     {
         var shop = Edit(ValidShop, root => root["listings"]!.AsArray().Add(
-            JsonNode.Parse("""{ "id": "seed_emberroot_2", "kind": "seed", "cropTypeId": "emberroot", "price": 15 }""")));
+            JsonNode.Parse("""{ "id": "seed_emberroot_2", "kind": "seed", "cropTypeId": "emberroot", "toolId": null, "price": 15, "vendor": "general_store", "requiresStage": 1, "oncePerGame": false }""")));
 
         var error = Assert.Single(LoadErrors(ValidCrops, shop, ValidTuning));
 
@@ -227,7 +230,7 @@ public class JsonGameDataSourceTests
     public void Two_can_upgrade_listings_are_rejected()
     {
         var shop = Edit(ValidShop, root => root["listings"]!.AsArray().Add(
-            JsonNode.Parse("""{ "id": "can_upgrade_2", "kind": "can_upgrade", "cropTypeId": null, "price": 300 }""")));
+            JsonNode.Parse("""{ "id": "can_upgrade_2", "kind": "can_upgrade", "cropTypeId": null, "toolId": null, "price": 300, "vendor": "general_store", "requiresStage": 1, "oncePerGame": true }""")));
 
         var error = Assert.Single(LoadErrors(ValidCrops, shop, ValidTuning));
 
@@ -460,6 +463,176 @@ public class JsonGameDataSourceTests
         Assert.Equal("\"emberroot\"", JsonSerializer.Serialize(CropTypeId.Emberroot, options));
         Assert.Equal(Season.Fall, JsonSerializer.Deserialize<Season>("\"fall\"", options));
         Assert.Equal(ShopItemKind.CanUpgrade, JsonSerializer.Deserialize<ShopItemKind>("\"can_upgrade\"", options));
+    }
+
+    // ---- #145 AC7: vendor, requiresStage, toolId and oncePerGame ---------------------------------------
+
+    private const int ToolAxe = 3;
+
+    /// <summary>The single load error, checked to name the listing and the offending field.</summary>
+    private static void AssertSingleErrorNaming(IReadOnlyList<string> errors, string listingId, string field)
+    {
+        var error = Assert.Single(errors);
+        Assert.StartsWith($"shop.json: {listingId}.", error);
+        Assert.Contains(field, error);
+    }
+
+    [Fact]
+    public void AC7_A_tool_listing_loads_its_tool_vendor_stage_and_once_per_game_flag()
+    {
+        var data = Load(ValidCrops, ValidShop, ValidTuning);
+
+        Assert.Equal(
+            new ShopListing("tool_axe", ShopItemKind.Tool, null, new Gold(50), BuildingId.GeneralStore, 1, ToolId.Axe, true),
+            data.ShopListings[ToolAxe]);
+    }
+
+    [Fact]
+    public void AC7_A_carpenter_listing_at_stage_0_loads_its_vendor_and_stage()
+    {
+        var data = Load(ValidCrops, ValidShop, ValidTuning);
+
+        Assert.Equal((BuildingId.Carpenter, 0, false), (data.ShopListings[1].Vendor, data.ShopListings[1].RequiresStage, data.ShopListings[1].OncePerGame));
+    }
+
+    [Fact]
+    public void AC7_A_tool_listing_with_no_toolId_is_rejected_naming_the_listing()
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![ToolAxe]!["toolId"] = null);
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), "tool_axe", "toolId");
+    }
+
+    [Fact]
+    public void AC7_A_tool_listing_without_a_toolId_field_is_rejected_naming_the_listing()
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![ToolAxe]!.AsObject().Remove("toolId"));
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), "tool_axe", "toolId");
+    }
+
+    [Fact]
+    public void AC7_A_tool_listing_for_the_hoe_is_rejected_naming_the_listing()
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![ToolAxe]!["toolId"] = "hoe");
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), "tool_axe", "toolId");
+    }
+
+    [Fact]
+    public void AC7_A_second_listing_for_the_same_tool_is_rejected_naming_it()
+    {
+        var shop = Edit(ValidShop, root => root["listings"]!.AsArray().Add(JsonNode.Parse(
+            """{ "id": "tool_axe_2", "kind": "tool", "cropTypeId": null, "toolId": "axe", "price": 60, "vendor": "general_store", "requiresStage": 1, "oncePerGame": true }""")));
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), "tool_axe_2", "axe");
+    }
+
+    [Fact]
+    public void AC7_A_listing_for_the_other_tool_is_accepted()
+    {
+        var shop = Edit(ValidShop, root => root["listings"]!.AsArray().Add(JsonNode.Parse(
+            """{ "id": "tool_pickaxe", "kind": "tool", "cropTypeId": null, "toolId": "pickaxe", "price": 75, "vendor": "general_store", "requiresStage": 1, "oncePerGame": true }""")));
+
+        var data = Load(ValidCrops, shop, ValidTuning);
+
+        Assert.Equal(
+            new ShopListing("tool_pickaxe", ShopItemKind.Tool, null, new Gold(75), BuildingId.GeneralStore, 1, ToolId.Pickaxe, true),
+            data.ShopListings[^1]);
+    }
+
+    [Fact]
+    public void AC7_A_tool_listing_with_a_cropTypeId_is_rejected_naming_the_listing()
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![ToolAxe]!["cropTypeId"] = "emberroot");
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), "tool_axe", "cropTypeId");
+    }
+
+    [Fact]
+    public void AC7_A_tool_listing_that_is_not_once_per_game_is_rejected_naming_the_listing()
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![ToolAxe]!["oncePerGame"] = false);
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), "tool_axe", "oncePerGame");
+    }
+
+    [Theory]
+    [InlineData(0, "seed_emberroot", true)]
+    [InlineData(2, "can_upgrade", false)]
+    public void AC7_A_seed_listing_once_per_game_or_a_can_upgrade_not_once_per_game_is_rejected_naming_it(
+        int index, string listingId, bool oncePerGame)
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![index]!["oncePerGame"] = oncePerGame);
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), listingId, "oncePerGame");
+    }
+
+    [Theory]
+    [InlineData(0, "seed_emberroot")]
+    [InlineData(2, "can_upgrade")]
+    public void AC7_A_seed_or_can_upgrade_listing_with_a_toolId_is_rejected_naming_the_listing(int index, string listingId)
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![index]!["toolId"] = "axe");
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), listingId, "toolId");
+    }
+
+    [Theory]
+    [InlineData("miras_house")]
+    [InlineData("blacksmith")]
+    public void AC7_A_vendor_other_than_the_general_store_or_carpenter_is_rejected_naming_the_listing(string vendor)
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![0]!["vendor"] = vendor);
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), "seed_emberroot", "vendor");
+    }
+
+    [Fact]
+    public void AC7_An_unknown_vendor_code_is_a_load_error_at_the_listings_vendor()
+    {
+        // Characterization: an unknown BuildingId code already fails to parse once the DTO has a vendor field.
+        var shop = Edit(ValidShop, root => root["listings"]![0]!["vendor"] = "bakery");
+
+        var error = Assert.Single(LoadErrors(ValidCrops, shop, ValidTuning));
+
+        Assert.StartsWith("shop.json: invalid JSON at $.listings[0].vendor", error);
+    }
+
+    [Fact]
+    public void AC7_A_negative_requiresStage_is_rejected_naming_the_listing()
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![ToolAxe]!["requiresStage"] = -1);
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), "tool_axe", "requiresStage");
+    }
+
+    [Theory]
+    [InlineData("vendor")]
+    [InlineData("requiresStage")]
+    [InlineData("oncePerGame")]
+    public void AC7_A_listing_missing_a_required_field_is_rejected_naming_the_field(string field)
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![0]!.AsObject().Remove(field));
+
+        var error = Assert.Single(LoadErrors(ValidCrops, shop, ValidTuning));
+
+        Assert.StartsWith("shop.json: invalid JSON at ", error);
+        Assert.Contains(field, error);
+    }
+
+    [Fact]
+    public void AC7_Tool_and_building_codes_round_trip_as_canonical_snake_case()
+    {
+        var options = JsonGameDataSource.SerializerOptions;
+
+        Assert.Equal("\"tool\"", JsonSerializer.Serialize(ShopItemKind.Tool, options));
+        Assert.Equal("\"axe\"", JsonSerializer.Serialize(ToolId.Axe, options));
+        Assert.Equal("\"pickaxe\"", JsonSerializer.Serialize(ToolId.Pickaxe, options));
+        Assert.Equal("\"general_store\"", JsonSerializer.Serialize(BuildingId.GeneralStore, options));
+        Assert.Equal("\"carpenter\"", JsonSerializer.Serialize(BuildingId.Carpenter, options));
+        Assert.Equal("\"miras_house\"", JsonSerializer.Serialize(BuildingId.MirasHouse, options));
+        Assert.Equal("\"blacksmith\"", JsonSerializer.Serialize(BuildingId.Blacksmith, options));
     }
 
     // ---- Helpers -------------------------------------------------------------------------------------

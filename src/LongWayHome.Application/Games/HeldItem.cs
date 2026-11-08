@@ -10,11 +10,13 @@ public sealed record HeldItem(ToolId? Tool, CropTypeId? Seed)
 
     public static HeldItem SeedOf(CropTypeId seed) => new(null, seed);
 
-    /// <summary>The display label from canonical-values.md: "Hoe", "Watering can", or "&lt;Crop type&gt; seeds".</summary>
+    /// <summary>The display label from canonical-values.md: "Hoe", "Watering can", "Axe", "Pickaxe", or "&lt;Crop type&gt; seeds".</summary>
     public string DisplayLabel => (Tool, Seed) switch
     {
         (ToolId.Hoe, null) => "Hoe",
         (ToolId.WateringCan, null) => "Watering can",
+        (ToolId.Axe, null) => "Axe",
+        (ToolId.Pickaxe, null) => "Pickaxe",
         (null, { } seed) => $"{CropLabels.For(seed)} seeds",
         _ => throw new InvalidOperationException("A held item is exactly one tool or one seed type."),
     };

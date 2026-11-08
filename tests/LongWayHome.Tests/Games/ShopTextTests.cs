@@ -71,7 +71,7 @@ public class ShopTextTests
     [Fact]
     public void Row_of_a_seed_listing_with_no_crop_type_throws()
     {
-        var listing = new ShopListing("seed_nothing", ShopItemKind.Seed, null, new Gold(10));
+        var listing = new ShopListing("seed_nothing", ShopItemKind.Seed, null, new Gold(10), BuildingId.GeneralStore, 1, null, false);
 
         Assert.Throws<ArgumentException>(() => ShopText.Row(listing, TestGames.Shipped));
     }
@@ -96,6 +96,36 @@ public class ShopTextTests
     public void Rejection_text_of_a_non_shop_rejection_throws()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => ShopText.Rejection(Rejection.TooTired));
+    }
+
+    // ---- #145: the axe and the pickaxe ----
+
+    [Fact]
+    public void AC9_row_of_the_axe_is_axe_50g()
+    {
+        Assert.Equal("Axe — 50g", ShopText.Row(Listing("tool_axe"), TestGames.Shipped));
+    }
+
+    [Fact]
+    public void AC9_row_of_the_pickaxe_is_pickaxe_75g()
+    {
+        Assert.Equal("Pickaxe — 75g", ShopText.Row(Listing("tool_pickaxe"), TestGames.Shipped));
+    }
+
+    [Fact]
+    public void AC9_row_of_a_tool_listing_uses_the_listing_price()
+    {
+        var listing = new ShopListing("tool_axe", ShopItemKind.Tool, null, new Gold(65), BuildingId.GeneralStore, 1, ToolId.Axe, true);
+
+        Assert.Equal("Axe — 65g", ShopText.Row(listing, TestGames.Shipped));
+    }
+
+    [Fact]
+    public void Row_of_a_tool_listing_with_no_tool_throws()
+    {
+        var listing = new ShopListing("tool_nothing", ShopItemKind.Tool, null, new Gold(50), BuildingId.GeneralStore, 1, null, true);
+
+        Assert.Throws<ArgumentException>(() => ShopText.Row(listing, TestGames.Shipped));
     }
 
     [Fact]

@@ -96,6 +96,153 @@ public sealed class JsonSaveStoreTests : IDisposable
         Assert.True(Store().Load(1).OpeningDone);
     }
 
+    // ---- #145: once-per-game purchases and the axe and pickaxe in the Backpack ----
+
+    /// <summary>The same Game rebuilt through the constructor with the given purchased listings.</summary>
+    private static LongWayHome.Domain.Games.Game WithPurchases(LongWayHome.Domain.Games.Game game, params string[] purchased) =>
+        new(
+            game.Id,
+            game.Date,
+            game.ClockMinutes,
+            game.Weather,
+            game.LastDayEnd,
+            game.CreatedAt,
+            game.SavedAt,
+            game.Player,
+            game.FarmPlot,
+            game.ShippingBin,
+            game.Residents,
+            game.OpeningDone,
+            new HashSet<string>(purchased));
+
+    private static string DescribePurchases(LongWayHome.Domain.Games.Game game) =>
+        string.Join(",", game.PurchasedListings.Order(StringComparer.Ordinal));
+
+    /// <summary>The tools in Slots 0 and 1 and the Basic axe in Slot 3.</summary>
+    private static Backpack AxeInSlot3() =>
+        TestGames.RestoredBackpack(new BackpackSlot(3, ItemRef.Tool(ToolId.Axe), 1, ToolTier.Basic));
+
+    [Fact]
+    public void AC8_A_game_with_the_axe_in_slot_3_and_tool_axe_purchased_saves_and_loads_with_both()
+    {
+        var game = WithPurchases(TestGames.WithBackpack(AxeInSlot3()), "tool_axe");
+
+        Store().Save(1, game);
+        var loaded = Store().Load(1);
+
+        Assert.Equal("3:Tool:Axe:1:Basic", TestGames.DescribeSlot(loaded.Player.Backpack.Slots[3]));
+        Assert.Equal("tool_axe", DescribePurchases(loaded));
+    }
+
+    [Fact]
+    public void AC8_The_file_writes_purchasedListings_as_ids_sorted_ordinal()
+    {
+        Store().Save(1, WithPurchases(TestGames.WithGold(100), "tool_pickaxe", "can_upgrade", "tool_axe"));
+        var document = _folder.ReadSlot(1);
+
+        Assert.True(document["purchasedListings"] is JsonArray, "the saved file has no purchasedListings array");
+        Assert.Equal(
+            ["can_upgrade", "tool_axe", "tool_pickaxe"],
+            document["purchasedListings"]!.AsArray().Select(id => id!.GetValue<string>()));
+    }
+
+    [Fact]
+    public void AC8_A_game_with_no_purchases_writes_an_empty_purchasedListings_array()
+    {
+        Store().Save(1, TestGames.WithGold(100));
+
+        Assert.Equal("[]", _folder.ReadSlot(1)["purchasedListings"]?.ToJsonString());
+    }
+
+    [Fact]
+    public void AC8_A_version_2_save_without_purchasedListings_loads_with_none()
+    {
+        // Characterization while PurchasedListings is always empty; guards the missing-field default once it is real.
+        _folder.WriteSlot(1, SaveDocuments.V2(SaveDocuments.GoodBackpack()));
+
+        Assert.Empty(Store().Load(1).PurchasedListings);
+    }
+
+    [Fact]
+    public void AC8_A_saved_file_with_its_purchasedListings_removed_loads_with_none()
+    {
+        Store().Save(1, WithPurchases(TestGames.WithGold(100), "tool_axe"));
+        var document = _folder.ReadSlot(1);
+        document.Remove("purchasedListings");
+        _folder.WriteSlot(1, document);
+
+        Assert.Empty(Store().Load(1).PurchasedListings);
+    }
+
+    [Fact]
+    public void AC8_A_literal_v2_document_with_purchasedListings_loads_them()
+    {
+        var document = SaveDocuments.V2(SaveDocuments.GoodBackpack());
+        document["purchasedListings"] = new JsonArray("tool_pickaxe");
+        _folder.WriteSlot(1, document);
+
+        Assert.Equal("tool_pickaxe", DescribePurchases(Store().Load(1)));
+    }
+
+    [Fact]
+    public void AC8_A_literal_v2_backpack_holding_the_axe_and_pickaxe_loads_them_with_their_tiers()
+    {
+        // Characterization: the tool codes come from ToolId, so this loads once the enum has axe and pickaxe.
+        var backpack = SaveDocuments.Backpack(
+            12,
+            0,
+            SaveDocuments.Slot(0, "tool", "hoe", 1, "basic"),
+            SaveDocuments.Slot(1, "tool", "watering_can", 1, "basic"),
+            SaveDocuments.Slot(4, "tool", "axe", 1, "basic"),
+            SaveDocuments.Slot(7, "tool", "pickaxe", 1, "basic"));
+        _folder.WriteSlot(1, SaveDocuments.V2(backpack));
+
+        var loaded = Store().Load(1);
+
+        Assert.Equal("4:Tool:Axe:1:Basic", TestGames.DescribeSlot(loaded.Player.Backpack.Slots[4]));
+        Assert.Equal("7:Tool:Pickaxe:1:Basic", TestGames.DescribeSlot(loaded.Player.Backpack.Slots[7]));
+    }
+
+    [Fact]
+    public void BR_L4_An_axe_bought_then_saved_and_loaded_is_in_its_slot_at_basic_and_not_offered()
+    {
+        var game = TestGames.WithBackpack(TestGames.StartingBackpack(), gold: 100);
+        Assert.Equal(ActionResult.Ok, Application.Games.ShopService.Buy(game, TestGames.Shipped, "tool_axe"));
+
+        Store().Save(1, game);
+        var loaded = Store().Load(1);
+
+        Assert.Equal("4:Tool:Axe:1:Basic", TestGames.DescribeSlot(loaded.Player.Backpack.Slots[4]));
+        Assert.Equal(new Gold(50), loaded.Player.Gold);
+        Assert.DoesNotContain(
+            "tool_axe",
+            Application.Games.ShopService.Offers(loaded, TestGames.Shipped).Select(listing => listing.Id));
+    }
+
+    [Fact]
+    public void BR_L5_A_bought_pickaxe_stays_unoffered_after_loading_even_without_the_pickaxe_in_the_backpack()
+    {
+        // Only the saved purchase record keeps a once-per-game listing off the shelf.
+        Store().Save(1, WithPurchases(TestGames.WithGold(1000), "tool_pickaxe"));
+        var loaded = Store().Load(1);
+        var offers = Application.Games.ShopService.Offers(loaded, TestGames.Shipped).Select(listing => listing.Id).ToList();
+
+        Assert.DoesNotContain("tool_pickaxe", offers);
+        Assert.Contains("tool_axe", offers);
+    }
+
+    [Theory]
+    [InlineData("null entry")]
+    [InlineData("blank entry")]
+    public void BR_L5_A_save_whose_purchasedListings_hold_a_null_or_blank_id_is_refused_on_load(string how)
+    {
+        SaveThenEdit(document => document["purchasedListings"] = how == "null entry"
+            ? new JsonArray("tool_axe", null)
+            : new JsonArray("tool_axe", " "));
+
+        AssertUnreadable();
+    }
+
     // ---- #138: the Residents ----
 
     private static string DescribeResidents(LongWayHome.Domain.Games.Game game) =>

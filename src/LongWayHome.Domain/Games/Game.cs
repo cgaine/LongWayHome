@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
@@ -23,7 +24,8 @@ public sealed class Game
         FarmPlot farmPlot,
         ShippingBin? shippingBin = null,
         IReadOnlyList<Resident>? residents = null,
-        bool openingDone = true)
+        bool openingDone = true,
+        IReadOnlySet<string>? purchasedListings = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -41,9 +43,44 @@ public sealed class Game
         DroppedItems = _droppedItems.AsReadOnly();
         Residents = ValidResidents(residents ?? DefaultResidents());
         OpeningDone = openingDone;
+        _purchasedListings = ValidPurchasedListings(purchasedListings);
     }
 
     public Guid Id { get; }
+
+    private ImmutableHashSet<string> _purchasedListings;
+
+    /// <summary>The ids of the once-per-game Shop listings bought (BR-L5); changes only through RecordPurchase.</summary>
+    public IReadOnlySet<string> PurchasedListings => _purchasedListings;
+
+    /// <summary>
+    /// Records a once-per-game listing as bought (BR-L5); recording it again changes nothing. A null or blank id
+    /// throws.
+    /// </summary>
+    public void RecordPurchase(string listingId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(listingId);
+
+        // BR-L5: "bought" is remembered for the rest of the Game; a set, so a second record changes nothing.
+        _purchasedListings = _purchasedListings.Add(listingId);
+    }
+
+    /// <summary>A copy of the given ids (ordinal), refusing a null or blank one; none given is empty.</summary>
+    private static ImmutableHashSet<string> ValidPurchasedListings(IReadOnlySet<string>? purchasedListings)
+    {
+        var ids = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+        foreach (var id in purchasedListings ?? ImmutableHashSet<string>.Empty)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("A purchased listing id is never blank.", nameof(purchasedListings));
+            }
+
+            ids.Add(id);
+        }
+
+        return ids.ToImmutable();
+    }
 
     /// <summary>
     /// Whether Maggie's Opening has finished (BR-I1). A new Game starts with it false; every Game saved before the

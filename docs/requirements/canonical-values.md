@@ -83,8 +83,8 @@ Stored in `Player.tools`; from Phase 2 in a Backpack Slot's `ItemRef`.
 |------------|---------------|-------|
 | `hoe` | Hoe | Tills grass. 2 energy per use. |
 | `watering_can` | Watering can | Waters a tilled Tile. 2 energy per use, 1 charge per Tile. |
-| `axe` | Axe | *(planned, REQ-58)* Chops trees and stumps. 50 gold at Maggie's store. |
-| `pickaxe` | Pickaxe | *(planned, REQ-58)* Breaks rocks, ore deposits and debris. 75 gold; opens the mine (BR-M1). |
+| `axe` | Axe | Chops trees and stumps. 50 gold at Maggie's store. |
+| `pickaxe` | Pickaxe | Breaks rocks, ore deposits and debris. 75 gold; opens the mine (BR-M1). |
 
 ---
 
@@ -96,7 +96,7 @@ Stored in `ShopListing.kind`.
 |------------|---------------|-------|
 | `seed` | Seeds | Offered only in the Crop type's Season (BR-L1). |
 | `can_upgrade` | Watering can upgrade | Phase 1 only. Capacity 20 → 40; bought once per Game (BR-W4, retired in Phase 2). |
-| `tool` | Tool | *(planned, REQ-58)* Axe or pickaxe, once each. |
+| `tool` | Tool | Axe or pickaxe, once each. |
 | `backpack_upgrade` | Backpack upgrade | *(planned, REQ-58)* 24 slots (store stage 2), 36 slots (stage 3). |
 | `placeable` | Fence or chest | *(planned, REQ-48, REQ-58)* |
 | `farmhouse_upgrade` | Farmhouse upgrade | *(planned, REQ-48)* Carpenter stage 2, once; restores the farmhouse's look. |
@@ -181,9 +181,11 @@ Stored with each tool's Backpack Slot and in tool-upgrade Orders.
 
 ---
 
-## BuildingId *(planned, REQ-45)*
+## BuildingId
 
-| Code Value | Display Label | Stages in Phase 2 | Starts at |
+Stored in `ShopListing.vendor` (`general_store` or `carpenter`); *(planned, REQ-45)* the Building key and its stages. Until #124, the general store counts as stage 1 and every other Building as stage 0.
+
+| Code Value | Display Label | Stages in Phase 2 *(planned, REQ-45)* | Starts at *(planned, REQ-45)* |
 |------------|---------------|-------------------|-----------|
 | `general_store` | General store | 1–4 | 1 (Maggie's corner) |
 | `carpenter` | Carpenter | 0–2 | 0 |

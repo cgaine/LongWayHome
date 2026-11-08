@@ -63,25 +63,47 @@ public static class ItemIcons
         _ => throw new ArgumentOutOfRangeException(nameof(material), material, "Unknown material."),
     };
 
-    /// <summary>The seed icon for a held seed, or null for a tool.</summary>
+    /// <summary>The seed icon for a held seed, the tool icon for the axe or pickaxe, or null for the hoe and can.</summary>
     public static string? For(HeldItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
-        return item.Seed is { } seed ? SeedIcon(seed) : null;
+        return item switch
+        {
+            { Seed: { } seed } => SeedIcon(seed),
+            { Tool: { } tool } => GatherIcon(tool),
+            _ => null,
+        };
     }
 
-    /// <summary>The seed icon for a Shop seed listing, or null for the Watering can upgrade (which has no icon).</summary>
+    /// <summary>
+    /// The seed icon for a Shop seed listing, the tool icon for the axe or pickaxe listing, or null for the Watering
+    /// can upgrade (which has no icon).
+    /// </summary>
     public static string? For(ShopListing listing)
     {
         ArgumentNullException.ThrowIfNull(listing);
-        return listing is { Kind: ShopItemKind.Seed, CropTypeId: { } crop } ? SeedIcon(crop) : null;
+        return listing switch
+        {
+            { Kind: ShopItemKind.Seed, CropTypeId: { } crop } => SeedIcon(crop),
+            { Kind: ShopItemKind.Tool, ToolId: { } tool } => GatherIcon(tool),
+            _ => null,
+        };
     }
 
-    /// <summary>The seed or crop icon for an item, or null for a tool.</summary>
+    /// <summary>The seed or crop icon for an item, the tool icon for the axe or pickaxe, or null for the hoe and can.</summary>
     public static string? For(ItemRef item) => item switch
     {
         { Kind: ItemKind.Seed, CropTypeId: { } seed } => SeedIcon(seed),
         { Kind: ItemKind.Crop, CropTypeId: { } crop } => CropIcon(crop),
+        { Kind: ItemKind.Tool, ToolId: { } tool } => GatherIcon(tool),
+        _ => null,
+    };
+
+    /// <summary>The axe's or pickaxe's icon; null for the hoe and the can, which have none.</summary>
+    private static string? GatherIcon(ToolId tool) => tool switch
+    {
+        ToolId.Axe => ToolIcon(GatherTool.Axe),
+        ToolId.Pickaxe => ToolIcon(GatherTool.Pickaxe),
         _ => null,
     };
 

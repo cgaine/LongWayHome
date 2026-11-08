@@ -25,6 +25,20 @@ public class HeldItemArtTests
             .Concat(Enum.GetValues<CropTypeId>().Select(HeldItem.SeedOf))
             .Select(held => new object[] { held });
 
+    // ---- #145: the farmer holds the bought axe and pickaxe ----
+
+    [Fact]
+    public void AC9_the_held_axe_uses_the_axe_parts() =>
+        Assert.Equal(HeldItemArt.PartsFor(GatherTool.Axe), HeldItemArt.PartsFor(HeldItem.Of(ToolId.Axe)));
+
+    [Fact]
+    public void AC9_the_held_pickaxe_uses_the_pickaxe_parts() =>
+        Assert.Equal(HeldItemArt.PartsFor(GatherTool.Pickaxe), HeldItemArt.PartsFor(HeldItem.Of(ToolId.Pickaxe)));
+
+    [Fact]
+    public void AC9_every_tool_has_held_item_art() =>
+        Assert.All(Enum.GetValues<ToolId>(), tool => Assert.NotEmpty(HeldItemArt.PartsFor(HeldItem.Of(tool))));
+
     // ---- AC2: every held-item role is a palette role ----
 
     [Theory]

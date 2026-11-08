@@ -220,6 +220,7 @@ public sealed class JsonSaveStore : ISaveStore
             .Select(resident => new ResidentDto { Id = ResidentCodes.Code(resident.Id), Present = resident.Present })
             .ToList(),
         OpeningDone = game.OpeningDone,
+        PurchasedListings = game.PurchasedListings.Order(StringComparer.Ordinal).ToList(),
     };
 
     /// <summary>Every Slot is written, an empty one with a null item, quantity 0 and a null tier.</summary>
@@ -273,8 +274,18 @@ public sealed class JsonSaveStore : ISaveStore
             ToFarmPlot(farmPlot),
             ToShippingBin(shippingBin),
             ToResidents(dto.Residents),
-            openingDone: dto.OpeningDone ?? true); // BR-I1: a save from before #139 is past the Opening
+            openingDone: dto.OpeningDone ?? true, // BR-I1: a save from before #139 is past the Opening
+            purchasedListings: ToPurchasedListings(dto.PurchasedListings));
     }
+
+    /// <summary>
+    /// No <c>purchasedListings</c> (a version 2 file from before #145) is none bought (BR-L5). A null entry is refused;
+    /// the Game constructor refuses a blank one.
+    /// </summary>
+    private static HashSet<string> ToPurchasedListings(IReadOnlyList<string?>? purchased) =>
+        purchased is null
+            ? []
+            : purchased.Select(id => Required(id, "purchasedListings[]")).ToHashSet(StringComparer.Ordinal);
 
     /// <summary>
     /// No <c>residents</c> (a version 2 file from before #138) is the new-Game default (BR-R1). Otherwise each entry

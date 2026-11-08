@@ -36,22 +36,43 @@ public class ShippedGameDataTests
     }
 
     [Fact]
-    public void AC9_shipped_shop_has_five_seed_listings_then_the_can_upgrade()
+    public void AC9_shipped_shop_has_five_seed_listings_and_the_can_upgrade()
     {
+        // #145: each listing is sold by the general store from stage 1; only the Can upgrade is once per game.
         ShopListing[] expected =
         [
-            new("seed_emberroot", ShopItemKind.Seed, CropTypeId.Emberroot, new Gold(15)),
-            new("seed_dusktuber", ShopItemKind.Seed, CropTypeId.Dusktuber, new Gold(30)),
-            new("seed_moonmelon", ShopItemKind.Seed, CropTypeId.Moonmelon, new Gold(60)),
-            new("seed_sunbell", ShopItemKind.Seed, CropTypeId.Sunbell, new Gold(20)),
-            new("seed_starcorn", ShopItemKind.Seed, CropTypeId.Starcorn, new Gold(45)),
-            new("can_upgrade", ShopItemKind.CanUpgrade, null, new Gold(200)),
+            new("seed_emberroot", ShopItemKind.Seed, CropTypeId.Emberroot, new Gold(15), BuildingId.GeneralStore, 1, null, false),
+            new("seed_dusktuber", ShopItemKind.Seed, CropTypeId.Dusktuber, new Gold(30), BuildingId.GeneralStore, 1, null, false),
+            new("seed_moonmelon", ShopItemKind.Seed, CropTypeId.Moonmelon, new Gold(60), BuildingId.GeneralStore, 1, null, false),
+            new("seed_sunbell", ShopItemKind.Seed, CropTypeId.Sunbell, new Gold(20), BuildingId.GeneralStore, 1, null, false),
+            new("seed_starcorn", ShopItemKind.Seed, CropTypeId.Starcorn, new Gold(45), BuildingId.GeneralStore, 1, null, false),
+            new("can_upgrade", ShopItemKind.CanUpgrade, null, new Gold(200), BuildingId.GeneralStore, 1, null, true),
         ];
 
-        Assert.Equal(expected, Data.ShopListings);
+        Assert.Equal(expected, Data.ShopListings.Where(listing => listing.Kind != ShopItemKind.Tool));
         Assert.All(
             Data.ShopListings.Where(listing => listing.Kind == ShopItemKind.Seed),
             listing => Assert.Equal(Data.CropTypes[listing.CropTypeId!.Value].SeedCost, listing.Price));
+    }
+
+    [Fact]
+    public void AC7_shipped_shop_sells_the_axe_for_50_and_the_pickaxe_for_75_at_the_general_store_once_each()
+    {
+        ShopListing[] expected =
+        [
+            new("tool_axe", ShopItemKind.Tool, null, new Gold(50), BuildingId.GeneralStore, 1, ToolId.Axe, true),
+            new("tool_pickaxe", ShopItemKind.Tool, null, new Gold(75), BuildingId.GeneralStore, 1, ToolId.Pickaxe, true),
+        ];
+
+        Assert.Equal(expected, Data.ShopListings.Where(listing => listing.Kind == ShopItemKind.Tool));
+    }
+
+    [Fact]
+    public void BR_L4_shipped_shop_lists_each_tool_once()
+    {
+        var tools = Data.ShopListings.Where(listing => listing.Kind == ShopItemKind.Tool).Select(listing => listing.ToolId);
+
+        Assert.Equal([ToolId.Axe, ToolId.Pickaxe], tools.Order());
     }
 
     [Fact]

@@ -563,7 +563,7 @@ public partial class Hud : CanvasLayer
             var label = OutlinedLabel(text, SlotFontSize);
             if (SlotIcon(slot) is { } icon)
             {
-                // A seed or crop slot: its icon left of the unchanged label. Tool slots stay text only.
+                // A seed, crop, axe or pickaxe slot: its icon left of the unchanged label. The hoe and can stay text only.
                 var content = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
                 content.AddChild(IconTextures.Rect(icon, HotbarIconSize));
                 content.AddChild(label);
@@ -578,7 +578,7 @@ public partial class Hud : CanvasLayer
         }
     }
 
-    /// <summary>A seed slot's seed icon, a crop slot's crop icon, or null (tools and empty slots).</summary>
+    /// <summary>A seed slot's seed icon, a crop slot's crop icon, the axe's or pickaxe's tool icon, or null (the hoe, the can and empty slots).</summary>
     private static string? SlotIcon(HotbarSlot slot) =>
         slot.Item is { } item
             ? ItemIcons.For(item)
