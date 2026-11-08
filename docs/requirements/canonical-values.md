@@ -154,7 +154,7 @@ Stored with each tool's Backpack Slot and in tool-upgrade Orders.
 
 ---
 
-## NodeKind *(planned, REQ-44, REQ-16, REQ-49)*
+## NodeKind
 
 | Code Value | Display Label | Tool | Grows back |
 |------------|---------------|------|------------|

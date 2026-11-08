@@ -24,4 +24,5 @@ public enum Rejection
     OpeningOver,
     NothingToSell,
     NotSellable,
+    NodeInTheWay,
 }

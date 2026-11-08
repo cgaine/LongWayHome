@@ -45,7 +45,7 @@ public static class Phase1PlotPlacement
         {
             for (var x = 0; x < FarmPlot.Width; x++)
             {
-                if (!InBlock(block, x, y))
+                if (!block.Contains(new GridPosition(x, y)))
                 {
                     tiles.Add(new JsonObject
                     {
@@ -62,9 +62,6 @@ public static class Phase1PlotPlacement
         plot["height"] = FarmPlot.Height;
         return document;
     }
-
-    private static bool InBlock(PlotBlock block, int x, int y) =>
-        x >= block.OriginX && x < block.OriginX + block.Width && y >= block.OriginY && y < block.OriginY + block.Height;
 
     private static bool IsInt(JsonNode? node, int expected) => TryInt(node, out var value) && value == expected;
 

@@ -69,7 +69,8 @@ public class TillingTests
     [Fact]
     public void AC4_75_tills_from_a_new_game_succeed_and_the_76th_is_TooTired()
     {
-        var session = TestGames.NewSession();
+        // #151: a new Game with no nodes, so the first 76 Tiles of the plot are all grass with nothing on them.
+        var session = TestGames.NewSession(TestGames.ShippedWithoutNodes);
         var positions = session.Game.FarmPlot.Tiles.Select(tile => tile.Position).Take(76).ToList();
 
         var results = positions.Take(75).Select(session.Till).ToList();
@@ -88,7 +89,8 @@ public class TillingTests
     [Fact]
     public void AC8_no_sequence_of_actions_turns_tilled_soil_back_to_grass()
     {
-        var session = TestGames.NewSession();
+        // #151: a new Game with no nodes, so every other Tile tills and spends energy.
+        var session = TestGames.NewSession(TestGames.ShippedWithoutNodes);
         session.Till(Target);
         HeldItem[] held = [HeldItem.Of(ToolId.Hoe), HeldItem.Of(ToolId.WateringCan), HeldItem.SeedOf(CropTypeId.Emberroot)];
         var others = session.Game.FarmPlot.Tiles.Select(tile => tile.Position).Where(p => p != Target).ToList();

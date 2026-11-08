@@ -290,6 +290,28 @@ public class SmokeChecklistTests
             "The Steam Deck pass has no row: on the farm with --show-fps, walk the full grid edge to edge at the farthest zoom; it holds 30 fps");
     }
 
+    // ---- #151 AC11: a new Game's overgrown meadow holds 30 fps on the Steam Deck (REQ-14) ----
+
+    [Fact]
+    public void AC11_steam_deck_pass_walks_a_new_games_meadow_with_its_trees_stumps_and_rocks_edge_to_edge_at_the_farthest_zoom_at_30_fps()
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), "steam deck");
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the steam deck pass");
+
+        Assert.True(
+            ReadSteps(section.Value.Body).Any(row =>
+                row.Contains("--show-fps", StringComparison.Ordinal)
+                && row.Contains("new game", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("farm", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("trees", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("stumps", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("rocks", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("edge to edge", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("farthest zoom", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("30 fps", StringComparison.OrdinalIgnoreCase)),
+            "The Steam Deck pass has no row: in a new game with --show-fps, walk the farm's meadow with its trees, stumps and rocks edge to edge at the farthest zoom; it holds 30 fps");
+    }
+
     private static string ReadChecklist()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "docs", "smoke-checklist.md");

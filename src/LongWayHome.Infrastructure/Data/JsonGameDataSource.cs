@@ -4,18 +4,21 @@ using System.Text.Json.Serialization;
 using LongWayHome.Application.Data;
 using LongWayHome.Application.Ports;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
+using LongWayHome.Domain.Games;
+using LongWayHome.Domain.Nodes;
 using LongWayHome.Domain.Players;
 using LongWayHome.Infrastructure.Data.Dtos;
 
 namespace LongWayHome.Infrastructure.Data;
 
 /// <summary>
-/// Parses and validates <c>crops.json</c>, <c>shop.json</c> and <c>tuning.json</c>.
+/// Parses and validates <c>crops.json</c>, <c>shop.json</c>, <c>tuning.json</c> and <c>nodes.json</c>.
 /// Takes the file contents as strings, not paths: in an exported build <c>res://</c> files live inside the
 /// <c>.pck</c>, which <c>System.IO</c> can't open, so the Godot layer reads them with <c>Godot.FileAccess</c>.
 /// </summary>
 /// <remarks>
-/// Every parse and validation error across the three files is collected before a single
+/// Every parse and validation error across the four files is collected before a single
 /// <see cref="GameDataException"/> is thrown. When <c>crops.json</c> doesn't parse, the checks in the other
 /// files that refer to crop types are skipped, since there is nothing to check them against.
 /// </remarks>
@@ -24,19 +27,23 @@ public sealed class JsonGameDataSource : IGameDataSource
     public const string CropsFileName = "crops.json";
     public const string ShopFileName = "shop.json";
     public const string TuningFileName = "tuning.json";
+    public const string NodesFileName = "nodes.json";
 
     private readonly string _cropsJson;
     private readonly string _shopJson;
     private readonly string _tuningJson;
+    private readonly string _nodesJson;
 
-    public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson)
+    public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson, string nodesJson)
     {
         ArgumentNullException.ThrowIfNull(cropsJson);
         ArgumentNullException.ThrowIfNull(shopJson);
         ArgumentNullException.ThrowIfNull(tuningJson);
+        ArgumentNullException.ThrowIfNull(nodesJson);
         _cropsJson = cropsJson;
         _shopJson = shopJson;
         _tuningJson = tuningJson;
+        _nodesJson = nodesJson;
     }
 
     /// <summary>
@@ -52,6 +59,7 @@ public sealed class JsonGameDataSource : IGameDataSource
         var cropsFile = Parse<CropsFileDto>(_cropsJson, CropsFileName, errors);
         var shopFile = Parse<ShopFileDto>(_shopJson, ShopFileName, errors);
         var tuningFile = Parse<TuningDto>(_tuningJson, TuningFileName, errors);
+        var nodesFile = Parse<NodesFileDto>(_nodesJson, NodesFileName, errors);
 
         // Null when crops.json didn't parse: cross-file reference checks are then skipped.
         var cropsById = cropsFile is null ? null : ValidateCrops(cropsFile, errors);
@@ -65,6 +73,11 @@ public sealed class JsonGameDataSource : IGameDataSource
             ValidateTuning(tuningFile, cropsById, errors);
         }
 
+        if (nodesFile is not null)
+        {
+            ValidateNodes(nodesFile, errors);
+        }
+
         if (errors.Count > 0)
         {
             throw new GameDataException(errors);
@@ -73,7 +86,10 @@ public sealed class JsonGameDataSource : IGameDataSource
         return new GameData(
             cropsFile!.CropTypes.ToDictionary(dto => dto.Id, ToCropType),
             shopFile!.Listings.Select(ToShopListing).ToList(),
-            ToGameTuning(tuningFile!));
+            ToGameTuning(tuningFile!))
+        {
+            NodeSpawns = nodesFile!.Spawns.Select(ToNodeSpawn).ToList().AsReadOnly(),
+        };
     }
 
     private static JsonSerializerOptions CreateSerializerOptions()
@@ -376,6 +392,72 @@ public sealed class JsonGameDataSource : IGameDataSource
             }
         }
     }
+
+    private static void ValidateNodes(NodesFileDto file, List<string> errors)
+    {
+        if (file.Spawns is null)
+        {
+            errors.Add($"{NodesFileName}: spawns must be a list, was null");
+            return;
+        }
+
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        var idsByTile = new Dictionary<(AreaId, int?, int, int), string>();
+
+        for (var index = 0; index < file.Spawns.Count; index++)
+        {
+            var spawn = file.Spawns[index];
+            if (spawn is null)
+            {
+                errors.Add($"{NodesFileName}: spawns[{index}] must be an object, was null");
+                continue;
+            }
+
+            string label;
+            if (string.IsNullOrWhiteSpace(spawn.Id))
+            {
+                label = $"spawns[{index}]";
+                errors.Add($"{NodesFileName}: {label}.id must not be empty");
+            }
+            else
+            {
+                label = spawn.Id;
+                if (!ids.Add(spawn.Id))
+                {
+                    errors.Add($"{NodesFileName}: {label}.id is used by more than one spawn point");
+                }
+            }
+
+            var onGrid = true;
+            void CheckCoordinate(string field, int value, int size)
+            {
+                if (value < 0 || value >= size)
+                {
+                    onGrid = false;
+                    errors.Add($"{NodesFileName}: {label}.{field} must be between 0 and {size - 1}, was {value}");
+                }
+            }
+
+            // A GridPosition lies on the 72 x 36 grid (BR-T1), the farm's and, for now, every other area's.
+            CheckCoordinate("x", spawn.X, FarmPlot.Width);
+            CheckCoordinate("y", spawn.Y, FarmPlot.Height);
+
+            if (onGrid && !idsByTile.TryAdd((spawn.Area, spawn.MineLevel, spawn.X, spawn.Y), label))
+            {
+                var other = idsByTile[(spawn.Area, spawn.MineLevel, spawn.X, spawn.Y)];
+                errors.Add($"{NodesFileName}: {label} is on the same Tile ({spawn.X}, {spawn.Y}) as {other}");
+            }
+
+            // BR-N5: stumps never grow back.
+            if (spawn.Kind == NodeKind.Stump && spawn.Respawns)
+            {
+                errors.Add($"{NodesFileName}: {label}.respawns must be false for a stump (BR-N5)");
+            }
+        }
+    }
+
+    private static NodeSpawn ToNodeSpawn(NodeSpawnDto dto) =>
+        new(dto.Id, dto.Area, dto.MineLevel, new GridPosition(dto.X, dto.Y), dto.Kind, dto.AtStart, dto.Respawns);
 
     private static CropType ToCropType(CropTypeDto dto) => new(
         dto.Id,

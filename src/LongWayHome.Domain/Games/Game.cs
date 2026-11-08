@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
+using LongWayHome.Domain.Nodes;
 using LongWayHome.Domain.Players;
 using LongWayHome.Domain.Residents;
 using LongWayHome.Domain.Shipping;
@@ -25,7 +26,8 @@ public sealed class Game
         ShippingBin? shippingBin = null,
         IReadOnlyList<Resident>? residents = null,
         bool openingDone = true,
-        IReadOnlySet<string>? purchasedListings = null)
+        IReadOnlySet<string>? purchasedListings = null,
+        IReadOnlyList<ResourceNode>? resourceNodes = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -44,6 +46,7 @@ public sealed class Game
         Residents = ValidResidents(residents ?? DefaultResidents());
         OpeningDone = openingDone;
         _purchasedListings = ValidPurchasedListings(purchasedListings);
+        (ResourceNodes, _nodesByTile) = ValidResourceNodes(resourceNodes ?? []);
     }
 
     public Guid Id { get; }
@@ -152,6 +155,47 @@ public sealed class Game
 
     /// <summary>One Resident per <see cref="ResidentId"/>, in enum order (BR-R1).</summary>
     public IReadOnlyList<Resident> Residents { get; }
+
+    /// <summary>The trees, stumps and rocks standing in the world: at most one per spawn point and one per Tile.</summary>
+    public IReadOnlyList<ResourceNode> ResourceNodes { get; }
+
+    private readonly Dictionary<(AreaId Area, GridPosition Position), ResourceNode> _nodesByTile;
+
+    /// <summary>The node on <paramref name="position"/> in <paramref name="area"/>, or null.</summary>
+    public ResourceNode? NodeAt(AreaId area, GridPosition position) =>
+        _nodesByTile.GetValueOrDefault((area, position));
+
+    /// <summary>At most one node per spawn point and one per (area, Tile), or the list is refused.</summary>
+    private static (IReadOnlyList<ResourceNode> Nodes, Dictionary<(AreaId, GridPosition), ResourceNode> ByTile)
+        ValidResourceNodes(IReadOnlyList<ResourceNode> resourceNodes)
+    {
+        var spawnIds = new HashSet<string>(StringComparer.Ordinal);
+        var byTile = new Dictionary<(AreaId, GridPosition), ResourceNode>();
+        foreach (var node in resourceNodes)
+        {
+            if (node is null)
+            {
+                throw new ArgumentException("A Game's ResourceNodes can't contain null.", nameof(resourceNodes));
+            }
+
+            if (!spawnIds.Add(node.SpawnId))
+            {
+                throw new ArgumentException(
+                    $"Two ResourceNodes share the spawn point '{node.SpawnId}'.", nameof(resourceNodes));
+            }
+
+            if (!byTile.TryAdd((node.Area, node.Position), node))
+            {
+                var other = byTile[(node.Area, node.Position)];
+                throw new ArgumentException(
+                    $"ResourceNodes '{other.SpawnId}' and '{node.SpawnId}' stand on the same Tile " +
+                    $"({node.Position.X}, {node.Position.Y}) in {node.Area}.",
+                    nameof(resourceNodes));
+            }
+        }
+
+        return (resourceNodes.ToList().AsReadOnly(), byTile);
+    }
 
     /// <summary>Whether <paramref name="id"/>'s Resident is present (BR-R1).</summary>
     /// <exception cref="ArgumentOutOfRangeException">The value is not a <see cref="ResidentId"/> member.</exception>
@@ -343,7 +387,10 @@ public sealed class Game
         ClockMinutes = dayStartMinutes;
     }
 
-    /// <summary>Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then TooTired (BR-T2, BR-P2).</summary>
+    /// <summary>
+    /// Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then NodeInTheWay, then
+    /// TooTired (BR-T2, BR-P2).
+    /// </summary>
     public Rejection? TillRejection(GridPosition position, int toolEnergyCost)
     {
         // BR-T2
@@ -352,12 +399,18 @@ public sealed class Game
             return Rejection.AlreadyTilled;
         }
 
+        // BR-T2: a Tile with a Resource node on it can't be tilled.
+        if (NodeAt(AreaId.Farm, position) is not null)
+        {
+            return Rejection.NodeInTheWay;
+        }
+
         // BR-P2
         return Player.Energy < toolEnergyCost ? Rejection.TooTired : null;
     }
 
     /// <summary>
-    /// Tills a Tile: AlreadyTilled, then TooTired, else tills and spends the energy (BR-T2, BR-P2). On a rain Day the
+    /// Tills a Tile: AlreadyTilled, then NodeInTheWay, then TooTired, else tills and spends the energy (BR-T2, BR-P2). On a rain Day the
     /// new tilled Tile is watered at once (BR-T7).
     /// </summary>
     public ActionResult Till(GridPosition position, int toolEnergyCost)

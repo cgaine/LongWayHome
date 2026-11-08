@@ -26,7 +26,8 @@ public class GameSessionGridEdgeTests
     public void AC3_till_plant_water_at_new_grid_positions(int x, int y)
     {
         var position = At(x, y);
-        var session = TestGames.NewSession();
+        // #151: a new Game with no nodes, so the grid's corners are grass with nothing on them.
+        var session = TestGames.NewSession(TestGames.ShippedWithoutNodes);
         var game = session.Game;
         Assert.Equal(Player.MaxEnergy, game.Player.Energy);
         var charges = game.Player.WateringCan.Charges;

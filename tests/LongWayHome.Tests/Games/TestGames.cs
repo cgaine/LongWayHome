@@ -87,12 +87,19 @@ internal static class TestGames
     }
 
     /// <summary>
+    /// The shipped data with no node spawn points (#151), for tests that need every Tile of a new Game's plot to be
+    /// tillable rather than overgrown.
+    /// </summary>
+    public static readonly GameData ShippedWithoutNodes = Shipped with { NodeSpawns = [] };
+
+    /// <summary>
     /// A session over a new Game once Maggie has handed over the starter Seeds (BR-P6, #139): the hoe, the can, 10
     /// emberroot and 5 dusktuber. The Opening is still not done.
     /// </summary>
-    public static GameSession NewSession()
+    public static GameSession NewSession(GameData? data = null)
     {
-        var session = new GameSession(NewGameFactory.Create(Shipped, Now), Shipped);
+        data ??= Shipped;
+        var session = new GameSession(NewGameFactory.Create(data, Now), data);
         session.GiveStarterSeeds();
         return session;
     }
@@ -350,6 +357,7 @@ internal static class TestGames
         return new JsonGameDataSource(
             Read(JsonGameDataSource.CropsFileName),
             Read(JsonGameDataSource.ShopFileName),
-            Read(JsonGameDataSource.TuningFileName)).Load();
+            Read(JsonGameDataSource.TuningFileName),
+            Read(JsonGameDataSource.NodesFileName)).Load();
     }
 }

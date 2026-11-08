@@ -78,7 +78,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `MaterialId` | *(planned, REQ-44)* `wood`, `sap`, `stone`, `rosk_ore`, `groth_ore`, `glimmercap`, `plank`, `sealed_plank`, `rosk_pump` | BackpackSlot, BuildingStage, Order |
 | `PlaceableId` | *(planned, REQ-48)* `fence`, `chest` | PlacedObject, BackpackSlot, ShopListing |
 | `ItemRef` | `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
-| `NodeKind` | *(planned, REQ-44, REQ-49)* `tree`, `stump`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`, `debris` | ResourceNode, NodeSpawn |
+| `NodeKind` | `tree`, `stump`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`, `debris` | ResourceNode, NodeSpawn |
 | `AreaId` | `farm`, `forest_path`, `town`, `lakeshore`, `across_river`, `mine` | ResourceNode, DroppedItem, NodeSpawn |
 | `BuildingId` | `general_store`, `carpenter`, `miras_house`, `blacksmith` | ShopListing (vendor); *(planned, REQ-45)* Building, BuildingStage |
 | `OrderKind` | *(planned, REQ-48, REQ-57)* `plank`, `sealed_plank`, `tool_upgrade`, `rosk_pump` | Order |
@@ -204,7 +204,7 @@ Loaded from data files like the crop table; read-only during play. Costs, yields
 | `name` | string | Display name, e.g. "Sealed plank". |
 | `maxStack` | int | 99 for every material. |
 
-#### NodeSpawn *(planned, REQ-44, REQ-16, REQ-49)*
+#### NodeSpawn
 
 The fixed places where Resource nodes start and grow back. The same in every Game.
 
@@ -218,7 +218,7 @@ The fixed places where Resource nodes start and grow back. The same in every Gam
 | `atStart` | bool | Whether a node stands here in a new Game. On the farm, every spawn point inside the cleared 6 x 6 is `false`. |
 | `respawns` | bool | `true` for `tree`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`; `false` for `stump` and `debris` (BR-N5). |
 
-NodeKind yields (tuning, Basic tier): tree 5 wood + 2 sap; rock 3 stone; rosk_deposit Rosk ore; groth_deposit Groth ore (mine levels 3–5 only); glimmercap 1 glimmercap (picked by hand, no tool); stump wood (Groth axe); debris stone.
+*(planned, REQ-44, REQ-49)* NodeKind yields (tuning, Basic tier): tree 5 wood + 2 sap; rock 3 stone; rosk_deposit Rosk ore; groth_deposit Groth ore (mine levels 3–5 only); glimmercap 1 glimmercap (picked by hand, no tool); stump wood (Groth axe); debris stone.
 
 #### BuildingStage *(planned, REQ-45)*
 
@@ -283,13 +283,13 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 | `item` | ItemRef | Never a tool (BR-K6). |
 | `quantity` | int | 1–99. |
 
-#### ResourceNode (child of Game, zero or more) *(planned, REQ-44, REQ-16, REQ-49)*
+#### ResourceNode (child of Game, zero or more)
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
 | `spawnId` | string | FK -> NodeSpawn.id. Key: at most one node per spawn point. |
 | `kind` | NodeKind | Copied from the spawn point. |
-| `swingsTaken` | int | 0 up to the swings needed at the tool's tier. Reset each Night. |
+| `swingsTaken` | int | 0 up to the swings needed at the tool's tier. Reset each Night. *(planned, REQ-44: always 0 until the axe and pickaxe swing)* |
 
 #### NodeRegrowth (child of Game, zero or more) *(planned, REQ-44)*
 
@@ -588,7 +588,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-N4: In the Night, a respawning spawn point whose node was cleared at least 2 Nights before (tuning) grows its node back, unless its Tile is tilled, holds a Placed object, or is within 3 tiles of a tilled Tile. A blocked spawn point keeps waiting. *(planned, REQ-44)*
 - BR-N5: Stumps and debris never grow back. *(planned, REQ-16, REQ-49)*
 - BR-N6: A stump can be cleared only with a Groth axe. *(planned, REQ-16, REQ-57)*
-- BR-N7: A new Game places a node at every `atStart` spawn point. The farm's cleared 6 x 6 by the farmhouse has none. *(planned, REQ-16)*
+- BR-N7: A new Game places a node at every `atStart` spawn point. The farm's cleared 6 x 6 by the farmhouse has none.
 
 ### Placed objects *(planned, REQ-48)*
 
@@ -652,7 +652,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 
 Each save file carries a save-format version (`saveVersion`, currently 2), so later phases (backpack slots, buildings) can migrate Phase 1 saves.
 
-Phase 2 saves are version 2. A version 1 save loads with: `openingDone` true (built in #139); its stacks packed into Backpack Slots (raising capacity to 24 or 36 only if they don't fit in 12); the hoe and can at Basic, or the can at Rosk if the Can upgrade was bought; *(planned, REQ-47)* its 12 x 9 Tiles inside the farm's cleared start region with no nodes on them; every other Phase 2 state as in a new Game, so the general store is at stage 1 and the farm Bin is gone until stage 4 (BR-S3); anything in the Bin at save time was already paid out in that Night.
+Phase 2 saves are version 2. A version 1 save loads with: `openingDone` true (built in #139); its stacks packed into Backpack Slots (raising capacity to 24 or 36 only if they don't fit in 12); the hoe and can at Basic, or the can at Rosk if the Can upgrade was bought; its 12 x 9 Tiles inside the farm's cleared start region with no nodes on them (built in #150 and #151); every other Phase 2 state as in a new Game, so the general store is at stage 1 and the farm Bin is gone until stage 4 (BR-S3); anything in the Bin at save time was already paid out in that Night.
 
 Future: Steam Cloud sync of save slots.
 
