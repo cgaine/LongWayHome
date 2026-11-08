@@ -135,6 +135,9 @@ public sealed class Game
     /// <summary>Whether any DroppedItem lies at <paramref name="position"/>.</summary>
     public bool HasDroppedItemsAt(GridPosition position) => _droppedItems.Exists(item => item.Position == position);
 
+    /// <summary>Whether the Player may enter <paramref name="area"/> (BR-A1). Not implemented yet (#136 red).</summary>
+    public bool IsAreaOpen(AreaId area) => throw new NotImplementedException();
+
     /// <summary>The Night's dropped-items step (BR-K4): every DroppedItem is removed.</summary>
     public void ClearDroppedItems() => _droppedItems.Clear();
 

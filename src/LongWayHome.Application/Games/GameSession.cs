@@ -102,6 +102,17 @@ public sealed class GameSession
         return picked;
     }
 
+    /// <summary>The area the Player is in this session. Not implemented yet (#136 red).</summary>
+    public AreaId CurrentArea => throw new NotImplementedException();
+
+    /// <summary>Raised after <see cref="EnterArea"/> moves the Player to another area.</summary>
+#pragma warning disable CS0067 // Raised once EnterArea is implemented (#136 red).
+    public event Action<AreaId>? AreaChanged;
+#pragma warning restore CS0067
+
+    /// <summary>Moves the Player to <paramref name="area"/> when it is open (BR-A1). Not implemented yet (#136 red).</summary>
+    public ActionResult EnterArea(AreaId area) => throw new NotImplementedException();
+
     /// <summary>Raised after <see cref="AdvanceClock"/> moves the clock by at least one minute.</summary>
     public event Action? ClockChanged;
 
