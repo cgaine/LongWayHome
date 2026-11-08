@@ -1069,4 +1069,47 @@ public sealed class JsonSaveStoreTests : IDisposable
         Assert.Equal(360, loaded.ClockMinutes);
         Assert.Equal(TileState.Tilled, loaded.FarmPlot[At(32, 3)].State);
     }
+
+    [Fact]
+    public void BR_T1_v1_save_with_a_tile_off_the_phase1_plot_is_refused()
+    {
+        // (12, 0) isn't on the 12 x 9 plot: it isn't moved into the block, so it collides with the grass added there.
+        var document = SaveDocuments.V1(new JsonArray());
+        Tiles(document)[0]!["position"]!["x"] = 12;
+        _folder.WriteSlot(1, document);
+
+        var thrown = Assert.Throws<SaveStoreException>(() => Store().Load(1));
+
+        Assert.Contains("(12, 0)", thrown.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BR_T1_v2_save_with_a_12_by_9_plot_missing_a_tile_is_refused()
+    {
+        // Only the grid outside the Phase 1 block is filled with grass; a Tile missing from the old plot stays missing.
+        var document = SaveDocuments.V2(SaveDocuments.GoodBackpack(), plotWidth: 12, plotHeight: 9);
+        Tiles(document).RemoveAt(Tiles(document).Count - 1);
+        _folder.WriteSlot(1, document);
+
+        var thrown = Assert.Throws<SaveStoreException>(() => Store().Load(1));
+
+        Assert.Contains("2592", thrown.Reason, StringComparison.Ordinal);
+        Assert.Equal(SaveSlotState.Unreadable, Store().List()[0].State);
+    }
+
+    [Fact]
+    public void AC6_moved_v2_save_is_written_back_as_72_by_36()
+    {
+        var document = SaveDocuments.V2(SaveDocuments.GoodBackpack(), plotWidth: 12, plotHeight: 9);
+        SetPhase1Tiles(document);
+        _folder.WriteSlot(1, document);
+
+        Store().Save(1, Store().Load(1));
+        var written = _folder.ReadSlot(1);
+
+        Assert.Equal(2, written["saveVersion"]!.GetValue<int>());
+        Assert.Equal(72, written["farmPlot"]!["width"]!.GetValue<int>());
+        Assert.Equal(36, written["farmPlot"]!["height"]!.GetValue<int>());
+        AssertPhase1TilesInBlock(Store().Load(1));
+    }
 }

@@ -83,4 +83,39 @@ public class GrassBatchesTests
         Assert.DoesNotContain(Flatten(GrassBatches.ByLayout(session.Game.FarmPlot)), entry => entry.Position == Tilled);
         Assert.DoesNotContain(Tilled, GrassBatches.GrassPositions(session.Game.FarmPlot));
     }
+
+    [Fact]
+    public void AC9_native_plants_are_batched_by_kind_for_grass_tiles_only()
+    {
+        var game = TestGames.WithTiles(150, null, TestGames.TilledWith(Tilled, null));
+        var expected = GrassBatches.GrassPositions(game.FarmPlot)
+            .Where(position => TileDecoration.For(position).NativePlant != NativePlantKind.None)
+            .ToList();
+
+        var batches = GrassBatches.ByNativePlant(game.FarmPlot);
+
+        Assert.DoesNotContain(NativePlantKind.None, batches.Keys);
+        Assert.Contains(NativePlantKind.Frond, batches.Keys);
+        Assert.Contains(NativePlantKind.Puffball, batches.Keys);
+        foreach (var (kind, positions) in batches)
+        {
+            Assert.All(positions, position => Assert.Equal(kind, TileDecoration.For(position).NativePlant));
+        }
+
+        Assert.Equal(
+            expected.Select(p => (p.X, p.Y)).Order().ToList(),
+            batches.Values.SelectMany(positions => positions).Select(p => (p.X, p.Y)).Order().ToList());
+    }
+
+    [Fact]
+    public void AC9_a_tilled_tile_with_a_native_plant_leaves_its_batch()
+    {
+        var withPlant = new FarmPlot().Tiles.Select(tile => tile.Position)
+            .First(position => TileDecoration.For(position).NativePlant != NativePlantKind.None);
+        var game = TestGames.WithTiles(150, null, TestGames.TilledWith(withPlant, null));
+
+        var batches = GrassBatches.ByNativePlant(game.FarmPlot);
+
+        Assert.DoesNotContain(batches.Values.SelectMany(positions => positions), position => position == withPlant);
+    }
 }

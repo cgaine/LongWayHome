@@ -13,7 +13,7 @@ namespace LongWayHome.Game.Art;
 /// Builds the crop models of <see cref="CropArt"/> (#90): each (crop, stage) model's parts merged by
 /// <see cref="ArtMeshes.Merge"/> into one <see cref="ArrayMesh"/> whose UVs point at each part's palette swatch, so a
 /// model is one draw under <c>MaterialOverride = ArtMaterials.Shared</c> with the <c>swatch</c> instance parameter
-/// unset. Each mesh is built once and cached, so all 108 Tiles share at most one mesh per (crop, stage). Only
+/// unset. Each mesh is built once and cached, so all the plot's Tiles share at most one mesh per (crop, stage). Only
 /// <c>TileView</c> and the art sandbox use it (ART_DIRECTION §8).
 /// </summary>
 public static class CropModels

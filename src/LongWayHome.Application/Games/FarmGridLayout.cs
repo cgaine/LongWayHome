@@ -9,9 +9,16 @@ namespace LongWayHome.Application.Games;
 /// </summary>
 public static class FarmGridLayout
 {
+    /// <summary>How far west of world x 0 the grid's west edge lies: the Phase 1 block's west edge stays at x −6.</summary>
+    private const float OriginX = 36f;
+
+    /// <summary>How far north of world z 0 the grid's north edge lies: row 0 stays at z −4.5.</summary>
+    private const float OriginZ = 4.5f;
+
     /// <summary>The world ground centre (x, z) of the tile at <paramref name="p"/>.</summary>
-    public static (float X, float Z) ToWorld(GridPosition p) => throw new NotImplementedException();
+    public static (float X, float Z) ToWorld(GridPosition p) => (p.X - OriginX + 0.5f, p.Y - OriginZ + 0.5f);
 
     /// <summary>The grid cell under world (x, z), without checking it is on the plot.</summary>
-    public static (int X, int Y) CellAt(float x, float z) => throw new NotImplementedException();
+    public static (int X, int Y) CellAt(float x, float z) =>
+        ((int)MathF.Floor(x + OriginX), (int)MathF.Floor(z + OriginZ));
 }

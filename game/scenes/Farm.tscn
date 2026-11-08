@@ -81,13 +81,13 @@ radius = 2.5
 height = 1.0
 
 [sub_resource type="BoxShape3D" id="BoxShape_wall_ew"]
-size = Vector3(1, 3, 28)
+size = Vector3(1, 3, 47)
 
 [sub_resource type="BoxShape3D" id="BoxShape_wall_ns"]
-size = Vector3(34, 3, 1)
+size = Vector3(76, 3, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape_wall_south"]
-size = Vector3(15.5, 3, 1)
+size = Vector3(35.5, 3, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_exitpath"]
 size = Vector2(3, 4)
@@ -135,7 +135,7 @@ mesh = SubResource("BoxMesh_bin")
 shape = SubResource("BoxShape_bin")
 
 [node name="ShopStall" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -9)
 
 [node name="Counter" type="MeshInstance3D" parent="ShopStall"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
@@ -158,7 +158,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 shape = SubResource("BoxShape_shop")
 
 [node name="Pond" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -9)
 
 [node name="Shallows" type="MeshInstance3D" parent="Pond"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
@@ -179,11 +179,11 @@ shape = SubResource("CylinderShape_pond")
 [node name="Boundary" type="StaticBody3D" parent="."]
 
 [node name="East" type="CollisionShape3D" parent="Boundary"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 1.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37, 1.5, 9.25)
 shape = SubResource("BoxShape_wall_ew")
 
 [node name="West" type="CollisionShape3D" parent="Boundary"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.5, 1.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36.5, 1.5, 9.25)
 shape = SubResource("BoxShape_wall_ew")
 
 [node name="North" type="CollisionShape3D" parent="Boundary"]
@@ -191,24 +191,24 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -13.5)
 shape = SubResource("BoxShape_wall_ns")
 
 [node name="SouthWest" type="CollisionShape3D" parent="Boundary"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.25, 1.5, 13.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.25, 1.5, 32)
 shape = SubResource("BoxShape_wall_south")
 
 [node name="SouthEast" type="CollisionShape3D" parent="Boundary"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.25, 1.5, 13.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.25, 1.5, 32)
 shape = SubResource("BoxShape_wall_south")
 
 [node name="Exits" type="Node3D" parent="."]
 
 [node name="SouthExitPath" type="MeshInstance3D" parent="Exits"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, 14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, 32.5)
 cast_shadow = 0
 material_override = ExtResource("14_palette")
 instance_shader_parameters/swatch = Vector2(0.6875, 0.09375)
 mesh = SubResource("PlaneMesh_exitpath")
 
 [node name="SouthExit" type="Area3D" parent="Exits"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 13.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 32)
 script = ExtResource("20_areaexit")
 TargetArea = "forest_path"
 ArrivalId = "forest_path_north"
@@ -217,7 +217,7 @@ ArrivalId = "forest_path_north"
 shape = SubResource("BoxShape_exit")
 
 [node name="SouthArrival" type="Marker3D" parent="Exits"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
 script = ExtResource("21_areaarrival")
 ArrivalId = "farm_south"
 
@@ -242,13 +242,13 @@ Range = 1.7
 script = ExtResource("11_binship")
 
 [node name="ShopPoint" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -9)
 script = ExtResource("2_point")
 PointId = "shop"
 Range = 2.2
 
 [node name="PondPoint" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -9)
 script = ExtResource("2_point")
 PointId = "pond"
 Range = 3.8
@@ -258,7 +258,7 @@ script = ExtResource("5_waterrefill")
 Source = "pond"
 
 [node name="RiverPoint01" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, -12)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -268,7 +268,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint02" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, -10)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -278,7 +278,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint03" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, -8)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -288,7 +288,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint04" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, -6)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -298,7 +298,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint05" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, -4)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -308,7 +308,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint06" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, -2)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -318,7 +318,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint07" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 0)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -328,7 +328,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint08" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 2)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -338,7 +338,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint09" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 4)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -348,7 +348,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint10" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 6)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -358,7 +358,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint11" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 8)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -368,7 +368,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint12" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 10)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -378,7 +378,7 @@ script = ExtResource("5_waterrefill")
 Source = "river"
 
 [node name="RiverPoint13" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0, 12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 12)
 script = ExtResource("2_point")
 PointId = "river"
 Range = 1.5
@@ -387,17 +387,117 @@ Range = 1.5
 script = ExtResource("5_waterrefill")
 Source = "river"
 
+[node name="RiverPoint14" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 14)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint14"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint15" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 16)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint15"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint16" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 18)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint16"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint17" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 20)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint17"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint18" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 22)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint18"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint19" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 24)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint19"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint20" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 26)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint20"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint21" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 28)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint21"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint22" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 30)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint22"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
+[node name="RiverPoint23" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.1, 0, 31)
+script = ExtResource("2_point")
+PointId = "river"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint23"]
+script = ExtResource("5_waterrefill")
+Source = "river"
+
 [node name="OpeningSequence" type="Node3D" parent="."]
 script = ExtResource("23_opening")
 
 [node name="Maggie" parent="OpeningSequence" instance=ExtResource("24_resident")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 11.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 30)
 ResidentId = "maggie"
 
 [node name="Waypoints" type="Node3D" parent="OpeningSequence"]
 
 [node name="Waypoint01" type="Marker3D" parent="OpeningSequence/Waypoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 7)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 26)
 
 [node name="Waypoint02" type="Marker3D" parent="OpeningSequence/Waypoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, -2)
@@ -406,7 +506,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, -2)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, -6.6)
 
 [node name="ExitPoint" type="Marker3D" parent="OpeningSequence"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 14.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 33)
 
 [node name="Common" parent="." instance=ExtResource("19_areacommon")]
 
