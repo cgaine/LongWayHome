@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
@@ -43,15 +44,14 @@ public sealed class Game
         Residents = ValidResidents(residents ?? DefaultResidents());
         OpeningDone = openingDone;
         _purchasedListings = ValidPurchasedListings(purchasedListings);
-        PurchasedListings = _purchasedListings;
     }
 
     public Guid Id { get; }
 
-    private readonly HashSet<string> _purchasedListings;
+    private ImmutableHashSet<string> _purchasedListings;
 
-    /// <summary>The ids of the once-per-game Shop listings bought (BR-L5).</summary>
-    public IReadOnlySet<string> PurchasedListings { get; }
+    /// <summary>The ids of the once-per-game Shop listings bought (BR-L5); changes only through RecordPurchase.</summary>
+    public IReadOnlySet<string> PurchasedListings => _purchasedListings;
 
     /// <summary>
     /// Records a once-per-game listing as bought (BR-L5); recording it again changes nothing. A null or blank id
@@ -62,14 +62,14 @@ public sealed class Game
         ArgumentException.ThrowIfNullOrWhiteSpace(listingId);
 
         // BR-L5: "bought" is remembered for the rest of the Game; a set, so a second record changes nothing.
-        _purchasedListings.Add(listingId);
+        _purchasedListings = _purchasedListings.Add(listingId);
     }
 
     /// <summary>A copy of the given ids (ordinal), refusing a null or blank one; none given is empty.</summary>
-    private static HashSet<string> ValidPurchasedListings(IReadOnlySet<string>? purchasedListings)
+    private static ImmutableHashSet<string> ValidPurchasedListings(IReadOnlySet<string>? purchasedListings)
     {
-        var ids = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var id in purchasedListings ?? new HashSet<string>())
+        var ids = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+        foreach (var id in purchasedListings ?? ImmutableHashSet<string>.Empty)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -79,7 +79,7 @@ public sealed class Game
             ids.Add(id);
         }
 
-        return ids;
+        return ids.ToImmutable();
     }
 
     /// <summary>

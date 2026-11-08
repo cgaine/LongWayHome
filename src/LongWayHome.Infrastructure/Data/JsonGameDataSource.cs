@@ -233,6 +233,12 @@ public sealed class JsonGameDataSource : IGameDataSource
                         errors.Add($"{ShopFileName}: {label}.cropTypeId must be null for a can_upgrade listing, was {Code(cropTypeId)}");
                     }
 
+                    // BR-L5, BR-W4: the Can upgrade is bought once, and the menu drops its row by this flag.
+                    if (!listing.OncePerGame)
+                    {
+                        errors.Add($"{ShopFileName}: {label}.oncePerGame must be true for a can_upgrade listing (BR-W4)");
+                    }
+
                     if (++canUpgradeCount == 2)
                     {
                         errors.Add($"{ShopFileName}: {label}.kind can_upgrade is listed more than once");
@@ -278,6 +284,12 @@ public sealed class JsonGameDataSource : IGameDataSource
         HashSet<CropTypeId> seededCropTypes,
         List<string> errors)
     {
+        // BR-L1: seeds are sold every day of their Season, never once per Game.
+        if (listing.OncePerGame)
+        {
+            errors.Add($"{ShopFileName}: {label}.oncePerGame must be false for a seed listing (BR-L1)");
+        }
+
         if (listing.CropTypeId is not { } cropTypeId)
         {
             errors.Add($"{ShopFileName}: {label}.cropTypeId is required for a seed listing");

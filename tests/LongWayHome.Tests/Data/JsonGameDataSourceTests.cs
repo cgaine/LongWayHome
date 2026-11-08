@@ -558,6 +558,17 @@ public class JsonGameDataSourceTests
     }
 
     [Theory]
+    [InlineData(0, "seed_emberroot", true)]
+    [InlineData(2, "can_upgrade", false)]
+    public void AC7_A_seed_listing_once_per_game_or_a_can_upgrade_not_once_per_game_is_rejected_naming_it(
+        int index, string listingId, bool oncePerGame)
+    {
+        var shop = Edit(ValidShop, root => root["listings"]![index]!["oncePerGame"] = oncePerGame);
+
+        AssertSingleErrorNaming(LoadErrors(ValidCrops, shop, ValidTuning), listingId, "oncePerGame");
+    }
+
+    [Theory]
     [InlineData(0, "seed_emberroot")]
     [InlineData(2, "can_upgrade")]
     public void AC7_A_seed_or_can_upgrade_listing_with_a_toolId_is_rejected_naming_the_listing(int index, string listingId)
