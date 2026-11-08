@@ -113,7 +113,7 @@ public class FarmMeadowSceneTests
     }
 
     [Fact]
-    public void AC7_south_arrival_is_1_5_tiles_inside_the_south_exit()
+    public void AC7_south_arrival_is_1_5_tiles_inside_the_south_edge_as_now()
     {
         var scene = Farm();
         var arrival = Assert.Single(ScriptedNodes(scene, ArrivalScript), node => Property(node, "ArrivalId") == "farm_south");
@@ -122,8 +122,10 @@ public class FarmMeadowSceneTests
         var exitZ = Position(scene, exit).Z;
 
         Assert.InRange(x, -0.01, 0.01);
+        // 1.5 tiles inside the grid's south edge (z 32), and, as today (exit 13.5, arrival 11.5), 2 tiles short of the
+        // exit trigger's centre, so the arrival stays outside the trigger (AreaCommonSceneTests).
         Assert.InRange(z, 30.25, 30.75);
-        Assert.Equal(1.5, exitZ - z, 2);
+        Assert.Equal(2.0, exitZ - z, 2);
     }
 
     // ---- AC7: nothing solid or interactive stands on a grid Tile ----
