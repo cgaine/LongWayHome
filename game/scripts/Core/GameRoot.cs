@@ -61,12 +61,13 @@ public partial class GameRoot : Node
         var crops = ReadFile(JsonGameDataSource.CropsFileName, errors);
         var shop = ReadFile(JsonGameDataSource.ShopFileName, errors);
         var tuning = ReadFile(JsonGameDataSource.TuningFileName, errors);
+        var nodes = ReadFile(JsonGameDataSource.NodesFileName, errors);
 
         if (errors.Count == 0)
         {
             try
             {
-                Data = new JsonGameDataSource(crops!, shop!, tuning!).Load();
+                Data = new JsonGameDataSource(crops!, shop!, tuning!, nodes!).Load();
             }
             catch (GameDataException exception)
             {
@@ -87,7 +88,7 @@ public partial class GameRoot : Node
 
         GD.Print($"Loaded {Data.CropTypes.Count} crop types, {Data.ShopListings.Count} shop listings and tuning");
 
-        _store = new JsonSaveStore(ProjectSettings.GlobalizePath(SaveFolder));
+        _store = new JsonSaveStore(ProjectSettings.GlobalizePath(SaveFolder), Data.NodeSpawns);
 
         // The fallback for running Farm.tscn on its own: a new Game that saves nowhere. The title screen replaces it.
         UseSession(new GameSession(NewGameFactory.Create(Data, DateTimeOffset.UtcNow), Data, new SystemRandomSource()));

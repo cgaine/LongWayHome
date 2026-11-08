@@ -5,6 +5,7 @@ using LongWayHome.Application.Saves;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
+using LongWayHome.Domain.Nodes;
 using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Application.Games;
@@ -82,6 +83,14 @@ public sealed class GameSession
 
     /// <summary>Raised after items drop on the ground or are picked up (BR-K3, BR-K4).</summary>
     public event Action? DroppedItemsChanged;
+
+#pragma warning disable CS0067 // Red stub for #151: raised once the implementation lands.
+    /// <summary>Raised when the Game's ResourceNodes change, and on NightCompleted.</summary>
+    public event Action? NodesChanged;
+#pragma warning restore CS0067
+
+    /// <summary>The Game's ResourceNodes, for the node views.</summary>
+    public IReadOnlyList<ResourceNode> ResourceNodes => [];
 
     /// <summary>Whether the last successful purchase dropped anything at the farmer's feet.</summary>
     public bool LastBuyDropped { get; private set; }

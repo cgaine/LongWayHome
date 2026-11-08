@@ -24,12 +24,14 @@ public sealed class JsonGameDataSource : IGameDataSource
     public const string CropsFileName = "crops.json";
     public const string ShopFileName = "shop.json";
     public const string TuningFileName = "tuning.json";
+    public const string NodesFileName = "nodes.json";
 
     private readonly string _cropsJson;
     private readonly string _shopJson;
     private readonly string _tuningJson;
+    private readonly string _nodesJson;
 
-    public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson)
+    public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson, string nodesJson)
     {
         ArgumentNullException.ThrowIfNull(cropsJson);
         ArgumentNullException.ThrowIfNull(shopJson);
@@ -37,6 +39,7 @@ public sealed class JsonGameDataSource : IGameDataSource
         _cropsJson = cropsJson;
         _shopJson = shopJson;
         _tuningJson = tuningJson;
+        _nodesJson = nodesJson;
     }
 
     /// <summary>

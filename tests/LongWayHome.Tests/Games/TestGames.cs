@@ -350,6 +350,7 @@ internal static class TestGames
         return new JsonGameDataSource(
             Read(JsonGameDataSource.CropsFileName),
             Read(JsonGameDataSource.ShopFileName),
-            Read(JsonGameDataSource.TuningFileName)).Load();
+            Read(JsonGameDataSource.TuningFileName),
+            Read(JsonGameDataSource.NodesFileName)).Load();
     }
 }

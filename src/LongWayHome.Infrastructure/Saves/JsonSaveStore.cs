@@ -7,6 +7,7 @@ using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Nodes;
 using LongWayHome.Domain.Residents;
 using LongWayHome.Domain.Shipping;
 using LongWayHome.Infrastructure.Data;
@@ -29,7 +30,7 @@ public sealed class JsonSaveStore : ISaveStore
     private const string BackupSuffix = ".bak";
     private const string TempSuffix = ".tmp";
 
-    public JsonSaveStore(string folder)
+    public JsonSaveStore(string folder, IReadOnlyList<NodeSpawn>? nodeSpawns = null)
     {
         ArgumentNullException.ThrowIfNull(folder);
         Folder = folder;

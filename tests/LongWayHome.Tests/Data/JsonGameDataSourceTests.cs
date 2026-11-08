@@ -51,6 +51,9 @@ public class JsonGameDataSourceTests
         }
         """;
 
+    /// <summary>A valid <c>nodes.json</c> with no spawn points (#151), for the tests of the other three files.</summary>
+    private const string NoNodes = """{ "spawns": [] }""";
+
     // ---- Valid data -------------------------------------------------------------------------------------
 
     [Fact]
@@ -638,7 +641,7 @@ public class JsonGameDataSourceTests
     // ---- Helpers -------------------------------------------------------------------------------------
 
     private static Application.Data.GameData Load(string crops, string shop, string tuning) =>
-        new JsonGameDataSource(crops, shop, tuning).Load();
+        new JsonGameDataSource(crops, shop, tuning, NoNodes).Load();
 
     private static IReadOnlyList<string> LoadErrors(string crops, string shop, string tuning) =>
         Assert.Throws<GameDataException>(() => Load(crops, shop, tuning)).Errors;

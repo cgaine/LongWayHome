@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
+using LongWayHome.Domain.Nodes;
 using LongWayHome.Domain.Players;
 using LongWayHome.Domain.Residents;
 using LongWayHome.Domain.Shipping;
@@ -25,7 +26,8 @@ public sealed class Game
         ShippingBin? shippingBin = null,
         IReadOnlyList<Resident>? residents = null,
         bool openingDone = true,
-        IReadOnlySet<string>? purchasedListings = null)
+        IReadOnlySet<string>? purchasedListings = null,
+        IReadOnlyList<ResourceNode>? resourceNodes = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -152,6 +154,12 @@ public sealed class Game
 
     /// <summary>One Resident per <see cref="ResidentId"/>, in enum order (BR-R1).</summary>
     public IReadOnlyList<Resident> Residents { get; }
+
+    /// <summary>The trees, stumps and rocks standing in the world: at most one per spawn point and one per Tile.</summary>
+    public IReadOnlyList<ResourceNode> ResourceNodes => [];
+
+    /// <summary>The node on <paramref name="position"/> in <paramref name="area"/>, or null.</summary>
+    public ResourceNode? NodeAt(AreaId area, GridPosition position) => null;
 
     /// <summary>Whether <paramref name="id"/>'s Resident is present (BR-R1).</summary>
     /// <exception cref="ArgumentOutOfRangeException">The value is not a <see cref="ResidentId"/> member.</exception>

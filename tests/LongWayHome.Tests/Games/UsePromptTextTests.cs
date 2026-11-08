@@ -89,6 +89,15 @@ public class UsePromptTextTests
         AssertPrompt(expected, false, prompt);
     }
 
+    [Fact]
+    public void AC10_NodeInTheWay_prompts_Somethings_in_the_way_as_a_non_action()
+    {
+        // #151: the hoe aimed at a tree's, stump's or rock's Tile.
+        var prompt = UsePromptText.For(new UsePreview(null, Rejection.NodeInTheWay), Hoe, null, TestGames.Shipped.CropTypes);
+
+        AssertPrompt("Something's in the way", false, prompt);
+    }
+
     [Theory]
     [MemberData(nameof(SilentRejections))]
     public void AC4_rejection_with_no_row_shows_no_prompt(Rejection rejection)
