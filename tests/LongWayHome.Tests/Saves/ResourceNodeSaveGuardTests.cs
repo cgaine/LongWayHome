@@ -1,12 +1,13 @@
 using System.Text.Json.Nodes;
 using LongWayHome.Application.Saves;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Nodes;
 using LongWayHome.Infrastructure.Saves;
 using LongWayHome.Tests.Games;
 
 namespace LongWayHome.Tests.Saves;
 
-/// <summary>#151: the save paths the red tests don't drive: a repeated spawn id, no spawn list, the saved kind.</summary>
+/// <summary>#151: the save paths the red tests don't drive: a repeated spawn id, no spawn list, the saved kind, tilled soil.</summary>
 public sealed class ResourceNodeSaveGuardTests : IDisposable
 {
     private static readonly NodeSpawn[] Spawns = [NodeGames.Spawn(2, 2), NodeGames.Spawn(42, 0, NodeKind.Stump)];
@@ -52,5 +53,22 @@ public sealed class ResourceNodeSaveGuardTests : IDisposable
         var loaded = store.Load(1);
 
         Assert.Equal(["farm-2-2:Stump:Farm:2:2:3"], NodeGames.Describe(loaded.ResourceNodes));
+    }
+
+    [Fact]
+    public void An_old_save_gets_no_node_on_soil_tilled_outside_the_old_plots_block()
+    {
+        // A version 2 file from #150 can hold soil tilled anywhere on the meadow; nodes never stand on a tilled Tile.
+        var store = new JsonSaveStore(_folder.Path, Spawns);
+        var game = SaveGames.Rich();
+        game.FarmPlot[new GridPosition(2, 2)].Till();
+        store.Save(1, game);
+        var document = _folder.ReadSlot(1);
+        document.Remove("resourceNodes");
+        _folder.WriteSlot(1, document);
+
+        var loaded = store.Load(1);
+
+        Assert.Equal(["farm-42-0:Stump:Farm:42:0:0"], NodeGames.Describe(loaded.ResourceNodes));
     }
 }

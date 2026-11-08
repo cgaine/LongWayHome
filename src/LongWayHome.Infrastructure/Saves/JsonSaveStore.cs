@@ -282,6 +282,7 @@ public sealed class JsonSaveStore : ISaveStore
         var player = Required(dto.Player, "player");
         var farmPlot = Required(dto.FarmPlot, "farmPlot");
         var shippingBin = Required(dto.ShippingBin, "shippingBin");
+        var plot = ToFarmPlot(farmPlot);
 
         return new Game(
             dto.Id,
@@ -292,25 +293,29 @@ public sealed class JsonSaveStore : ISaveStore
             dto.CreatedAt,
             dto.SavedAt,
             ToPlayer(player),
-            ToFarmPlot(farmPlot),
+            plot,
             ToShippingBin(shippingBin),
             ToResidents(dto.Residents),
             openingDone: dto.OpeningDone ?? true, // BR-I1: a save from before #139 is past the Opening
             purchasedListings: ToPurchasedListings(dto.PurchasedListings),
-            resourceNodes: ToResourceNodes(dto.ResourceNodes));
+            resourceNodes: ToResourceNodes(dto.ResourceNodes, plot));
     }
 
     /// <summary>
     /// No <c>resourceNodes</c> (a version 1 file, or a version 2 file from before #151) is a node at every atStart
-    /// spawn point outside the old plot's block, so nothing lands on the Phase 1 crops (AC8). Otherwise each entry
+    /// spawn point outside the old plot's block, so nothing lands on the Phase 1 crops (AC8), and none on a farm Tile
+    /// that isn't grass, since a version 2 file from #150 may hold soil tilled anywhere on the meadow. Otherwise each entry
     /// is placed on its spawn point's Tile; one whose spawn point isn't in <c>nodes.json</c> is dropped (AC7). A null
     /// entry or spawn id, an undefined kind or negative swings are refused; the Game constructor refuses a repeat.
     /// </summary>
-    private IReadOnlyList<ResourceNode> ToResourceNodes(IReadOnlyList<ResourceNodeDto?>? nodes)
+    private IReadOnlyList<ResourceNode> ToResourceNodes(IReadOnlyList<ResourceNodeDto?>? nodes, FarmPlot farmPlot)
     {
         if (nodes is null)
         {
-            return _legacyNodeSpawns.Select(ResourceNode.FromSpawn).ToList();
+            return _legacyNodeSpawns
+                .Where(spawn => spawn.Area != AreaId.Farm || farmPlot[spawn.Position].State == TileState.Grass)
+                .Select(ResourceNode.FromSpawn)
+                .ToList();
         }
 
         var restored = new List<ResourceNode>(nodes.Count);

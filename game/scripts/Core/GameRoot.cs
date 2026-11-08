@@ -86,7 +86,7 @@ public partial class GameRoot : Node
             return;
         }
 
-        GD.Print($"Loaded {Data.CropTypes.Count} crop types, {Data.ShopListings.Count} shop listings and tuning");
+        GD.Print($"Loaded {Data.CropTypes.Count} crop types, {Data.ShopListings.Count} shop listings, {Data.NodeSpawns.Count} node spawn points and tuning");
 
         _store = new JsonSaveStore(ProjectSettings.GlobalizePath(SaveFolder), Data.NodeSpawns);
 
