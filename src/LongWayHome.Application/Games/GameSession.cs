@@ -90,6 +90,12 @@ public sealed class GameSession
     /// </summary>
     public event Action? NodesChanged;
 
+    /// <summary>
+    /// Raised with the node's Tile after a successful swing that leaves the farm node standing (#152), so the node view
+    /// can shake it. View feedback only: a clearing swing raises NodesChanged instead.
+    /// </summary>
+    public event Action<GridPosition>? NodeSwung;
+
     /// <summary>The Game's ResourceNodes, for the node views.</summary>
     public IReadOnlyList<ResourceNode> ResourceNodes => Game.ResourceNodes;
 
@@ -299,8 +305,8 @@ public sealed class GameSession
 
     /// <summary>
     /// Decides what Use from the held position would do, without changing state: harvest a Ripe Planting whatever is
-    /// held (BR-T6), else plant from a seed Slot (BR-T3), till with the hoe, water with the can; an empty or crop Slot
-    /// is NothingToDo. A position outside 0–5 throws.
+    /// held (BR-T6), else plant from a seed Slot (BR-T3), till with the hoe, water with the can, chop with the axe or
+    /// break with the pickaxe (BR-N1); an empty, crop or material Slot is NothingToDo. A position outside 0–5 throws.
     /// </summary>
     public UsePreview PreviewUse(GridPosition? target, int heldPosition)
     {
@@ -394,6 +400,15 @@ public sealed class GameSession
                 : new UsePreview(UseActionKind.Water, null);
         }
 
+        if (held?.Tool is ToolId.Axe or ToolId.Pickaxe)
+        {
+            // BR-N1, BR-N6, then BR-P2: the domain decides, so the preview and Game.Swing cannot drift apart.
+            var tool = held.Tool.Value;
+            return SwingRejection(position, tool) is { } rejection
+                ? Rejected(rejection)
+                : new UsePreview(tool == ToolId.Axe ? UseActionKind.Chop : UseActionKind.Break, null);
+        }
+
         return Rejected(Rejection.NothingToDo);
     }
 
@@ -406,6 +421,8 @@ public sealed class GameSession
             UseActionKind.Water => Water(target!.Value),
             UseActionKind.Plant => plant(target!.Value),
             UseActionKind.Harvest => Harvest(target!.Value, feet),
+            UseActionKind.Chop => Swing(target!.Value, ToolId.Axe, feet),
+            UseActionKind.Break => Swing(target!.Value, ToolId.Pickaxe, feet),
             _ => ActionResult.Rejected(preview.Rejection!.Value),
         };
 
@@ -426,6 +443,67 @@ public sealed class GameSession
 
         return result;
     }
+
+    /// <summary>
+    /// Swings the axe or pickaxe at the farm node on <paramref name="position"/> at the tier the Backpack holds it
+    /// (BR-N1, BR-N2, BR-N6, BR-P2); a tool not held, or a tier with no swing count in the tuning, is NothingToDo.
+    /// Raises PlayerChanged on success, then NodeSwung when the node still stands, or, when it is cleared,
+    /// InventoryChanged, NodesChanged, TileChanged for its Tile, and DroppedItemsChanged when part of the yield fit
+    /// nowhere and dropped at <paramref name="feet"/> (the node's Tile when null; BR-N3, BR-K3).
+    /// </summary>
+    public ActionResult Swing(GridPosition position, ToolId tool, GridPosition? feet = null)
+    {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
+        if (SwingTier(tool) is not { } tier)
+        {
+            return ActionResult.Rejected(Rejection.NothingToDo);
+        }
+
+        var droppedBefore = Game.DroppedItems.Count;
+        var swing = Game.Swing(
+            AreaId.Farm,
+            position,
+            tool,
+            tier,
+            Data.Tuning.ToolEnergyCost,
+            Data.Tuning.SwingsToClear,
+            Data.Tuning.NodeYields,
+            feet ?? position);
+        if (!swing.Result.IsOk)
+        {
+            return swing.Result;
+        }
+
+        PlayerChanged?.Invoke();
+        if (swing.Cleared)
+        {
+            InventoryChanged?.Invoke();
+            NodesChanged?.Invoke();
+            TileChanged?.Invoke(position);
+            RaiseIfDropped(droppedBefore);
+        }
+        else
+        {
+            NodeSwung?.Invoke(position);
+        }
+
+        return swing.Result;
+    }
+
+    // BR-N1, BR-N6, BR-P2 for a farm swing at the tier the Backpack holds the tool; a tool not held is NothingToDo.
+    private Rejection? SwingRejection(GridPosition position, ToolId tool) =>
+        SwingTier(tool) is { } tier
+            ? Game.SwingRejection(AreaId.Farm, position, tool, tier, Data.Tuning.ToolEnergyCost)
+            : Rejection.NothingToDo;
+
+    // The tier the Backpack holds the tool at, or null when it isn't held or the tuning has no swing count for that
+    // tier (swingsToClear is optional in tuning.json): then there is no swing, rather than one the domain refuses.
+    private ToolTier? SwingTier(ToolId tool) =>
+        Game.Player.Backpack.TierOf(tool) is { } tier && Data.Tuning.SwingsToClear.ContainsKey(tier) ? tier : null;
 
     /// <summary>Waters a Tile (BR-T9, BR-W2, BR-P2). Raises TileChanged and PlayerChanged on success.</summary>
     public ActionResult Water(GridPosition position)
@@ -629,14 +707,20 @@ public sealed class GameSession
         return result;
     }
 
-    /// <summary>The HUD label for a held item: "Hoe", "Watering can", or "Emberroot seeds × 9".</summary>
+    /// <summary>
+    /// The HUD label for a held item: "Hoe", "Watering can", "Emberroot seeds × 9", or "Wood × 12" with the total held
+    /// across all Slots.
+    /// </summary>
     public string HeldLabel(HeldItem held)
     {
         ArgumentNullException.ThrowIfNull(held);
 
-        return held.Seed is { } seed
-            ? $"{held.DisplayLabel} × {Game.Player.Backpack.Quantity(ItemRef.Seed(seed))}"
-            : held.DisplayLabel;
+        return held switch
+        {
+            { Seed: { } seed } => $"{held.DisplayLabel} × {Game.Player.Backpack.Quantity(ItemRef.Seed(seed))}",
+            { Material: { } material } => $"{held.DisplayLabel} × {Game.Player.Backpack.Quantity(ItemRef.Material(material))}",
+            _ => held.DisplayLabel,
+        };
     }
 
     /// <summary>
@@ -695,6 +779,7 @@ public sealed class GameSession
     {
         { Kind: ItemKind.Tool, ToolId: { } tool } => HeldItem.Of(tool),
         { Kind: ItemKind.Seed, CropTypeId: { } seed } => HeldItem.SeedOf(seed),
+        { Kind: ItemKind.Material, MaterialId: { } material } => HeldItem.MaterialOf(material),
         _ => null,
     };
 

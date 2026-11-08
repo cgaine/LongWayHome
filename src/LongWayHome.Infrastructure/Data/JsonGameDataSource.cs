@@ -13,12 +13,13 @@ using LongWayHome.Infrastructure.Data.Dtos;
 namespace LongWayHome.Infrastructure.Data;
 
 /// <summary>
-/// Parses and validates <c>crops.json</c>, <c>shop.json</c>, <c>tuning.json</c> and <c>nodes.json</c>.
+/// Parses and validates <c>crops.json</c>, <c>shop.json</c>, <c>tuning.json</c>, <c>nodes.json</c> and
+/// <c>materials.json</c>.
 /// Takes the file contents as strings, not paths: in an exported build <c>res://</c> files live inside the
 /// <c>.pck</c>, which <c>System.IO</c> can't open, so the Godot layer reads them with <c>Godot.FileAccess</c>.
 /// </summary>
 /// <remarks>
-/// Every parse and validation error across the four files is collected before a single
+/// Every parse and validation error across the files is collected before a single
 /// <see cref="GameDataException"/> is thrown. When <c>crops.json</c> doesn't parse, the checks in the other
 /// files that refer to crop types are skipped, since there is nothing to check them against.
 /// </remarks>
@@ -28,23 +29,36 @@ public sealed class JsonGameDataSource : IGameDataSource
     public const string ShopFileName = "shop.json";
     public const string TuningFileName = "tuning.json";
     public const string NodesFileName = "nodes.json";
+    public const string MaterialsFileName = "materials.json";
 
     private readonly string _cropsJson;
     private readonly string _shopJson;
     private readonly string _tuningJson;
     private readonly string _nodesJson;
+    private readonly string _materialsJson;
 
+    /// <summary>The four files without <c>materials.json</c>: <see cref="GameData.MaterialTypes"/> loads empty.</summary>
     public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson, string nodesJson)
+        : this(cropsJson, shopJson, tuningJson, nodesJson, NoMaterials)
+    {
+    }
+
+    /// <summary>All five data files, <c>materials.json</c> included (#152).</summary>
+    public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson, string nodesJson, string materialsJson)
     {
         ArgumentNullException.ThrowIfNull(cropsJson);
         ArgumentNullException.ThrowIfNull(shopJson);
         ArgumentNullException.ThrowIfNull(tuningJson);
         ArgumentNullException.ThrowIfNull(nodesJson);
+        ArgumentNullException.ThrowIfNull(materialsJson);
         _cropsJson = cropsJson;
         _shopJson = shopJson;
         _tuningJson = tuningJson;
         _nodesJson = nodesJson;
+        _materialsJson = materialsJson;
     }
+
+    private const string NoMaterials = """{ "materialTypes": [] }""";
 
     /// <summary>
     /// The serializer options for the data files: camelCase properties, enums as snake_case codes
@@ -60,6 +74,7 @@ public sealed class JsonGameDataSource : IGameDataSource
         var shopFile = Parse<ShopFileDto>(_shopJson, ShopFileName, errors);
         var tuningFile = Parse<TuningDto>(_tuningJson, TuningFileName, errors);
         var nodesFile = Parse<NodesFileDto>(_nodesJson, NodesFileName, errors);
+        var materialsFile = Parse<MaterialsFileDto>(_materialsJson, MaterialsFileName, errors);
 
         // Null when crops.json didn't parse: cross-file reference checks are then skipped.
         var cropsById = cropsFile is null ? null : ValidateCrops(cropsFile, errors);
@@ -78,6 +93,11 @@ public sealed class JsonGameDataSource : IGameDataSource
             ValidateNodes(nodesFile, errors);
         }
 
+        if (materialsFile is not null)
+        {
+            ValidateMaterials(materialsFile, errors);
+        }
+
         if (errors.Count > 0)
         {
             throw new GameDataException(errors);
@@ -89,6 +109,9 @@ public sealed class JsonGameDataSource : IGameDataSource
             ToGameTuning(tuningFile!))
         {
             NodeSpawns = nodesFile!.Spawns.Select(ToNodeSpawn).ToList().AsReadOnly(),
+            MaterialTypes = materialsFile!.MaterialTypes
+                .ToDictionary(dto => dto.Id, dto => new MaterialType(dto.Id, dto.Name, dto.MaxStack))
+                .AsReadOnly(),
         };
     }
 
@@ -360,6 +383,7 @@ public sealed class JsonGameDataSource : IGameDataSource
         Check(tuning.SeasonLengthDays >= 1, "seasonLengthDays", "at least 1", tuning.SeasonLengthDays);
         Check(tuning.WalkSpeedTilesPerSecond > 0, "walkSpeedTilesPerSecond", "above 0", tuning.WalkSpeedTilesPerSecond);
         Check(tuning.RunSpeedTilesPerSecond >= tuning.WalkSpeedTilesPerSecond, "runSpeedTilesPerSecond", $"at least walkSpeedTilesPerSecond ({tuning.WalkSpeedTilesPerSecond.ToString(CultureInfo.InvariantCulture)})", tuning.RunSpeedTilesPerSecond);
+        ValidateSwingTuning(tuning, errors);
 
         if (tuning.StartingSeeds is null)
         {
@@ -389,6 +413,98 @@ public sealed class JsonGameDataSource : IGameDataSource
             if (cropsById is not null && !cropsById.ContainsKey(stack.CropTypeId))
             {
                 errors.Add($"{TuningFileName}: {field}.cropTypeId {cropTypeId} is not a crop type in {CropsFileName}");
+            }
+        }
+    }
+
+    private static void ValidateMaterials(MaterialsFileDto file, List<string> errors)
+    {
+        if (file.MaterialTypes is null)
+        {
+            errors.Add($"{MaterialsFileName}: materialTypes must be a list, was null");
+            return;
+        }
+
+        var ids = new HashSet<MaterialId>();
+        for (var index = 0; index < file.MaterialTypes.Count; index++)
+        {
+            var material = file.MaterialTypes[index];
+            if (material is null)
+            {
+                errors.Add($"{MaterialsFileName}: materialTypes[{index}] must be an object, was null");
+                continue;
+            }
+
+            var id = Code(material.Id);
+            if (!ids.Add(material.Id))
+            {
+                errors.Add($"{MaterialsFileName}: {id}.id is used by more than one material type");
+            }
+
+            if (string.IsNullOrWhiteSpace(material.Name))
+            {
+                errors.Add($"{MaterialsFileName}: {id}.name must not be empty");
+            }
+
+            // BR-K2: a Slot holds 1 to 99 of one item, so every material stacks to exactly 99.
+            if (material.MaxStack != Backpack.MaxStack)
+            {
+                errors.Add($"{MaterialsFileName}: {id}.maxStack must be {Backpack.MaxStack} (BR-K2), was {material.MaxStack}");
+            }
+        }
+    }
+
+    // BR-N2, BR-N3: optional in the file; when present every tier has a count of at least 1 and every yield stack at
+    // least 1 of a material, keyed by canonical codes.
+    private static void ValidateSwingTuning(TuningDto tuning, List<string> errors)
+    {
+        if (tuning.SwingsToClear is { } swingsToClear)
+        {
+            foreach (var (key, count) in swingsToClear)
+            {
+                if (!TryParseCode<ToolTier>(key, out _))
+                {
+                    errors.Add($"{TuningFileName}: swingsToClear.{key} is not a tool tier");
+                }
+                else if (count < 1)
+                {
+                    errors.Add($"{TuningFileName}: swingsToClear.{key} must be at least 1 (BR-N2), was {count}");
+                }
+            }
+
+            foreach (var tier in Enum.GetValues<ToolTier>().Where(tier => !swingsToClear.ContainsKey(Code(tier))))
+            {
+                errors.Add($"{TuningFileName}: swingsToClear.{Code(tier)} is missing (BR-N2)");
+            }
+        }
+
+        if (tuning.NodeYields is { } nodeYields)
+        {
+            foreach (var (key, stacks) in nodeYields)
+            {
+                if (!TryParseCode<NodeKind>(key, out _))
+                {
+                    errors.Add($"{TuningFileName}: nodeYields.{key} is not a node kind");
+                    continue;
+                }
+
+                if (stacks is null)
+                {
+                    errors.Add($"{TuningFileName}: nodeYields.{key} must be a list, was null");
+                    continue;
+                }
+
+                for (var index = 0; index < stacks.Count; index++)
+                {
+                    if (stacks[index] is not { } stack)
+                    {
+                        errors.Add($"{TuningFileName}: nodeYields.{key}[{index}] must be an object, was null");
+                    }
+                    else if (stack.Quantity < 1)
+                    {
+                        errors.Add($"{TuningFileName}: nodeYields.{key}[{index}].quantity must be at least 1 (BR-N3), was {stack.Quantity}");
+                    }
+                }
             }
         }
     }
@@ -487,7 +603,39 @@ public sealed class JsonGameDataSource : IGameDataSource
         SeasonLengthDays = dto.SeasonLengthDays,
         WalkSpeedTilesPerSecond = dto.WalkSpeedTilesPerSecond,
         RunSpeedTilesPerSecond = dto.RunSpeedTilesPerSecond,
+        SwingsToClear = (dto.SwingsToClear ?? new Dictionary<string, int>())
+            .ToDictionary(pair => ParseCode<ToolTier>(pair.Key), pair => pair.Value)
+            .AsReadOnly(),
+        NodeYields = (dto.NodeYields ?? new Dictionary<string, IReadOnlyList<MaterialStackDto>>())
+            .ToDictionary(
+                pair => ParseCode<NodeKind>(pair.Key),
+                pair => (IReadOnlyList<MaterialStack>)pair.Value
+                    .Select(stack => new MaterialStack(stack.Material, stack.Quantity))
+                    .ToList()
+                    .AsReadOnly())
+            .AsReadOnly(),
     };
+
+    // The enum value whose canonical code is <paramref name="code"/>; validation has already refused unknown codes.
+    private static TEnum ParseCode<TEnum>(string code)
+        where TEnum : struct, Enum =>
+        TryParseCode<TEnum>(code, out var value) ? value : throw new InvalidOperationException($"Unknown code '{code}'.");
+
+    private static bool TryParseCode<TEnum>(string code, out TEnum value)
+        where TEnum : struct, Enum
+    {
+        foreach (var candidate in Enum.GetValues<TEnum>())
+        {
+            if (string.Equals(Code(candidate), code, StringComparison.Ordinal))
+            {
+                value = candidate;
+                return true;
+            }
+        }
+
+        value = default;
+        return false;
+    }
 
     /// <summary>The canonical snake_case code of an enum value, as it appears in the data files.</summary>
     private static string Code<TEnum>(TEnum value)

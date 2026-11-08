@@ -69,7 +69,7 @@ Stored in `InventoryStack.kind`; from Phase 2 in `ItemRef.kind` (Backpack, chest
 |------------|---------------|-------|
 | `seed` | Seeds | Plantable; cannot be shipped. |
 | `crop` | Crop | Harvested; shipped through the Shipping Bin or sold to Maggie. |
-| `material` | Material | *(planned, REQ-44)* See `MaterialId`. Stacks to 99; can't be sold or shipped. |
+| `material` | Material | See `MaterialId`. Stacks to 99; can't be sold or shipped. |
 | `tool` | Tool | See `ToolId`. One per Slot, with a `ToolTier`; never dropped or sold (BR-K6). |
 | `placeable` | Placeable | *(planned, REQ-48)* See `PlaceableId`. |
 
@@ -129,7 +129,7 @@ Stored with each tool's Backpack Slot and in tool-upgrade Orders.
 
 ---
 
-## MaterialId *(planned, REQ-44)*
+## MaterialId
 
 | Code Value | Display Label | Comes from |
 |------------|---------------|------------|

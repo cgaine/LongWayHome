@@ -6,6 +6,7 @@ using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Nodes;
 using LongWayHome.Game.Core;
@@ -19,7 +20,9 @@ namespace LongWayHome.Game.Art;
 /// (the Twinbough <c>Full</c> in today's Season, the <c>Stump</c>, and <c>RockKind.Rock</c>), so the whole meadow's
 /// nodes are three draws (REQ-14). Each tree and stump gets a trunk cylinder and each rock a box, so the farmer walks
 /// under the canopies but not through a node. Rebuilt on <see cref="GameSession.NodesChanged"/>, which a Night also
-/// raises, so the trees follow the Season. Only reads the session; holds no rules.
+/// raises, so the trees follow the Season; a node cleared by a swing (#152) is gone from that rebuild, mesh and collider
+/// both. On <see cref="GameSession.NodeSwung"/>, a swing that leaves the node standing, its MultiMesh instance gets a
+/// short side-to-side shake through a <see cref="Tween"/>. Only reads the session; holds no rules.
 /// </summary>
 public partial class ResourceNodesView : Node3D
 {
@@ -34,7 +37,20 @@ public partial class ResourceNodesView : Node3D
     /// <summary>A rock is about 0.9 m across; its box stands taller than the rock so the farmer can't step over it.</summary>
     private static readonly Vector3 RockBox = new(0.9f, 1f, 0.9f);
 
+    /// <summary>How long a struck node shakes, and how far its top sways each way at first, in metres.</summary>
+    private const float ShakeSeconds = 0.25f;
+
+    private const float ShakeAmplitude = 0.06f;
+
     private GameSession? _session;
+
+    /// <summary>Each farm node's Tile to its instance in the last build's MultiMesh, for the shake.</summary>
+    private readonly Dictionary<GridPosition, (MultiMesh Mesh, int Index, Transform3D Resting)> _instances = [];
+
+    private Tween? _shake;
+
+    /// <summary>The instance the running shake moves, so a new shake can put it back first.</summary>
+    private (MultiMesh Mesh, int Index, Transform3D Resting)? _shaking;
 
     public override void _Ready()
     {
@@ -46,6 +62,7 @@ public partial class ResourceNodesView : Node3D
         }
 
         _session.NodesChanged += Rebuild;
+        _session.NodeSwung += Shake;
         Rebuild();
     }
 
@@ -54,12 +71,17 @@ public partial class ResourceNodesView : Node3D
         if (_session is not null)
         {
             _session.NodesChanged -= Rebuild;
+            _session.NodeSwung -= Shake;
         }
     }
 
     /// <summary>Frees the last build and draws the session's farm nodes again, the trees in today's Season.</summary>
     private void Rebuild()
     {
+        _shake?.Kill();
+        _shake = null;
+        _shaking = null;
+        _instances.Clear();
         foreach (var child in GetChildren())
         {
             RemoveChild(child);
@@ -72,12 +94,62 @@ public partial class ResourceNodesView : Node3D
         var stumps = Props(farmNodes, NodeKind.Stump);
         var rocks = Props(farmNodes, NodeKind.Rock);
 
-        AddChild(AreaArt.Many("Trees", NatureModels.Twinbough(TreeStage.Full, season), trees));
-        AddChild(AreaArt.Many("Stumps", NatureModels.Twinbough(TreeStage.Stump, season), stumps));
-        AddChild(AreaArt.Many("Rocks", NatureModels.Rock(RockKind.Rock), rocks));
+        AddMany("Trees", NatureModels.Twinbough(TreeStage.Full, season), farmNodes, NodeKind.Tree, trees);
+        AddMany("Stumps", NatureModels.Twinbough(TreeStage.Stump, season), farmNodes, NodeKind.Stump, stumps);
+        AddMany("Rocks", NatureModels.Rock(RockKind.Rock), farmNodes, NodeKind.Rock, rocks);
         AddChild(AreaArt.Trunks("TreeTrunks", trees, TreeTrunkRadius));
         AddChild(AreaArt.Trunks("StumpTrunks", stumps, StumpRadius));
         AddChild(RockBodies(rocks));
+    }
+
+    /// <summary>Adds the kind's MultiMesh and remembers which instance stands on each node's Tile.</summary>
+    private void AddMany(string name, Mesh mesh, IEnumerable<ResourceNode> nodes, NodeKind kind, List<AreaProp> props)
+    {
+        var instance = AreaArt.Many(name, mesh, props);
+        var index = 0;
+        foreach (var node in nodes.Where(node => node.Kind == kind))
+        {
+            _instances[node.Position] = (instance.Multimesh, index, instance.Multimesh.GetInstanceTransform(index));
+            index++;
+        }
+
+        AddChild(instance);
+    }
+
+    /// <summary>A short sway of the struck node's instance, damped back to where it stood (#152); view-only.</summary>
+    private void Shake(GridPosition position)
+    {
+        if (!_instances.TryGetValue(position, out var instance))
+        {
+            return;
+        }
+
+        // One shake at a time: a new swing puts the node still shaking back where it stood, then restarts from the
+        // struck node's resting transform, the one the build placed.
+        _shake?.Kill();
+        if (_shaking is { } last)
+        {
+            last.Mesh.SetInstanceTransform(last.Index, last.Resting);
+        }
+
+        var (mesh, index, rest) = instance;
+        _shaking = instance;
+        mesh.SetInstanceTransform(index, rest);
+        _shake = CreateTween();
+        _shake.TweenMethod(
+            Callable.From<float>(t =>
+            {
+                var sway = Mathf.Sin(t * Mathf.Tau * 3f) * (1f - t) * ShakeAmplitude;
+                mesh.SetInstanceTransform(index, rest.Translated(new Vector3(sway, 0f, 0f)));
+            }),
+            0f,
+            1f,
+            ShakeSeconds);
+        _shake.TweenCallback(Callable.From(() =>
+        {
+            mesh.SetInstanceTransform(index, rest);
+            _shaking = null;
+        }));
     }
 
     /// <summary>The nodes of <paramref name="kind"/> as props on their Tiles' centres, each turned a little differently.</summary>

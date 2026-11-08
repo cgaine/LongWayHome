@@ -6,7 +6,8 @@ namespace LongWayHome.Application.Art;
 
 /// <summary>
 /// The Phase 2 materials that have backpack icons (design doc, Gathering and Rebuilding; the concept art's Backpack
-/// page), drawn ahead of the game having them: nothing in play carries them yet.
+/// page). <see cref="ItemIcons.For(ItemRef)"/> maps a held <see cref="MaterialId"/> onto one (#152); the Rosk pump has
+/// no icon yet.
 /// </summary>
 public enum MaterialKind
 {
@@ -40,6 +41,22 @@ public static class ItemIcons
     /// <exception cref="ArgumentOutOfRangeException">An undefined material.</exception>
     public static string MaterialIcon(MaterialKind material) => $"{Folder}material_{CodeOf(material)}.svg";
 
+    /// <summary>The material icon of a held material, or null for one with no icon yet (the Rosk pump).</summary>
+    /// <exception cref="ArgumentOutOfRangeException">An undefined material.</exception>
+    public static string? MaterialIcon(MaterialId material) => material switch
+    {
+        MaterialId.Wood => MaterialIcon(MaterialKind.Wood),
+        MaterialId.Sap => MaterialIcon(MaterialKind.Sap),
+        MaterialId.Stone => MaterialIcon(MaterialKind.Stone),
+        MaterialId.RoskOre => MaterialIcon(MaterialKind.RoskOre),
+        MaterialId.GrothOre => MaterialIcon(MaterialKind.GrothOre),
+        MaterialId.Glimmercap => MaterialIcon(MaterialKind.Glimmercap),
+        MaterialId.Plank => MaterialIcon(MaterialKind.Plank),
+        MaterialId.SealedPlank => MaterialIcon(MaterialKind.SealedPlank),
+        MaterialId.RoskPump => null,
+        _ => throw new ArgumentOutOfRangeException(nameof(material), material, "Unknown material."),
+    };
+
     /// <summary>"res://art/icons/tool_&lt;code&gt;.svg": axe, pickaxe.</summary>
     /// <exception cref="ArgumentOutOfRangeException">An undefined tool.</exception>
     public static string ToolIcon(GatherTool tool) => tool switch
@@ -63,13 +80,17 @@ public static class ItemIcons
         _ => throw new ArgumentOutOfRangeException(nameof(material), material, "Unknown material."),
     };
 
-    /// <summary>The seed icon for a held seed, the tool icon for the axe or pickaxe, or null for the hoe and can.</summary>
+    /// <summary>
+    /// The seed icon for a held seed, the material icon for a held material, the tool icon for the axe or pickaxe, or
+    /// null for the hoe and can.
+    /// </summary>
     public static string? For(HeldItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
         return item switch
         {
             { Seed: { } seed } => SeedIcon(seed),
+            { Material: { } material } => MaterialIcon(material),
             { Tool: { } tool } => GatherIcon(tool),
             _ => null,
         };
@@ -90,12 +111,15 @@ public static class ItemIcons
         };
     }
 
-    /// <summary>The seed or crop icon for an item, the tool icon for the axe or pickaxe, or null for the hoe and can.</summary>
+    /// <summary>
+    /// The seed, crop or material icon for an item, the tool icon for the axe or pickaxe, or null for the hoe and can.
+    /// </summary>
     public static string? For(ItemRef item) => item switch
     {
         { Kind: ItemKind.Seed, CropTypeId: { } seed } => SeedIcon(seed),
         { Kind: ItemKind.Crop, CropTypeId: { } crop } => CropIcon(crop),
         { Kind: ItemKind.Tool, ToolId: { } tool } => GatherIcon(tool),
+        { Kind: ItemKind.Material, MaterialId: { } material } => MaterialIcon(material),
         _ => null,
     };
 

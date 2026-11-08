@@ -25,4 +25,5 @@ public enum Rejection
     NothingToSell,
     NotSellable,
     NodeInTheWay,
+    NeedsGrothAxe,
 }

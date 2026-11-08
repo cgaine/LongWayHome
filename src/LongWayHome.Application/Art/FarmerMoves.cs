@@ -17,6 +17,8 @@ public enum FarmerClip
     Ship,
     Sleep,
     PassOut,
+    AxeSwing,
+    PickaxeSwing,
 }
 
 /// <summary>
@@ -62,6 +64,8 @@ public static class FarmerMoves
         [FarmerClip.Ship] = Ship(),
         [FarmerClip.Sleep] = Sleep(),
         [FarmerClip.PassOut] = PassOut(),
+        [FarmerClip.AxeSwing] = OverheadSwing(FarmerClip.AxeSwing, 0.65f, strikeLean: 30f, recoverAt: 0.5f),
+        [FarmerClip.PickaxeSwing] = OverheadSwing(FarmerClip.PickaxeSwing, 0.7f, strikeLean: 36f, recoverAt: 0.55f),
     };
 
     /// <summary>The keyframes of <paramref name="clip"/>.</summary>
@@ -162,6 +166,38 @@ public static class FarmerMoves
         keys.Pose(0.54f, ("RightHand", 80f, 0f, 0f));
         keys.Rest(length, "Chest", "Spine", "RightUpperArm", "LeftUpperArm", "RightLowerArm", "LeftLowerArm", "RightHand");
         return new FarmerClipSpec(FarmerClip.HoeSwing, length, false, keys.Keys, []);
+    }
+
+    /// <summary>
+    /// The axe or pickaxe swing (#152): both hands lift the tool straight overhead (0–0.28 s), the chest leaning back,
+    /// then bring it down in front onto the target Tile (0.28–0.42 s) with the chest bent forward by
+    /// <paramref name="strikeLean"/>°, hold the strike a moment and recover. The pickaxe bends further into the rock.
+    /// </summary>
+    private static FarmerClipSpec OverheadSwing(FarmerClip clip, float length, float strikeLean, float recoverAt)
+    {
+        var keys = new ClipKeys();
+        keys.Rest(0f, "Chest", "Spine", "RightUpperArm", "LeftUpperArm", "RightLowerArm", "LeftLowerArm", "RightHand");
+        keys.Pose(
+            0.28f,
+            ("Chest", -12f, 0f, 0f),
+            ("Spine", -5f, 0f, 0f),
+            ("RightUpperArm", -170f, 0f, -8f),
+            ("LeftUpperArm", -165f, 0f, 8f),
+            ("RightLowerArm", -25f, 0f, 0f),
+            ("LeftLowerArm", -25f, 0f, 0f),
+            ("RightHand", 80f, 0f, 0f));
+        keys.Pose(
+            0.42f,
+            ("Chest", strikeLean, 0f, 0f),
+            ("Spine", strikeLean * 0.4f, 0f, 0f),
+            ("RightUpperArm", -60f, 0f, 0f),
+            ("LeftUpperArm", -55f, 0f, 0f),
+            ("RightLowerArm", -10f, 0f, 0f),
+            ("LeftLowerArm", -10f, 0f, 0f),
+            ("RightHand", 160f, 0f, 0f));
+        keys.Pose(recoverAt, ("Chest", strikeLean * 0.85f, 0f, 0f), ("RightUpperArm", -60f, 0f, 0f), ("LeftUpperArm", -55f, 0f, 0f));
+        keys.Rest(length, "Chest", "Spine", "RightUpperArm", "LeftUpperArm", "RightLowerArm", "LeftLowerArm", "RightHand");
+        return new FarmerClipSpec(clip, length, false, keys.Keys, []);
     }
 
     /// <summary>The right arm lifts forward, the right hand tips the can 50° forward over the tile, and back.</summary>
@@ -395,6 +431,8 @@ public static class FarmerAnimationState
         UseActionKind.Water => FarmerClip.Water,
         UseActionKind.Plant => FarmerClip.Plant,
         UseActionKind.Harvest => FarmerClip.Harvest,
+        UseActionKind.Chop => FarmerClip.AxeSwing,
+        UseActionKind.Break => FarmerClip.PickaxeSwing,
         _ => null,
     };
 

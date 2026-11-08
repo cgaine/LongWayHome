@@ -23,7 +23,7 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="CropsText"/> ("Crops:" then each carried crop's icon and "Emberroot × 9", or "Crops: none") and the
 /// held slot's label (with that slot's seed count when a seed is held; empty for an empty slot). Along the bottom
 /// centre, the hotbar: the six slot frames of <see cref="GameSession.Hotbar"/>, the current Backpack row (#129), a seed
-/// slot showing its <see cref="ItemIcons.SeedIcon"/> and a crop slot its <see cref="ItemIcons.CropIcon"/> left of its
+/// slot showing its <see cref="ItemIcons.SeedIcon"/>, a crop slot its <see cref="ItemIcons.CropIcon"/> and a material slot its material icon left of its
 /// label, an empty slot an empty frame of the same minimum size, the held position bordered in ember orange, and
 /// beside them the <see cref="HotbarText.Row"/> label ("Row 1/2"). When those full slots would not fit the visible
 /// width (less a <see cref="HotbarMargin"/> each side), the seed slots switch to <see cref="HotbarText.Compact"/>
@@ -563,7 +563,7 @@ public partial class Hud : CanvasLayer
             var label = OutlinedLabel(text, SlotFontSize);
             if (SlotIcon(slot) is { } icon)
             {
-                // A seed, crop, axe or pickaxe slot: its icon left of the unchanged label. The hoe and can stay text only.
+                // A seed, crop, material, axe or pickaxe slot: its icon left of the unchanged label. The hoe and can stay text only.
                 var content = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
                 content.AddChild(IconTextures.Rect(icon, HotbarIconSize));
                 content.AddChild(label);
@@ -578,7 +578,10 @@ public partial class Hud : CanvasLayer
         }
     }
 
-    /// <summary>A seed slot's seed icon, a crop slot's crop icon, the axe's or pickaxe's tool icon, or null (the hoe, the can and empty slots).</summary>
+    /// <summary>
+    /// A seed slot's seed icon, a crop slot's crop icon, a material slot's <see cref="ItemIcons.MaterialIcon(LongWayHome.Domain.Players.MaterialId)"/>
+    /// (#152), the axe's or pickaxe's tool icon, or null (the hoe, the can and empty slots).
+    /// </summary>
     private static string? SlotIcon(HotbarSlot slot) =>
         slot.Item is { } item
             ? ItemIcons.For(item)

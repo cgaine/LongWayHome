@@ -9,7 +9,8 @@ namespace LongWayHome.Game.Player;
 
 /// <summary>
 /// Keeps the held item in the farmer's right hand (#102): shows <see cref="HeldItemSelection.Held"/> (what the held
-/// hotbar position holds; nothing for an empty or crop slot) on the <see cref="FarmerModel"/> under the Player's
+/// hotbar position holds; nothing for an empty, crop or material slot, which has no in-hand art) on the
+/// <see cref="FarmerModel"/> under the Player's
 /// <c>Model</c> on start, when the selection changes and on <see cref="GameSession.InventoryChanged"/>, which covers
 /// planting the last seed of the held slot and cycling the hotbar row (neither raises
 /// <see cref="HeldItemSelection.SelectionChanged"/>). A child of the Player, after <c>HeldItemSelection</c>. Holds no
@@ -62,7 +63,8 @@ public partial class HeldItemView : Node
 
     private void Refresh()
     {
-        if (_selection.Held is { } held)
+        // A held material does nothing on Use and has no in-hand art (HeldItemArt.PartsFor throws for one).
+        if (_selection.Held is { Material: null } held)
         {
             _farmer?.ShowHeld(held);
         }

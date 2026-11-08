@@ -29,4 +29,8 @@ internal sealed record TuningDto
     public required double WalkSpeedTilesPerSecond { get; init; }
 
     public required double RunSpeedTilesPerSecond { get; init; }
+
+    public IReadOnlyDictionary<string, int>? SwingsToClear { get; init; }
+
+    public IReadOnlyDictionary<string, IReadOnlyList<MaterialStackDto>>? NodeYields { get; init; }
 }

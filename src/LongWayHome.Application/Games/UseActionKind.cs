@@ -7,4 +7,6 @@ public enum UseActionKind
     Plant,
     Harvest,
     Water,
+    Chop,
+    Break,
 }

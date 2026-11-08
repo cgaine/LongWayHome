@@ -55,6 +55,8 @@ public static class FarmerAnimations
         FarmerClip.Ship => "ship",
         FarmerClip.Sleep => "sleep",
         FarmerClip.PassOut => "pass_out",
+        FarmerClip.AxeSwing => "axe_swing",
+        FarmerClip.PickaxeSwing => "pickaxe_swing",
         _ => throw new System.ArgumentOutOfRangeException(nameof(clip), clip, "Unknown farmer clip."),
     };
 

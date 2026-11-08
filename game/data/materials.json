@@ -1,0 +1,13 @@
+{
+  "materialTypes": [
+    { "id": "wood",         "name": "Wood",         "maxStack": 99 },
+    { "id": "sap",          "name": "Sap",          "maxStack": 99 },
+    { "id": "stone",        "name": "Stone",        "maxStack": 99 },
+    { "id": "rosk_ore",     "name": "Rosk ore",     "maxStack": 99 },
+    { "id": "groth_ore",    "name": "Groth ore",    "maxStack": 99 },
+    { "id": "glimmercap",   "name": "Glimmercap",   "maxStack": 99 },
+    { "id": "plank",        "name": "Plank",        "maxStack": 99 },
+    { "id": "sealed_plank", "name": "Sealed plank", "maxStack": 99 },
+    { "id": "rosk_pump",    "name": "Rosk pump",    "maxStack": 99 }
+  ]
+}

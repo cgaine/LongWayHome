@@ -15,5 +15,11 @@
   "rainChancePercent": 22,
   "seasonLengthDays": 28,
   "walkSpeedTilesPerSecond": 3.6,
-  "runSpeedTilesPerSecond": 5.2
+  "runSpeedTilesPerSecond": 5.2,
+  "swingsToClear": { "basic": 4, "rosk": 3, "groth": 2 },
+  "nodeYields": {
+    "tree": [ { "material": "wood", "quantity": 5 }, { "material": "sap", "quantity": 2 } ],
+    "rock": [ { "material": "stone", "quantity": 3 } ],
+    "stump": [ { "material": "wood", "quantity": 4 } ]
+  }
 }

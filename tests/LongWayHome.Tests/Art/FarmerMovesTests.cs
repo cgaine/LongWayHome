@@ -235,6 +235,45 @@ public class FarmerMovesTests
         Assert.Equal(expected, FarmerAnimationState.ForUse(action));
     }
 
+    [Theory]
+    [InlineData(UseActionKind.Chop, FarmerClip.AxeSwing)]
+    [InlineData(UseActionKind.Break, FarmerClip.PickaxeSwing)]
+    public void AC11_a_chop_plays_the_axe_swing_and_a_break_the_pickaxe_swing(UseActionKind action, FarmerClip expected)
+    {
+        Assert.Equal(expected, FarmerAnimationState.ForUse(action));
+    }
+
+    [Theory]
+    [InlineData(FarmerClip.AxeSwing)]
+    [InlineData(FarmerClip.PickaxeSwing)]
+    public void AC11_the_axe_and_pickaxe_swings_are_one_shots_about_the_hoe_swings_length(FarmerClip clip)
+    {
+        var spec = FarmerMoves.For(clip);
+        var hoe = FarmerMoves.For(FarmerClip.HoeSwing);
+
+        Assert.Equal(clip, spec.Clip);
+        Assert.False(spec.Loops, $"{clip} loops");
+        Assert.InRange(spec.LengthSeconds, hoe.LengthSeconds * 0.75f, hoe.LengthSeconds * 1.5f);
+    }
+
+    [Theory]
+    [InlineData(FarmerClip.AxeSwing)]
+    [InlineData(FarmerClip.PickaxeSwing)]
+    public void AC11_the_axe_and_pickaxe_swings_raise_both_arms_overhead_then_strike_forward(FarmerClip clip)
+    {
+        var keys = FarmerMoves.For(clip).Keys;
+
+        // Two-handed overhead: both upper arms lift well above the shoulder (a pitch past -120°) at some key, then
+        // come down in front (back above -90°) at a later key.
+        foreach (var arm in new[] { "RightUpperArm", "LeftUpperArm" })
+        {
+            var armKeys = keys.Where(key => key.Bone == arm).OrderBy(key => key.Time).ToList();
+            var raised = armKeys.FirstOrDefault(key => key.PitchDegrees < -120f);
+            Assert.True(raised is not null, $"{clip} never raises {arm} overhead");
+            Assert.Contains(armKeys, key => key.Time > raised!.Time && key.PitchDegrees > -90f && key.PitchDegrees < -20f);
+        }
+    }
+
     [Fact]
     public void AC3_for_use_of_no_action_is_no_clip()
     {
