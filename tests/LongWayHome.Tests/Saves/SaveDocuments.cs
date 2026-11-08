@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
 using LongWayHome.Tests.Games;
 using GameState = LongWayHome.Domain.Games.Game;
@@ -42,14 +43,16 @@ internal static class BackpackSaveGames
 
 /// <summary>
 /// Literal save documents written the way the game writes them: a version 1 document with <c>player.tools</c> and
-/// <c>player.inventory</c>, or a version 2 document with <c>player.backpack</c>. The 108 grass Tiles are generated.
+/// <c>player.inventory</c>, or a version 2 document with <c>player.backpack</c>. The grass Tiles are generated: 12 x 9
+/// for a version 1 document (the Phase 1 plot), <see cref="FarmPlot.Width"/> x <see cref="FarmPlot.Height"/> for a
+/// version 2 one unless another size is asked for (#150).
 /// </summary>
 internal static class SaveDocuments
 {
     /// <summary>A version 1 document: both tools, the given inventory stacks in order, and the given can.</summary>
     public static JsonObject V1(
         JsonArray inventory, int gold = 1234, int capacity = 20, int charges = 20, bool upgraded = false) =>
-        Document(1, new JsonObject
+        Document(1, Phase1Width, Phase1Height, new JsonObject
         {
             ["gold"] = gold,
             ["energy"] = 77,
@@ -62,9 +65,12 @@ internal static class SaveDocuments
     public static JsonObject Stack(string kind, string cropTypeId, int quantity) =>
         new() { ["kind"] = kind, ["cropTypeId"] = cropTypeId, ["quantity"] = quantity };
 
-    /// <summary>A version 2 document carrying the given backpack and a 20-charge Basic can.</summary>
-    public static JsonObject V2(JsonObject backpack, int gold = 1234) =>
-        Document(2, new JsonObject
+    /// <summary>
+    /// A version 2 document carrying the given backpack and a 20-charge Basic can, on a grass plot of the given size
+    /// (the current <see cref="FarmPlot.Width"/> x <see cref="FarmPlot.Height"/> by default).
+    /// </summary>
+    public static JsonObject V2(JsonObject backpack, int gold = 1234, int? plotWidth = null, int? plotHeight = null) =>
+        Document(2, plotWidth ?? FarmPlot.Width, plotHeight ?? FarmPlot.Height, new JsonObject
         {
             ["gold"] = gold,
             ["energy"] = 77,
@@ -124,12 +130,36 @@ internal static class SaveDocuments
     private static JsonObject Can(int capacity, int charges, bool upgraded) =>
         new() { ["capacity"] = capacity, ["charges"] = charges, ["upgraded"] = upgraded };
 
-    private static JsonObject Document(int version, JsonObject player)
+    /// <summary>The Phase 1 plot's size, which every version 1 save holds.</summary>
+    public const int Phase1Width = 12;
+
+    public const int Phase1Height = 9;
+
+    /// <summary>Sets the document's Tile at (x, y): its state, watered flag and an optional Planting.</summary>
+    public static void SetTile(
+        JsonObject document, int x, int y, string state, bool watered, string? cropTypeId = null, int daysGrown = 0)
+    {
+        var tile = document["farmPlot"]!["tiles"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(node => node["position"]!["x"]!.GetValue<int>() == x && node["position"]!["y"]!.GetValue<int>() == y);
+        tile["state"] = state;
+        tile["watered"] = watered;
+        tile["planting"] = cropTypeId is null
+            ? null
+            : new JsonObject
+            {
+                ["cropTypeId"] = cropTypeId,
+                ["plantedOn"] = new JsonObject { ["year"] = 2, ["season"] = "summer", ["day"] = 10 },
+                ["daysGrown"] = daysGrown,
+            };
+    }
+
+    private static JsonObject Document(int version, int width, int height, JsonObject player)
     {
         var tiles = new JsonArray();
-        for (var y = 0; y < 9; y++)
+        for (var y = 0; y < height; y++)
         {
-            for (var x = 0; x < 12; x++)
+            for (var x = 0; x < width; x++)
             {
                 tiles.Add(new JsonObject
                 {
@@ -152,7 +182,7 @@ internal static class SaveDocuments
             ["createdAt"] = "2026-10-01T08:00:00+01:00",
             ["savedAt"] = "2026-11-02T21:15:30+00:00",
             ["player"] = player,
-            ["farmPlot"] = new JsonObject { ["width"] = 12, ["height"] = 9, ["tiles"] = tiles },
+            ["farmPlot"] = new JsonObject { ["width"] = width, ["height"] = height, ["tiles"] = tiles },
             ["shippingBin"] = new JsonObject { ["items"] = new JsonArray() },
         };
     }

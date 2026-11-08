@@ -1,6 +1,6 @@
 namespace LongWayHome.Infrastructure.Saves.Dtos;
 
-/// <summary>The Farm plot with all of its Tiles (BR-T1: 12 x 9, so 108).</summary>
+/// <summary>The Farm plot with all of its Tiles (BR-T1: 72 x 36, so 2592).</summary>
 internal sealed record FarmPlotDto
 {
     public required int Width { get; init; }

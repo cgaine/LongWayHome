@@ -270,6 +270,26 @@ public class SmokeChecklistTests
         Assert.Contains("smoke-checklist.md", testing.Body, StringComparison.Ordinal);
     }
 
+    // ---- #150 AC10: the full 72 x 36 grid holds 30 fps on the Steam Deck (REQ-14) ----
+
+    [Fact]
+    public void AC10_steam_deck_pass_walks_the_full_grid_edge_to_edge_at_the_farthest_zoom_at_30_fps()
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), "steam deck");
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the steam deck pass");
+
+        var rows = section.Value.Body.Split('\n').Where(line => line.TrimStart().StartsWith("- [ ]", StringComparison.Ordinal));
+        Assert.True(
+            rows.Any(row =>
+                row.Contains("--show-fps", StringComparison.Ordinal)
+                && row.Contains("farm", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("full grid", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("edge to edge", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("farthest zoom", StringComparison.OrdinalIgnoreCase)
+                && row.Contains("30 fps", StringComparison.OrdinalIgnoreCase)),
+            "The Steam Deck pass has no row: on the farm with --show-fps, walk the full grid edge to edge at the farthest zoom; it holds 30 fps");
+    }
+
     private static string ReadChecklist()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "docs", "smoke-checklist.md");

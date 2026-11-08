@@ -15,11 +15,11 @@ namespace LongWayHome.Game.Art;
 /// in code, the meshes of the scene's nodes:
 /// <list type="bullet">
 /// <item>the ground layers, flat and facing up, each a little above the last so they never z-fight: <c>Ground</c>
-/// (32 x 26 m, y 0), <c>ShadePatches</c> (y 0.003), <c>MownMargin</c> (the 1 m band around the plot, y 0.006) and
-/// <c>Path</c> (the 1.2 m strip from the door to the margin, y 0.008). Inside the plot only <c>Ground</c> lies, below
-/// the plot base (y 0.002) and the Tile slabs (#78);</item>
-/// <item>the <c>PathStones</c> and the stone <c>Edging</c> around the plot, from
-/// <see cref="MeadowLayout.PathStones"/> and <see cref="MeadowLayout.EdgingStones"/>;</item>
+/// (the whole farm inside its walls, x −36..36.5, z −13..31.5, y 0), <c>ShadePatches</c> (y 0.003) and <c>Path</c>
+/// (the 1.2 m strip from the door to the grid's north edge, y 0.008). Over the 72 x 36 grid only <c>Ground</c> lies,
+/// below the plot base (y 0.002) and the Tile slabs (#78); there is no mown margin or edging, since every Tile of the
+/// grid is farmable (#150);</item>
+/// <item>the <c>PathStones</c>, from <see cref="MeadowLayout.PathStones"/>;</item>
 /// <item>the scattered props from <see cref="MeadowLayout.Generate(int)"/> with <see cref="MeadowLayout.FarmSeed"/>:
 /// one <c>MultiMeshInstance3D</c> per part, named <c>&lt;Kind&gt;&lt;Part&gt;</c>, each instance placed with its
 /// prop's yaw and scale;</item>
@@ -34,25 +34,22 @@ namespace LongWayHome.Game.Art;
 /// <para>
 /// The grass follows the Season (#79): after building, and again on <see cref="GameSession.NightCompleted"/>, the only
 /// time the date changes (BR-G1), it reads the <see cref="GameRoot"/> session's <c>Game.Date.Season</c> and applies
-/// <see cref="SeasonGrass.For"/> to <c>Ground</c>, <c>MownMargin</c>, <c>ShadePatches</c>, <c>TuftBlades</c> and the
+/// <see cref="SeasonGrass.For"/> to <c>Ground</c>, <c>ShadePatches</c>, <c>TuftBlades</c> and the
 /// grass cover (each layout's MultiMesh takes the Season's mesh). With
-/// no session (the data failed to load) it stays in summer. Native plants, rocks, stumps, saplings, path and edging
+/// no session (the data failed to load) it stays in summer. Native plants, rocks, stumps, saplings and path
 /// never change. Only reads the date; changes no game state.
 /// </para>
 /// </summary>
 public partial class MeadowView : Node3D
 {
-    private const float GroundHalfX = 16f;
-    private const float GroundHalfZ = 13f;
-    private const float PlotHalfX = MeadowLayout.PlotHalfX;
-    private const float PlotHalfZ = MeadowLayout.PlotHalfZ;
-    private const float MarginHalfX = PlotHalfX + MeadowLayout.MarginWidth;
-    private const float MarginHalfZ = PlotHalfZ + MeadowLayout.MarginWidth;
+    private const float GroundMinX = MeadowLayout.GroundWestX;
+    private const float GroundMaxX = MeadowLayout.RiverWestX;
+    private const float GroundMinZ = MeadowLayout.GroundNorthZ;
+    private const float GroundMaxZ = MeadowLayout.GroundSouthZ;
     private const float PathHalfWidth = MeadowLayout.PathHalfWidth;
-    private const float DoorZ = -7f;
+    private const float DoorZ = MeadowLayout.DoorZ;
 
     private const float PatchY = 0.003f;
-    private const float MarginY = 0.006f;
     private const float PathY = 0.008f;
 
     private const string GameRootPath = "/root/GameRoot";
@@ -73,13 +70,15 @@ public partial class MeadowView : Node3D
         var props = MeadowLayout.Generate(MeadowLayout.FarmSeed).ToLookup(p => p.Kind);
         List<MeadowProp> Of(string kind) => props[kind].ToList();
 
-        Ground("Ground", new PlaneMesh { Size = new Vector2(2f * GroundHalfX, 2f * GroundHalfZ) });
+        Ground("Ground", new PlaneMesh
+        {
+            Size = new Vector2(GroundMaxX - GroundMinX, GroundMaxZ - GroundMinZ),
+            CenterOffset = new Vector3((GroundMinX + GroundMaxX) / 2f, 0f, (GroundMinZ + GroundMaxZ) / 2f),
+        });
         Ground("ShadePatches", ShadePatches(props["ShadePatch"]));
-        Ground("MownMargin", MownMargin());
-        Ground("Path", Flat(PathY, (-PathHalfWidth, DoorZ, PathHalfWidth, -MarginHalfZ)));
+        Ground("Path", Flat(PathY, (-PathHalfWidth, DoorZ, PathHalfWidth, MeadowLayout.GridNorthZ)));
 
         Fill("PathStones", Shapes.PathStone(), MeadowLayout.PathStones(), shadows: false);
-        Fill("Edging", Shapes.EdgingStone(), MeadowLayout.EdgingStones(), shadows: false);
 
         _tuftProps = Of("Tuft");
         Fill("TuftBlades", Shapes.TuftBlades(), _tuftProps, shadows: false);
@@ -120,7 +119,7 @@ public partial class MeadowView : Node3D
     private void OnNightCompleted() => ApplySeason(_session!.Game.Date.Season);
 
     /// <summary>
-    /// Gives the ground, the mown margin and the tufts <paramref name="season"/>'s roles, sets the tufts' height and
+    /// Gives the ground and the tufts <paramref name="season"/>'s roles, sets the tufts' height and
     /// shows or hides the shade patches. Only swaps swatches, visibility and instance transforms; creates and frees no
     /// nodes, so the swap costs nothing on the Night it happens.
     /// </summary>
@@ -133,7 +132,6 @@ public partial class MeadowView : Node3D
         }
 
         ArtMaterials.Apply(GetNode<MeshInstance3D>("Ground"), grass.Ground);
-        ArtMaterials.Apply(GetNode<MeshInstance3D>("MownMargin"), grass.Margin);
 
         var shadePatches = GetNode<MeshInstance3D>("ShadePatches");
         ArtMaterials.Apply(shadePatches, grass.ShadePatches);
@@ -232,7 +230,7 @@ public partial class MeadowView : Node3D
     private static void Colour(GeometryInstance3D node) =>
         ArtMaterials.Apply(node, MeadowLayout.PartRoles[node.Name.ToString()]);
 
-    /// <summary>Each patch outline as a triangle fan around its centre, kept on the ground plane's 32 x 26 m.</summary>
+    /// <summary>Each patch outline as a triangle fan around its centre, kept on the ground plane.</summary>
     private static Mesh ShadePatches(IEnumerable<MeadowProp> patches)
     {
         var surface = UpFacing();
@@ -252,15 +250,7 @@ public partial class MeadowView : Node3D
     }
 
     private static Vector3 OnGround(float x, float z, float y) =>
-        new(Mathf.Clamp(x, -GroundHalfX, GroundHalfX), y, Mathf.Clamp(z, -GroundHalfZ, GroundHalfZ));
-
-    /// <summary>The margin rectangle x −7..7, z −5.5..5.5 less the plot: north and south strips, then west and east.</summary>
-    private static Mesh MownMargin() => Flat(
-        MarginY,
-        (-MarginHalfX, -MarginHalfZ, MarginHalfX, -PlotHalfZ),
-        (-MarginHalfX, PlotHalfZ, MarginHalfX, MarginHalfZ),
-        (-MarginHalfX, -PlotHalfZ, -PlotHalfX, PlotHalfZ),
-        (PlotHalfX, -PlotHalfZ, MarginHalfX, PlotHalfZ));
+        new(Mathf.Clamp(x, GroundMinX, GroundMaxX), y, Mathf.Clamp(z, GroundMinZ, GroundMaxZ));
 
     /// <summary>Flat up-facing rectangles (min x, min z, max x, max z) at height <paramref name="y"/>.</summary>
     private static Mesh Flat(float y, params (float X0, float Z0, float X1, float Z1)[] rects)
@@ -310,10 +300,6 @@ public partial class MeadowView : Node3D
     {
         public static Mesh PathStone() => Merge(
             (Cylinder(0.25f, 0.25f, 0.04f, 7), At(new Vector3(0f, 0.01f, 0f), scale: new Vector3(1f, 1f, 0.8f))));
-
-        /// <summary>About 0.25 m wide and 0.15 m tall, sunk so its top is at 0.105 m (0.116 m at scale 1.1).</summary>
-        public static Mesh EdgingStone() => Merge(
-            (Sphere(0.125f, 0.25f, 6, 3), At(new Vector3(0f, 0.03f, 0f), scale: new Vector3(1f, 0.6f, 0.8f))));
 
         /// <summary>Three thin blades fanned out and leaning away from the centre.</summary>
         public static Mesh TuftBlades() => Merge(

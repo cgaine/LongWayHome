@@ -195,13 +195,19 @@ public class MeadowSceneTests
     }
 
     [Fact]
-    public void AC1_meadow_scene_has_the_six_ground_layers()
+    public void AC1_meadow_scene_has_the_ground_layers_without_the_margin_or_edging()
     {
         var meadow = Scene.Load(MeadowPath);
 
-        foreach (var name in new[] { "Ground", "ShadePatches", "MownMargin", "Path", "PathStones", "Edging" })
+        foreach (var name in new[] { "Ground", "ShadePatches", "Path", "PathStones" })
         {
             Assert.True(meadow.Node(name) is not null, $"Meadow.tscn has no child node {name}");
+        }
+
+        // #150: the mown margin and stone edging round the old 12 x 9 plot would lie on farmable Tiles now.
+        foreach (var name in new[] { "MownMargin", "Edging" })
+        {
+            Assert.True(meadow.Node(name) is null, $"Meadow.tscn still has {name}");
         }
     }
 
@@ -224,7 +230,7 @@ public class MeadowSceneTests
 
         var pond = farm.Node("Pond");
         Assert.True(pond is not null, "Farm.tscn has no Pond");
-        AssertOrigin(pond!, 10f, 0f, 0f);
+        AssertOrigin(pond!, 10f, 0f, -9f);
 
         var collision = farm.Node("Pond/CollisionShape3D");
         Assert.True(collision is not null, "Farm.tscn has no Pond/CollisionShape3D");
@@ -235,7 +241,7 @@ public class MeadowSceneTests
 
         var point = farm.Node("InteractionPoints/PondPoint");
         Assert.True(point is not null, "Farm.tscn has no InteractionPoints/PondPoint");
-        AssertOrigin(point!, 10f, 0f, 0f);
+        AssertOrigin(point!, 10f, 0f, -9f);
         Assert.Equal(3.8f, float.Parse(point!.Prop("Range")!, CultureInfo.InvariantCulture), Eps);
     }
 

@@ -11,6 +11,7 @@ using LongWayHome.Domain.Residents;
 using LongWayHome.Domain.Shipping;
 using LongWayHome.Infrastructure.Data;
 using LongWayHome.Infrastructure.Saves.Dtos;
+using LongWayHome.Infrastructure.Saves.Migrations;
 
 namespace LongWayHome.Infrastructure.Saves;
 
@@ -148,7 +149,8 @@ public sealed class JsonSaveStore : ISaveStore
                 return false;
             }
 
-            var migrated = SaveMigrator.Default.Migrate(document);
+            // #150: a version 2 file written on the 12 x 9 plot places its Tiles in the grown grid, like a v1 file.
+            var migrated = Phase1PlotPlacement.Apply(SaveMigrator.Default.Migrate(document));
             var dto = migrated.Deserialize<SaveFileDto>(JsonGameDataSource.SerializerOptions)
                 ?? throw new InvalidDataException("the file contains null");
             game = ToGame(dto);

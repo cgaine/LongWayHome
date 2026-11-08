@@ -5,7 +5,7 @@ namespace LongWayHome.Tests.Art;
 
 /// <summary>
 /// The meadow's wild grass cover (ART_DIRECTION §7.2): 1 m patches of <see cref="GrassTileArt.MeadowParts"/> scattered
-/// over the 32 x 26 m ground by <see cref="MeadowLayout.GrassCover"/>, off the plot, its margin, the path, the pond and
+/// over the meadow ground north of the 72 x 36 grid (#150) by <see cref="MeadowLayout.GrassCover"/>, off the grid, the path, the pond and
 /// the buildings, with no grid showing.
 /// </summary>
 public class MeadowGrassCoverTests
@@ -17,8 +17,11 @@ public class MeadowGrassCoverTests
     [Fact]
     public void The_cover_fills_most_of_the_open_meadow_with_every_layout()
     {
-        // 31 x 25 cells; the plot and margin (14 x 11 m plus reach), the pond and the buildings take out the rest.
-        Assert.InRange(Cover.Count, 450, 775);
+        // #150: the open meadow is the strip north of the 72 x 36 grid (about 72 x 8.5 m); the path, the pond and the
+        // buildings take out some of it.
+        Assert.InRange(Cover.Count, 250, 650);
+        Assert.Contains(Cover, patch => patch.X < -30f);
+        Assert.Contains(Cover, patch => patch.X > 30f);
         var kinds = Cover.Select(patch => patch.Kind).Distinct().ToList();
         Assert.Equal(GrassTileArt.Variants, kinds.Count);
         Assert.All(kinds, kind => Assert.Matches("^Grass[0-7]$", kind));
@@ -38,21 +41,23 @@ public class MeadowGrassCoverTests
     }
 
     [Fact]
-    public void No_patch_reaches_the_plot_its_margin_the_path_the_pond_or_the_ground_edge()
+    public void No_patch_reaches_the_grid_the_path_the_pond_or_the_ground_edge()
     {
+        Assert.NotEmpty(Cover);
         foreach (var patch in Cover)
         {
             var (x, z) = (patch.X, patch.Z);
-            var plotDx = MathF.Max(0f, MathF.Abs(x) - 7f);
-            var plotDz = MathF.Max(0f, MathF.Abs(z) - 5.5f);
-            Assert.True(MathF.Sqrt(plotDx * plotDx + plotDz * plotDz) >= Reach - 1e-4f, $"a patch at ({x:0.##}, {z:0.##}) reaches the plot's margin");
+            // #150: the grid, x -36..36, z -4.5..31.5, is farm ground.
+            var gridDx = MathF.Max(0f, MathF.Abs(x) - 36f);
+            var gridDz = MathF.Max(0f, MathF.Max(-4.5f - z, z - 31.5f));
+            Assert.True(MathF.Sqrt(gridDx * gridDx + gridDz * gridDz) >= Reach - 1e-4f, $"a patch at ({x:0.##}, {z:0.##}) reaches the grid");
             var pathDx = MathF.Max(0f, MathF.Abs(x) - 0.6f);
-            var pathDz = MathF.Max(0f, MathF.Max(-7f - z, z + 5.5f));
+            var pathDz = MathF.Max(0f, MathF.Max(-7f - z, z + 4.5f));
             Assert.True(MathF.Sqrt(pathDx * pathDx + pathDz * pathDz) >= Reach - 1e-4f, $"a patch at ({x:0.##}, {z:0.##}) reaches the path");
-            Assert.True(MathF.Sqrt((x - 10f) * (x - 10f) + z * z) >= 2.5f + Reach - 1e-4f, $"a patch at ({x:0.##}, {z:0.##}) reaches the pond");
-            Assert.True(MathF.Abs(x) + Reach <= 16f + 1e-4f && MathF.Abs(z) + Reach <= 13f + 1e-4f, $"a patch at ({x:0.##}, {z:0.##}) hangs off the ground");
+            Assert.True(MathF.Sqrt((x - 10f) * (x - 10f) + (z + 9f) * (z + 9f)) >= 2.5f + Reach - 1e-4f, $"a patch at ({x:0.##}, {z:0.##}) reaches the pond");
+            Assert.True(x - Reach >= -36f - 1e-4f && x + Reach <= 36.5f + 1e-4f && z - Reach >= -13f - 1e-4f, $"a patch at ({x:0.##}, {z:0.##}) hangs off the ground");
             Assert.False(x is >= -3f and <= 3f && z is >= -11f and <= -7f, $"a patch at ({x:0.##}, {z:0.##}) is in the house");
-            Assert.False(x is >= -11f and <= -7f && z is >= -2f and <= 2f, $"a patch at ({x:0.##}, {z:0.##}) is in the shop stall");
+            Assert.False(x is >= -11f and <= -7f && z is >= -11f and <= -7f, $"a patch at ({x:0.##}, {z:0.##}) is in the moved shop stall");
         }
     }
 

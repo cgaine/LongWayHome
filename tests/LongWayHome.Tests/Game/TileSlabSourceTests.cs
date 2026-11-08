@@ -34,24 +34,25 @@ public class TileSlabSourceTests
     }
 
     [Fact]
-    public void AC6_plot_view_adds_a_12_by_9_plot_base_in_soil_watered()
+    public void AC6_plot_view_adds_a_72_by_36_plot_base_in_soil_watered()
     {
         var source = ReadScript("Farm", "FarmPlotView.cs");
 
         Assert.Contains("\"PlotBase\"", source, StringComparison.Ordinal);
         Assert.Contains("\"soil-watered\"", source, StringComparison.Ordinal);
-        Assert.Matches(@"\b12f?\s*,\s*9f?\b", source);
+        Assert.Matches(@"\b(72f?\s*,\s*36f?|FarmPlot\.Width\s*,\s*FarmPlot\.Height)\b", source);
+        Assert.DoesNotMatch(@"\b12f?\s*,\s*9f?\b", source);
     }
 
     [Fact]
-    public void BR_T1_plot_has_108_tiles()
+    public void BR_T1_plot_has_2592_tiles()
     {
         var plot = new FarmPlot();
 
-        Assert.Equal(12, FarmPlot.Width);
-        Assert.Equal(9, FarmPlot.Height);
-        Assert.Equal(108, plot.Tiles.Count);
-        Assert.Equal(108, plot.Tiles.Select(t => t.Position).Distinct().Count());
+        Assert.Equal(72, FarmPlot.Width);
+        Assert.Equal(36, FarmPlot.Height);
+        Assert.Equal(2592, plot.Tiles.Count);
+        Assert.Equal(2592, plot.Tiles.Select(t => t.Position).Distinct().Count());
     }
 
     // ---- AC2 / AC3 / AC10: the tile view reads its look from the Application layer ----

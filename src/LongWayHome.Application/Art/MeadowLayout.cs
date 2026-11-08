@@ -4,15 +4,16 @@ namespace LongWayHome.Application.Art;
 public readonly record struct MeadowProp(string Kind, float X, float Z, float YawDegrees, float Scale);
 
 /// <summary>
-/// The farm meadow's layout (#77): the seeded scatter of native plants, rocks, stumps, saplings and shade patches,
-/// the stone edging around the plot, the path's stepping stones, and the palette role of every mesh node under
-/// <c>Meadow</c>. Pure C#, no Godot.
+/// The farm meadow's layout (#77, grown in #150): the seeded scatter of native plants, rocks, stumps, saplings and shade
+/// patches, the path's stepping stones, and the palette role of every mesh node under <c>Meadow</c>. Pure C#, no Godot.
 /// <para>
-/// The plot is x −6..6, z −4.5..4.5 (north is −z, towards the house). Props are drawn uniformly over the ground and
-/// rejected inside the exclusion zones (the plot plus its 1 m mown margin, the path, the house, bin and shop, every
-/// interaction point's range plus 0.5 m and the Player's start); rocks, stumps and saplings go only in the overgrown
-/// band (|x| ≥ 12 or |z| ≥ 9). A prop that finds no place in <see cref="MaxAttempts"/> tries is skipped, so
-/// generation always ends. Placement is art only: it changes no rule and nothing here has collision.
+/// Since #150 the 72 x 36 grid (world x −36..36, z −4.5..31.5, <c>FarmGridLayout</c>) is farm ground, so there is no
+/// mown margin or stone edging round a plot, and every prop lies off the grid, in the strip north of it (z −13..−4.5,
+/// north is −z, towards the house). Props are drawn uniformly over that strip and rejected inside the exclusion zones
+/// (the grid, the path, the house, bin and shop, every interaction point's range plus 0.5 m and the Player's start), so
+/// rocks, stumps and saplings, which belong to the overgrown band, also stay off the grid. A prop that finds no place in
+/// <see cref="MaxAttempts"/> tries is skipped, so generation always ends. Placement is art only: it changes no rule and
+/// nothing here has collision.
 /// </para>
 /// </summary>
 public static class MeadowLayout
@@ -32,36 +33,42 @@ public static class MeadowLayout
     private const float MinScale = 0.8f;
     private const float MaxScale = 1.2f;
 
-    // The meadow ground the props are drawn over (the 32 x 26 m ground, less 0.5 m at the edge).
-    private const float GroundHalfX = 15.5f;
-    private const float GroundHalfZ = 12.5f;
+    /// <summary>The river's west bank down the farm's east edge (#137, moved in #150): the meadow ground's east edge and
+    /// the face of the scene's <c>Boundary/East</c> wall, just east of the grid.</summary>
+    public const float RiverWestX = 36.5f;
 
-    // The overgrown band: |x| >= 12 or |z| >= 9.
-    private const float BandX = 12f;
-    private const float BandZ = 9f;
+    /// <summary>The meadow ground's west edge: the face of the scene's <c>Boundary/West</c> wall, the grid's west edge.</summary>
+    public const float GroundWestX = -36f;
 
-    /// <summary>The river's west bank down the farm's east edge (#137): the meadow ground's east edge and the face of
-    /// the scene's <c>Boundary/East</c> wall.</summary>
-    public const float RiverWestX = 16f;
+    /// <summary>The meadow ground's north edge: the face of the scene's <c>Boundary/North</c> wall.</summary>
+    public const float GroundNorthZ = -13f;
 
-    /// <summary>Half the plot's width: the plot is x −6..6.</summary>
-    public const float PlotHalfX = 6f;
+    /// <summary>The meadow ground's south edge: the face of the scene's south walls, the grid's south edge.</summary>
+    public const float GroundSouthZ = 31.5f;
 
-    /// <summary>Half the plot's depth: the plot is z −4.5..4.5.</summary>
-    public const float PlotHalfZ = 4.5f;
+    /// <summary>The grid's west edge in world x (<c>FarmGridLayout</c>).</summary>
+    public const float GridWestX = -36f;
 
-    /// <summary>The mown margin's width around the plot.</summary>
-    public const float MarginWidth = 1f;
+    /// <summary>The grid's east edge in world x.</summary>
+    public const float GridEastX = 36f;
+
+    /// <summary>The grid's north edge in world z: row 0's north side.</summary>
+    public const float GridNorthZ = -4.5f;
+
+    /// <summary>The grid's south edge in world z.</summary>
+    public const float GridSouthZ = 31.5f;
 
     /// <summary>Half the dirt path's width: the path is x −0.6..0.6.</summary>
     public const float PathHalfWidth = 0.6f;
 
-    // The edging line 0.15 m outside the plot.
-    private const float EdgingOffset = 0.15f;
-    private const float EdgingSpacing = 0.3f;
+    /// <summary>The farmhouse door's z, where the path starts; it runs south to the grid's north edge.</summary>
+    public const float DoorZ = -7f;
 
-    /// <summary>Half the north edging gap where the path meets the plot: no stone centre within this of x = 0.</summary>
-    private const float PathGapHalf = PathHalfWidth;
+    // Props are drawn over the north strip, 0.5 m inside the ground's edges.
+    private const float DrawMinX = GroundWestX + 0.5f;
+    private const float DrawMaxX = RiverWestX - 0.5f;
+    private const float DrawMinZ = GroundNorthZ + 0.5f;
+    private const float DrawMaxZ = GridNorthZ;
 
     private readonly record struct Rect(float MinX, float MaxX, float MinZ, float MaxZ)
     {
@@ -81,25 +88,30 @@ public static class MeadowLayout
         public bool Contains(float x, float z) => (x - X) * (x - X) + (z - Z) * (z - Z) <= Radius * Radius;
     }
 
-    /// <summary>The plot plus its mown margin, x −7..7, z −5.5..5.5.</summary>
-    private static readonly Rect PlotPlusMargin = new(
-        -(PlotHalfX + MarginWidth), PlotHalfX + MarginWidth, -(PlotHalfZ + MarginWidth), PlotHalfZ + MarginWidth);
+    /// <summary>The 72 x 36 grid, all farm ground.</summary>
+    private static readonly Rect Grid = new(GridWestX, GridEastX, GridNorthZ, GridSouthZ);
+
+    /// <summary>The dirt path from the door to the grid's north edge.</summary>
+    private static readonly Rect PathStrip = new(-PathHalfWidth, PathHalfWidth, DoorZ, GridNorthZ);
+
+    /// <summary>The pond's water (#150: north of the grid, east of the farmhouse).</summary>
+    private static readonly Circle PondWater = new(10f, -9f, 2.5f);
 
     private static readonly Rect[] ExclusionRects =
     [
-        PlotPlusMargin,
-        new(-1f, 1f, -7f, -5.5f), // the path corridor
+        Grid,
+        new(-1f, 1f, DoorZ, GridNorthZ), // the path corridor
         new(-4f, 4f, -12f, -6f), // the house footprint plus 1 m
         new(1.4f, 4.6f, -7.4f, -4.6f), // the shipping bin plus 1 m
-        new(-11f, -7f, -2f, 2f), // the shop stall area
+        new(-11f, -7f, -11f, -7f), // the shop stall area (moved north of the grid, #150)
     ];
 
     private static readonly Circle[] ExclusionCircles =
     [
         new(0f, -7f, 1.25f + 0.5f), // DoorPoint, range 1.25
         new(3f, -6f, 1.7f + 0.5f), // BinPoint, range 1.7
-        new(-9f, 0f, 2.2f + 0.5f), // ShopPoint, range 2.2
-        new(10f, 0f, 3.8f + 0.5f), // PondPoint, range 3.8 (also covers the 2.5 m water)
+        new(-9f, -9f, 2.2f + 0.5f), // ShopPoint, range 2.2
+        new(PondWater.X, PondWater.Z, 3.8f + 0.5f), // PondPoint, range 3.8 (also covers the 2.5 m water)
         new(0f, -5.8f, 1f), // the Player's start
     ];
 
@@ -121,10 +133,8 @@ public static class MeadowLayout
     {
         ["Ground"] = "grass-lit",
         ["ShadePatches"] = "grass-shade",
-        ["MownMargin"] = "grass-mown",
         ["Path"] = "dirt-path",
         ["PathStones"] = "stone",
-        ["Edging"] = "rock",
         ["TuftBlades"] = "grass-lit",
         ["FrondFrond"] = "foliage",
         ["FrondCurl"] = "leaf-underside",
@@ -149,23 +159,23 @@ public static class MeadowLayout
     [
         new(-3f, 3f, -11f, -7f),
         new(2.4f, 3.6f, -6.4f, -5.6f),
-        new(-11f, -7f, -2f, 2f),
+        new(-11f, -7f, -11f, -7f),
     ];
 
     /// <summary>
-    /// The wild grass cover over the meadow (ART_DIRECTION §7.2): one 1 m patch per square metre of the ground, kind
-    /// <c>Grass&lt;variant&gt;</c> (a <see cref="GrassTileArt"/> layout, 0 to 7), each nudged up to 0.35 m off its cell's
-    /// centre, turned to any yaw and scaled 0.9 to 1.25, so no grid shows. A patch keeps its whole reach
-    /// (<see cref="MaxGrassCoverReach"/>) off the plot and its mown margin, the path, the pond's water and the ground's
-    /// edge, and its centre off the house, the bin and the shop stall. The same list every call.
+    /// The wild grass cover over the meadow north of the grid (ART_DIRECTION §7.2): one 1 m patch per square metre of
+    /// the strip, kind <c>Grass&lt;variant&gt;</c> (a <see cref="GrassTileArt"/> layout, 0 to 7), each nudged up to
+    /// 0.35 m off its cell's centre, turned to any yaw and scaled 0.9 to 1.25, so no grid shows. A patch keeps its whole
+    /// reach (<see cref="MaxGrassCoverReach"/>) off the grid, the path, the pond's water and the ground's edge, and its
+    /// centre off the house, the bin and the shop stall. The same list every call.
     /// </summary>
     public static IReadOnlyList<MeadowProp> GrassCover()
     {
         var random = new Random(FarmSeed + 1);
         var cover = new List<MeadowProp>();
-        for (var cx = -15; cx <= 15; cx++)
+        for (var cx = (int)GroundWestX; cx <= (int)RiverWestX; cx++)
         {
-            for (var cz = -12; cz <= 12; cz++)
+            for (var cz = (int)GroundNorthZ; cz <= (int)GridNorthZ; cz++)
             {
                 // Draw every value for every cell, kept or not, so one cell's rule never shifts another's patch.
                 var x = cx + Between(random, -0.35f, 0.35f);
@@ -184,10 +194,10 @@ public static class MeadowLayout
     private static bool CoverAllowed(float x, float z)
     {
         var reach = MaxGrassCoverReach;
-        if (MathF.Abs(x) > GroundHalfX + 0.5f - reach || MathF.Abs(z) > GroundHalfZ + 0.5f - reach) return false;
-        if (PlotPlusMargin.DistanceTo(x, z) < reach) return false;
-        if (new Rect(-PathHalfWidth, PathHalfWidth, -7f, -5.5f).DistanceTo(x, z) < reach) return false;
-        if (new Circle(10f, 0f, 2.5f + reach).Contains(x, z)) return false;
+        if (x - reach < GroundWestX || x + reach > RiverWestX || z - reach < GroundNorthZ || z + reach > GroundSouthZ) return false;
+        if (Grid.DistanceTo(x, z) < reach) return false;
+        if (PathStrip.DistanceTo(x, z) < reach) return false;
+        if ((PondWater with { Radius = PondWater.Radius + reach }).Contains(x, z)) return false;
         return !CoverBlockers.Any(r => r.Contains(x, z));
     }
 
@@ -208,8 +218,8 @@ public static class MeadowLayout
             {
                 for (var attempt = 0; attempt < MaxAttempts; attempt++)
                 {
-                    var x = Between(random, -GroundHalfX, GroundHalfX);
-                    var z = Between(random, -GroundHalfZ, GroundHalfZ);
+                    var x = Between(random, DrawMinX, DrawMaxX);
+                    var z = Between(random, DrawMinZ, DrawMaxZ);
                     if (!allowed(kind, x, z))
                     {
                         continue;
@@ -246,48 +256,8 @@ public static class MeadowLayout
         return points;
     }
 
-    /// <summary>The edging stones around the plot, kind <c>EdgingStone</c>, X/Z at each stone's centre.</summary>
-    /// <remarks>
-    /// Every 0.3 m on the lines 0.15 m outside each plot edge, with a stone on each corner; the north side
-    /// (z = −4.65) leaves out every stone within 0.6 m of x = 0, where the path meets the plot.
-    /// </remarks>
-    public static IReadOnlyList<MeadowProp> EdgingStones()
-    {
-        const float edgeX = PlotHalfX + EdgingOffset;
-        const float edgeZ = PlotHalfZ + EdgingOffset;
-        var alongX = (int)MathF.Round(2f * edgeX / EdgingSpacing);
-        var alongZ = (int)MathF.Round(2f * edgeZ / EdgingSpacing);
-
-        var random = new Random(FarmSeed);
-        var stones = new List<MeadowProp>();
-        void Add(float x, float z) => stones.Add(new MeadowProp(
-            "EdgingStone", x, z, Yaw(random), Between(random, 0.9f, 1.1f)));
-
-        // North and south, corner to corner.
-        for (var i = 0; i <= alongX; i++)
-        {
-            var x = -edgeX + i * EdgingSpacing;
-            if (MathF.Abs(x) >= PathGapHalf)
-            {
-                Add(x, -edgeZ);
-            }
-
-            Add(x, edgeZ);
-        }
-
-        // West and east, between the corners the north and south rows already hold.
-        for (var i = 1; i < alongZ; i++)
-        {
-            var z = -edgeZ + i * EdgingSpacing;
-            Add(-edgeX, z);
-            Add(edgeX, z);
-        }
-
-        return stones;
-    }
-
     /// <summary>The three stepping stones on the dirt path, kind <c>PathStone</c>.</summary>
-    /// <remarks>Staggered down the path from the door (z −7) to the margin (z −5.5), about 0.5 m apart.</remarks>
+    /// <remarks>Staggered down the path from the door (z −7) towards the grid, about 0.5 m apart.</remarks>
     public static IReadOnlyList<MeadowProp> PathStones() =>
     [
         new("PathStone", 0.1f, -6.7f, 20f, 1f),
@@ -295,18 +265,16 @@ public static class MeadowLayout
         new("PathStone", 0.08f, -5.75f, 140f, 1.05f),
     ];
 
-    /// <summary>The farm's placement rules: outside every exclusion zone, and the overgrown band for the big props.</summary>
+    /// <summary>
+    /// The farm's placement rules: outside every exclusion zone. The grid is one of them, so every prop, the rocks,
+    /// stumps and saplings of the overgrown band included, stands off the farmable Tiles.
+    /// </summary>
     private static bool IsAllowed(string kind, float x, float z)
     {
         if (kind == "ShadePatch")
         {
-            // The whole patch, not just its centre, stays outside the plot and margin.
-            return PlotPlusMargin.DistanceTo(x, z) >= MaxShadePatchRadius;
-        }
-
-        if (kind is "Rock" or "Stump" or "Sapling" && !(MathF.Abs(x) >= BandX || MathF.Abs(z) >= BandZ))
-        {
-            return false;
+            // The whole patch, not just its centre, stays off the grid.
+            return Grid.DistanceTo(x, z) >= MaxShadePatchRadius;
         }
 
         return !ExclusionRects.Any(r => r.Contains(x, z)) && !ExclusionCircles.Any(c => c.Contains(x, z));

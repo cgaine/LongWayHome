@@ -9,9 +9,10 @@ namespace LongWayHome.Tests.Art;
 /// </summary>
 public class TileDecorationTests
 {
+    // #150: the 108 positions of the Phase 1 12 x 9 plot these tests were written against (the grid grew to 72 x 36).
     private static IEnumerable<GridPosition> AllPositions() =>
-        from y in Enumerable.Range(0, FarmPlot.Height)
-        from x in Enumerable.Range(0, FarmPlot.Width)
+        from y in Enumerable.Range(0, FarmPlot.Phase1Block.Height)
+        from x in Enumerable.Range(0, FarmPlot.Phase1Block.Width)
         select new GridPosition(x, y);
 
     [Fact]

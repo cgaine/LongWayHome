@@ -34,8 +34,8 @@ namespace LongWayHome.Game.Farm;
 /// </summary>
 public partial class TileView : Node3D
 {
-    /// <summary>Height of the slab top, which Planting models stand on.</summary>
-    private const float SurfaceHeight = 0.06f;
+    /// <summary>Height of the slab top, which Planting models and the grass detail stand on.</summary>
+    internal const float SurfaceHeight = 0.06f;
 
     private const float FurrowHeight = 0.015f;
 
@@ -47,6 +47,10 @@ public partial class TileView : Node3D
     private static BoxMesh? _slabMesh;
 
     private static ArrayMesh? _furrowMesh;
+
+    private static ArrayMesh? _frondMesh;
+
+    private static ArrayMesh? _puffballMesh;
 
     private readonly Dictionary<(GrowthStage Stage, CropTypeId Crop), Node3D> _models = new();
 
@@ -249,12 +253,10 @@ public partial class TileView : Node3D
         _nativePlant = new MeshInstance3D
         {
             Name = "NativePlant",
-            Mesh = ArtMeshes.Merge(decoration.NativePlant == NativePlantKind.Frond
-                ? Decorations.Frond(SurfaceHeight)
-                : Decorations.Puffball(SurfaceHeight)),
+            Mesh = NativePlantMesh(decoration.NativePlant),
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
             MaterialOverride = ArtMaterials.Shared,
-            RotationDegrees = new Vector3(0f, TileDecoration.Hash(position) % 360, 0f),
+            RotationDegrees = new Vector3(0f, NativePlantYawDegrees(position), 0f),
             Visible = false,
         };
         AddChild(_nativePlant);
@@ -262,10 +264,22 @@ public partial class TileView : Node3D
 
     private static Transform3D At(float x, float y, float z) => new(Basis.Identity, new Vector3(x, y, z));
 
-    /// <summary>The slab mesh, the same on every Tile, so all 108 share one resource.</summary>
-    private static BoxMesh SlabMesh => _slabMesh ??= new BoxMesh { Size = new Vector3(0.96f, 0.06f, 0.96f) };
+    /// <summary>
+    /// The native plant's mesh for <paramref name="kind"/> (a frond or a puffball, standing on the slab top), shared by
+    /// every Tile showing it and by <see cref="FarmPlotView"/>'s grass batches. Two colours in one mesh: each part's UVs
+    /// point at its swatch.
+    /// </summary>
+    internal static ArrayMesh NativePlantMesh(NativePlantKind kind) => kind == NativePlantKind.Frond
+        ? _frondMesh ??= ArtMeshes.Merge(Decorations.Frond(SurfaceHeight))
+        : _puffballMesh ??= ArtMeshes.Merge(Decorations.Puffball(SurfaceHeight));
 
-    /// <summary>The three furrow ridges in one mesh, the same on every Tile, so all 108 share one resource.</summary>
+    /// <summary>The native plant's yaw on the Tile at <paramref name="position"/>, from its <see cref="TileDecoration.Hash"/>.</summary>
+    internal static float NativePlantYawDegrees(GridPosition position) => TileDecoration.Hash(position) % 360;
+
+    /// <summary>The slab mesh, the same on every Tile, so every Tile view and the grass batch share one resource.</summary>
+    internal static BoxMesh SlabMesh => _slabMesh ??= new BoxMesh { Size = new Vector3(0.96f, 0.06f, 0.96f) };
+
+    /// <summary>The three furrow ridges in one mesh, the same on every Tile, so all share one resource.</summary>
     private static ArrayMesh FurrowMesh => _furrowMesh ??= ArtMeshes.Merge(FurrowRows.Select(z =>
         new MeshPart(new BoxMesh { Size = FurrowSize }, At(0f, SurfaceHeight + (FurrowHeight / 2f), z))));
 

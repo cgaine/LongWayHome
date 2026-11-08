@@ -63,8 +63,8 @@ public class WaterRefillWiringTests
             }
         }
 
-        // 1 pond + 13 farm river + 12 town river + 19 lake.
-        Assert.Equal(45, refills);
+        // 1 pond + 23 farm river (#150: every 2 m along the grown farm's bank, z -12 to 31) + 12 town river + 19 lake.
+        Assert.Equal(55, refills);
     }
 
     [Fact]

@@ -9,13 +9,9 @@ script = ExtResource("1_view")
 
 [node name="ShadePatches" type="MeshInstance3D" parent="."]
 
-[node name="MownMargin" type="MeshInstance3D" parent="."]
-
 [node name="Path" type="MeshInstance3D" parent="."]
 
 [node name="PathStones" type="MultiMeshInstance3D" parent="."]
-
-[node name="Edging" type="MultiMeshInstance3D" parent="."]
 
 [node name="TuftBlades" type="MultiMeshInstance3D" parent="."]
 

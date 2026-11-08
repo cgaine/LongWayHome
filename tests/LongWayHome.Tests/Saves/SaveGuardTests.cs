@@ -164,7 +164,7 @@ public sealed class SaveGuardTests : IDisposable
         },
         { "wrong width", document => document["farmPlot"]!["width"] = 13 },
         { "wrong height", document => document["farmPlot"]!["height"] = 8 },
-        { "position off the plot", document => document["farmPlot"]!["tiles"]![0]!["position"]!["x"] = 12 },
+        { "position off the plot", document => document["farmPlot"]!["tiles"]![0]!["position"]!["x"] = LongWayHome.Domain.Farming.FarmPlot.Width },
         { "watered grass", document => document["farmPlot"]!["tiles"]![0]!["watered"] = true },
         { "negative gold", document => document["player"]!["gold"] = -1 },
         { "energy above the maximum", document => document["player"]!["energy"] = 151 },

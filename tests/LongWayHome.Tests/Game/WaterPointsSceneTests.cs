@@ -19,10 +19,15 @@ public class WaterPointsSceneTests
     /// <summary>The farthest apart two neighbouring points along a bank may stand, in tiles.</summary>
     private const double MaxSpacing = 2.0;
 
-    /// <summary>The farm's and the town's river wall face is at x = 16; the Player (radius 0.35) reaches about 15.65.</summary>
+    /// <summary>The town's river wall face is at x = 16; the Player (radius 0.35) reaches about 15.65.</summary>
     private const double BankMinX = 14.5;
 
     private const double BankMaxX = 15.65;
+
+    /// <summary>The farm's river bank face moved to x = 36.5 with the 72 x 36 grid (#150); the Player reaches about 36.15.</summary>
+    private const double FarmBankMinX = 35.0;
+
+    private const double FarmBankMaxX = 36.15;
 
     /// <summary>TownLayout.BridgeZ: the broken bridge stub stands here on the town's bank.</summary>
     private const double BridgeZ = 0.0;
@@ -51,8 +56,8 @@ public class WaterPointsSceneTests
 
         foreach (var point in points)
         {
-            Assert.InRange(point.X, BankMinX, BankMaxX);
-            Assert.InRange(point.Z, -13.0, 13.0);
+            Assert.InRange(point.X, FarmBankMinX, FarmBankMaxX);
+            Assert.InRange(point.Z, -13.0, 31.5);
         }
     }
 
@@ -63,7 +68,7 @@ public class WaterPointsSceneTests
         Assert.NotEmpty(zs);
 
         Assert.True(zs[0] <= -11, $"The farm's northernmost river point is at z = {zs[0]}, short of the north end");
-        Assert.True(zs[^1] >= 11, $"The farm's southernmost river point is at z = {zs[^1]}, short of the south end");
+        Assert.True(zs[^1] >= 30, $"The farm's southernmost river point is at z = {zs[^1]}, short of the south end");
         foreach (var (a, b) in zs.Zip(zs.Skip(1)))
         {
             Assert.True(b - a <= MaxSpacing, $"The farm's river points at z = {a} and z = {b} are more than 2 apart");
@@ -227,14 +232,14 @@ public class WaterPointsSceneTests
     // ---- AC8: the pond is unchanged ----
 
     [Fact]
-    public void AC8_farm_pond_point_is_unchanged_and_refills_from_the_pond()
+    public void AC8_farm_pond_point_moves_with_the_pond_and_refills_from_the_pond()
     {
         var points = WaterPoints("Farm", "pond");
 
         var pond = Assert.Single(points);
         Assert.Equal("InteractionPoints/PondPoint", pond.Path);
         Assert.Equal(3.8, pond.Range, 3);
-        Assert.Equal((10.0, 0.0, 0.0), (pond.X, pond.Y, pond.Z));
+        Assert.Equal((10.0, 0.0, -9.0), (pond.X, pond.Y, pond.Z));
 
         var refills = RefillChildren(ReadRepoFile("game", "scenes", "Farm.tscn"), pond.Path);
         var refill = Assert.Single(refills);

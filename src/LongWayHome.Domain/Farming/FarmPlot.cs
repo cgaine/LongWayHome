@@ -1,15 +1,18 @@
 namespace LongWayHome.Domain.Farming;
 
-/// <summary>The 12 x 9 Farm plot: exactly one Tile per grid position (BR-T1).</summary>
+/// <summary>The 72 x 36 Farm plot: exactly one Tile per grid position (BR-T1).</summary>
 public sealed class FarmPlot
 {
-    public const int Width = 12;
+    public const int Width = 72;
 
-    public const int Height = 9;
+    public const int Height = 36;
+
+    /// <summary>Where the Phase 1 12 x 9 plot sits in the grown grid (BR-T1, #150).</summary>
+    public static PlotBlock Phase1Block { get; } = new(30, 0, 12, 9);
 
     private readonly Tile[] _tiles;
 
-    /// <summary>Creates a fresh Farm plot of 108 grass, unwatered Tiles.</summary>
+    /// <summary>Creates a fresh Farm plot of 2592 grass, unwatered Tiles.</summary>
     public FarmPlot()
     {
         // BR-T1: exactly one Tile per grid position, stored row-major (Y then X).

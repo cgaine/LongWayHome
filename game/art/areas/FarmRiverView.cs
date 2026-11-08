@@ -7,8 +7,8 @@ namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// The river down the farm's east side (#137, ART_DIRECTION §7.3), drawn as <see cref="TownView"/> draws the town's
-/// stretch: a strip of shallows from the meadow's edge (x 16, the face of the scene's <c>Boundary/East</c> wall) to
-/// x 16.8 and deep water beyond. Scenery only, with no collision; the farm's <c>river</c> water points stand on its bank.
+/// stretch: a strip of shallows from the meadow's edge (x 36.5, the face of the scene's <c>Boundary/East</c> wall, just
+/// east of the 72 x 36 grid, #150) to x 37.3 and deep water beyond, the whole length of the farm (z −16..35). Scenery only, with no collision; the farm's <c>river</c> water points stand on its bank.
 /// Built once on start; holds no rules.
 /// </summary>
 public partial class FarmRiverView : Node3D
@@ -18,7 +18,7 @@ public partial class FarmRiverView : Node3D
 
     private const float MinZ = -16f;
 
-    private const float MaxZ = 16f;
+    private const float MaxZ = 35f;
 
     public override void _Ready()
     {

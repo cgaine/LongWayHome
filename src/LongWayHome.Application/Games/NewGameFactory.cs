@@ -30,7 +30,7 @@ public static class NewGameFactory
             new WateringCan(tuning.CanCapacity),
             backpack);
 
-        // BR-G1: a new Game starts on Year 1, Spring 1. BR-T1: a fresh 12 x 9 plot of grass. BR-R1: Maggie and Clyde
+        // BR-G1: a new Game starts on Year 1, Spring 1. BR-T1: a fresh 72 x 36 plot of grass. BR-R1: Maggie and Clyde
         // are present from the start; Tom, June, Jesse and Mira are not. BR-I1: the Opening has not played yet.
         return new Game(
             Guid.NewGuid(),
