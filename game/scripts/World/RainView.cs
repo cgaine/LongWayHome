@@ -12,7 +12,10 @@ namespace LongWayHome.Game.World;
 /// its <see cref="GPUParticles3D"/> child emits rain over the farm, the <see cref="Light"/> is dimmed to
 /// <see cref="RainLightFactor"/> of its scene energy and the sky of the <see cref="Environment"/> is greyed; on a
 /// clear Day the scene's own values are restored. Re-checked on start and on <see cref="GameSession.NightCompleted"/>,
-/// the only time the weather changes (BR-G4). Reads the weather and holds no rules.
+/// the only time the weather changes (BR-G4). It is part of <c>AreaCommon.tscn</c> (#136); when the scene leaves
+/// <see cref="Light"/> or <see cref="Environment"/> unset, it uses the area scene's own (the first
+/// <see cref="DirectionalLight3D"/> and <see cref="WorldEnvironment"/> child of the scene that instances it). Reads the
+/// weather and holds no rules.
 /// </summary>
 public partial class RainView : Node3D
 {
@@ -52,6 +55,9 @@ public partial class RainView : Node3D
     public override void _Ready()
     {
         _particles = GetNodeOrNull<GpuParticles3D>("Rain");
+        var scene = AreaScene();
+        Light ??= FirstChild<DirectionalLight3D>(scene);
+        Environment ??= FirstChild<WorldEnvironment>(scene);
         if (Light is not null)
         {
             _clearLightEnergy = Light.LightEnergy;
@@ -82,6 +88,32 @@ public partial class RainView : Node3D
         {
             _session.NightCompleted -= Refresh;
         }
+    }
+
+    /// <summary>The area scene's root: the outermost owner above this node.</summary>
+    private Node AreaScene()
+    {
+        Node scene = this;
+        while (scene.Owner is { } owner)
+        {
+            scene = owner;
+        }
+
+        return scene;
+    }
+
+    private static T? FirstChild<T>(Node parent)
+        where T : Node
+    {
+        foreach (var child in parent.GetChildren())
+        {
+            if (child is T found)
+            {
+                return found;
+            }
+        }
+
+        return null;
     }
 
     private void Refresh()

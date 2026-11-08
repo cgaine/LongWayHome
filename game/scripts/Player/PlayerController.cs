@@ -102,6 +102,25 @@ public partial class PlayerController : CharacterBody3D
         Velocity = Vector3.Zero;
     }
 
+    /// <summary>
+    /// Puts the Player at <paramref name="position"/> on the ground, at rest, facing <paramref name="forward"/>
+    /// snapped to the four-way facing, with the camera already caught up: where an <c>AreaArrival</c> walks him in
+    /// (#136). Where the scene placed him stays his start for <see cref="ReturnToStart"/>.
+    /// </summary>
+    public void PlaceAt(Vector3 position, Vector3 forward)
+    {
+        GlobalPosition = position with { Y = 0f };
+        Velocity = Vector3.Zero;
+        if (forward.X != 0f || forward.Z != 0f)
+        {
+            var facing = FacingDirection.Snap(forward.X, forward.Z, (Facing.X, Facing.Y));
+            Facing = new Vector2I(facing.X, facing.Y);
+            _model.Rotation = _model.Rotation with { Y = FacingDirection.Yaw(Facing.X, Facing.Y) };
+        }
+
+        _camera.SnapToTarget();
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         PickUpAtFeet();

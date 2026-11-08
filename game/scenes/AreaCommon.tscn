@@ -1,0 +1,66 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://ui/Hud.tscn" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/Core/DayClock.cs" id="3_dayclock"]
+[ext_resource type="PackedScene" path="res://ui/PauseMenu.tscn" id="4_pausemenu"]
+[ext_resource type="PackedScene" path="res://ui/NightTransition.tscn" id="5_nighttransition"]
+[ext_resource type="Script" path="res://scripts/World/RainView.cs" id="6_rainview"]
+[ext_resource type="PackedScene" path="res://ui/ShopMenu.tscn" id="7_shopmenu"]
+[ext_resource type="Script" path="res://art/crops/NightGlowView.cs" id="8_nightglowview"]
+[ext_resource type="PackedScene" path="res://ui/BackpackMenu.tscn" id="9_backpackmenu"]
+[ext_resource type="Script" path="res://scripts/World/NightReturn.cs" id="10_nightreturn"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcess_rain"]
+emission_shape = 3
+emission_box_extents = Vector3(20, 0.5, 16)
+direction = Vector3(0.08, -1, 0)
+spread = 2.0
+initial_velocity_min = 16.0
+initial_velocity_max = 20.0
+gravity = Vector3(0, -9.8, 0)
+
+[sub_resource type="StandardMaterial3D" id="Mat_raindrop"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.75, 0.82, 0.95, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_raindrop"]
+material = SubResource("Mat_raindrop")
+size = Vector3(0.025, 0.45, 0.025)
+
+[node name="AreaCommon" type="Node3D"]
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+
+[node name="RainView" type="Node3D" parent="."]
+script = ExtResource("6_rainview")
+
+[node name="Rain" type="GPUParticles3D" parent="RainView"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 0)
+emitting = false
+visible = false
+amount = 1800
+lifetime = 0.8
+visibility_aabb = AABB(-22, -14, -18, 44, 16, 36)
+process_material = SubResource("ParticleProcess_rain")
+draw_pass_1 = SubResource("BoxMesh_raindrop")
+
+[node name="NightGlowView" type="Node" parent="."]
+script = ExtResource("8_nightglowview")
+
+[node name="Hud" parent="." instance=ExtResource("2_hud")]
+
+[node name="DayClock" type="Node" parent="."]
+script = ExtResource("3_dayclock")
+
+[node name="PauseMenu" parent="." instance=ExtResource("4_pausemenu")]
+
+[node name="ShopMenu" parent="." instance=ExtResource("7_shopmenu")]
+
+[node name="BackpackMenu" parent="." instance=ExtResource("9_backpackmenu")]
+
+[node name="NightReturn" type="Node" parent="."]
+script = ExtResource("10_nightreturn")
+
+[node name="NightTransition" parent="." instance=ExtResource("5_nighttransition")]

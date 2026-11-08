@@ -102,15 +102,16 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Picks up the DroppedItems at <paramref name="position"/>, oldest first, as much as fits (BR-K4): one that all
-    /// fits is removed, one that partly fits keeps the rest. Returns whether anything moved. Costs no energy (BR-P2).
+    /// Picks up the DroppedItems at <paramref name="position"/> in <paramref name="area"/> (the farm by default),
+    /// oldest first, as much as fits (BR-K4): one that all fits is removed, one that partly fits keeps the rest. Items
+    /// in other areas are never touched. Returns whether anything moved. Costs no energy (BR-P2).
     /// </summary>
-    public bool PickUp(GridPosition position)
+    public bool PickUp(GridPosition position, AreaId area = AreaId.Farm)
     {
         var moved = false;
 
         // BR-K4: oldest first, each through BR-K3; a later item may still top up a matching stack.
-        foreach (var dropped in _droppedItems.Where(item => item.Position == position).ToList())
+        foreach (var dropped in _droppedItems.Where(item => item.Area == area && item.Position == position).ToList())
         {
             var left = Player.Backpack.Add(dropped.Item, dropped.Quantity);
             if (left == dropped.Quantity)
@@ -132,11 +133,21 @@ public sealed class Game
         return moved;
     }
 
-    /// <summary>Whether any DroppedItem lies at <paramref name="position"/>.</summary>
-    public bool HasDroppedItemsAt(GridPosition position) => _droppedItems.Exists(item => item.Position == position);
+    /// <summary>
+    /// Whether any DroppedItem lies at <paramref name="position"/> in <paramref name="area"/> (the farm by default).
+    /// </summary>
+    public bool HasDroppedItemsAt(GridPosition position, AreaId area = AreaId.Farm) =>
+        _droppedItems.Exists(item => item.Area == area && item.Position == position);
 
-    /// <summary>Whether the Player may enter <paramref name="area"/> (BR-A1). Not implemented yet (#136 red).</summary>
-    public bool IsAreaOpen(AreaId area) => throw new NotImplementedException();
+    /// <summary>
+    /// Whether the Player may enter <paramref name="area"/> (BR-A1). Derived, never stored: the farm, forest path, town
+    /// and lakeshore are always open; across the river and the mine stay closed until their epics add their conditions.
+    /// Nothing makes an open area close.
+    /// </summary>
+    public bool IsAreaOpen(AreaId area) =>
+        // BR-A1: the four start areas are open from the start and never close. across_river (carpenter stage 2, #125)
+        // and mine (BR-M1, #126) extend this with their conditions when they are built.
+        area is AreaId.Farm or AreaId.ForestPath or AreaId.Town or AreaId.Lakeshore;
 
     /// <summary>The Night's dropped-items step (BR-K4): every DroppedItem is removed.</summary>
     public void ClearDroppedItems() => _droppedItems.Clear();

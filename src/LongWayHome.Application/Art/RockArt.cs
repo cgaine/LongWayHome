@@ -22,8 +22,8 @@ public enum RockKind
 /// The rocks the pickaxe breaks, drawn to ART_DIRECTION §7.6 ("Faceted lilac-grey", Rosk and Groth ore): a squat,
 /// irregular lump of <c>stone</c> built from several faceted lumps, with lighter <c>rock</c> faces set into the top,
 /// a few embedded stones and pebbles at the foot, sunk a little into the ground. Pure C#, no Godot: the sandbox's
-/// builder <c>NatureModels</c> merges these parts into one mesh under the shared palette material. For now they are
-/// shown only in the art sandbox.
+/// builder <c>NatureModels</c> merges these parts into one mesh under the shared palette material. The art sandbox
+/// shows them, and the lakeshore's shore (#136) uses the plain rock as scenery.
 /// <para>
 /// <b>Conventions.</b> The <see cref="CropPart"/> conventions, with the origin at the rock's centre <b>on the
 /// ground</b> (y 0). A rock is about 0.9 m across and 0.5 m tall; a boulder about 1.7 m across and 1 m tall. The meadow

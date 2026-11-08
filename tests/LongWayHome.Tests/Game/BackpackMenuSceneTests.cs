@@ -47,13 +47,26 @@ public class BackpackMenuSceneTests
     [Fact]
     public void AC1_farm_scene_instances_the_backpack_menu()
     {
-        var scene = ReadRepoFile("game", "scenes", "Farm.tscn");
+        // #136 moved the shared gameplay nodes into AreaCommon.tscn, which Farm.tscn (and every area scene) instances.
+        var common = ReadRepoFile("game", "scenes", "AreaCommon.tscn");
 
         var resource = Regex.Match(
-            scene, @"\[ext_resource\s+type=""PackedScene""[^\]]*path=""res://ui/BackpackMenu\.tscn""[^\]]*id=""([^""]+)""");
-        Assert.True(resource.Success, "Farm.tscn has no PackedScene ext_resource for res://ui/BackpackMenu.tscn");
+            common, @"\[ext_resource\s+type=""PackedScene""[^\]]*path=""res://ui/BackpackMenu\.tscn""[^\]]*id=""([^""]+)""");
+        Assert.True(resource.Success, "AreaCommon.tscn has no PackedScene ext_resource for res://ui/BackpackMenu.tscn");
         var id = Regex.Escape(resource.Groups[1].Value);
-        Assert.Matches(@"\[node\s+name=""[^""]+""\s+parent=""\.""\s+instance=ExtResource\(""" + id + @"""\)\]", scene);
+        Assert.Matches(@"\[node\s+name=""[^""]+""\s+parent=""\.""\s+instance=ExtResource\(""" + id + @"""\)\]", common);
+
+        AssertFarmInstancesAreaCommon();
+    }
+
+    private static void AssertFarmInstancesAreaCommon()
+    {
+        var farm = ReadRepoFile("game", "scenes", "Farm.tscn");
+        var resource = Regex.Match(
+            farm, @"\[ext_resource\s+type=""PackedScene""[^\]]*path=""res://scenes/AreaCommon\.tscn""[^\]]*id=""([^""]+)""");
+        Assert.True(resource.Success, "Farm.tscn has no PackedScene ext_resource for res://scenes/AreaCommon.tscn");
+        var id = Regex.Escape(resource.Groups[1].Value);
+        Assert.Matches(@"\[node\s+name=""[^""]+""\s+parent=""\.""\s+instance=ExtResource\(""" + id + @"""\)\]", farm);
     }
 
     [Fact]

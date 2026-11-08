@@ -23,7 +23,7 @@ public enum BlacksmithStage
 /// glowing forge arch, an anvil, a tall stone chimney and a teal weathervane on the peak") and ART_DIRECTION §7.3 ("The
 /// heaviest building: a stone lower storey, an open forge arch that glows orange, anvil, quench trough, hammer sign, big
 /// stone chimney"). Pure C#, no Godot: the sandbox's builder merges these parts into one mesh under the shared palette
-/// material. For now it is shown only in the art sandbox.
+/// material. The art sandbox shows every stage; the town (#136) shows Empty.
 /// <para>
 /// <b>Shape.</b> Building-local metres, origin at the drum's centre on the ground, the forge arch facing +Z. The drum is
 /// 5.8 m across with 3.2 m walls, stone up to 1.5 m and mauve staves above, under a leaf cone reaching 3.8 m out to an

@@ -15,7 +15,10 @@ namespace LongWayHome.Game.Ui;
 /// cosmetic: the Night has already run by the time the fade starts. Always processes, so pausing mid-fade cannot
 /// leave the black screen stuck over the pause menu. While showing it swallows <c>interact</c> and <c>use_tool</c>
 /// presses, so a press while waking in the door's range cannot sleep again (or refill, or use a tool). It is the last
-/// child of the Farm scene, so its <c>_UnhandledInput</c> runs before those actions'. Holds no rules.
+/// child of <c>AreaCommon.tscn</c>, which is the last child of every area scene, so its <c>_UnhandledInput</c> runs
+/// before those actions'. When the Night ended in another area (#136), that area's <c>NightReturn</c> changes to the
+/// farm and leaves the message on <see cref="GameRoot.PendingNight"/>: the farm's NightTransition shows it on start, so
+/// the Player still sees it as he wakes at the door. Holds no rules.
 /// </summary>
 public partial class NightTransition : CanvasLayer
 {
@@ -48,11 +51,19 @@ public partial class NightTransition : CanvasLayer
         _saveFailed.Visible = false;
         _panel.Visible = false;
 
-        _session = GetNode<GameRoot>("/root/GameRoot").Session;
+        var root = GetNode<GameRoot>("/root/GameRoot");
+        _session = root.Session;
         if (_session is not null)
         {
             _session.DayEnded += OnDayEnded;
             _session.SaveFailed += OnSaveFailed;
+        }
+
+        if (root.PendingNight is { } pending)
+        {
+            root.PendingNight = null;
+            OnDayEnded(pending.Reason);
+            _saveFailed.Visible = pending.SaveFailed;
         }
     }
 

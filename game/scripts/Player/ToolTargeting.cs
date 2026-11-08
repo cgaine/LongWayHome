@@ -2,7 +2,9 @@
 
 using Godot;
 using LongWayHome.Application.Art;
+using LongWayHome.Application.Games;
 using LongWayHome.Domain.Farming;
+using LongWayHome.Game.Core;
 using LongWayHome.Game.Farm;
 
 namespace LongWayHome.Game.Player;
@@ -11,7 +13,8 @@ namespace LongWayHome.Game.Player;
 /// The tile the Player's tools act on: the Player's grid cell plus <see cref="PlayerController.Facing"/>. Draws the
 /// Use target marker of ART_DIRECTION §7.2 on it (#78): a soft cream <c>Highlight</c> over the slab and four
 /// ember-orange L-shaped corner <c>Brackets</c> standing above it, so it reads at the camera's lowest pitch. Hidden
-/// when the tile in front is off the plot. A child of the Player. Holds no rules: whether a position is on the plot is
+/// when the tile in front is off the plot, and everywhere off the farm (#136: only the farm has Tiles,
+/// <see cref="GameSession.IsOnFarmPlot"/>). A child of the Player. Holds no rules: whether a position is on the plot is
 /// decided by <see cref="GridPosition.TryCreate"/>.
 /// </summary>
 public partial class ToolTargeting : Node3D
@@ -36,13 +39,20 @@ public partial class ToolTargeting : Node3D
 
     private PlayerController _player = null!;
 
+    private GameSession? _session;
+
     private Node3D _cursor = null!;
 
-    /// <summary>The tile in front of the Player, or null when that is off the plot.</summary>
+    /// <summary>The tile in front of the Player, or null when that is off the plot or the Player is off the farm.</summary>
     public GridPosition? Target
     {
         get
         {
+            if (_session is { IsOnFarmPlot: false })
+            {
+                return null;
+            }
+
             var cell = FarmGrid.CellAt(_player.GlobalPosition) + _player.Facing;
             return GridPosition.TryCreate(cell.X, cell.Y, out var position) ? position : null;
         }
@@ -51,6 +61,7 @@ public partial class ToolTargeting : Node3D
     public override void _Ready()
     {
         _player = GetParent<PlayerController>();
+        _session = GetNode<GameRoot>("/root/GameRoot").Session;
         _cursor = BuildCursor();
         AddChild(_cursor);
     }

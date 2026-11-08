@@ -22,7 +22,7 @@ public enum StoreStage
 /// Maggie's general store, the first building the player rebuilds, in the round, grown style of the concept art's
 /// "Round buildings" page ("A wider drum with a ring of leaf awning around the front, produce crates and a hanging sprout
 /// sign") and ART_DIRECTION §7.3 ("a big round-topped shop window"). Pure C#, no Godot: the sandbox's builder merges these
-/// parts into one mesh under the shared palette material. For now it is shown only in the art sandbox.
+/// parts into one mesh under the shared palette material. The art sandbox shows every stage; the town (#136) shows MaggiesCorner.
 /// <para>
 /// <b>Shape.</b> Building-local metres, origin at the drum's centre on the ground, the door facing +Z (towards the
 /// square). The drum is 6.4 m across with 3 m walls; the cone's eaves reach 4.2 m out and its apex is at 6.6 m. The

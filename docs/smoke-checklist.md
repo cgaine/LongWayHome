@@ -36,6 +36,8 @@ next hotbar row `(View)`, open the backpack `(Y)`, pause `(Start)`, close a menu
 - [ ] Sleep at the door with `(X)`; the hint reads `(X) Sleep`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am, with the shipped crops paid.
 - [ ] On another Day, let the clock reach 2:00 am: the farmer passes out (the pass out animation, ending on the ground), then the night fade plays and "You passed out…" shows; he wakes standing at the door playing the idle animation and can move and use tools at once.
+- [ ] Walk off the farm through the gap in the middle of its south edge with `(L stick)`: the forest path loads with the farmer at its north end facing south. Walk down the winding path (the trees block only at their trunks) and off its south end into town, through the square past the store, the carpenter and the blacksmith and off the town's south edge to the lakeshore; the shore stops him at the water and he can walk out on the dock. Walk back the same way: each exit brings him in beside the exit he just used, in the next area facing into it, and back on the farm the tilled, planted and watered Tiles, the backpack, gold, energy, can and clock are as he left them.
+- [ ] In town, pause with `(Start)` for 30 seconds: the clock does not move. Resume, then let the clock reach 2:00 am in town: he passes out, "You passed out…" shows, and the next morning starts on the farm with him at the door.
 
 ## Keyboard-and-mouse-only pass
 
@@ -64,6 +66,8 @@ press with `[Enter]`, or are clicked with the mouse.
 - [ ] Sleep at the door with `[F]`; the hint reads `[F] Sleep`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am, with the shipped crops paid.
 - [ ] On another Day, let the clock reach 2:00 am: the farmer passes out (the pass out animation, ending on the ground), then the night fade plays and "You passed out…" shows; he wakes standing at the door playing the idle animation and can move and use tools at once.
+- [ ] Walk off the farm through the gap in the middle of its south edge with `[WASD]`: the forest path loads with the farmer at its north end facing south. Walk down the winding path (the trees block only at their trunks) and off its south end into town, through the square past the store, the carpenter and the blacksmith and off the town's south edge to the lakeshore; the shore stops him at the water and he can walk out on the dock. Walk back the same way: each exit brings him in beside the exit he just used, in the next area facing into it, and back on the farm the tilled, planted and watered Tiles, the backpack, gold, energy, can and clock are as he left them.
+- [ ] In town, pause with `[Esc]` for 30 seconds: the clock does not move. Resume, then let the clock reach 2:00 am in town: he passes out, "You passed out…" shows, and the next morning starts on the farm with him at the door.
 
 ## Steam Deck (Game Mode) pass
 
@@ -90,3 +94,6 @@ requested on issue #71's pull request.
 - [ ] Sleep at the door with `(X)`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am.
 - [ ] On another Day, let the clock reach 2:00 am: the farmer passes out (the pass out animation, ending on the ground), then the night fade plays and "You passed out…" shows; he wakes standing at the door playing the idle animation and can move and use tools at once.
+- [ ] Walk off the farm through the gap in the middle of its south edge with the left stick: the forest path loads with the farmer at its north end facing south. Walk down the winding path (the trees block only at their trunks) and off its south end into town, through the square past the store, the carpenter and the blacksmith and off the town's south edge to the lakeshore; the shore stops him at the water and he can walk out on the dock. Walk back the same way: each exit brings him in beside the exit he just used, in the next area facing into it, and back on the farm the tilled, planted and watered Tiles, the backpack, gold, energy, can and clock are as he left them.
+- [ ] In town, pause with ☰ (`(Start)`) for 30 seconds: the clock does not move. Resume, then let the clock reach 2:00 am in town: he passes out, "You passed out…" shows, and the next morning starts on the farm with him at the door.
+- [ ] Started with `--show-fps` (1280 x 800), walk the full length of each area: the farm, the forest path, the town and the lakeshore each hold 30 fps the whole way (REQ-14). Write the lowest reading for each area here: farm ___, forest path ___, town ___, lakeshore ___.
