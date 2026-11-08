@@ -283,7 +283,7 @@ public sealed class Game
     /// DroppedItems of at most 99 each (BR-K2), each a new entry never merged with one already there. A tool throws
     /// (BR-K6) and a quantity below 1 throws, both changing nothing.
     /// </summary>
-    public GainResult Gain(ItemRef item, int quantity, GridPosition feet)
+    public GainResult Gain(ItemRef item, int quantity, GridPosition feet, AreaId area = AreaId.Farm)
     {
         // BR-K6: tools never go through Gain, so they can never drop.
         if (item.Kind == ItemKind.Tool)

@@ -1,3 +1,5 @@
+using LongWayHome.Domain.Farming;
+
 namespace LongWayHome.Application.Art;
 
 /// <summary>
@@ -71,6 +73,9 @@ public static class ForestPathLayout
             TreeSpacing,
             (0.85f, 1.15f),
             IsClearForTree);
+
+    /// <summary>The forest path Tile containing each tree's trunk, in <see cref="Trees"/> order (#154).</summary>
+    public static IReadOnlyList<GridPosition> TreeTiles() => throw new NotImplementedException();
 
     /// <summary>Whether a tree may stand at (x, z): off the path by its clearance and out of the exits.</summary>
     public static bool IsClearForTree(float x, float z) =>

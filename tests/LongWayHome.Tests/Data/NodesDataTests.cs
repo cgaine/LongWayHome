@@ -167,6 +167,67 @@ public class NodesDataTests
         Assert.Contains(errors, error => error.StartsWith("nodes.json: ", StringComparison.Ordinal) && error.Contains("respawns", StringComparison.Ordinal));
     }
 
+    // ---- #154 AC7: spawn positions are checked against their Area's grid ----------------------------
+
+    /// <summary>The valid list with its third spawn moved to the forest path at (x, y).</summary>
+    private static string WithForestSpawn(int x, int y) => Edit(ValidNodes, root =>
+    {
+        root["spawns"]![2]!["area"] = "forest_path";
+        root["spawns"]![2]!["x"] = x;
+        root["spawns"]![2]!["y"] = y;
+    });
+
+    [Theory]
+    [InlineData("x", 14, 5)]
+    [InlineData("y", 3, 40)]
+    [InlineData("x", -1, 5)]
+    [InlineData("y", 3, -1)]
+    public void AC7_a_forest_path_spawn_outside_14_by_40_fails_the_load(string field, int x, int y)
+    {
+        var error = Assert.Single(LoadErrors(WithForestSpawn(x, y)));
+
+        Assert.StartsWith("nodes.json: ", error, StringComparison.Ordinal);
+        Assert.Contains("farm-5-7", error, StringComparison.Ordinal);
+        Assert.Contains($".{field} ", error, StringComparison.Ordinal);
+        Assert.Contains(field == "x" ? "between 0 and 13" : "between 0 and 39", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AC7_a_forest_path_spawn_at_y_38_loads_with_its_position()
+    {
+        var spawn = Load(WithForestSpawn(3, 38)).NodeSpawns.Single(spawn => spawn.Id == "farm-5-7");
+
+        Assert.Equal(AreaId.ForestPath, spawn.Area);
+        Assert.Equal((3, 38), (spawn.Position.X, spawn.Position.Y));
+    }
+
+    [Fact]
+    public void AC7_a_forest_path_spawn_on_the_far_corner_13_39_loads()
+    {
+        var spawn = Load(WithForestSpawn(13, 39)).NodeSpawns.Single(spawn => spawn.Id == "farm-5-7");
+
+        Assert.Equal((13, 39), (spawn.Position.X, spawn.Position.Y));
+    }
+
+    [Fact]
+    public void AC7_a_farm_spawn_at_y_38_still_fails_the_load()
+    {
+        var nodes = Edit(ValidNodes, root => root["spawns"]![2]!["y"] = 38);
+
+        var error = Assert.Single(LoadErrors(nodes));
+
+        Assert.Contains("farm-5-7", error, StringComparison.Ordinal);
+        Assert.Contains("between 0 and 35", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AC7_a_forest_path_spawn_and_a_farm_spawn_on_the_same_coordinates_both_load()
+    {
+        var spawn = Load(WithForestSpawn(2, 3)).NodeSpawns.Single(spawn => spawn.Id == "farm-5-7");
+
+        Assert.Equal(AreaId.ForestPath, spawn.Area);
+    }
+
     // ---- Helpers -------------------------------------------------------------------------------------
 
     private static string Read(string fileName) => File.ReadAllText(Path.Combine(Folder, fileName));

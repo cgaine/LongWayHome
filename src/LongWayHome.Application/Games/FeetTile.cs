@@ -1,4 +1,5 @@
 using LongWayHome.Domain.Farming;
+using LongWayHome.Domain.Games;
 
 namespace LongWayHome.Application.Games;
 
@@ -10,4 +11,7 @@ public static class FeetTile
 {
     public static GridPosition Nearest(int cellX, int cellY) =>
         new(Math.Clamp(cellX, 0, FarmPlot.Width - 1), Math.Clamp(cellY, 0, FarmPlot.Height - 1));
+
+    /// <summary>The tile of <paramref name="area"/>'s grid nearest the cell, clamped to that grid (#154).</summary>
+    public static GridPosition Nearest(AreaId area, int cellX, int cellY) => throw new NotImplementedException();
 }
