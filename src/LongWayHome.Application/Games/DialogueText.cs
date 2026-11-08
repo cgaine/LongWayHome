@@ -4,11 +4,12 @@ namespace LongWayHome.Application.Games;
 public static class DialogueText
 {
     /// <summary>The HUD hint near a present resident: "&lt;interact glyph&gt; Talk", e.g. "[F] Talk".</summary>
-    public static string TalkHint(InputDeviceKind device) => throw new NotImplementedException();
+    public static string TalkHint(InputDeviceKind device) => $"{InputGlyphs.For("interact", device)} Talk";
 
     /// <summary>The box's advance hint: "&lt;interact glyph&gt; Next", or "… Close" on the last line.</summary>
-    public static string AdvanceHint(InputDeviceKind device, bool isLastLine) => throw new NotImplementedException();
+    public static string AdvanceHint(InputDeviceKind device, bool isLastLine) =>
+        $"{InputGlyphs.For("interact", device)} {(isLastLine ? "Close" : "Next")}";
 
     /// <summary>The box's skip hint: "&lt;open_menu glyph&gt; Skip", e.g. "[Tab] Skip".</summary>
-    public static string SkipHint(InputDeviceKind device) => throw new NotImplementedException();
+    public static string SkipHint(InputDeviceKind device) => $"{InputGlyphs.For("open_menu", device)} Skip";
 }

@@ -1,0 +1,74 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/Ui/DialogueBox.cs" id="1_dialoguebox"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.141176, 0.109804, 0.188235, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.611765, 0.494118, 0.54902, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 32.0
+content_margin_top = 20.0
+content_margin_right = 32.0
+content_margin_bottom = 20.0
+
+[node name="DialogueBox" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_dialoguebox")
+
+[node name="Panel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -560.0
+offset_top = -232.0
+offset_right = 560.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Rows" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SpeakerLabel" type="Label" parent="Panel/Rows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.913725, 0.466667, 0.227451, 1)
+theme_override_font_sizes/font_size = 28
+text = "Maggie"
+
+[node name="LineLabel" type="Label" parent="Panel/Rows"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.964706, 0.945098, 0.894118, 1)
+theme_override_font_sizes/font_size = 24
+text = "Ember Bay's quieter than it used to be, but it's a good town. My store's open whenever you need it."
+autowrap_mode = 3
+
+[node name="Hints" type="HBoxContainer" parent="Panel/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 32
+alignment = 2
+
+[node name="AdvanceHint" type="Label" parent="Panel/Rows/Hints"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.811765, 0.776471, 0.847059, 1)
+theme_override_font_sizes/font_size = 22
+text = "[F] Close"
+
+[node name="SkipHint" type="Label" parent="Panel/Rows/Hints"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.811765, 0.776471, 0.847059, 1)
+theme_override_font_sizes/font_size = 22
+text = "[Tab] Skip"

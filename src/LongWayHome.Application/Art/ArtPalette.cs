@@ -9,9 +9,10 @@ namespace LongWayHome.Application.Art;
 public readonly record struct ArtSwatch(string Role, string Hex);
 
 /// <summary>
-/// The shared art palette (#76): every ART_DIRECTION model colour as a named swatch, laid out in the 64 x 64
-/// <c>game/art/palette/palette.png</c> that the shared material samples. Swatch <c>i</c> is the 8 x 8 pixel block at
-/// column <c>i % 8</c>, row <c>i / 8</c>; unused blocks are transparent black.
+/// The shared art palette (#76): every ART_DIRECTION model colour as a named swatch, laid out in the 64 x 128 (wide x
+/// tall) <c>game/art/palette/palette.png</c> that the shared material samples. Swatch <c>i</c> is the 8 x 8 pixel block
+/// at column <c>i % 8</c>, row <c>i / 8</c>; unused blocks are transparent black. The image grew from 64 x 64 to
+/// 64 x 128 when #138 passed 64 swatches: every U stayed the same and every V halved.
 /// <para>
 /// The list is <b>append-only</b>: a new swatch goes at the end and existing ones never move or change role, so UVs
 /// already mapped onto the texture (imported models, <see cref="UvCentre"/> callers) stay valid. After changing it,
@@ -23,10 +24,11 @@ public static class ArtPalette
 {
     public const int Columns = 8;
     public const int SwatchSize = 8;
-    public const int ImageSize = 64;
+    public const int ImageWidth = Columns * SwatchSize;
+    public const int ImageHeight = 128;
 
-    /// <summary>How many swatches the texture holds: one 8 x 8 block per cell of the 8 x 8 grid.</summary>
-    public const int Capacity = (ImageSize / SwatchSize) * Columns;
+    /// <summary>How many swatches the texture holds: one 8 x 8 block per cell of the 8 x 16 grid.</summary>
+    public const int Capacity = (ImageHeight / SwatchSize) * Columns;
 
     /// <summary>Every swatch, in texture order. Append-only.</summary>
     public static IReadOnlyList<ArtSwatch> Swatches { get; } =
@@ -94,6 +96,16 @@ public static class ArtPalette
         new("canopy-fall-light", "#C27098"),
         new("canopy-fall-shade", "#7E3E62"),
         new("groth-light", "#A3AEC8"),
+        new("cardigan-lavender", "#9A7EA8"),
+        new("skirt-teal", "#3E6E6A"),
+        new("apron-cream", "#EDE3CF"),
+        new("knit-cap-teal", "#3E6E7A"),
+        new("oilskin-mustard", "#C9A040"),
+        new("slate", "#4A5568"),
+        new("hair-lavender-silver", "#C8BEDA"),
+        new("beard-white", "#EEEBE4"),
+        new("undertone-blue-lilac", "#6A7AB0"),
+        new("undertone-blue", "#4A7A9A"),
     ];
 
     /// <summary>The centre of <paramref name="role"/>'s swatch in 0–1 texture space (U right, V down).</summary>
@@ -104,7 +116,7 @@ public static class ArtPalette
         var column = index % Columns;
         var row = index / Columns;
         const float half = SwatchSize / 2f;
-        return ((column * SwatchSize + half) / ImageSize, (row * SwatchSize + half) / ImageSize);
+        return ((column * SwatchSize + half) / ImageWidth, (row * SwatchSize + half) / ImageHeight);
     }
 
     /// <summary>The <c>#RRGGBB</c> hex of <paramref name="role"/>'s swatch, e.g. <c>"#E9773A"</c> for <c>ember</c>.</summary>
@@ -112,7 +124,7 @@ public static class ArtPalette
     public static string Hex(string role) => Swatches[IndexOf(role)].Hex;
 
     /// <summary>
-    /// The palette image as a PNG: 64 x 64 RGBA8, filter type 0 on every row, one zlib-compressed IDAT chunk.
+    /// The palette image as a PNG: 64 x 128 RGBA8, filter type 0 on every row, one zlib-compressed IDAT chunk.
     /// The same bytes every call.
     /// </summary>
     public static byte[] EncodePng()
@@ -120,11 +132,11 @@ public static class ArtPalette
         if (Swatches.Count > Capacity)
         {
             throw new InvalidOperationException(
-                $"The palette has {Swatches.Count} swatches but the {ImageSize} x {ImageSize} texture holds {Capacity}.");
+                $"The palette has {Swatches.Count} swatches but the {ImageWidth} x {ImageHeight} texture holds {Capacity}.");
         }
 
-        const int stride = ImageSize * 4;
-        var raw = new byte[ImageSize * (stride + 1)];
+        const int stride = ImageWidth * 4;
+        var raw = new byte[ImageHeight * (stride + 1)];
         for (var i = 0; i < Swatches.Count; i++)
         {
             var (r, g, b) = ParseHex(Swatches[i].Hex);
@@ -156,8 +168,8 @@ public static class ArtPalette
         }
 
         var header = new byte[13];
-        BinaryPrimitives.WriteUInt32BigEndian(header.AsSpan(0, 4), ImageSize);
-        BinaryPrimitives.WriteUInt32BigEndian(header.AsSpan(4, 4), ImageSize);
+        BinaryPrimitives.WriteUInt32BigEndian(header.AsSpan(0, 4), ImageWidth);
+        BinaryPrimitives.WriteUInt32BigEndian(header.AsSpan(4, 4), ImageHeight);
         header[8] = 8; // bit depth
         header[9] = 6; // colour type: RGBA
         // compression 0, filter method 0, interlace 0: already zero.

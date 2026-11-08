@@ -152,12 +152,14 @@ public class ResidentScenesTests
     [Fact]
     public void AC6_ResidentModels_builds_one_cached_mesh_per_resident_from_ResidentArt_with_the_outline()
     {
-        var source = Code(ReadRepoFile("game", "art", "town", "ResidentModels.cs"));
+        var raw = ReadRepoFile("game", "art", "town", "ResidentModels.cs");
+        var source = Code(raw);
 
         Assert.Matches(@"static\s+class\s+ResidentModels\b", source);
         Assert.Contains("ResidentArt.For(", source, StringComparison.Ordinal);
         Assert.Contains("Dictionary<", source, StringComparison.Ordinal);
-        Assert.Contains("res://art/shaders/outline.gdshader", source, StringComparison.Ordinal);
+        // Code() strips everything after "//", so the res:// path is looked for as a string literal in the raw source.
+        Assert.Contains("\"res://art/shaders/outline.gdshader\"", raw, StringComparison.Ordinal);
         Assert.Contains("NextPass", source, StringComparison.Ordinal);
         Assert.DoesNotContain("Skeleton3D", source, StringComparison.Ordinal);
     }

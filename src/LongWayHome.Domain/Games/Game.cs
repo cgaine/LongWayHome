@@ -38,6 +38,7 @@ public sealed class Game
         FarmPlot = farmPlot;
         ShippingBin = shippingBin ?? new ShippingBin();
         DroppedItems = _droppedItems.AsReadOnly();
+        Residents = ValidResidents(residents ?? DefaultResidents());
     }
 
     public Guid Id { get; }
@@ -70,10 +71,44 @@ public sealed class Game
     public IReadOnlyList<DroppedItem> DroppedItems { get; }
 
     /// <summary>One Resident per <see cref="ResidentId"/>, in enum order (BR-R1).</summary>
-    public IReadOnlyList<Resident> Residents => throw new NotImplementedException();
+    public IReadOnlyList<Resident> Residents { get; }
 
     /// <summary>Whether <paramref name="id"/>'s Resident is present (BR-R1).</summary>
-    public bool IsPresent(ResidentId id) => throw new NotImplementedException();
+    /// <exception cref="ArgumentOutOfRangeException">The value is not a <see cref="ResidentId"/> member.</exception>
+    public bool IsPresent(ResidentId id) =>
+        Enum.IsDefined(id)
+            ? Residents[(int)id].Present
+            : throw new ArgumentOutOfRangeException(nameof(id), id, "Not a resident.");
+
+    /// <summary>BR-R1: Maggie and Clyde are present from the start; the others arrive later.</summary>
+    public static IReadOnlyList<Resident> DefaultResidents() =>
+        Enum.GetValues<ResidentId>()
+            .Select(id => new Resident(id, present: id is ResidentId.Maggie or ResidentId.Clyde)) // BR-R1
+            .ToList()
+            .AsReadOnly();
+
+    /// <summary>One Resident per <see cref="ResidentId"/>, in enum order, or the list is refused.</summary>
+    private static IReadOnlyList<Resident> ValidResidents(IReadOnlyList<Resident> residents)
+    {
+        var ids = Enum.GetValues<ResidentId>();
+        if (residents.Count != ids.Length)
+        {
+            throw new ArgumentException(
+                $"A Game has exactly one Resident per ResidentId ({ids.Length}), not {residents.Count}.",
+                nameof(residents));
+        }
+
+        for (var i = 0; i < ids.Length; i++)
+        {
+            if (residents[i] is null || residents[i].Id != ids[i])
+            {
+                throw new ArgumentException(
+                    $"Resident {i} must be {ids[i]}, one per ResidentId in enum order.", nameof(residents));
+            }
+        }
+
+        return residents.ToList().AsReadOnly();
+    }
 
     /// <summary>
     /// Gains a non-tool item: what fits goes in the Backpack (BR-K3), the rest drops at <paramref name="feet"/> as

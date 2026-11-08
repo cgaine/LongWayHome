@@ -161,13 +161,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
 [node name="Shallows" type="MeshInstance3D" parent="Pond"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 material_override = ExtResource("14_palette")
-instance_shader_parameters/swatch = Vector2(0.9375, 0.1875)
+instance_shader_parameters/swatch = Vector2(0.9375, 0.09375)
 mesh = SubResource("CylinderMesh_pond")
 
 [node name="Deep" type="MeshInstance3D" parent="Pond"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
 material_override = ExtResource("14_palette")
-instance_shader_parameters/swatch = Vector2(0.8125, 0.1875)
+instance_shader_parameters/swatch = Vector2(0.8125, 0.09375)
 mesh = SubResource("CylinderMesh_pond_deep")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Pond"]
@@ -202,7 +202,7 @@ shape = SubResource("BoxShape_wall_south")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, 14)
 cast_shadow = 0
 material_override = ExtResource("14_palette")
-instance_shader_parameters/swatch = Vector2(0.6875, 0.1875)
+instance_shader_parameters/swatch = Vector2(0.6875, 0.09375)
 mesh = SubResource("PlaneMesh_exitpath")
 
 [node name="SouthExit" type="Area3D" parent="Exits"]

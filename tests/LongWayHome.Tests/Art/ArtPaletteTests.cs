@@ -92,6 +92,16 @@ public class ArtPaletteTests
         ("canopy-fall-light", "#C27098"),
         ("canopy-fall-shade", "#7E3E62"),
         ("groth-light", "#A3AEC8"),
+        ("cardigan-lavender", "#9A7EA8"),
+        ("skirt-teal", "#3E6E6A"),
+        ("apron-cream", "#EDE3CF"),
+        ("knit-cap-teal", "#3E6E7A"),
+        ("oilskin-mustard", "#C9A040"),
+        ("slate", "#4A5568"),
+        ("hair-lavender-silver", "#C8BEDA"),
+        ("beard-white", "#EEEBE4"),
+        ("undertone-blue-lilac", "#6A7AB0"),
+        ("undertone-blue", "#4A7A9A"),
     ];
 
     /// <summary>The swatches the encoder is given, for the PNG layout tests, which hold for any list length.</summary>
@@ -101,11 +111,11 @@ public class ArtPaletteTests
     // ---- AC1: the swatch list ----
 
     [Fact]
-    public void AC3_palette_lists_the_63_swatches_in_order()
+    public void AC3_palette_lists_the_73_swatches_in_order()
     {
         var actual = ArtPalette.Swatches.Select(s => (s.Role, s.Hex)).ToArray();
 
-        Assert.Equal(63, actual.Length);
+        Assert.Equal(73, actual.Length);
         Assert.Equal(ExpectedSwatches, actual);
     }
 
@@ -156,9 +166,9 @@ public class ArtPaletteTests
     // ---- AC2: UV centres ----
 
     [Theory]
-    [InlineData("grass-lit", 4f / 64, 4f / 64)]
-    [InlineData("soil-tilled", 60f / 64, 4f / 64)]
-    [InlineData("dusktuber", 52f / 64, 20f / 64)]
+    [InlineData("grass-lit", 4f / 64, 4f / 128)]
+    [InlineData("soil-tilled", 60f / 64, 4f / 128)]
+    [InlineData("dusktuber", 52f / 64, 20f / 128)]
     public void AC2_uv_centres_of_grass_lit_soil_tilled_dusktuber(string role, float u, float v)
     {
         var (actualU, actualV) = ArtPalette.UvCentre(role);
@@ -176,15 +186,15 @@ public class ArtPaletteTests
     // ---- AC3: the PNG ----
 
     [Fact]
-    public void AC3_png_is_64x64_rgba()
+    public void AC3_png_is_64x128_rgba()
     {
         var png = DecodePng(ArtPalette.EncodePng());
 
         Assert.Equal(64, png.Width);
-        Assert.Equal(64, png.Height);
+        Assert.Equal(128, png.Height);
         Assert.Equal(8, png.BitDepth);
         Assert.Equal(6, png.ColourType);
-        Assert.Equal(64, png.RowFilters.Length);
+        Assert.Equal(128, png.RowFilters.Length);
         Assert.All(png.RowFilters, filter => Assert.Equal(0, filter));
     }
 
@@ -203,7 +213,7 @@ public class ArtPaletteTests
                 $"swatch {i} ({role}) centre ({x},{y}) is {png.Pixel(x, y)}, expected {HexToRgba(hex)}");
         }
 
-        for (var i = PaletteSwatches.Length; i < 64; i++)
+        for (var i = PaletteSwatches.Length; i < 128; i++)
         {
             for (var dy = 0; dy < 8; dy++)
             {

@@ -43,7 +43,7 @@ game/                                # the Godot project
   scripts/                           # C# node scripts, by area
   art/                               # new art (shaders, the art sandbox), apart from gameplay scenes
     icons/                           # seed and crop icons (SVG, palette colours only)
-  ui/                                # HUD and menus
+  ui/                                # HUD and menus; DialogueBox.tscn, the dialogue box (#138)
   assets/                            # models, textures, audio
 tests/
   LongWayHome.Tests/                 # xUnit; Domain + Application + Infrastructure tests
@@ -66,7 +66,7 @@ All class libraries target the same .NET version as the Godot .NET SDK in use (n
 
 ### Domain (`LongWayHome.Domain`)
 
-Folders: `Games/` (Game, GameDate, ClockMinutes, Weather, DayEndReason), `Players/` (Player, WateringCan, InventoryStack, ItemKind, ToolId), `Farming/` (FarmPlot, Tile, Planting, TileState, PlantingStatus, GridPosition), `Shipping/` (ShippingBin, ShippedItem), `Catalog/` (CropType, ShopListing, ShopItemKind, CropTypeId, Season).
+Folders: `Games/` (Game, GameDate, ClockMinutes, Weather, DayEndReason), `Players/` (Player, WateringCan, InventoryStack, ItemKind, ToolId), `Farming/` (FarmPlot, Tile, Planting, TileState, PlantingStatus, GridPosition), `Shipping/` (ShippingBin, ShippedItem), `Catalog/` (CropType, ShopListing, ShopItemKind, CropTypeId, Season), `Residents/` (Resident, ResidentId; #138).
 
 - Value objects are C# `record struct`s or enums whose serialized values are the canonical code values (`spring`, `passed_out`, …), via a snake_case enum converter.
 - Rule enforcement lives on the aggregate, and each check cites its rule in a comment, e.g. `// BR-T3` in `Tile.Plant(...)`.
@@ -80,12 +80,14 @@ Folders: `Games/` (Game, GameDate, ClockMinutes, Weather, DayEndReason), `Player
 | Tiles and plantings | `FarmPlot`, `Tile`, `Planting` | BR-T1–BR-T3, BR-T5, BR-T6, BR-T8, BR-T9 |
 | Crop and shop data | `CropType`, `ShopListing` (validated on load) | BR-C1, BR-C2 |
 | Shipping | `ShippingBin` | BR-S1 |
+| Residents | `Game` (one Resident per ResidentId), `NewGameFactory` | BR-R1 |
 
 ### Application (`LongWayHome.Application`)
 
 - `GameSession` exposes one method per Player action: `Till`, `Plant`, `Water`, `Harvest`, `RefillCan`, `ShipAll`, `Buy`, `Sleep`, plus `AdvanceClock(realSeconds)` (BR-G2) and `PassOut` when the clock hits 02:00 (BR-G3). Each call goes through the `Game` root.
 - `NightProcessor` runs the Night steps in the fixed order from the domain model: growth (BR-T4) → payout (BR-S2) → dropped items cleared (BR-K4) → date (BR-G1) → weather (BR-G4) → watering reset and rain (BR-T7) → energy (BR-P3, BR-P4) → save (BR-G5). It is one method so the order is tested in one place.
-- `NewGameFactory` builds the starting state (BR-P6, BR-T1).
+- `NewGameFactory` builds the starting state (BR-P6, BR-T1), with Maggie and Clyde present (BR-R1).
+- `ResidentCodes`, `ResidentLines` (display names and greetings) and `DialogueFlow` (the dialogue box's line-stepping, `Finished` once per conversation) are pure helpers for the Residents and the dialogue box (#138); `Art/ResidentArt` holds Maggie's and Clyde's part tables.
 - `ShopService` lists today's offers (BR-L1) and buys (BR-L2).
 - **Phase 2** *(planned, REQ-44 to REQ-46, REQ-48 to REQ-51, REQ-57, REQ-58)*: `GameSession` gains `Swing` (axe or pickaxe on a node), `CycleHotbar`, `Place`/`PickUpPlaced`, `SellToMaggie`, `Deliver` (rebuild sign), `PlaceOrder`/`CollectOrder`, `UsePump`, `EnterArea` (built in #136 for the four start areas)/`EnterMineLevel`, `RefillCan(WaterSource)` at the pond, the river and the lake (built in #137) and the Opening steps. `NightProcessor` takes the Phase 2 order from the domain model: growth → payout (once the bin exists) → rebuilds → orders → residents → dropped items cleared → node regrowth → date → weather → watering reset → energy → save, still one method with one order test. `NewGameFactory` places the meadow's starting nodes from `NodeSpawn` (BR-N7). Node regrowth (BR-N4) uses no randomness: it is a fixed 2-Night wait, so it's testable without `IRandomSource`.
 - Ports: `IGameDataSource` (crop types, shop listings, tuning), `ISaveStore` (list, load, save slots), `IRandomSource` (weather roll; seeded in tests).
@@ -95,8 +97,8 @@ Folders: `Games/` (Game, GameDate, ClockMinutes, Weather, DayEndReason), `Player
 
 - `JsonGameDataSource` parses `crops.json`, `shop.json` and `tuning.json` **from strings**. The Godot layer reads the files with `Godot.FileAccess`, because `res://` files are packed into the `.pck` in exported builds and `System.IO` can't open them. Validation on load enforces BR-C2 and that every reference resolves.
 - `JsonSaveStore` writes one file per slot under a folder path it's given (the Godot layer passes the globalized `user://saves` path). Writes go to a temp file and are then renamed, so a crash mid-save never corrupts the slot.
-- Save files carry `saveVersion`. `SaveMigrator` upgrades older versions step by step when later phases add data (backpack slots, buildings), so Phase 1 saves keep loading.
-- Phase 2 writes `saveVersion` 2. The 1 → 2 step (`Saves/Migrations/SaveV1ToV2.cs`) follows the domain model's migration note, with its own migration test: stacks into slots, can upgrade → Rosk can; *(planned, REQ-47)* 12 x 9 tiles into the cleared start region, `openingDone` true, store at stage 1.
+- Save files carry `saveVersion`. `SaveMigrator` upgrades older versions step by step when later phases add data (backpack slots, buildings), so Phase 1 saves keep loading. `residents` (#138) is optional within version 2: a version 2 file written before it loads with the new-Game Residents (BR-R1), and a malformed one is refused.
+- Phase 2 writes `saveVersion` 2. The 1 → 2 step (`Saves/Migrations/SaveV1ToV2.cs`) follows the domain model's migration note, with its own migration test: stacks into slots, can upgrade → Rosk can, the default `residents` (Maggie and Clyde present, #138); *(planned, REQ-47)* 12 x 9 tiles into the cleared start region, `openingDone` true, store at stage 1.
 - *(planned, REQ-44, REQ-45, REQ-48, REQ-49, REQ-57)* New reference data files beside `crops.json`: `materials.json`, `nodes.json` (spawn points per area and mine level), `buildings.json` (stage costs and unlocks), `orders.json` (recipes) and `tools.json` (tier effects); `shop.json` gains vendor and stage columns. All parsed from strings and validated on load like the crop table.
 
 ### Presentation (the Godot project)
@@ -108,10 +110,11 @@ game/
   scenes/
     Main.tscn                 # title screen → save slots → farm
     Farm.tscn                 # farm plot, house, bin, shop point, pond; the south exit to the forest path (#136); the river strip down the east edge (FarmRiverView) and its river water points (#137)
-    AreaCommon.tscn           # the gameplay nodes every area shares: Player, HUD, menus, clock, rain, night glow, NightReturn, NightTransition (#136)
+    AreaCommon.tscn           # the gameplay nodes every area shares: Player, HUD, menus, the dialogue box (#138), clock, rain, night glow, NightReturn, NightTransition (#136)
     ForestPath.tscn           # 14 x 40: winding path between Twinbough trees, river on the east (#136)
-    Town.tscn                 # 40 x 28 Ember Bay: square, store, carpenter, blacksmith, broken bridge stub (#136); river water points along the bank (#137)
-    Lakeshore.tscn            # 40 x 16: shore, dock, lake, the river's mouth (#136); lake water points along the shore and at the dock end (#137)
+    Town.tscn                 # 40 x 28 Ember Bay: square, store, carpenter, blacksmith, broken bridge stub (#136); river water points along the bank (#137); Maggie in front of the store's shop window, facing the square (#138)
+    Lakeshore.tscn            # 40 x 16: shore, dock, lake, the river's mouth (#136); lake water points along the shore and at the dock end (#137); Clyde at the end of the dock, facing the lake (#138)
+    Resident.tscn             # one Resident (ResidentView): its interaction point (range 1.5) with ResidentTalk (#138)
     Player.tscn               # character + follow camera
   scripts/
     Core/GameRoot.cs          # autoload: composition root, owns GameSession
@@ -127,9 +130,12 @@ game/
     World/AreaArrival.cs      # where the Player walks in from a neighbouring area, facing into it (#136)
     World/AreaScenes.cs       # AreaId → scene path for the open areas (#136)
     World/NightReturn.cs      # after a Night away from the farm, changes to the farm with the night message pending (#136)
+    World/ResidentView.cs     # a Resident, shown with a capsule collider only when Game.IsPresent; names its point after its code and turns to face the Player in range (#138)
+    World/ResidentTalk.cs     # interact in range of a Resident's point opens the dialogue box with ResidentLines (#138)
     Ui/Hud.cs                 # hotbar, clock, gold, energy
     Ui/UsePrompt.cs           # shows what Use will do (REQ-12)
     Ui/ShopMenu.cs
+    Ui/DialogueBox.cs         # the bottom-of-screen dialogue box over DialogueFlow: Show(speaker, lines), Finished; pauses the tree while shown (BR-G2) (#138)
     Ui/BackpackMenu.cs        # the Backpack screen: every slot in rows of six, pick up and put down (REQ-47) (#131)
     Ui/IconTextures.cs        # the seed and crop icon textures, loaded once (paths from ItemIcons) (#95)
     Ui/SaveSlotsMenu.cs
@@ -152,6 +158,7 @@ game/
       GrassTileModels.cs      # the grass detail meshes: each GrassTileArt layout in each Season's grass for the plot's Tiles, and its wild MeadowParts for the meadow's cover
       NatureModels.cs         # the Twinbough (TreeArt: each stage and season) and the rocks (RockArt: rock, boulder, Rosk and Groth ore); the sandbox, and the areas' scenery (#136)
     town/
+      ResidentModels.cs       # one cached, merged, outlined mesh per Resident from ResidentArt (Application/Art/); Maggie and Clyde (#138)
       TownModels.cs           # the general store at each StoreStage (GeneralStoreArt) and the carpenter at each CarpenterStage (CarpenterArt), the blacksmith at each BlacksmithStage (BlacksmithArt), all on the shared RoundBuilding shape, and the rebuild sign (RebuildSignArt), with their night-only lights; the sandbox, and the town at the starting stages (#136)
     areas/
       AreaArt.cs              # flat ground and water, ribbons, one MultiMesh per repeated mesh, trunk collision (#136)
@@ -167,7 +174,7 @@ game/
     materials/
       palette.tres            # the one shared ShaderMaterial: low_poly.gdshader on palette.png
     palette/
-      palette.png             # 64 x 64 swatch texture, written from ArtPalette (Application/Art/ArtPalette.cs)
+      palette.png             # 64 x 128 swatch texture (8 columns of 8 x 8 swatches; grown from 64 x 64 in #138), written from ArtPalette (Application/Art/ArtPalette.cs)
     sandbox/
       ArtSandbox.tscn         # palette, tile, crop, farmer, farmer animation, shape, round-farmhouse, Twinbough and rock samples under the four light presets (#75, #90, #102, #103)
       ArtSandbox.cs
@@ -189,7 +196,7 @@ game/
 - **Readable at a glance (REQ-12):** each growth stage has its own model, bigger than the one before it; every crop (emberroot, dusktuber, sunbell, starcorn and moonmelon) is drawn to ART_DIRECTION §4 by `CropArt` and `CropModels` (#90, #91, #92): Seed (a light dirt mound with a seed in the crop's colour), Sprout (a stem with two seed leaves in a V and a bud in the crop's colour), Young (emberroot's orange shoulder under five fronds; dusktuber's low rosette of leaves curling violet; sunbell's three canes in a ring of leaves with one small green berry; starcorn's short stalk with four drooping leaves; moonmelon's low trailing vine with veined leaves and a pale bud) and Ripe (emberroot's tall frond tuft over a wide orange shoulder with a warm core; dusktuber's big speckled purple bulb under four curling leaves; sunbell's rounded bush hung with six gold-to-orange berries, point down under green sepal stars; starcorn's tall stalk with a big golden cob between peeled husks, white diamond sparkles and a gold tassel; moonmelon's pale blue-white ribbed gourd with a crown and stalk, on a trailing vine with leaves and a tendril); each Tile is a slab in one of three states (grass with small tufts, brown tilled soil with furrows, and much darker watered soil with a wet sheen), with dark grooves between the slabs instead of grid lines; the Use target marker is a cream highlight with four ember-orange corner brackets on the targeted Tile, drawn over everything; `UsePrompt` names the action Use will perform on the targeted Tile, or why it can't.
 - **Pausing (BR-G2):** opening any menu pauses the scene tree, and `GameSession.AdvanceClock` is only called from an unpaused node.
 - **The farmer's animations are cosmetic (#103):** `FarmerAnimator` (pausable, on the Player) plays the clips of `FarmerMoves` (pure, in `LongWayHome.Application/Art/`, with `FarmerAnimationState` choosing the clip) built by `art/farmer/FarmerAnimations.cs` on the one `AnimationPlayer` of `Farmer.tscn`. A clip only follows a successful action (`ActionResult.IsOk`), after the action has happened, so it never delays or decides anything; the day-end clips play before `Sleep()` (only when the `sleep` clip ends before 02:00 even a minute late) or up to 02:00 (`pass_out`), without moving the day end (BR-G3).
-- **Art sandbox:** starting with the user argument `--art-sandbox` (`godot --path game -- --art-sandbox` from source, `<exported binary> -- --art-sandbox` on the Deck; combinable with `--show-fps`) makes the title screen open `art/sandbox/ArtSandbox.tscn` instead of the save slots, once per run. It is where shading and colour are judged on the Deck before art reaches the farm, and `pause` returns to the title screen. Its camera turns and zooms like the follow camera, and the `move_*` actions (left stick, D-pad, WASD, arrow keys) slide it left, right, forward and back. It also shows the concept art's round farmhouse (`RoundFarmhouseArt`, run-down and restored), the Twinbough at each stage and season (`TreeArt`), the rocks the pickaxe breaks (`RockArt`), the farmer holding the Phase 2 axe and pickaxe (`HeldItemArt.PartsFor(GatherTool)`, through `FarmerModel.ShowGatherTool`) the tool and material icons (`ItemIcons.ToolIcon`, `ItemIcons.MaterialIcon`), the general store, the carpenter and the blacksmith at each rebuild stage with their rebuild signs (`GeneralStoreArt`, `CarpenterArt`, `BlacksmithArt`, `RebuildSignArt`), none of which the game uses yet. Gameplay scenes adopt approved art by instancing scenes and materials from `art/` (the meadow, #77; the farmhouse, #104; the player scene's `Model` instances `art/farmer/Farmer.tscn`, #102), never anything under `art/sandbox/`; scripts other than `SaveSlotsMenu` reference nothing in `art/` except the shared material helpers `ArtMaterials` and `ArtMeshes` (the tile slabs, #78) and the crop builder `CropModels` (#90), the farmer's `FarmerModel` (found by type under the Player's `Model` by `HeldItemView`, #102) and the farmer's clip names from `FarmerAnimations` (used by `FarmerAnimator`, #103), and the seed and crop icons in `art/icons/` (#95; their paths come from `ItemIcons` in `LongWayHome.Application/Art/`, so no script names an `art/` path), and never the sandbox. The area scenes (#136) instance their scenery scripts from `art/areas/`; `Town.tscn`'s `TownView` builds the store, carpenter and blacksmith from `TownModels`, and the forest path and town trees from `NatureModels`.
+- **Art sandbox:** starting with the user argument `--art-sandbox` (`godot --path game -- --art-sandbox` from source, `<exported binary> -- --art-sandbox` on the Deck; combinable with `--show-fps`) makes the title screen open `art/sandbox/ArtSandbox.tscn` instead of the save slots, once per run. It is where shading and colour are judged on the Deck before art reaches the farm, and `pause` returns to the title screen. Its camera turns and zooms like the follow camera, and the `move_*` actions (left stick, D-pad, WASD, arrow keys) slide it left, right, forward and back. It also shows the concept art's round farmhouse (`RoundFarmhouseArt`, run-down and restored), the Twinbough at each stage and season (`TreeArt`), the rocks the pickaxe breaks (`RockArt`), the farmer holding the Phase 2 axe and pickaxe (`HeldItemArt.PartsFor(GatherTool)`, through `FarmerModel.ShowGatherTool`) the tool and material icons (`ItemIcons.ToolIcon`, `ItemIcons.MaterialIcon`), the general store, the carpenter and the blacksmith at each rebuild stage with their rebuild signs (`GeneralStoreArt`, `CarpenterArt`, `BlacksmithArt`, `RebuildSignArt`), none of which the game uses yet. Gameplay scenes adopt approved art by instancing scenes and materials from `art/` (the meadow, #77; the farmhouse, #104; the player scene's `Model` instances `art/farmer/Farmer.tscn`, #102), never anything under `art/sandbox/`; scripts other than `SaveSlotsMenu` reference nothing in `art/` except the shared material helpers `ArtMaterials` and `ArtMeshes` (the tile slabs, #78) and the crop builder `CropModels` (#90), the farmer's `FarmerModel` (found by type under the Player's `Model` by `HeldItemView`, #102) and the farmer's clip names from `FarmerAnimations` (used by `FarmerAnimator`, #103), and the Residents' `ResidentModels` (used by `ResidentView`, #138), and the seed and crop icons in `art/icons/` (#95; their paths come from `ItemIcons` in `LongWayHome.Application/Art/`, so no script names an `art/` path), and never the sandbox. The area scenes (#136) instance their scenery scripts from `art/areas/`; `Town.tscn`'s `TownView` builds the store, carpenter and blacksmith from `TownModels`, and the forest path and town trees from `NatureModels`.
 - **Renderer:** Forward+ by default. The Steam Deck target is a steady 30 fps at 1280 × 800 (REQ-14); if it's missed, the fallback is the Mobile renderer with a lower resolution scale, and the frame rate is capped at 30 on Deck to save battery.
 
 ### Areas and scenes *(built for the four start areas in #136; across the river, the mine and the 72 x 36 farm planned, REQ-16, REQ-48, REQ-49)*
@@ -197,7 +204,7 @@ game/
 - **Built (#136, REQ-17, REQ-49):** `farm`, `forest_path`, `town` and `lakeshore` are `Farm.tscn`, `ForestPath.tscn`, `Town.tscn` and `Lakeshore.tscn`, laid out north to south, each joined to the next by a 3-tile exit centred on x = 0. Every area scene instances `AreaCommon.tscn` as its last child, `Common` (Player, HUD, pause, shop and backpack menus, `DayClock`, `RainView`, `NightGlowView`, `NightReturn` and, last, `NightTransition`), and overrides `Common/Player`'s transform for where the Player stands when the scene loads; `RainView` uses the area's own `DirectionalLight3D` and `WorldEnvironment`. An `AreaExit` (an `Area3D` 3 x 1 tiles in the gap of the edge's `Boundary` wall) calls `GameSession.EnterArea` and, on `Ok`, sets `GameRoot.PendingArrivalId` and changes to the target from `AreaScenes`, deferred out of the physics callback; the target's matching `AreaArrival` (a `Marker3D` 1.5 tiles inside the edge, outside the trigger, facing in) places the Player once every node is ready. `GameSession.CurrentArea` (not saved) is the farm on every new or loaded session and after every Night; pickups see only the current area's DroppedItems and tools have no target off the farm. After a Night that ended elsewhere, `NightReturn` changes to the farm and leaves the night message on `GameRoot.PendingNight` for the farm's `NightTransition`. Scenery is placed by pure layouts in `LongWayHome.Application/Art/` (`ForestPathLayout`, `TownLayout`, `LakeshoreLayout`, unit-tested) and built by `art/areas/` views as one `MultiMeshInstance3D` per repeated mesh; collision (edges, river banks, the waterline, the dock, buildings, tree trunks) is box and cylinder shapes. AC11's Steam Deck 30 fps per area is a smoke-checklist row.
 - Each Area (`farm`, `forest_path`, `town`, `lakeshore`, `across_river`) is its own scene, and each mine level 1–5 is one scene, loaded one at a time. Walking off an Area's edge or taking the mine stairs swaps the scene; `GameSession` keeps the whole `Game`, so leaving an Area loses nothing. Only the current Area is in memory and drawn.
 - The farm scene grows to the 72 x 36 meadow (BR-T1). Resource nodes are drawn as one `MultiMeshInstance3D` per node kind and stage, built from the core's node list, the same way the meadow props are, so hundreds of trees and rocks stay a handful of draw calls.
-- The Opening and Maggie's mine story are scripted sequences in the presentation layer that call `GameSession` commands for each step; the core only records `openingDone` and the story having been told. Dialogue boxes are menus, so the clock pauses (BR-G2).
+- The Opening and Maggie's mine story are scripted sequences in the presentation layer that call `GameSession` commands for each step; the core only records `openingDone` and the story having been told. Dialogue boxes are menus, so the clock pauses (BR-G2): `ui/DialogueBox.tscn` (#138), in every area through `AreaCommon.tscn`, pauses the tree on `Show(speaker, lines)` and resumes it, emitting `Finished`, when the last line is advanced past or skipped; its presses are handled in `_Input`, so none reaches gameplay.
 
 ## 4. Key patterns
 

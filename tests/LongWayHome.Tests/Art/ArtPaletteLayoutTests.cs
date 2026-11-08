@@ -16,7 +16,7 @@ public class ArtPaletteLayoutTests
             var (u, v) = ArtPalette.UvCentre(ArtPalette.Swatches[i].Role);
 
             Assert.Equal(((i % 8) * 8 + 4) / 64f, u, 1e-6f);
-            Assert.Equal(((i / 8) * 8 + 4) / 64f, v, 1e-6f);
+            Assert.Equal(((i / 8) * 8 + 4) / 128f, v, 1e-6f);
         }
     }
 
@@ -26,7 +26,7 @@ public class ArtPaletteLayoutTests
         var (u, v) = ArtPalette.UvCentre("roof-far");
 
         Assert.Equal(20f / 64, u, 1e-6f);
-        Assert.Equal(44f / 64, v, 1e-6f);
+        Assert.Equal(44f / 128, v, 1e-6f);
     }
 
     [Theory]

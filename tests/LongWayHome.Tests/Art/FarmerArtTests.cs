@@ -20,8 +20,8 @@ public class FarmerArtTests
     /// <summary>The palette's length on main before #102 appended the farmer's swatches.</summary>
     private const int SwatchesBefore102 = 46;
 
-    /// <summary>The swatches appended after #102: #104's <c>door-faded</c> and <c>glass-dull</c>, then the sandbox's eleven tree and rock colours.</summary>
-    private const int SwatchesAfter102 = 13;
+    /// <summary>The swatches appended after #102: #104's <c>door-faded</c> and <c>glass-dull</c>, then the sandbox's eleven tree and rock colours, then #138's ten resident colours.</summary>
+    private const int SwatchesAfter102 = 23;
 
     // ---- AC1: the skeleton ----
 

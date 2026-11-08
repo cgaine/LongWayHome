@@ -1,4 +1,6 @@
 using System.Text.Json.Nodes;
+using LongWayHome.Application.Games;
+using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Infrastructure.Saves.Migrations;
@@ -16,7 +18,7 @@ public static class SaveV1ToV2
     /// <c>rosk</c> when <c>player.wateringCan.upgraded</c> is true), then each inventory stack in saved order, split into
     /// Slots of up to 99 (BR-K2). Capacity is 12, raised to 24 then 36 only when the Slots don't fit (BR-K1); what
     /// doesn't fit in 36 is discarded. <c>hotbarRow</c> is 0. Removes <c>player.tools</c> and
-    /// <c>player.inventory</c>. A document whose player, tools or inventory (or one of its stacks) isn't the expected shape is returned
+    /// <c>player.inventory</c>, and writes the default <c>residents</c> (#138). A document whose player, tools or inventory (or one of its stacks) isn't the expected shape is returned
     /// unchanged, so loading it refuses it as before.
     /// </summary>
     public static JsonObject Migrate(JsonObject document)
@@ -77,6 +79,15 @@ public static class SaveV1ToV2
         player.Remove("tools");
         player.Remove("inventory");
         player["backpack"] = new JsonObject { ["capacity"] = capacity, ["hotbarRow"] = 0, ["slots"] = slots };
+
+        // BR-R1 (#138): a Phase 1 Game has the new-Game Residents, Maggie and Clyde present.
+        document["residents"] = new JsonArray(Game.DefaultResidents()
+            .Select(resident => (JsonNode)new JsonObject
+            {
+                ["id"] = ResidentCodes.Code(resident.Id),
+                ["present"] = resident.Present,
+            })
+            .ToArray());
         return document;
     }
 
