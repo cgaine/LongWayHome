@@ -52,7 +52,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Tool tier** | How strong a tool is: Basic, Rosk or Groth in Phase 2. |
 | **Pump** | *(planned, REQ-49, REQ-57)* A Rosk pump forged by Mira; using one drains a flooded Mine level. |
 | **Mine level** | *(planned, REQ-49)* One floor of the old mine, 1 to 5 in Phase 2. Blocked by debris, or flooded. |
-| **Resident** | *(planned, REQ-50)* A townsperson living in Ember Bay: Maggie, Clyde, Tom, June, Jesse, Mira. |
+| **Resident** | A townsperson living in Ember Bay: Maggie, Clyde, Tom, June, Jesse, Mira. |
 | **Placed object** | *(planned, REQ-48)* A fence or chest the Player has set down on the farm. |
 | **Water source** | Where the Watering can is refilled: the pond, the river or the lake. |
 | **Opening** | *(planned, REQ-17)* Maggie's guided start on Spring 1 of a new Game. |
@@ -84,7 +84,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `OrderKind` | *(planned, REQ-48, REQ-57)* `plank`, `sealed_plank`, `tool_upgrade`, `rosk_pump` | Order |
 | `Provider` | *(planned, REQ-48, REQ-57)* `carpenter`, `blacksmith` | Order |
 | `MineLevelState` | *(planned, REQ-49)* `blocked`, `cleared`, `flooded`, `drained` | MineLevel |
-| `ResidentId` | *(planned, REQ-50)* `maggie`, `clyde`, `tom`, `june`, `jesse`, `mira` | Resident |
+| `ResidentId` | `maggie`, `clyde`, `tom`, `june`, `jesse`, `mira` | Resident |
 | `WaterSource` | `pond`, `river`, `lake` | Refill action |
 
 ## Entities & Aggregates
@@ -335,7 +335,7 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 | `state` | MineLevelState | Levels 1–4 start `blocked`; level 5 starts `flooded`. |
 | `reached` | bool | The Player has set foot on it. |
 
-#### Resident (child of Game, one per ResidentId) *(planned, REQ-50)*
+#### Resident (child of Game, one per ResidentId)
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
@@ -629,9 +629,9 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-A1: The farm, forest path, town and lakeshore are open from the start; the mine from BR-M1; across the river once the carpenter is at stage 2. An Area never closes again. Built for the four start areas (#136: `Game.IsAreaOpen`, `GameSession.EnterArea`); the mine and across the river stay closed until BR-M1 and the carpenter's stage 2 are built. *(planned for the mine and across the river, REQ-48, REQ-49)*
 - BR-A2: The pond is on the farm, the river runs along the meadow and through town, and the lake is at the lakeshore. Each is a Water source for BR-W3.
 
-### Residents *(planned, REQ-50)*
+### Residents
 
-- BR-R1: Maggie and Clyde are present from the start. A Resident who arrives never leaves. *(planned, REQ-50)*
+- BR-R1: Maggie and Clyde are present from the start. A Resident who arrives never leaves.
 - BR-R2: Tom, June and Jesse arrive in the Night the carpenter reaches stage 1. *(planned, REQ-50)*
 - BR-R3: Mira arrives in the first Night when Mira's house is at stage 1 and mine level 5 is `reached`, in either order; she then asks the Player to rebuild the blacksmith. *(planned, REQ-50)*
 

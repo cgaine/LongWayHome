@@ -3,6 +3,7 @@ using LongWayHome.Application.Saves;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Residents;
 using LongWayHome.Infrastructure.Saves;
 using LongWayHome.Tests.Games;
 
@@ -41,6 +42,181 @@ public sealed class JsonSaveStoreTests : IDisposable
 
     private static JsonObject PlantedTile(JsonObject document) =>
         Tiles(document).Select(tile => tile!.AsObject()).Single(tile => tile["planting"] is not null);
+
+    // ---- #138: the Residents ----
+
+    private static string DescribeResidents(LongWayHome.Domain.Games.Game game) =>
+        string.Join(",", game.Residents.Select(resident => $"{resident.Id}:{resident.Present}"));
+
+    private const string DefaultResidents = "Maggie:True,Clyde:True,Tom:False,June:False,Jesse:False,Mira:False";
+
+    /// <summary>A whole <c>residents</c> array as the game writes it, Maggie and Clyde present.</summary>
+    private static JsonArray ResidentsArray() => new(
+        new[] { ("maggie", true), ("clyde", true), ("tom", false), ("june", false), ("jesse", false), ("mira", false) }
+            .Select(entry => (JsonNode)new JsonObject { ["id"] = entry.Item1, ["present"] = entry.Item2 })
+            .ToArray());
+
+    [Fact]
+    public void AC2_Saving_and_loading_keeps_every_residents_present_value()
+    {
+        var game = ResidentTests.WithResidents(
+            ResidentTests.AllSix(ResidentId.Maggie, ResidentId.Clyde, ResidentId.June, ResidentId.Mira));
+
+        Store().Save(1, game);
+        var loaded = new JsonSaveStore(_folder.Path).Load(1);
+
+        Assert.Equal("Maggie:True,Clyde:True,Tom:False,June:True,Jesse:False,Mira:True", DescribeResidents(loaded));
+    }
+
+    [Fact]
+    public void AC2_The_file_holds_residents_as_id_and_present_in_enum_order()
+    {
+        var game = ResidentTests.WithResidents(ResidentTests.AllSix(ResidentId.Maggie, ResidentId.Clyde, ResidentId.Jesse));
+
+        Store().Save(1, game);
+        var document = _folder.ReadSlot(1);
+
+        Assert.Equal(2, document["saveVersion"]!.GetValue<int>());
+        Assert.True(document["residents"] is JsonArray, "the saved file has no residents array");
+        var residents = document["residents"]!.AsArray()
+            .Select(entry => entry!.AsObject())
+            .Select(entry => (
+                Keys: string.Join(",", entry.Select(pair => pair.Key).Order(StringComparer.Ordinal)),
+                Id: entry["id"]!.GetValue<string>(),
+                Present: entry["present"]!.GetValue<bool>()))
+            .ToList();
+        Assert.All(residents, entry => Assert.Equal("id,present", entry.Keys));
+        Assert.Equal(
+            [("maggie", true), ("clyde", true), ("tom", false), ("june", false), ("jesse", true), ("mira", false)],
+            residents.Select(entry => (entry.Id, entry.Present)));
+    }
+
+    [Fact]
+    public void AC2_A_new_games_file_writes_the_default_residents_array()
+    {
+        Store().Save(1, ResidentTests.WithResidents(null));
+
+        Assert.Equal(ResidentsArray().ToJsonString(), _folder.ReadSlot(1)["residents"]?.ToJsonString());
+    }
+
+    [Fact]
+    public void AC3_A_v2_save_without_residents_loads_with_maggie_and_clyde_present_and_the_others_not()
+    {
+        _folder.WriteSlot(1, SaveDocuments.V2(SaveDocuments.GoodBackpack()));
+
+        var loaded = Store().Load(1);
+
+        Assert.Equal(DefaultResidents, DescribeResidents(loaded));
+    }
+
+    [Fact]
+    public void AC3_A_saved_file_with_its_residents_property_removed_loads_the_default()
+    {
+        SaveThenEdit(document => document.Remove("residents"));
+
+        Assert.Equal(DefaultResidents, DescribeResidents(Store().Load(1)));
+    }
+
+    [Fact]
+    public void AC3_A_literal_v2_document_with_residents_loads_them()
+    {
+        var document = SaveDocuments.V2(SaveDocuments.GoodBackpack());
+        var residents = ResidentsArray();
+        residents[2]!["present"] = true;
+        document["residents"] = residents;
+        _folder.WriteSlot(1, document);
+
+        Assert.Equal("Maggie:True,Clyde:True,Tom:True,June:False,Jesse:False,Mira:False", DescribeResidents(Store().Load(1)));
+    }
+
+    public static TheoryData<string> BadResidents => new()
+    {
+        "unknown id",
+        "id in the wrong case",
+        "duplicate id",
+        "missing id",
+        "entry without an id",
+        "non-bool present",
+        "null present",
+        "entry without present",
+        "null entry",
+        "not an array",
+    };
+
+    /// <summary>Writes a whole <c>residents</c> array into the document with one defect.</summary>
+    private static void BreakResidents(JsonObject document, string how)
+    {
+        var residents = ResidentsArray();
+        switch (how)
+        {
+            case "unknown id":
+                residents[3]!["id"] = "bob";
+                break;
+            case "id in the wrong case":
+                residents[0]!["id"] = "Maggie";
+                break;
+            case "duplicate id":
+                residents[5]!["id"] = "maggie";
+                break;
+            case "missing id":
+                residents.RemoveAt(5);
+                break;
+            case "entry without an id":
+                residents[4]!.AsObject().Remove("id");
+                break;
+            case "non-bool present":
+                residents[1]!["present"] = "yes";
+                break;
+            case "null present":
+                residents[1]!["present"] = null;
+                break;
+            case "entry without present":
+                residents[2]!.AsObject().Remove("present");
+                break;
+            case "null entry":
+                residents[3] = null;
+                break;
+            case "not an array":
+                document["residents"] = "maggie,clyde";
+                return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(how), how, null);
+        }
+
+        document["residents"] = residents;
+    }
+
+    [Theory]
+    [MemberData(nameof(BadResidents))]
+    public void AC5_A_save_whose_residents_are_malformed_is_refused_on_load(string how)
+    {
+        // Control, in slot 2: the same file with a whole residents array loads, so the refusal below is the defect's.
+        Store().Save(2, SaveGames.Rich());
+        var control = _folder.ReadSlot(2);
+        control["residents"] = ResidentsArray();
+        _folder.WriteSlot(2, control);
+        Assert.Equal(DefaultResidents, DescribeResidents(Store().Load(2)));
+
+        SaveThenEdit(document => BreakResidents(document, how));
+
+        AssertUnreadable();
+    }
+
+    [Theory]
+    [MemberData(nameof(BadResidents))]
+    public void AC5_A_literal_v2_document_with_malformed_residents_is_refused(string how)
+    {
+        var good = SaveDocuments.V2(SaveDocuments.GoodBackpack());
+        good["residents"] = ResidentsArray();
+        _folder.WriteSlot(2, good);
+        Assert.Equal(DefaultResidents, DescribeResidents(Store().Load(2)));
+
+        var document = SaveDocuments.V2(SaveDocuments.GoodBackpack());
+        BreakResidents(document, how);
+        _folder.WriteSlot(1, document);
+
+        AssertUnreadable();
+    }
 
     // ---- #128: save version 2 and the Backpack ----
 

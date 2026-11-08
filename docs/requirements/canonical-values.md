@@ -214,7 +214,7 @@ Stored with each tool's Backpack Slot and in tool-upgrade Orders.
 
 ---
 
-## ResidentId *(planned, REQ-50)*
+## ResidentId
 
 | Code Value | Display Label | Arrives |
 |------------|---------------|---------|

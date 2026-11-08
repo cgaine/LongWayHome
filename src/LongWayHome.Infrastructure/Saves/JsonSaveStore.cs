@@ -1,11 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using LongWayHome.Application.Games;
 using LongWayHome.Application.Ports;
 using LongWayHome.Application.Saves;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Residents;
 using LongWayHome.Domain.Shipping;
 using LongWayHome.Infrastructure.Data;
 using LongWayHome.Infrastructure.Saves.Dtos;
@@ -214,6 +216,9 @@ public sealed class JsonSaveStore : ISaveStore
                 .Select(item => new ShippedItemDto { CropTypeId = item.CropTypeId, Quantity = item.Quantity })
                 .ToList(),
         },
+        Residents = game.Residents
+            .Select(resident => new ResidentDto { Id = ResidentCodes.Code(resident.Id), Present = resident.Present })
+            .ToList(),
     };
 
     /// <summary>Every Slot is written, an empty one with a null item, quantity 0 and a null tier.</summary>
@@ -265,7 +270,35 @@ public sealed class JsonSaveStore : ISaveStore
             dto.SavedAt,
             ToPlayer(player),
             ToFarmPlot(farmPlot),
-            ToShippingBin(shippingBin));
+            ToShippingBin(shippingBin),
+            ToResidents(dto.Residents));
+    }
+
+    /// <summary>
+    /// No <c>residents</c> (a version 2 file from before #138) is the new-Game default (BR-R1). Otherwise each entry
+    /// must name a known Resident by its exact code; the Game constructor refuses a missing, repeated or out-of-order
+    /// one.
+    /// </summary>
+    private static IReadOnlyList<Resident>? ToResidents(IReadOnlyList<ResidentDto?>? residents)
+    {
+        if (residents is null)
+        {
+            return null;
+        }
+
+        var restored = new List<Resident>(residents.Count);
+        foreach (var entry in residents)
+        {
+            var resident = Required(entry, "residents[]");
+            if (!ResidentCodes.TryParse(resident.Id, out var id))
+            {
+                throw new InvalidDataException($"residents[].id '{resident.Id}' is not a known ResidentId code.");
+            }
+
+            restored.Add(new Resident(id, resident.Present));
+        }
+
+        return restored;
     }
 
     private static Player ToPlayer(PlayerDto dto)

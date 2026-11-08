@@ -34,7 +34,8 @@ public static class NewGameFactory
             new WateringCan(tuning.CanCapacity),
             backpack);
 
-        // BR-G1: a new Game starts on Year 1, Spring 1. BR-T1: a fresh 12 x 9 plot of grass.
+        // BR-G1: a new Game starts on Year 1, Spring 1. BR-T1: a fresh 12 x 9 plot of grass. BR-R1: Maggie and Clyde
+        // are present from the start; Tom, June, Jesse and Mira are not.
         return new Game(
             Guid.NewGuid(),
             new GameDate(1, Season.Spring, 1),
@@ -44,6 +45,7 @@ public static class NewGameFactory
             createdAt: now,
             savedAt: now,
             player,
-            new FarmPlot());
+            new FarmPlot(),
+            residents: Game.DefaultResidents());
     }
 }

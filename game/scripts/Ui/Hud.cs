@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -7,6 +8,7 @@ using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Residents;
 using PlayerState = LongWayHome.Domain.Players.Player;
 using LongWayHome.Game.Core;
 using LongWayHome.Game.Player;
@@ -34,7 +36,9 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="InteractionPoint"/> (the pond, a river or a lake point; it counts enters and exits, so walking along a
 /// bank from one point's range into the next keeps it on), and a "&lt;interact glyph&gt; Sleep" hint in the same place
 /// while in range of the house door's, and a "&lt;interact glyph&gt; Ship crops" hint in the same place while in range
-/// of the shipping bin's, and a "&lt;interact glyph&gt; Shop" hint in the same place while in range of the shop's;
+/// of the shipping bin's, and a "&lt;interact glyph&gt; Shop" hint in the same place while in range of the shop's, and
+/// a <see cref="DialogueText.TalkHint"/> ("[F] Talk") in the same place while in range of a present Resident's point
+/// (#138), standing in for the Refill hint there since the press talks;
 /// their glyph, and the change-item and next-row hints', follows <see cref="LastInputDevice"/>. Top right, the clock as
 /// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>, with the Day's weather as
 /// <see cref="WeatherText"/> ("Clear", "Rain") under it and the date as <see cref="DateText"/> ("Spring 1, Year 1")
@@ -95,6 +99,12 @@ public partial class Hud : CanvasLayer
 
     private InteractionPoint? _shop;
 
+    /// <summary>The points of the present Residents in this area (#138), found by their <see cref="ResidentCodes"/>.</summary>
+    private IReadOnlyList<InteractionPoint> _residentPoints = [];
+
+    /// <summary>How many of <see cref="_residentPoints"/> the Player is in range of.</summary>
+    private int _residentPointsInRange;
+
     private LastInputDevice? _device;
 
     private ProgressBar _energyBar = null!;
@@ -132,6 +142,8 @@ public partial class Hud : CanvasLayer
 
     private Label _shopHint = null!;
 
+    private Label _talkHint = null!;
+
     private Label _changeItemHint = null!;
 
     private Label _cycleRowHint = null!;
@@ -159,6 +171,7 @@ public partial class Hud : CanvasLayer
         _sleepHint = GetNode<Label>("SleepHint");
         _shipHint = GetNode<Label>("ShipHint");
         _shopHint = GetNode<Label>("ShopHint");
+        _talkHint = GetNode<Label>("TalkHint");
         _changeItemHint = GetNode<Label>("ChangeItemHint");
         _cycleRowHint = GetNode<Label>("CycleRowHint");
         _clockLabel = GetNode<Label>("ClockLabel");
@@ -240,6 +253,22 @@ public partial class Hud : CanvasLayer
             _shopHint.Visible = _shop.IsPlayerInRange;
         }
 
+        // #138: the Talk hint over every present Resident's point (BR-R1); ResidentView names only those points.
+        var residentCodes = Enum.GetValues<ResidentId>()
+            .Where(_session.Game.IsPresent)
+            .Select(ResidentCodes.Code)
+            .ToArray();
+        _residentPoints = InteractionPoint.FindAll(GetTree().Root, residentCodes);
+        foreach (var point in _residentPoints)
+        {
+            point.PlayerEntered += OnResidentPointEntered;
+            point.PlayerExited += OnResidentPointExited;
+            if (point.IsPlayerInRange)
+            {
+                OnResidentPointEntered();
+            }
+        }
+
         Refresh();
         RefreshClock();
         RefreshWeather();
@@ -294,6 +323,15 @@ public partial class Hud : CanvasLayer
             _shop.PlayerEntered -= ShowShopHint;
             _shop.PlayerExited -= HideShopHint;
         }
+
+        foreach (var point in _residentPoints)
+        {
+            if (IsInstanceValid(point))
+            {
+                point.PlayerEntered -= OnResidentPointEntered;
+                point.PlayerExited -= OnResidentPointExited;
+            }
+        }
     }
 
     private void OnWaterPointEntered()
@@ -315,7 +353,9 @@ public partial class Hud : CanvasLayer
         }
     }
 
-    private void ShowRefillHint() => _refillHint.Visible = true;
+    /// <summary>Near a Resident, interact talks rather than refills (their point is later in the tree, so it handles
+    /// the press first), so the Talk hint stands in for the Refill hint.</summary>
+    private void ShowRefillHint() => _refillHint.Visible = _residentPointsInRange == 0;
 
     private void HideRefillHint() => _refillHint.Visible = false;
 
@@ -329,6 +369,27 @@ public partial class Hud : CanvasLayer
 
     private void ShowShopHint() => _shopHint.Visible = true;
 
+    private void OnResidentPointEntered()
+    {
+        _residentPointsInRange++;
+        _talkHint.Visible = true;
+        _refillHint.Visible = false;
+    }
+
+    private void OnResidentPointExited()
+    {
+        if (_residentPointsInRange > 0)
+        {
+            _residentPointsInRange--;
+        }
+
+        if (_residentPointsInRange == 0)
+        {
+            _talkHint.Visible = false;
+            _refillHint.Visible = _waterPointsInRange > 0;
+        }
+    }
+
     private void HideShopHint() => _shopHint.Visible = false;
 
     private void RefreshHints()
@@ -339,6 +400,7 @@ public partial class Hud : CanvasLayer
         _shipHint.Text = $"{glyph} Ship crops";
         _shopHint.Text = $"{glyph} Shop";
         var device = LastInputDevice.DeviceOf(_device);
+        _talkHint.Text = DialogueText.TalkHint(device);
         _changeItemHint.Text = InputGlyphs.ChangeItemHint(device);
         _cycleRowHint.Text = InputGlyphs.CycleRowHint(device);
     }
