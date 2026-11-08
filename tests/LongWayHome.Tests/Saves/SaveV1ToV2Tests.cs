@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Players;
 using LongWayHome.Infrastructure.Saves;
+using LongWayHome.Infrastructure.Saves.Migrations;
 using LongWayHome.Tests.Games;
 using GameState = LongWayHome.Domain.Games.Game;
 
@@ -169,5 +170,38 @@ public sealed class SaveV1ToV2Tests : IDisposable
         Assert.Equal(34 * 99, backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
         Assert.Equal(ToolTier.Basic, backpack.TierOf(ToolId.Hoe));
         Assert.Equal(ToolTier.Basic, backpack.TierOf(ToolId.WateringCan));
+    }
+
+    // ---- #138: a Phase 1 save gains the default Residents ----
+
+    [Fact]
+    public void AC4_V1_save_migrates_with_maggie_and_clyde_present_and_the_others_not()
+    {
+        var game = Load(SaveDocuments.V1(new JsonArray(SaveDocuments.Stack("seed", "emberroot", 10))));
+
+        Assert.Equal(
+            "Maggie:True,Clyde:True,Tom:False,June:False,Jesse:False,Mira:False",
+            string.Join(",", game.Residents.Select(resident => $"{resident.Id}:{resident.Present}")));
+    }
+
+    [Fact]
+    public void AC4_The_step_writes_the_default_residents_array_in_enum_order()
+    {
+        var migrated = SaveV1ToV2.Migrate(SaveDocuments.V1([]));
+
+        Assert.True(migrated["residents"] is JsonArray, "the migrated document has no residents array");
+        Assert.Equal(
+            ["maggie:true", "clyde:true", "tom:false", "june:false", "jesse:false", "mira:false"],
+            migrated["residents"]!.AsArray().Select(entry =>
+                $"{entry!["id"]!.GetValue<string>()}:{(entry["present"]!.GetValue<bool>() ? "true" : "false")}"));
+    }
+
+    [Fact]
+    public void AC4_The_migrator_takes_a_v1_document_to_version_2_with_residents()
+    {
+        var migrated = SaveMigrator.Default.Migrate(SaveDocuments.V1([]));
+
+        Assert.Equal(2, migrated["saveVersion"]!.GetValue<int>());
+        Assert.Equal(6, (migrated["residents"] as JsonArray)?.Count ?? 0);
     }
 }

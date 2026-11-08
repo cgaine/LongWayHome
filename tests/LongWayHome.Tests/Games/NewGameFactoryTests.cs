@@ -4,6 +4,7 @@ using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Residents;
 using LongWayHome.Infrastructure.Data;
 
 namespace LongWayHome.Tests.Games;
@@ -168,6 +169,32 @@ public class NewGameFactoryTests
 
         Assert.Same(game, session.Game);
         Assert.Same(Shipped, session.Data);
+    }
+
+    // ---- #138: Maggie and Clyde are present from the start ----
+
+    [Fact]
+    public void AC1_New_game_has_six_residents_maggie_and_clyde_present()
+    {
+        var game = NewGameFactory.Create(Shipped, Now);
+
+        Assert.Equal(Enum.GetValues<ResidentId>(), game.Residents.Select(resident => resident.Id));
+        Assert.Equal(
+            [true, true, false, false, false, false],
+            game.Residents.Select(resident => resident.Present));
+        Assert.True(game.IsPresent(ResidentId.Maggie));
+        Assert.True(game.IsPresent(ResidentId.Clyde));
+        Assert.All(
+            new[] { ResidentId.Tom, ResidentId.June, ResidentId.Jesse, ResidentId.Mira },
+            id => Assert.False(game.IsPresent(id), $"{id} is present in a new Game"));
+    }
+
+    [Fact]
+    public void AC1_The_six_residents_are_maggie_clyde_tom_june_jesse_and_mira_in_that_order()
+    {
+        Assert.Equal(
+            ["maggie", "clyde", "tom", "june", "jesse", "mira"],
+            NewGameFactory.Create(Shipped, Now).Residents.Select(resident => ResidentCodes.Code(resident.Id)));
     }
 
     private static GameData LoadShippedData()

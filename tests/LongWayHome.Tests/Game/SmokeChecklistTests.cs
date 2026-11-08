@@ -203,6 +203,26 @@ public class SmokeChecklistTests
             $"The {pass} pass has no step refilling the can at the {water} ({place})");
     }
 
+    [Theory]
+    [InlineData("controller", "Maggie")]
+    [InlineData("keyboard", "Maggie")]
+    [InlineData("steam deck", "Maggie")]
+    [InlineData("controller", "Clyde")]
+    [InlineData("keyboard", "Clyde")]
+    [InlineData("steam deck", "Clyde")]
+    public void AC8_pass_has_a_step_talking_to_each_resident(string pass, string resident)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        Assert.True(
+            steps.Any(step =>
+                Regex.IsMatch(step, @"\btalk", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\b" + resident + @"\b")),
+            $"The {pass} pass has no step talking to {resident}");
+    }
+
     [Fact]
     public void AC8_blueprint_testing_section_links_the_checklist()
     {

@@ -1,6 +1,7 @@
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
+using LongWayHome.Domain.Residents;
 using LongWayHome.Domain.Shipping;
 
 namespace LongWayHome.Domain.Games;
@@ -20,7 +21,8 @@ public sealed class Game
         DateTimeOffset savedAt,
         Player player,
         FarmPlot farmPlot,
-        ShippingBin? shippingBin = null)
+        ShippingBin? shippingBin = null,
+        IReadOnlyList<Resident>? residents = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -66,6 +68,12 @@ public sealed class Game
 
     /// <summary>The items on the ground, oldest first (BR-K3, BR-K4). Never saved; a loaded Game has none.</summary>
     public IReadOnlyList<DroppedItem> DroppedItems { get; }
+
+    /// <summary>One Resident per <see cref="ResidentId"/>, in enum order (BR-R1).</summary>
+    public IReadOnlyList<Resident> Residents => throw new NotImplementedException();
+
+    /// <summary>Whether <paramref name="id"/>'s Resident is present (BR-R1).</summary>
+    public bool IsPresent(ResidentId id) => throw new NotImplementedException();
 
     /// <summary>
     /// Gains a non-tool item: what fits goes in the Backpack (BR-K3), the rest drops at <paramref name="feet"/> as
