@@ -51,16 +51,7 @@ public partial class NightReturn : Node
     }
 
     /// <summary>Whether this node is in the farm's scene: the scene that owns the instanced AreaCommon.</summary>
-    private bool IsOnFarmScene()
-    {
-        Node scene = this;
-        while (scene.Owner is { } owner)
-        {
-            scene = owner;
-        }
-
-        return scene.SceneFilePath == AreaScenes.FarmScene;
-    }
+    private bool IsOnFarmScene() => AreaScenes.RootOf(this).SceneFilePath == AreaScenes.FarmScene;
 
     private void OnDayEnded(DayEndReason reason)
     {

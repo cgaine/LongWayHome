@@ -56,6 +56,25 @@ public class AreaCodesTests
     }
 
     [Fact]
+    public void Farm_commands_change_no_tile_off_the_farm()
+    {
+        var session = TestGames.SessionWithEnergy(150);
+        var tile = new LongWayHome.Domain.Farming.GridPosition(4, 3);
+        Assert.Equal(ActionResult.Ok, session.EnterArea(AreaId.Town));
+        var before = TestGames.FullSnapshot(session.Game);
+        var noTarget = ActionResult.Rejected(Rejection.NoTarget);
+
+        Assert.Equal(noTarget, session.Till(tile));
+        Assert.Equal(noTarget, session.Water(tile));
+        Assert.Equal(noTarget, session.Plant(tile, LongWayHome.Domain.Catalog.CropTypeId.Emberroot));
+        Assert.Equal(noTarget, session.Harvest(tile));
+        Assert.Equal(before, TestGames.FullSnapshot(session.Game));
+
+        Assert.Equal(ActionResult.Ok, session.EnterArea(AreaId.Farm));
+        Assert.Equal(ActionResult.Ok, session.Till(tile));
+    }
+
+    [Fact]
     public void The_nights_return_to_the_farm_raises_no_area_changed()
     {
         var session = TestGames.NewSession();

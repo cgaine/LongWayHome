@@ -4,6 +4,7 @@ using Godot;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Games;
 using LongWayHome.Game.Core;
+using LongWayHome.Game.Player;
 
 namespace LongWayHome.Game.World;
 
@@ -55,7 +56,7 @@ public partial class RainView : Node3D
     public override void _Ready()
     {
         _particles = GetNodeOrNull<GpuParticles3D>("Rain");
-        var scene = AreaScene();
+        var scene = AreaScenes.RootOf(this);
         Light ??= FirstChild<DirectionalLight3D>(scene);
         Environment ??= FirstChild<WorldEnvironment>(scene);
         if (Light is not null)
@@ -82,24 +83,26 @@ public partial class RainView : Node3D
         Refresh();
     }
 
+    /// <summary>
+    /// Keeps the rain over the Player, so it covers him anywhere in an area longer than the emitter (the forest path is
+    /// 40 m long). Only the rain moves, not this node.
+    /// </summary>
+    public override void _Process(double delta)
+    {
+        if (_particles is { Emitting: true }
+            && GetTree().GetFirstNodeInGroup(PlayerController.Group) is Node3D player)
+        {
+            var at = player.GlobalPosition;
+            _particles.GlobalPosition = _particles.GlobalPosition with { X = at.X, Z = at.Z };
+        }
+    }
+
     public override void _ExitTree()
     {
         if (_session is not null)
         {
             _session.NightCompleted -= Refresh;
         }
-    }
-
-    /// <summary>The area scene's root: the outermost owner above this node.</summary>
-    private Node AreaScene()
-    {
-        Node scene = this;
-        while (scene.Owner is { } owner)
-        {
-            scene = owner;
-        }
-
-        return scene;
     }
 
     private static T? FirstChild<T>(Node parent)

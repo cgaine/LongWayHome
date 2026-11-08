@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using Godot;
 using LongWayHome.Domain.Games;
 
 namespace LongWayHome.Game.World;
@@ -25,4 +26,19 @@ public static class AreaScenes
 
     /// <summary>The scene path of <paramref name="area"/>, or null when it has no scene yet.</summary>
     public static string? PathOf(AreaId area) => Paths.TryGetValue(area, out var path) ? path : null;
+
+    /// <summary>
+    /// The area scene <paramref name="node"/> belongs to: its outermost owner, so a node inside the instanced
+    /// <c>AreaCommon.tscn</c> finds the area scene that instances it.
+    /// </summary>
+    public static Node RootOf(Node node)
+    {
+        var scene = node;
+        while (scene.Owner is { } owner)
+        {
+            scene = owner;
+        }
+
+        return scene;
+    }
 }

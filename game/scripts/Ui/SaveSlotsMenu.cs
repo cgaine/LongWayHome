@@ -7,6 +7,7 @@ using Godot;
 using LongWayHome.Application.Games;
 using LongWayHome.Application.Saves;
 using LongWayHome.Game.Core;
+using LongWayHome.Game.World;
 
 namespace LongWayHome.Game.Ui;
 
@@ -33,7 +34,7 @@ namespace LongWayHome.Game.Ui;
 /// </summary>
 public partial class SaveSlotsMenu : Control
 {
-    private const string FarmScene = "res://scenes/Farm.tscn";
+    private const string FarmScene = AreaScenes.FarmScene;
 
     /// <summary>The art sandbox (#75), opened instead of the title view when the game starts with <c>--art-sandbox</c>.</summary>
     private const string ArtSandboxScene = "res://art/sandbox/ArtSandbox.tscn";

@@ -111,7 +111,7 @@ public sealed class GameSession
 
     /// <summary>
     /// Whether the Player is where the FarmPlot's Tiles are: only on the farm. Off it a grid position names no Tile, so
-    /// tools have no target there.
+    /// tools have no target there: Use, Till, Water, Plant and Harvest are Rejected(NoTarget) and change nothing.
     /// </summary>
     public bool IsOnFarmPlot => CurrentArea == AreaId.Farm;
 
@@ -399,6 +399,11 @@ public sealed class GameSession
     /// <summary>Tills a Tile, spending the tuning's tool energy cost (BR-P2). Raises the change events on success.</summary>
     public ActionResult Till(GridPosition position)
     {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
         var result = Game.Till(position, Data.Tuning.ToolEnergyCost);
         if (result.IsOk)
         {
@@ -412,6 +417,11 @@ public sealed class GameSession
     /// <summary>Waters a Tile (BR-T9, BR-W2, BR-P2). Raises TileChanged and PlayerChanged on success.</summary>
     public ActionResult Water(GridPosition position)
     {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
         var result = Game.Water(position, Data.Tuning.ToolEnergyCost);
         if (result.IsOk)
         {
@@ -441,6 +451,11 @@ public sealed class GameSession
     /// </summary>
     public ActionResult Plant(GridPosition position, CropTypeId cropTypeId)
     {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
         // A Crop type with no data row always has a rejection (OutOfSeason at the latest), so it is never planted.
         var result = Data.CropTypes.TryGetValue(cropTypeId, out var cropType)
             ? Game.Plant(position, cropType)
@@ -481,6 +496,11 @@ public sealed class GameSession
     /// </summary>
     public ActionResult Harvest(GridPosition position, GridPosition? feet = null)
     {
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
         if (Game.FarmPlot[position].Planting is not { } planting)
         {
             return ActionResult.Rejected(Rejection.NoPlanting);

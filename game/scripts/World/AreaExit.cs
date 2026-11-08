@@ -42,7 +42,9 @@ public partial class AreaExit : Area3D
 
     private void OnBodyEntered(Node3D body)
     {
-        if (_leaving || !body.IsInGroup(PlayerController.Group) || _root?.Session is not { } session)
+        // A pending night message means the Day has just ended here and NightReturn is already taking him home.
+        if (_leaving || !body.IsInGroup(PlayerController.Group) || _root?.Session is not { } session
+            || _root.PendingNight is not null)
         {
             return;
         }
