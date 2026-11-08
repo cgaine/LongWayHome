@@ -56,7 +56,15 @@ public sealed class FarmPlot
     /// <summary>All Tiles in row-major order (Y then X).</summary>
     public IReadOnlyList<Tile> Tiles => Array.AsReadOnly(_tiles);
 
-    public Tile this[GridPosition position] => _tiles[IndexOf(position.X, position.Y)];
+    /// <summary>
+    /// The Tile at <paramref name="position"/>; a position off the 72 x 36 plot (one on another Area's grid, #154)
+    /// throws <see cref="ArgumentOutOfRangeException"/> (BR-T1).
+    /// </summary>
+    public Tile this[GridPosition position] =>
+        position.X < Width && position.Y < Height
+            ? _tiles[IndexOf(position.X, position.Y)]
+            : throw new ArgumentOutOfRangeException(
+                nameof(position), position, $"The position is off the {Width} x {Height} Farm plot (BR-T1).");
 
     private static int IndexOf(int x, int y) => (y * Width) + x;
 }

@@ -16,8 +16,8 @@ public sealed class DroppedItem
 
     /// <summary>
     /// A DroppedItem: <paramref name="item"/> is a valid non-tool item (BR-K6), <paramref name="quantity"/> is 1–99
-    /// (BR-K2), and <paramref name="mineLevel"/> is 1–5 when <paramref name="area"/> is the mine and null otherwise.
-    /// Anything else throws.
+    /// (BR-K2), <paramref name="mineLevel"/> is 1–5 when <paramref name="area"/> is the mine and null otherwise, and
+    /// <paramref name="position"/> is on the Area's grid (<see cref="AreaGrid"/>). Anything else throws.
     /// </summary>
     public DroppedItem(AreaId area, int? mineLevel, GridPosition position, ItemRef item, int quantity)
     {
@@ -34,6 +34,14 @@ public sealed class DroppedItem
                 nameof(mineLevel),
                 mineLevel,
                 $"A mine level is 1–{DeepestMineLevel} in the mine and empty everywhere else.");
+        }
+
+        // #154: the position lies on the Area's own grid (the forest path's 14 x 40, the farm's 72 x 36).
+        if (!AreaGrid.Contains(area, position.X, position.Y))
+        {
+            var (width, height) = AreaGrid.Size(area);
+            throw new ArgumentOutOfRangeException(
+                nameof(position), position, $"The position is off {area}'s {width} x {height} grid.");
         }
 
         // BR-K6: a tool never leaves the Backpack, so it never lies on the ground.

@@ -558,9 +558,10 @@ public sealed class JsonGameDataSource : IGameDataSource
                 }
             }
 
-            // A GridPosition lies on the 72 x 36 grid (BR-T1), the farm's and, for now, every other area's.
-            CheckCoordinate("x", spawn.X, FarmPlot.Width);
-            CheckCoordinate("y", spawn.Y, FarmPlot.Height);
+            // A spawn point lies on its Area's grid (#154): the farm's 72 x 36 (BR-T1), the forest path's 14 x 40.
+            var (width, height) = AreaGrid.Size(spawn.Area);
+            CheckCoordinate("x", spawn.X, width);
+            CheckCoordinate("y", spawn.Y, height);
 
             if (onGrid && !idsByTile.TryAdd((spawn.Area, spawn.MineLevel, spawn.X, spawn.Y), label))
             {
@@ -578,7 +579,7 @@ public sealed class JsonGameDataSource : IGameDataSource
     }
 
     private static NodeSpawn ToNodeSpawn(NodeSpawnDto dto) =>
-        new(dto.Id, dto.Area, dto.MineLevel, new GridPosition(dto.X, dto.Y), dto.Kind, dto.AtStart, dto.Respawns);
+        new(dto.Id, dto.Area, dto.MineLevel, AreaGrid.Position(dto.Area, dto.X, dto.Y), dto.Kind, dto.AtStart, dto.Respawns);
 
     private static CropType ToCropType(CropTypeDto dto) => new(
         dto.Id,

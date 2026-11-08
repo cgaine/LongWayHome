@@ -14,15 +14,16 @@ using LongWayHome.Game.Core;
 namespace LongWayHome.Game.Art;
 
 /// <summary>
-/// The farm's trees, stumps and rocks (#151, REQ-16), drawn from the <see cref="GameRoot"/> session's
-/// <see cref="GameSession.ResourceNodes"/> on their Tiles through <see cref="FarmGridLayout"/>, as
-/// <see cref="ForestPathView"/> draws its trees: one <see cref="MultiMeshInstance3D"/> per kind, stage and Season mesh
-/// (the Twinbough <c>Full</c> in today's Season, the <c>Stump</c>, and <c>RockKind.Rock</c>), so the whole meadow's
-/// nodes are three draws (REQ-14). Each tree and stump gets a trunk cylinder and each rock a box, so the farmer walks
-/// under the canopies but not through a node. Rebuilt on <see cref="GameSession.NodesChanged"/>, which a Night also
-/// raises, so the trees follow the Season; a node cleared by a swing (#152) is gone from that rebuild, mesh and collider
-/// both. On <see cref="GameSession.NodeSwung"/>, a swing that leaves the node standing, its MultiMesh instance gets a
-/// short side-to-side shake through a <see cref="Tween"/>. Only reads the session; holds no rules.
+/// One Area's trees, stumps and rocks (#151, REQ-16; the forest path's since #154), drawn from the
+/// <see cref="GameRoot"/> session's <see cref="GameSession.ResourceNodes"/> in <see cref="Area"/> (an AreaId code, the
+/// farm by default) on their Tiles through <see cref="AreaGridLayout"/>: one <see cref="MultiMeshInstance3D"/> per
+/// kind, stage and Season mesh (the Twinbough <c>Full</c> in today's Season, the <c>Stump</c>, and
+/// <c>RockKind.Rock</c>), so the whole Area's nodes are three draws (REQ-14). Each tree and stump gets a trunk cylinder
+/// and each rock a box, so the farmer walks under the canopies but not through a node. Rebuilt on
+/// <see cref="GameSession.NodesChanged"/>, which a Night also raises, so the trees follow the Season; a node cleared by
+/// a swing (#152) is gone from that rebuild, mesh and collider both. On <see cref="GameSession.NodeSwung"/> in this
+/// view's Area, a swing that leaves the node standing, its MultiMesh instance gets a short side-to-side shake through a
+/// <see cref="Tween"/>. Only reads the session; holds no rules.
 /// </summary>
 public partial class ResourceNodesView : Node3D
 {
@@ -44,7 +45,13 @@ public partial class ResourceNodesView : Node3D
 
     private GameSession? _session;
 
-    /// <summary>Each farm node's Tile to its instance in the last build's MultiMesh, for the shake.</summary>
+    private AreaId _area = AreaId.Farm;
+
+    /// <summary>The AreaId code of the Area whose nodes this view draws, e.g. <c>forest_path</c>; the farm by default.</summary>
+    [Export]
+    public string Area { get; set; } = "farm";
+
+    /// <summary>Each of this Area's nodes' Tile to its instance in the last build's MultiMesh, for the shake.</summary>
     private readonly Dictionary<GridPosition, (MultiMesh Mesh, int Index, Transform3D Resting)> _instances = [];
 
     private Tween? _shake;
@@ -58,6 +65,13 @@ public partial class ResourceNodesView : Node3D
         if (_session is null)
         {
             // The data failed to load and GameRoot is already quitting: there are no nodes to draw.
+            return;
+        }
+
+        if (!AreaCodes.TryParse(Area, out _area))
+        {
+            GD.PushError($"{Name}: \"{Area}\" is not an AreaId code");
+            _session = null;
             return;
         }
 
@@ -75,7 +89,7 @@ public partial class ResourceNodesView : Node3D
         }
     }
 
-    /// <summary>Frees the last build and draws the session's farm nodes again, the trees in today's Season.</summary>
+    /// <summary>Frees the last build and draws the session's nodes in this Area again, the trees in today's Season.</summary>
     private void Rebuild()
     {
         _shake?.Kill();
@@ -89,14 +103,14 @@ public partial class ResourceNodesView : Node3D
         }
 
         var season = _session!.Game.Date.Season;
-        var farmNodes = _session.ResourceNodes.Where(node => node.Area == AreaId.Farm).ToList();
-        var trees = Props(farmNodes, NodeKind.Tree);
-        var stumps = Props(farmNodes, NodeKind.Stump);
-        var rocks = Props(farmNodes, NodeKind.Rock);
+        var nodes = _session.ResourceNodes.Where(node => node.Area == _area).ToList();
+        var trees = Props(_area, nodes, NodeKind.Tree);
+        var stumps = Props(_area, nodes, NodeKind.Stump);
+        var rocks = Props(_area, nodes, NodeKind.Rock);
 
-        AddMany("Trees", NatureModels.Twinbough(TreeStage.Full, season), farmNodes, NodeKind.Tree, trees);
-        AddMany("Stumps", NatureModels.Twinbough(TreeStage.Stump, season), farmNodes, NodeKind.Stump, stumps);
-        AddMany("Rocks", NatureModels.Rock(RockKind.Rock), farmNodes, NodeKind.Rock, rocks);
+        AddMany("Trees", NatureModels.Twinbough(TreeStage.Full, season), nodes, NodeKind.Tree, trees);
+        AddMany("Stumps", NatureModels.Twinbough(TreeStage.Stump, season), nodes, NodeKind.Stump, stumps);
+        AddMany("Rocks", NatureModels.Rock(RockKind.Rock), nodes, NodeKind.Rock, rocks);
         AddChild(AreaArt.Trunks("TreeTrunks", trees, TreeTrunkRadius));
         AddChild(AreaArt.Trunks("StumpTrunks", stumps, StumpRadius));
         AddChild(RockBodies(rocks));
@@ -119,7 +133,8 @@ public partial class ResourceNodesView : Node3D
     /// <summary>A short sway of the struck node's instance, damped back to where it stood (#152); view-only.</summary>
     private void Shake(GridPosition position)
     {
-        if (!_instances.TryGetValue(position, out var instance))
+        // NodeSwung names only the Tile: the swing was in the Area the Player is in.
+        if (_session!.CurrentArea != _area || !_instances.TryGetValue(position, out var instance))
         {
             return;
         }
@@ -153,12 +168,12 @@ public partial class ResourceNodesView : Node3D
     }
 
     /// <summary>The nodes of <paramref name="kind"/> as props on their Tiles' centres, each turned a little differently.</summary>
-    private static List<AreaProp> Props(IEnumerable<ResourceNode> nodes, NodeKind kind) =>
+    private static List<AreaProp> Props(AreaId area, IEnumerable<ResourceNode> nodes, NodeKind kind) =>
         nodes
             .Where(node => node.Kind == kind)
             .Select(node =>
             {
-                var (x, z) = FarmGridLayout.ToWorld(node.Position);
+                var (x, z) = AreaGridLayout.ToWorld(area, node.Position);
                 // A fixed yaw per Tile, so a node looks the same every time the view rebuilds.
                 var yaw = ((node.Position.X * 47) + (node.Position.Y * 83)) % 360;
                 return new AreaProp(x, z, yaw, 1f);

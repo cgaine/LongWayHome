@@ -4,6 +4,8 @@
 [ext_resource type="Script" path="res://scripts/World/AreaExit.cs" id="2_exit"]
 [ext_resource type="Script" path="res://scripts/World/AreaArrival.cs" id="3_arrival"]
 [ext_resource type="Script" path="res://art/areas/ForestPathView.cs" id="4_view"]
+[ext_resource type="Script" path="res://art/farm/ResourceNodesView.cs" id="5_nodesview"]
+[ext_resource type="Script" path="res://scripts/World/DroppedItemsView.cs" id="6_droppeditems"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -43,6 +45,14 @@ shadow_enabled = true
 
 [node name="ForestPathView" type="Node3D" parent="."]
 script = ExtResource("4_view")
+
+[node name="ResourceNodesView" type="Node3D" parent="."]
+script = ExtResource("5_nodesview")
+Area = "forest_path"
+
+[node name="DroppedItemsView" type="Node3D" parent="."]
+script = ExtResource("6_droppeditems")
+Area = "forest_path"
 
 [node name="Boundary" type="StaticBody3D" parent="."]
 

@@ -129,10 +129,17 @@ public sealed class GameSession
     public AreaId CurrentArea { get; private set; } = AreaId.Farm;
 
     /// <summary>
-    /// Whether the Player is where the FarmPlot's Tiles are: only on the farm. Off it a grid position names no Tile, so
-    /// tools have no target there: Use, Till, Water, Plant and Harvest are Rejected(NoTarget) and change nothing.
+    /// Whether the Player is where the FarmPlot's Tiles are: only on the farm. Off it a grid position names no farm
+    /// Tile, so Till, Water, Plant and Harvest are Rejected(NoTarget) and change nothing; only the axe and pickaxe have
+    /// a target off the farm, at the nodes of an Area with its own grid (<see cref="HasNodeGrid"/>).
     /// </summary>
     public bool IsOnFarmPlot => CurrentArea == AreaId.Farm;
+
+    /// <summary>
+    /// Whether the axe and pickaxe have a target where the Player is: on the farm and on the forest path, whose grid
+    /// holds its own ResourceNodes (#154). Elsewhere every tool has no target.
+    /// </summary>
+    public bool HasNodeGrid => UseTarget.HasNodeGrid(CurrentArea);
 
     /// <summary>
     /// Raised after <see cref="EnterArea"/> moves the Player to another area. The Night's return to the farm does not
@@ -353,10 +360,18 @@ public sealed class GameSession
     // The Use decision: harvest first (BR-T6), then the held item. With a slotIndex, a seed plants from that Slot only.
     private UsePreview PreviewUse(GridPosition? target, HeldItem? held, int? slotIndex)
     {
-        // Tiles exist only on the farm: off the farm a grid position names no Tile, so there is no target.
-        if (!IsOnFarmPlot || target is not { } position)
+        if (target is not { } position)
         {
             return Rejected(Rejection.NoTarget);
+        }
+
+        // Farm Tiles exist only on the farm: off it only the axe and pickaxe have a target, the nodes of an Area with
+        // its own grid (the forest path, #154); everything else, and everything in town or at the lakeshore, has none.
+        if (!IsOnFarmPlot)
+        {
+            return HasNodeGrid && held?.Tool is ToolId.Axe or ToolId.Pickaxe
+                ? SwingPreview(position, held.Tool.Value)
+                : Rejected(Rejection.NoTarget);
         }
 
         // BR-T6: harvesting needs no tool, so a Ripe Planting is harvested whatever is held.
@@ -402,15 +417,18 @@ public sealed class GameSession
 
         if (held?.Tool is ToolId.Axe or ToolId.Pickaxe)
         {
-            // BR-N1, BR-N6, then BR-P2: the domain decides, so the preview and Game.Swing cannot drift apart.
-            var tool = held.Tool.Value;
-            return SwingRejection(position, tool) is { } rejection
-                ? Rejected(rejection)
-                : new UsePreview(tool == ToolId.Axe ? UseActionKind.Chop : UseActionKind.Break, null);
+            return SwingPreview(position, held.Tool.Value);
         }
 
         return Rejected(Rejection.NothingToDo);
     }
+
+    // BR-N1, BR-N6, then BR-P2 against CurrentArea's nodes: the domain decides, so the preview and Game.Swing cannot
+    // drift apart.
+    private UsePreview SwingPreview(GridPosition position, ToolId tool) =>
+        SwingRejection(position, tool) is { } rejection
+            ? Rejected(rejection)
+            : new UsePreview(tool == ToolId.Axe ? UseActionKind.Chop : UseActionKind.Break, null);
 
     // Runs a previewed action; each Use overload says how it plants (from the held Slot, or the held seed type).
     private ActionResult Perform(
@@ -445,15 +463,16 @@ public sealed class GameSession
     }
 
     /// <summary>
-    /// Swings the axe or pickaxe at the farm node on <paramref name="position"/> at the tier the Backpack holds it
-    /// (BR-N1, BR-N2, BR-N6, BR-P2); a tool not held, or a tier with no swing count in the tuning, is NothingToDo.
-    /// Raises PlayerChanged on success, then NodeSwung when the node still stands, or, when it is cleared,
-    /// InventoryChanged, NodesChanged, TileChanged for its Tile, and DroppedItemsChanged when part of the yield fit
-    /// nowhere and dropped at <paramref name="feet"/> (the node's Tile when null; BR-N3, BR-K3).
+    /// Swings the axe or pickaxe at <see cref="CurrentArea"/>'s node on <paramref name="position"/> (the farm's or the
+    /// forest path's, #154; elsewhere NoTarget) at the tier the Backpack holds it (BR-N1, BR-N2, BR-N6, BR-P2); a tool
+    /// not held, or a tier with no swing count in the tuning, is NothingToDo. Raises PlayerChanged on success, then
+    /// NodeSwung when the node still stands, or, when it is cleared, InventoryChanged, NodesChanged, TileChanged for its
+    /// Tile (on the farm only), and DroppedItemsChanged when part of the yield fit nowhere and dropped in CurrentArea at
+    /// <paramref name="feet"/> (the node's Tile when null; BR-N3, BR-K3).
     /// </summary>
     public ActionResult Swing(GridPosition position, ToolId tool, GridPosition? feet = null)
     {
-        if (!IsOnFarmPlot)
+        if (!HasNodeGrid)
         {
             return ActionResult.Rejected(Rejection.NoTarget);
         }
@@ -465,7 +484,7 @@ public sealed class GameSession
 
         var droppedBefore = Game.DroppedItems.Count;
         var swing = Game.Swing(
-            AreaId.Farm,
+            CurrentArea,
             position,
             tool,
             tier,
@@ -483,7 +502,11 @@ public sealed class GameSession
         {
             InventoryChanged?.Invoke();
             NodesChanged?.Invoke();
-            TileChanged?.Invoke(position);
+            if (IsOnFarmPlot)
+            {
+                TileChanged?.Invoke(position);
+            }
+
             RaiseIfDropped(droppedBefore);
         }
         else
@@ -494,10 +517,11 @@ public sealed class GameSession
         return swing.Result;
     }
 
-    // BR-N1, BR-N6, BR-P2 for a farm swing at the tier the Backpack holds the tool; a tool not held is NothingToDo.
+    // BR-N1, BR-N6, BR-P2 for a swing in CurrentArea at the tier the Backpack holds the tool; a tool not held is
+    // NothingToDo.
     private Rejection? SwingRejection(GridPosition position, ToolId tool) =>
         SwingTier(tool) is { } tier
-            ? Game.SwingRejection(AreaId.Farm, position, tool, tier, Data.Tuning.ToolEnergyCost)
+            ? Game.SwingRejection(CurrentArea, position, tool, tier, Data.Tuning.ToolEnergyCost)
             : Rejection.NothingToDo;
 
     // The tier the Backpack holds the tool at, or null when it isn't held or the tuning has no swing count for that
@@ -722,6 +746,13 @@ public sealed class GameSession
             _ => held.DisplayLabel,
         };
     }
+
+    /// <summary>
+    /// The Planting on the farm Tile at <paramref name="target"/>, or null when there is no target, the Tile has none,
+    /// or the Player is off the farm (#154: a forest path target names no farm Tile). For the Use prompt.
+    /// </summary>
+    public Planting? PlantingAt(GridPosition? target) =>
+        IsOnFarmPlot && target is { } position ? Game.FarmPlot[position].Planting : null;
 
     /// <summary>
     /// The status of the Planting on a Tile, or null when it has none. A Planting whose Crop type has no data row is

@@ -70,7 +70,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `ToolId` | `hoe`, `watering_can`, `axe`, `pickaxe` | Player tools, ToolItem, Order |
 | `ShopItemKind` | `seed`, `can_upgrade` (Phase 1 only), `tool`; *(planned, REQ-58, REQ-48)* `backpack_upgrade`, `placeable`, `farmhouse_upgrade` | ShopListing |
 | `CropTypeId` | `emberroot`, `dusktuber`, `moonmelon`, `sunbell`, `starcorn` | CropType, Planting, InventoryStack, ShippedItem, ShopListing |
-| `GridPosition` | `{ x: 0–71, y: 0–35 }` on the farm (Phase 1: `{ x: 0–11, y: 0–8 }`); *(planned, REQ-16)* within each Area's own grid | Tile, ResourceNode, DroppedItem, PlacedObject |
+| `GridPosition` | Within each Area's own grid: `{ x: 0–71, y: 0–35 }` on the farm (Phase 1: `{ x: 0–11, y: 0–8 }`), `{ x: 0–13, y: 0–39 }` on the forest path (built in #154); every other Area the farm's size until it has nodes of its own | Tile, ResourceNode, DroppedItem, PlacedObject |
 | `GameDate` | `{ year: int ≥ 1, season: Season, day: 1–28 }` | Game |
 | `ClockMinutes` | integer, 360 (06:00) to 1560 (02:00 next morning) | Game |
 | `Gold` | integer ≥ 0 | Player, CropType, ShopListing, BuildingStage, Order |
@@ -213,7 +213,7 @@ The fixed places where Resource nodes start and grow back. The same in every Gam
 | `id` | string | Key. |
 | `area` | AreaId | Where it is. |
 | `mineLevel` | int? | 1–5 when `area = mine`, otherwise empty. |
-| `position` | GridPosition | Within the Area's grid (the mine level's grid in the mine). |
+| `position` | GridPosition | Within the Area's grid: the farm's 72 x 36, the forest path's 14 x 40 (built in #154; tile (x, y) is the 1 m square at x − 7..x − 6, z − 20..z − 19 of the strip); the mine level's grid in the mine. |
 | `kind` | NodeKind | What grows here. |
 | `atStart` | bool | Whether a node stands here in a new Game. On the farm, every spawn point inside the cleared 6 x 6 is `false`. |
 | `respawns` | bool | `true` for `tree`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`; `false` for `stump` and `debris` (BR-N5). |
@@ -279,7 +279,7 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 |-----------|------|-------|
 | `area` | AreaId | Where it fell. |
 | `mineLevel` | int? | When dropped in the mine. |
-| `position` | GridPosition | At the farmer's feet when it was dropped. |
+| `position` | GridPosition | At the farmer's feet when it was dropped, on its Area's grid. |
 | `item` | ItemRef | Never a tool (BR-K6). |
 | `quantity` | int | 1–99. |
 
@@ -651,6 +651,8 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 | NodeSpawn, MaterialType; *(planned)* BuildingStage, OrderRecipe, ToolTierEffect | Reference data shipped with the build. A save stores only ids, positions and counts, so costs and yields can be retuned without breaking saves. |
 
 Each save file carries a save-format version (`saveVersion`, currently 2), so later phases (backpack slots, buildings) can migrate Phase 1 saves.
+
+A save also lists `nodeAreasPlaced` (built in #154): the `AreaId` codes of the Areas whose `atStart` nodes (BR-N7) this Game has already placed, written as the farm and every Area with `atStart` spawn points (a new Game: `["farm", "forest_path"]`). On load, a missing `nodeAreasPlaced` counts as `["farm"]`, and each Area not listed gets a node at each of its `atStart` spawn points whose Tile is free, so a save from before the forest path's nodes gains them once, while an Area already listed is never refilled. A save from before resource nodes (no `resourceNodes`) gets every `atStart` node in every Area once.
 
 Phase 2 saves are version 2. A version 1 save loads with: `openingDone` true (built in #139); its stacks packed into Backpack Slots (raising capacity to 24 or 36 only if they don't fit in 12); the hoe and can at Basic, or the can at Rosk if the Can upgrade was bought; its 12 x 9 Tiles inside the farm's cleared start region with no nodes on them (built in #150 and #151); every other Phase 2 state as in a new Game, so the general store is at stage 1 and the farm Bin is gone until stage 4 (BR-S3); anything in the Bin at save time was already paid out in that Night.
 

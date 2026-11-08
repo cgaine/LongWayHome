@@ -5,6 +5,7 @@ using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Farming;
+using LongWayHome.Domain.Games;
 using LongWayHome.Game.Core;
 using LongWayHome.Game.Farm;
 using LongWayHome.Game.Ui;
@@ -12,9 +13,10 @@ using LongWayHome.Game.Ui;
 namespace LongWayHome.Game.World;
 
 /// <summary>
-/// Draws the DroppedItems of the current Game (#130, BR-K3, BR-K4): one small billboard <see cref="Sprite3D"/> per
-/// DroppedItem, showing its seed or crop icon (<see cref="ItemIcons.For(Domain.Players.ItemRef)"/>), on its tile at
-/// <see cref="FarmGrid.ToWorld"/> just above the slab tops, with several on one tile spread by
+/// Draws the DroppedItems of the current Game in <see cref="Area"/> (#130, BR-K3, BR-K4; an AreaId code, the farm by
+/// default, #154): one small billboard <see cref="Sprite3D"/> per DroppedItem, showing its icon
+/// (<see cref="ItemIcons.For(Domain.Players.ItemRef)"/>), on its tile at
+/// <see cref="FarmGrid.ToWorld(AreaId, GridPosition)"/> just above the slab tops, with several on one tile spread by
 /// <see cref="DroppedItemLayout.Offset"/> so each shows. Built from state when ready (so a loaded Game, which has none,
 /// shows none) and rebuilt on <see cref="GameSession.DroppedItemsChanged"/> and <see cref="GameSession.NightCompleted"/>
 /// (the Night removes them all). No collision, no lights and no shadows (REQ-14). Reads state from the
@@ -35,12 +37,25 @@ public partial class DroppedItemsView : Node3D
 
     private GameSession? _session;
 
+    private AreaId _area = AreaId.Farm;
+
+    /// <summary>The AreaId code of the Area whose DroppedItems this view draws, e.g. <c>forest_path</c>; the farm by default.</summary>
+    [Export]
+    public string Area { get; set; } = "farm";
+
     public override void _Ready()
     {
         _session = GetNode<GameRoot>(GameRootPath).Session;
         if (_session is null)
         {
             // The data failed to load and GameRoot is already quitting; there is nothing to draw.
+            return;
+        }
+
+        if (!AreaCodes.TryParse(Area, out _area))
+        {
+            GD.PushError($"{Name}: \"{Area}\" is not an AreaId code");
+            _session = null;
             return;
         }
 
@@ -70,7 +85,7 @@ public partial class DroppedItemsView : Node3D
         var onTile = new Dictionary<GridPosition, int>();
         foreach (var dropped in _session!.Game.DroppedItems)
         {
-            if (ItemIcons.For(dropped.Item) is not { } icon)
+            if (dropped.Area != _area || ItemIcons.For(dropped.Item) is not { } icon)
             {
                 continue;
             }
@@ -78,7 +93,7 @@ public partial class DroppedItemsView : Node3D
             var index = onTile.GetValueOrDefault(dropped.Position);
             onTile[dropped.Position] = index + 1;
             var offset = DroppedItemLayout.Offset(index);
-            var tile = FarmGrid.ToWorld(dropped.Position);
+            var tile = FarmGrid.ToWorld(_area, dropped.Position);
             AddChild(new Sprite3D
             {
                 Name = $"Dropped_{dropped.Position.X}_{dropped.Position.Y}_{index}",
