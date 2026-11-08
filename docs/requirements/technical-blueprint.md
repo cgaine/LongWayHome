@@ -87,7 +87,7 @@ Folders: `Games/` (Game, GameDate, ClockMinutes, Weather, DayEndReason), `Player
 - `NightProcessor` runs the Night steps in the fixed order from the domain model: growth (BR-T4) → payout (BR-S2) → dropped items cleared (BR-K4) → date (BR-G1) → weather (BR-G4) → watering reset and rain (BR-T7) → energy (BR-P3, BR-P4) → save (BR-G5). It is one method so the order is tested in one place.
 - `NewGameFactory` builds the starting state (BR-P6, BR-T1).
 - `ShopService` lists today's offers (BR-L1) and buys (BR-L2).
-- **Phase 2** *(planned, REQ-44 to REQ-46, REQ-48 to REQ-51, REQ-57, REQ-58)*: `GameSession` gains `Swing` (axe or pickaxe on a node), `CycleHotbar`, `Place`/`PickUpPlaced`, `SellToMaggie`, `Deliver` (rebuild sign), `PlaceOrder`/`CollectOrder`, `UsePump`, `EnterArea` (built in #136 for the four start areas)/`EnterMineLevel` and the Opening steps. `NightProcessor` takes the Phase 2 order from the domain model: growth → payout (once the bin exists) → rebuilds → orders → residents → dropped items cleared → node regrowth → date → weather → watering reset → energy → save, still one method with one order test. `NewGameFactory` places the meadow's starting nodes from `NodeSpawn` (BR-N7). Node regrowth (BR-N4) uses no randomness: it is a fixed 2-Night wait, so it's testable without `IRandomSource`.
+- **Phase 2** *(planned, REQ-44 to REQ-46, REQ-48 to REQ-51, REQ-57, REQ-58)*: `GameSession` gains `Swing` (axe or pickaxe on a node), `CycleHotbar`, `Place`/`PickUpPlaced`, `SellToMaggie`, `Deliver` (rebuild sign), `PlaceOrder`/`CollectOrder`, `UsePump`, `EnterArea` (built in #136 for the four start areas)/`EnterMineLevel`, `RefillCan(WaterSource)` at the pond, the river and the lake (built in #137) and the Opening steps. `NightProcessor` takes the Phase 2 order from the domain model: growth → payout (once the bin exists) → rebuilds → orders → residents → dropped items cleared → node regrowth → date → weather → watering reset → energy → save, still one method with one order test. `NewGameFactory` places the meadow's starting nodes from `NodeSpawn` (BR-N7). Node regrowth (BR-N4) uses no randomness: it is a fixed 2-Night wait, so it's testable without `IRandomSource`.
 - Ports: `IGameDataSource` (crop types, shop listings, tuning), `ISaveStore` (list, load, save slots), `IRandomSource` (weather roll; seeded in tests).
 - Events out to the presentation layer: `GameSession` raises C# events (`TileChanged`, `InventoryChanged`, `DroppedItemsChanged`, `DayEnded`, `NightCompleted`). The Godot layer subscribes; the core never calls into Godot.
 
@@ -107,11 +107,11 @@ This takes the place of the "frontend" in the web stack.
 game/
   scenes/
     Main.tscn                 # title screen → save slots → farm
-    Farm.tscn                 # farm plot, house, bin, shop point, pond; the south exit to the forest path (#136)
+    Farm.tscn                 # farm plot, house, bin, shop point, pond; the south exit to the forest path (#136); the river strip down the east edge (FarmRiverView) and its river water points (#137)
     AreaCommon.tscn           # the gameplay nodes every area shares: Player, HUD, menus, clock, rain, night glow, NightReturn, NightTransition (#136)
     ForestPath.tscn           # 14 x 40: winding path between Twinbough trees, river on the east (#136)
-    Town.tscn                 # 40 x 28 Ember Bay: square, store, carpenter, blacksmith, broken bridge stub (#136)
-    Lakeshore.tscn            # 40 x 16: shore, dock, lake, the river's mouth (#136)
+    Town.tscn                 # 40 x 28 Ember Bay: square, store, carpenter, blacksmith, broken bridge stub (#136); river water points along the bank (#137)
+    Lakeshore.tscn            # 40 x 16: shore, dock, lake, the river's mouth (#136); lake water points along the shore and at the dock end (#137)
     Player.tscn               # character + follow camera
   scripts/
     Core/GameRoot.cs          # autoload: composition root, owns GameSession
@@ -120,7 +120,8 @@ game/
     Player/PlayerController.cs # moves the Player; tracks the feet tile and picks up DroppedItems there (#130)
     Player/ToolTargeting.cs   # which Tile the Use action targets
     Player/FarmerAnimator.cs  # plays the farmer's locomotion and action clips (#103)
-    World/InteractionPoint.cs # door, bin, shop, pond
+    World/InteractionPoint.cs # door, bin, shop, pond, river, lake
+    World/WaterRefill.cs      # a water point's refill: RefillCan at its Source (pond, river, lake) (#137)
     World/DroppedItemsView.cs # one billboard icon per DroppedItem on its tile, from state; no collision or shadows (#130)
     World/AreaExit.cs         # an exit trigger on an area's edge: EnterArea, then the target's scene (#136)
     World/AreaArrival.cs      # where the Player walks in from a neighbouring area, facing into it (#136)
@@ -157,6 +158,7 @@ game/
       ForestPathView.cs       # the forest path's scenery from ForestPathLayout (Application/Art/)
       TownView.cs             # the town's scenery from TownLayout, buildings from TownModels
       LakeshoreView.cs        # the lakeshore's scenery from LakeshoreLayout
+      FarmRiverView.cs        # the river strip down the farm's east edge, shallows then deep water; no collision (#137)
     icons/
       seed_<crop>.svg         # seed packet icons for the hotbar and the shop, palette colours only (#95)
       crop_<crop>.svg         # harvested-crop icons for the HUD crops row, palette colours only (#95)

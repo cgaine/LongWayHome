@@ -30,8 +30,9 @@ namespace LongWayHome.Game.Ui;
 /// above the hotbar, a <see cref="InputGlyphs.ChangeItemHint"/> line ("[Q] [E] Change item" / "(LB) (RB) Change item")
 /// names the buttons that move the held position, and beside it a <see cref="InputGlyphs.CycleRowHint"/> line
 /// ("[X] Next row" / "(View) Next row") the button that cycles the hotbar row. Bottom centre, above the <see cref="UsePrompt"/>, a
-/// "&lt;interact glyph&gt; Refill can" hint shows while the Player is in range of the pond's
-/// <see cref="InteractionPoint"/>, and a "&lt;interact glyph&gt; Sleep" hint in the same place
+/// "&lt;interact glyph&gt; Refill can" hint shows while the Player is in range of at least one water
+/// <see cref="InteractionPoint"/> (the pond, a river or a lake point; it counts enters and exits, so walking along a
+/// bank from one point's range into the next keeps it on), and a "&lt;interact glyph&gt; Sleep" hint in the same place
 /// while in range of the house door's, and a "&lt;interact glyph&gt; Ship crops" hint in the same place while in range
 /// of the shipping bin's, and a "&lt;interact glyph&gt; Shop" hint in the same place while in range of the shop's;
 /// their glyph, and the change-item and next-row hints', follows <see cref="LastInputDevice"/>. Top right, the clock as
@@ -43,7 +44,8 @@ namespace LongWayHome.Game.Ui;
 /// </summary>
 public partial class Hud : CanvasLayer
 {
-    private const string PondPointId = "pond";
+    /// <summary>The ids of the water points the Refill hint shows over (WaterSource codes).</summary>
+    private static readonly string[] WaterPointIds = ["pond", "river", "lake"];
 
     private const string DoorPointId = "door";
 
@@ -82,7 +84,10 @@ public partial class Hud : CanvasLayer
 
     private HeldItemSelection? _selection;
 
-    private InteractionPoint? _pond;
+    private IReadOnlyList<InteractionPoint> _waterPoints = [];
+
+    /// <summary>How many of <see cref="_waterPoints"/> the Player is in range of.</summary>
+    private int _waterPointsInRange;
 
     private InteractionPoint? _door;
 
@@ -198,13 +203,18 @@ public partial class Hud : CanvasLayer
         RefreshHints();
         GetViewport().SizeChanged += RefitHotbar;
 
-        _pond = InteractionPoint.Find(GetTree().Root, PondPointId);
-        if (_pond is not null)
+        _waterPoints = InteractionPoint.FindAll(GetTree().Root, WaterPointIds);
+        foreach (var point in _waterPoints)
         {
-            _pond.PlayerEntered += ShowRefillHint;
-            _pond.PlayerExited += HideRefillHint;
-            _refillHint.Visible = _pond.IsPlayerInRange;
+            point.PlayerEntered += OnWaterPointEntered;
+            point.PlayerExited += OnWaterPointExited;
+            if (point.IsPlayerInRange)
+            {
+                _waterPointsInRange++;
+            }
         }
+
+        _refillHint.Visible = _waterPointsInRange > 0;
 
         _door = InteractionPoint.Find(GetTree().Root, DoorPointId);
         if (_door is not null)
@@ -258,10 +268,13 @@ public partial class Hud : CanvasLayer
             _device.DeviceChanged -= RefreshHints;
         }
 
-        if (_pond is not null && IsInstanceValid(_pond))
+        foreach (var point in _waterPoints)
         {
-            _pond.PlayerEntered -= ShowRefillHint;
-            _pond.PlayerExited -= HideRefillHint;
+            if (IsInstanceValid(point))
+            {
+                point.PlayerEntered -= OnWaterPointEntered;
+                point.PlayerExited -= OnWaterPointExited;
+            }
         }
 
         if (_door is not null && IsInstanceValid(_door))
@@ -280,6 +293,25 @@ public partial class Hud : CanvasLayer
         {
             _shop.PlayerEntered -= ShowShopHint;
             _shop.PlayerExited -= HideShopHint;
+        }
+    }
+
+    private void OnWaterPointEntered()
+    {
+        _waterPointsInRange++;
+        ShowRefillHint();
+    }
+
+    private void OnWaterPointExited()
+    {
+        if (_waterPointsInRange > 0)
+        {
+            _waterPointsInRange--;
+        }
+
+        if (_waterPointsInRange == 0)
+        {
+            HideRefillHint();
         }
     }
 

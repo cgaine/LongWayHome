@@ -299,10 +299,25 @@ public sealed class Game
         return ActionResult.Ok;
     }
 
-    /// <summary>Fills the can to capacity at no energy cost (BR-W3).</summary>
+    /// <summary>Fills the can to capacity at no energy cost at any open Water source (BR-W3).</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not a <see cref="WaterSource"/> member.</exception>
     public ActionResult RefillCan(WaterSource source)
     {
-        throw new NotImplementedException();
+        // BR-A2: the pond is on the farm, the river along the meadow and through town, the lake at the lakeshore; each
+        // is a Water source, and their areas are open from the start (BR-A1), so every source is open.
+        switch (source)
+        {
+            case WaterSource.Pond:
+            case WaterSource.River:
+            case WaterSource.Lake:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(source), source, "Not a water source.");
+        }
+
+        // BR-W3: always allowed, even when full; BR-P2: refilling costs no energy.
+        Player.WateringCan.Refill();
+        return ActionResult.Ok;
     }
 
     /// <summary>

@@ -4,6 +4,8 @@
 [ext_resource type="Script" path="res://scripts/World/AreaExit.cs" id="2_exit"]
 [ext_resource type="Script" path="res://scripts/World/AreaArrival.cs" id="3_arrival"]
 [ext_resource type="Script" path="res://art/areas/LakeshoreView.cs" id="4_view"]
+[ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="5_point"]
+[ext_resource type="Script" path="res://scripts/World/WaterRefill.cs" id="6_waterrefill"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -109,6 +111,198 @@ shape = SubResource("BoxShape_exit")
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, -6.5)
 script = ExtResource("3_arrival")
 ArrivalId = "lakeshore_north"
+
+[node name="InteractionPoints" type="Node3D" parent="."]
+
+[node name="LakePoint01" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint01"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint02" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint02"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint03" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint03"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint04" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint04"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint05" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint05"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint06" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint06"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint07" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint07"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint08" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint08"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint09" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint09"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint10" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint10"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint11" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint11"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint12" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint12"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint13" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint13"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint14" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint14"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint15" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint15"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint16" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint16"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint17" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint17"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="LakePoint18" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 1.2)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/LakePoint18"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
+
+[node name="DockEndPoint" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 6.3)
+script = ExtResource("5_point")
+PointId = "lake"
+Range = 1.5
+
+[node name="WaterRefill" type="Node" parent="InteractionPoints/DockEndPoint"]
+script = ExtResource("6_waterrefill")
+Source = "lake"
 
 [node name="Common" parent="." instance=ExtResource("1_common")]
 

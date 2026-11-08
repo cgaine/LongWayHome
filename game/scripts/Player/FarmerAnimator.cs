@@ -15,7 +15,7 @@ namespace LongWayHome.Game.Player;
 /// the Player. Each physics frame with no one-shot playing it plays the locomotion loop that
 /// <see cref="FarmerAnimationState.Locomotion"/> picks from the Player's horizontal velocity and the <c>run</c> action,
 /// with a 0.15 s blend (the walk at <see cref="FarmerAnimationState.WalkPlaybackScale"/>). The hooks
-/// (<c>ToolUse</c>, <c>PondRefill</c>, <c>BinShip</c>, <c>DoorSleep</c>) call <see cref="PlayOneShot"/> only after
+/// (<c>ToolUse</c>, <c>WaterRefill</c>, <c>BinShip</c>, <c>DoorSleep</c>) call <see cref="PlayOneShot"/> only after
 /// the session's action succeeded, so a clip never delays or decides anything. Moving cuts a tool, refill or ship clip
 /// short; <see cref="FarmerClip.Sleep"/> and <see cref="FarmerClip.PassOut"/> can't be cut short, and while either
 /// plays <see cref="LocksMovement"/> stops the Player and his Use.

@@ -54,7 +54,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Mine level** | *(planned, REQ-49)* One floor of the old mine, 1 to 5 in Phase 2. Blocked by debris, or flooded. |
 | **Resident** | *(planned, REQ-50)* A townsperson living in Ember Bay: Maggie, Clyde, Tom, June, Jesse, Mira. |
 | **Placed object** | *(planned, REQ-48)* A fence or chest the Player has set down on the farm. |
-| **Water source** | *(planned, REQ-51)* Where the Watering can is refilled: the pond, the river or the lake. |
+| **Water source** | Where the Watering can is refilled: the pond, the river or the lake. |
 | **Opening** | *(planned, REQ-17)* Maggie's guided start on Spring 1 of a new Game. |
 
 ## Value Objects
@@ -85,7 +85,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `Provider` | *(planned, REQ-48, REQ-57)* `carpenter`, `blacksmith` | Order |
 | `MineLevelState` | *(planned, REQ-49)* `blocked`, `cleared`, `flooded`, `drained` | MineLevel |
 | `ResidentId` | *(planned, REQ-50)* `maggie`, `clyde`, `tom`, `june`, `jesse`, `mira` | Resident |
-| `WaterSource` | *(planned, REQ-51)* `pond`, `river`, `lake` | Refill action |
+| `WaterSource` | `pond`, `river`, `lake` | Refill action |
 
 ## Entities & Aggregates
 
@@ -624,10 +624,10 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-M5: Mine levels hold rocks, Rosk ore deposits and glimmercaps; levels 3–5 also hold a few small Groth deposits. These grow back by BR-N4; debris doesn't (BR-N5). *(planned, REQ-49)*
 - BR-M6: Setting foot on a level marks it `reached`. The mine has no danger; passing out there ends the Day as anywhere else (BR-G3, BR-P4) and the next Day starts at the farmhouse. *(planned, REQ-49, REQ-50)*
 
-### Areas and water *(planned, REQ-48, REQ-49, REQ-51)*
+### Areas and water *(planned, REQ-48, REQ-49)*
 
 - BR-A1: The farm, forest path, town and lakeshore are open from the start; the mine from BR-M1; across the river once the carpenter is at stage 2. An Area never closes again. Built for the four start areas (#136: `Game.IsAreaOpen`, `GameSession.EnterArea`); the mine and across the river stay closed until BR-M1 and the carpenter's stage 2 are built. *(planned for the mine and across the river, REQ-48, REQ-49)*
-- BR-A2: The pond is on the farm, the river runs along the meadow and through town, and the lake is at the lakeshore. Each is a Water source for BR-W3. *(planned, REQ-51)*
+- BR-A2: The pond is on the farm, the river runs along the meadow and through town, and the lake is at the lakeshore. Each is a Water source for BR-W3.
 
 ### Residents *(planned, REQ-50)*
 
