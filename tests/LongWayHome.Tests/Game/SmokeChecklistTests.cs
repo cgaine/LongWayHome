@@ -157,6 +157,26 @@ public class SmokeChecklistTests
         Assert.True(buttonsLine.Contains(button, StringComparison.Ordinal), $"The {pass} pass's Buttons: line never mentions {button}");
     }
 
+    /// <summary>#131 AC12: the controller and keyboard passes open the backpack with that device's button, move an item
+    /// and close it.</summary>
+    [Theory]
+    [InlineData("controller", "(Y)")]
+    [InlineData("keyboard", "[Tab]")]
+    public void AC12_pass_has_a_step_opening_the_backpack_moving_an_item_and_closing_it(string pass, string button)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        Assert.True(
+            steps.Any(step =>
+                step.Contains(button, StringComparison.Ordinal) &&
+                step.Contains("backpack", StringComparison.OrdinalIgnoreCase) &&
+                step.Contains("move", StringComparison.OrdinalIgnoreCase) &&
+                step.Contains("close", StringComparison.OrdinalIgnoreCase)),
+            $"The {pass} pass has no step opening the backpack with {button}, moving an item and closing it");
+    }
+
     [Fact]
     public void AC8_blueprint_testing_section_links_the_checklist()
     {

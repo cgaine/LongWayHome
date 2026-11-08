@@ -1,3 +1,4 @@
+using LongWayHome.Application.Art;
 using LongWayHome.Application.Data;
 using LongWayHome.Application.Ports;
 using LongWayHome.Application.Saves;
@@ -186,6 +187,38 @@ public sealed class GameSession
     }
 
     /// <summary>
+    /// Moves Backpack Slot <paramref name="from"/> onto <paramref name="to"/> through <see cref="Backpack.Move"/> and
+    /// raises InventoryChanged when something moved. Costs no energy; nothing else changes.
+    /// </summary>
+    public bool MoveSlot(int from, int to)
+    {
+        if (!Game.Player.Backpack.Move(from, to))
+        {
+            return false;
+        }
+
+        InventoryChanged?.Invoke();
+        return true;
+    }
+
+    /// <summary>Every Backpack Slot in index order with its label and icon, plus the hotbar row and the capacity.</summary>
+    public BackpackView BackpackView()
+    {
+        var backpack = Game.Player.Backpack;
+        var slots = backpack.Slots
+            .Select(slot => new BackpackViewSlot(
+                slot.Index,
+                slot.Item,
+                slot.Quantity,
+                slot.ToolTier,
+                BackpackText.Label(slot),
+                slot.Item is { } item ? ItemIcons.For(item) : null))
+            .ToList()
+            .AsReadOnly();
+        return new BackpackView(slots, backpack.HotbarRow, backpack.Capacity);
+    }
+
+    /// <summary>
     /// The six slots of the current hotbar row (BR-K5), position 0–5, with <paramref name="heldPosition"/> selected.
     /// Labels: "Hoe", "Watering can", "Emberroot seeds × 12" and "Emberroot × 7" with that Slot's quantity, and "" for
     /// an empty Slot. A position outside 0–5 throws.
@@ -199,7 +232,7 @@ public sealed class GameSession
                 HeldItemOf(slot),
                 slot.Item,
                 slot.Quantity,
-                SlotLabel(slot),
+                BackpackText.Label(slot),
                 position == heldPosition))
             .ToList()
             .AsReadOnly();
@@ -535,13 +568,6 @@ public sealed class GameSession
         { Kind: ItemKind.Tool, ToolId: { } tool } => HeldItem.Of(tool),
         { Kind: ItemKind.Seed, CropTypeId: { } seed } => HeldItem.SeedOf(seed),
         _ => null,
-    };
-
-    private static string SlotLabel(BackpackSlot slot) => slot.Item switch
-    {
-        { Kind: ItemKind.Crop, CropTypeId: { } crop } => $"{CropLabels.For(crop)} × {slot.Quantity}",
-        _ when HeldItemOf(slot) is { } held => held.Seed is null ? held.DisplayLabel : $"{held.DisplayLabel} × {slot.Quantity}",
-        _ => "",
     };
 
     // Called every frame by the Use prompt, so it reads the one Slot rather than copying the row.

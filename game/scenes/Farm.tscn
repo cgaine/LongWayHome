@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="2_point"]
@@ -17,6 +17,7 @@
 [ext_resource type="Script" path="res://art/crops/NightGlowView.cs" id="15_nightglowview"]
 [ext_resource type="PackedScene" path="res://art/farm/Farmhouse.tscn" id="16_farmhouse"]
 [ext_resource type="Script" path="res://scripts/World/DroppedItemsView.cs" id="17_droppeditems"]
+[ext_resource type="PackedScene" path="res://ui/BackpackMenu.tscn" id="18_backpackmenu"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -265,5 +266,7 @@ script = ExtResource("6_dayclock")
 [node name="PauseMenu" parent="." instance=ExtResource("7_pausemenu")]
 
 [node name="ShopMenu" parent="." instance=ExtResource("12_shopmenu")]
+
+[node name="BackpackMenu" parent="." instance=ExtResource("18_backpackmenu")]
 
 [node name="NightTransition" parent="." instance=ExtResource("9_nighttransition")]

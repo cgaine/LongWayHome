@@ -288,6 +288,50 @@ public sealed class Backpack
         _slots[index] = slot with { ToolTier = tier };
     }
 
+    /// <summary>
+    /// Moves the contents of Slot <paramref name="from"/> onto Slot <paramref name="to"/>: into an empty Slot (move),
+    /// onto the same non-tool item up to 99 (merge), or else swapping the two (BR-K2, BR-K6). False and no change when
+    /// nothing moved; an index outside 0..Capacity − 1 throws.
+    /// </summary>
+    public bool Move(int from, int to)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(from);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(from, Capacity);
+        ArgumentOutOfRangeException.ThrowIfNegative(to);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(to, Capacity);
+
+        var source = _slots[from];
+        if (from == to || source.Item is not { } item)
+        {
+            return false;
+        }
+
+        var target = _slots[to];
+
+        // BR-K2: onto the same non-tool item, the target fills to at most 99 and the source keeps the rest, emptying
+        // at 0. Tools are never merged (a tool is always alone in its Slot).
+        if (target.Item == item && item.Kind != ItemKind.Tool)
+        {
+            var moved = Math.Min(MaxStack - target.Quantity, source.Quantity);
+            if (moved <= 0)
+            {
+                return false;
+            }
+
+            _slots[to] = target with { Quantity = target.Quantity + moved };
+            _slots[from] = source.Quantity == moved
+                ? EmptySlot(from)
+                : source with { Quantity = source.Quantity - moved };
+            return true;
+        }
+
+        // BR-K2, BR-K6: otherwise the contents (item, quantity, tool tier) move or swap; each Slot keeps its index, and
+        // a tool keeps its tier and stays in the Backpack. An empty target is a plain move.
+        _slots[to] = source with { Index = to };
+        _slots[from] = target with { Index = from };
+        return true;
+    }
+
     /// <summary>Raises the capacity to 24 or 36, appending empty Slots; never down (BR-K1).</summary>
     public void RaiseCapacity(int capacity)
     {

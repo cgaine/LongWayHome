@@ -13,7 +13,7 @@ Steam Deck).
 ## Controller-only pass
 
 Buttons: move `(L stick)` (or D-pad), run `(B)`, use `(A)`, interact `(X)`, previous item `(LB)`, next item `(RB)`,
-next hotbar row `(View)`, pause `(Start)`, close a menu `(B)`, turn the camera `(R stick)` left and right, zoom the camera `(R stick)` up
+next hotbar row `(View)`, open the backpack `(Y)`, pause `(Start)`, close a menu `(B)`, turn the camera `(R stick)` left and right, zoom the camera `(R stick)` up
 (in) and down (out); menus move with the D-pad or `(L stick)` and press with `(A)`.
 
 - [ ] Before you begin, the mouse cursor is hidden once the controller is used, and stays hidden for the whole pass.
@@ -31,6 +31,7 @@ next hotbar row `(View)`, pause `(Start)`, close a menu `(B)`, turn the camera `
 - [ ] In the shop, buy a seed with the D-pad and `(A)`; the gold goes down and the seed count goes up.
 - [ ] In the shop, after the focus is lost, a D-pad press gives the first button focus again.
 - [ ] Close the shop with `(B)`; play and the clock resume.
+- [ ] Open the backpack with `(Y)`, move the hoe into the second row with the D-pad and `(A)`, and close it with `(B)`; the hotbar no longer shows the hoe on row 1, and the clock didn't move while the menu was open. While holding a slot, `(B)` puts it back without closing.
 - [ ] Pause with `(Start)` (the panel reads `(Start) Resume`), then resume with `(Start)`.
 - [ ] Sleep at the door with `(X)`; the hint reads `(X) Sleep`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am, with the shipped crops paid.
@@ -39,7 +40,7 @@ next hotbar row `(View)`, pause `(Start)`, close a menu `(B)`, turn the camera `
 ## Keyboard-and-mouse-only pass
 
 Buttons: move `[WASD]` (or the arrow keys), run `[Shift]`, use `[Space]` (or left click), interact `[F]` (or right
-click), previous item `[Q]` (or wheel up), next item `[E]` (or wheel down), next hotbar row `[X]`, pause `[Esc]`, close a menu `[Esc]`,
+click), previous item `[Q]` (or wheel up), next item `[E]` (or wheel down), next hotbar row `[X]`, open the backpack `[Tab]`, pause `[Esc]`, close a menu `[Esc]`,
 turn the camera left `[Z]` and right `[C]`, zoom the camera in `[R]` and out `[V]`; menus move with the arrow keys and
 press with `[Enter]`, or are clicked with the mouse.
 
@@ -58,6 +59,7 @@ press with `[Enter]`, or are clicked with the mouse.
 - [ ] In the shop, buy a seed with the arrow keys and `[Enter]`, and another with a mouse click; the gold goes down and the seed count goes up.
 - [ ] In the shop, click empty panel space so nothing has focus, then press an arrow key: the first button has focus again.
 - [ ] Close the shop with `[Esc]`; play and the clock resume.
+- [ ] Open the backpack with `[Tab]`, move the hoe into the second row with the arrow keys and `[Space]` (or two mouse clicks), and close it with `[Esc]`; the hotbar no longer shows the hoe on row 1, and the clock didn't move while the menu was open. While holding a slot, `[Esc]` puts it back without closing.
 - [ ] Pause with `[Esc]` (the panel reads `[Esc] Resume`), then resume with `[Esc]`.
 - [ ] Sleep at the door with `[F]`; the hint reads `[F] Sleep`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am, with the shipped crops paid.
@@ -66,7 +68,7 @@ press with `[Enter]`, or are clicked with the mouse.
 ## Steam Deck (Game Mode) pass
 
 Run the release build from Steam in Game Mode, with the Deck's built-in controls only (Steam Input's default gamepad
-layout, so the buttons match the controller glyphs: `(A)`, `(B)`, `(X)`, `(LB)` is L1, `(RB)` is R1, `(View)` is
+layout, so the buttons match the controller glyphs: `(A)`, `(B)`, `(X)`, `(Y)`, `(LB)` is L1, `(RB)` is R1, `(View)` is
 the ⧉ button, `(Start)` is the ☰ button). The right stick turns the camera left and right and zooms it in (up) and out (down). Frame rate and
 text size are checked in epic #12's Steam Deck pass, not here; the frame-rate reading at the farthest zoom is
 requested on issue #71's pull request.
@@ -83,6 +85,7 @@ requested on issue #71's pull request.
 - [ ] Ship the crops at the bin with `(X)`; the farmer plays the ship animation.
 - [ ] Open the shop with `(X)`, buy a seed with the D-pad and `(A)`, and close the shop with `(B)`; the Close button reads `(B) Close`.
 - [ ] Touch the touchscreen inside the shop, then press the D-pad: the first button has focus again.
+- [ ] Open the backpack with `(Y)`, move the hoe into the second row with the D-pad and `(A)`, and close it with `(B)`; the hotbar no longer shows the hoe on row 1, and the clock didn't move while the menu was open.
 - [ ] Pause with ☰ (`(Start)`), then resume with ☰.
 - [ ] Sleep at the door with `(X)`; the farmer turns to the door and plays the sleep animation (a yawn and a stretch) before the night fade.
 - [ ] The night fade plays and the next morning starts at 6:00 am.
