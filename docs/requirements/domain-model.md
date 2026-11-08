@@ -55,7 +55,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Resident** | A townsperson living in Ember Bay: Maggie, Clyde, Tom, June, Jesse, Mira. |
 | **Placed object** | *(planned, REQ-48)* A fence or chest the Player has set down on the farm. |
 | **Water source** | Where the Watering can is refilled: the pond, the river or the lake. |
-| **Opening** | *(planned, REQ-17)* Maggie's guided start on Spring 1 of a new Game. |
+| **Opening** | Maggie's guided start on Spring 1 of a new Game. |
 
 ## Value Objects
 
@@ -342,7 +342,7 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 | `id` | ResidentId | Key. |
 | `present` | bool | `true` for maggie and clyde from the start; the others arrive by BR-R2 and BR-R3. Never goes back to `false`. |
 
-#### Game additions *(planned, REQ-17, REQ-49, REQ-48)*
+#### Game additions *(planned, REQ-49, REQ-48; `openingDone` built in #139)*
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
@@ -635,9 +635,9 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-R2: Tom, June and Jesse arrive in the Night the carpenter reaches stage 1. *(planned, REQ-50)*
 - BR-R3: Mira arrives in the first Night when Mira's house is at stage 1 and mine level 5 is `reached`, in either order; she then asks the Player to rebuild the blacksmith. *(planned, REQ-50)*
 
-### Opening *(planned, REQ-17)*
+### Opening
 
-- BR-I1: The Opening plays once, in a new Game on Spring 1, and sets `openingDone` when it ends. The clock doesn't run while Maggie is talking (BR-G2). Her lines can be skipped; the till, plant and water steps can't. A Game that loads with `openingDone` never replays it. *(planned, REQ-17)*
+- BR-I1: The Opening plays once, in a new Game on Spring 1, and sets `openingDone` when it ends. The clock doesn't run while Maggie is talking (BR-G2). Her lines can be skipped; the till, plant and water steps can't. A Game that loads with `openingDone` never replays it.
 
 ## Data Retention Strategy
 
@@ -651,7 +651,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 
 Each save file carries a save-format version (`saveVersion`, currently 2), so later phases (backpack slots, buildings) can migrate Phase 1 saves.
 
-Phase 2 saves are version 2. A version 1 save loads with: its stacks packed into Backpack Slots (raising capacity to 24 or 36 only if they don't fit in 12); the hoe and can at Basic, or the can at Rosk if the Can upgrade was bought; *(planned, REQ-47)* its 12 x 9 Tiles inside the farm's cleared start region with no nodes on them; `openingDone` true; every other Phase 2 state as in a new Game, so the general store is at stage 1 and the farm Bin is gone until stage 4 (BR-S3); anything in the Bin at save time was already paid out in that Night.
+Phase 2 saves are version 2. A version 1 save loads with: `openingDone` true (built in #139); its stacks packed into Backpack Slots (raising capacity to 24 or 36 only if they don't fit in 12); the hoe and can at Basic, or the can at Rosk if the Can upgrade was bought; *(planned, REQ-47)* its 12 x 9 Tiles inside the farm's cleared start region with no nodes on them; every other Phase 2 state as in a new Game, so the general store is at stage 1 and the farm Bin is gone until stage 4 (BR-S3); anything in the Bin at save time was already paid out in that Night.
 
 Future: Steam Cloud sync of save slots.
 

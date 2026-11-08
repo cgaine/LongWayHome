@@ -13,6 +13,8 @@
 [ext_resource type="Script" path="res://scripts/World/AreaExit.cs" id="20_areaexit"]
 [ext_resource type="Script" path="res://scripts/World/AreaArrival.cs" id="21_areaarrival"]
 [ext_resource type="Script" path="res://art/areas/FarmRiverView.cs" id="22_riverview"]
+[ext_resource type="Script" path="res://scripts/Opening/OpeningSequence.cs" id="23_opening"]
+[ext_resource type="PackedScene" path="res://scenes/Resident.tscn" id="24_resident"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -384,6 +386,27 @@ Range = 1.5
 [node name="WaterRefill" type="Node" parent="InteractionPoints/RiverPoint13"]
 script = ExtResource("5_waterrefill")
 Source = "river"
+
+[node name="OpeningSequence" type="Node3D" parent="."]
+script = ExtResource("23_opening")
+
+[node name="Maggie" parent="OpeningSequence" instance=ExtResource("24_resident")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 11.5)
+ResidentId = "maggie"
+
+[node name="Waypoints" type="Node3D" parent="OpeningSequence"]
+
+[node name="Waypoint01" type="Marker3D" parent="OpeningSequence/Waypoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 7)
+
+[node name="Waypoint02" type="Marker3D" parent="OpeningSequence/Waypoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, -2)
+
+[node name="Waypoint03" type="Marker3D" parent="OpeningSequence/Waypoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, -6.6)
+
+[node name="ExitPoint" type="Marker3D" parent="OpeningSequence"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 14.5)
 
 [node name="Common" parent="." instance=ExtResource("19_areacommon")]
 

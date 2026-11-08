@@ -35,9 +35,9 @@ public class NewGameFactoryTests
     }
 
     [Fact]
-    public void AC2_BR_P6_new_game_holds_10_emberroot_and_5_dusktuber_seeds_only()
+    public void AC2_BR_P6_new_game_holds_10_emberroot_and_5_dusktuber_seeds_only_once_maggie_gives_them()
     {
-        var inventory = NewGameFactory.Create(Shipped, Now).Player.Backpack;
+        var inventory = WithStarterSeeds(Shipped).Player.Backpack;
 
         Assert.Equal(
             [(ItemKind.Seed, CropTypeId.Emberroot, 10), (ItemKind.Seed, CropTypeId.Dusktuber, 5)],
@@ -93,7 +93,7 @@ public class NewGameFactoryTests
         };
         var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
 
-        var inventory = NewGameFactory.Create(data, Now).Player.Backpack;
+        var inventory = WithStarterSeeds(data).Player.Backpack;
 
         Assert.Equal(
             [(ItemKind.Seed, CropTypeId.Emberroot, 7)],
@@ -101,9 +101,9 @@ public class NewGameFactoryTests
     }
 
     [Fact]
-    public void AC1_New_game_backpack_has_12_slots_hoe_in_slot_0_basic_can_in_slot_1_then_the_starting_seeds()
+    public void AC1_New_game_backpack_has_12_slots_hoe_in_slot_0_basic_can_in_slot_1_then_the_starting_seeds_from_maggie()
     {
-        var backpack = NewGameFactory.Create(Shipped, Now).Player.Backpack;
+        var backpack = WithStarterSeeds(Shipped).Player.Backpack;
 
         Assert.Equal(12, backpack.Capacity);
         Assert.Equal(0, backpack.HotbarRow);
@@ -142,22 +142,24 @@ public class NewGameFactoryTests
         };
         var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
 
-        var backpack = NewGameFactory.Create(data, Now).Player.Backpack;
+        var backpack = WithStarterSeeds(data).Player.Backpack;
 
         Assert.Equal("2:Seed:Emberroot:7:-", TestGames.DescribeSlot(backpack.Slots[2]));
         Assert.Null(backpack.Slots[3].Item);
     }
 
     [Fact]
-    public void Starting_seeds_that_do_not_fit_in_the_backpack_are_refused_as_bad_tuning()
+    public void Starting_seeds_that_do_not_fit_in_the_backpack_are_refused_BackpackFull_and_add_nothing()
     {
         var tuning = Shipped.Tuning with
         {
             StartingSeeds = [new StartingStack(CropTypeId.Emberroot, (10 * Backpack.MaxStack) + 1)],
         };
         var data = new GameData(Shipped.CropTypes, Shipped.ShopListings, tuning);
+        var session = new GameSession(NewGameFactory.Create(data, Now), data);
 
-        Assert.Throws<InvalidOperationException>(() => NewGameFactory.Create(data, Now));
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), session.GiveStarterSeeds());
+        Assert.Empty(TestGames.Stacks(session.Game.Player.Backpack));
     }
 
     [Fact]
@@ -231,6 +233,14 @@ public class NewGameFactoryTests
 
         Assert.Empty(TestGames.Stacks(backpack));
         Assert.NotEmpty(Shipped.Tuning.StartingSeeds);
+    }
+
+    /// <summary>A new Game from <paramref name="data"/> once Maggie has given the tuning's starter Seeds (BR-P6, #139).</summary>
+    private static LongWayHome.Domain.Games.Game WithStarterSeeds(GameData data)
+    {
+        var session = new GameSession(NewGameFactory.Create(data, Now), data);
+        Assert.Equal(ActionResult.Ok, session.GiveStarterSeeds());
+        return session.Game;
     }
 
     private static GameData LoadShippedData()

@@ -29,6 +29,9 @@ public sealed class GameSession
     /// <summary>The clock the save step stamps <see cref="Game.SavedAt"/> from.</summary>
     private readonly TimeProvider _time;
 
+    /// <summary>Whether this session has given Maggie's starter Seeds (BR-I1: at most once).</summary>
+    private bool _starterSeedsGiven;
+
     /// <summary>
     /// A session whose Nights never roll rain: its random source always returns 99, the highest roll (BR-G4). For tests
     /// and other callers that need dry, predictable Nights; the game uses the six-argument constructor.
@@ -636,21 +639,55 @@ public sealed class GameSession
     private BackpackSlot HotbarSlotAt(int heldPosition) => Game.Player.Backpack.HotbarSlotAt(heldPosition);
 
     /// <summary>
+    /// Maggie hands over the tuning's starting Seeds (BR-P6): <see cref="Game.GiveStarterSeeds"/>. Refused OpeningOver
+    /// once the Opening is done or when this session has already given them (BR-I1), so the sequence can't give them
+    /// twice. Raises InventoryChanged on success.
+    /// </summary>
+    public ActionResult GiveStarterSeeds()
+    {
+        // BR-I1: once per session, whatever the Game says.
+        if (_starterSeedsGiven)
+        {
+            return ActionResult.Rejected(Rejection.OpeningOver);
+        }
+
+        // BR-P6: the seeds come from Maggie, and they are the tuning's starting Seeds.
+        var result = Game.GiveStarterSeeds(Data.Tuning.StartingSeeds);
+        if (result.IsOk)
+        {
+            _starterSeedsGiven = true;
+            InventoryChanged?.Invoke();
+        }
+
+        return result;
+    }
+
+    /// <summary>Marks the Opening done (BR-I1).</summary>
+    public void CompleteOpening() => Game.CompleteOpening();
+
+    /// <summary>
     /// Ends the Day (BR-G3): raises DayEnded, runs the Night ending with the save (BR-G5), then raises NightCompleted.
     /// A failed save does not undo the Night: it raises SaveFailed with the reason, before NightCompleted. The
     /// part-minute carried by the clock is dropped so the next Day starts at exactly DayStartMinutes, and the Player
     /// wakes on the farm whichever area the Day ended in: CurrentArea is Farm when NightCompleted is raised (without
     /// AreaChanged).
     /// </summary>
-    /// <summary>Maggie hands over the tuning's starter Seeds (BR-P6, BR-I1). Stub for #139 (red).</summary>
-    public ActionResult GiveStarterSeeds() => throw new NotImplementedException();
-
-    /// <summary>Marks the Opening done (BR-I1). Stub for #139 (red).</summary>
-    public void CompleteOpening() => throw new NotImplementedException();
-
     private void EndDay(DayEndReason reason)
     {
         _clockRemainderMinutes = 0;
+
+        // BR-I1: a saved Game never holds a half-finished Opening. A Day that ends before Maggie has finished gives
+        // the starter Seeds (BR-P6) if this session hasn't, and completes the Opening, before the Night saves (BR-G5).
+        if (!Game.OpeningDone)
+        {
+            if (!_starterSeedsGiven)
+            {
+                GiveStarterSeeds();
+            }
+
+            CompleteOpening();
+        }
+
         DayEnded?.Invoke(reason);
 
         string? saveFailure = null;

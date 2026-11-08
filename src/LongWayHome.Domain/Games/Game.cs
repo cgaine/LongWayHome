@@ -40,18 +40,51 @@ public sealed class Game
         ShippingBin = shippingBin ?? new ShippingBin();
         DroppedItems = _droppedItems.AsReadOnly();
         Residents = ValidResidents(residents ?? DefaultResidents());
+        OpeningDone = openingDone;
     }
 
     public Guid Id { get; }
 
-    /// <summary>Whether Maggie's Opening has finished (BR-I1). Stub for #139 (red).</summary>
-    public bool OpeningDone => throw new NotImplementedException();
+    /// <summary>
+    /// Whether Maggie's Opening has finished (BR-I1). A new Game starts with it false; every Game saved before the
+    /// Opening existed loads with it true.
+    /// </summary>
+    public bool OpeningDone { get; private set; }
 
-    /// <summary>Marks the Opening done (BR-I1); idempotent. Stub for #139 (red).</summary>
-    public void CompleteOpening() => throw new NotImplementedException();
+    /// <summary>Marks the Opening done (BR-I1); calling it again changes nothing.</summary>
+    public void CompleteOpening() => OpeningDone = true; // BR-I1: set once, never cleared
 
-    /// <summary>Maggie's starter Seeds (BR-P6). Stub for #139 (red).</summary>
-    public ActionResult GiveStarterSeeds(IReadOnlyList<StartingStack> seeds) => throw new NotImplementedException();
+    /// <summary>
+    /// Maggie hands over the starter Seeds (BR-P6). Refused OpeningOver once the Opening is done (BR-I1), and
+    /// BackpackFull with nothing added when the stacks don't all fit (BR-K3: they top up and fill free Slots as
+    /// <see cref="Backpack.Add"/> does). Costs no energy (BR-P2).
+    /// </summary>
+    public ActionResult GiveStarterSeeds(IReadOnlyList<StartingStack> seeds)
+    {
+        ArgumentNullException.ThrowIfNull(seeds);
+
+        // BR-I1: the seeds are part of the Opening, so they are given only while it runs.
+        if (OpeningDone)
+        {
+            return ActionResult.Rejected(Rejection.OpeningOver);
+        }
+
+        // BR-K3: check every stack fits first, on a copy, so a list that half fits adds nothing.
+        var backpack = Player.Backpack;
+        var trial = new Backpack(backpack.Capacity, backpack.HotbarRow, backpack.Slots);
+        if (seeds.Any(stack => trial.Add(ItemRef.Seed(stack.CropTypeId), stack.Quantity) != 0))
+        {
+            return ActionResult.Rejected(Rejection.BackpackFull);
+        }
+
+        // BR-P6: the tuning's starting Seeds, from Maggie.
+        foreach (var stack in seeds)
+        {
+            backpack.Add(ItemRef.Seed(stack.CropTypeId), stack.Quantity);
+        }
+
+        return ActionResult.Ok;
+    }
 
     /// <summary>Today's date; only the Night moves it on (BR-G1).</summary>
     public GameDate Date { get; private set; }

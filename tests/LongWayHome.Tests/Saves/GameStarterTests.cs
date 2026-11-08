@@ -99,7 +99,11 @@ public sealed class GameStarterTests : IDisposable
 
         StartNew(3);
 
-        var player = Store().Load(3).Player;
+        // BR-P6 (#139): the slot holds the hoe and the can; the starter Seeds come from Maggie in the Opening.
+        var game = Store().Load(3);
+        Assert.Empty(TestGames.Stacks(game.Player.Backpack));
+        Assert.True(new GameSession(game, TestGames.Shipped).GiveStarterSeeds().IsOk);
+        var player = game.Player;
         Assert.Equal(100, player.Gold.Value);
         Assert.Equal(tuning.StartingGold, player.Gold.Value);
         Assert.Equal(150, player.Energy);

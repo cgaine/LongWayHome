@@ -33,4 +33,10 @@ internal sealed record SaveFileDto
     /// with the new-Game default (BR-R1).
     /// </summary>
     public IReadOnlyList<ResidentDto?>? Residents { get; init; }
+
+    /// <summary>
+    /// Whether the Opening is done (BR-I1, #139). Always written; optional on load: a version 2 file written before
+    /// #139 lacks it and loads as true, since that Game is already underway.
+    /// </summary>
+    public bool? OpeningDone { get; init; }
 }

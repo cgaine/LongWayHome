@@ -70,7 +70,11 @@ public class GameTests
             StartingSeeds = [new StartingStack(CropTypeId.Starcorn, 2)],
         };
 
-        var game = NewGameFactory.Create(new GameData(new Dictionary<CropTypeId, CropType>(), [], tuning), Now);
+        var data = new GameData(new Dictionary<CropTypeId, CropType>(), [], tuning);
+        var session = new GameSession(NewGameFactory.Create(data, Now), data);
+        // BR-P6 (#139): the starting Seeds come from Maggie in the Opening.
+        session.GiveStarterSeeds();
+        var game = session.Game;
 
         Assert.Equal(new Gold(7), game.Player.Gold);
         Assert.Equal(90, game.Player.Energy);

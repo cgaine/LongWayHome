@@ -11,6 +11,7 @@ using LongWayHome.Domain.Players;
 using LongWayHome.Domain.Residents;
 using PlayerState = LongWayHome.Domain.Players.Player;
 using LongWayHome.Game.Core;
+using LongWayHome.Game.Opening;
 using LongWayHome.Game.Player;
 using LongWayHome.Game.World;
 
@@ -43,6 +44,9 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>, with the Day's weather as
 /// <see cref="WeatherText"/> ("Clear", "Rain") under it and the date as <see cref="DateText"/> ("Spring 1, Year 1")
 /// under that, and, only when the game is started with <c>--show-fps</c>, the <see cref="FpsCounter"/> under the date.
+/// While the farm's <see cref="OpeningSequence"/> plays the Opening (#139), top centre, its step hint
+/// ("&lt;use_tool glyph&gt; Till a tile"), its glyph following <see cref="LastInputDevice"/>, and the Sleep hint stays
+/// hidden at the door, since the door doesn't sleep until the Opening ends.
 /// Everything is redrawn on
 /// <see cref="GameSession.NightCompleted"/>. Holds no rules.
 /// </summary>
@@ -144,6 +148,11 @@ public partial class Hud : CanvasLayer
 
     private Label _talkHint = null!;
 
+    /// <summary>The Opening's step hint (#139), shown only while it has one.</summary>
+    private Label _stepHint = null!;
+
+    private OpeningSequence? _opening;
+
     private Label _changeItemHint = null!;
 
     private Label _cycleRowHint = null!;
@@ -172,6 +181,8 @@ public partial class Hud : CanvasLayer
         _shipHint = GetNode<Label>("ShipHint");
         _shopHint = GetNode<Label>("ShopHint");
         _talkHint = GetNode<Label>("TalkHint");
+        _stepHint = GetNode<Label>("StepHint");
+        _stepHint.Visible = false;
         _changeItemHint = GetNode<Label>("ChangeItemHint");
         _cycleRowHint = GetNode<Label>("CycleRowHint");
         _clockLabel = GetNode<Label>("ClockLabel");
@@ -213,6 +224,13 @@ public partial class Hud : CanvasLayer
             _device.DeviceChanged += RefreshHints;
         }
 
+        // #139: the Opening's step hint and the door's wait; the sequence is found before the first RefreshHints.
+        _opening = GetTree().GetFirstNodeInGroup(OpeningSequence.Group) as OpeningSequence;
+        if (_opening is not null)
+        {
+            _opening.Changed += OnOpeningChanged;
+        }
+
         RefreshHints();
         GetViewport().SizeChanged += RefitHotbar;
 
@@ -234,7 +252,7 @@ public partial class Hud : CanvasLayer
         {
             _door.PlayerEntered += ShowSleepHint;
             _door.PlayerExited += HideSleepHint;
-            _sleepHint.Visible = _door.IsPlayerInRange;
+            _sleepHint.Visible = _door.IsPlayerInRange && !IsOpeningActive;
         }
 
         _bin = InteractionPoint.Find(GetTree().Root, BinPointId);
@@ -295,6 +313,11 @@ public partial class Hud : CanvasLayer
         if (_device is not null && IsInstanceValid(_device))
         {
             _device.DeviceChanged -= RefreshHints;
+        }
+
+        if (_opening is not null && IsInstanceValid(_opening))
+        {
+            _opening.Changed -= OnOpeningChanged;
         }
 
         foreach (var point in _waterPoints)
@@ -359,7 +382,25 @@ public partial class Hud : CanvasLayer
 
     private void HideRefillHint() => _refillHint.Visible = false;
 
-    private void ShowSleepHint() => _sleepHint.Visible = true;
+    // #139: the door doesn't sleep while the Opening plays, so its hint waits too.
+    private void ShowSleepHint() => _sleepHint.Visible = !IsOpeningActive;
+
+    private bool IsOpeningActive => _opening is not null && IsInstanceValid(_opening) && _opening.IsOpeningActive;
+
+    private void OnOpeningChanged()
+    {
+        RefreshStepHint();
+        _sleepHint.Visible = _door is not null && IsInstanceValid(_door) && _door.IsPlayerInRange && !IsOpeningActive;
+    }
+
+    private void RefreshStepHint()
+    {
+        var hint = _opening is not null && IsInstanceValid(_opening)
+            ? _opening.StepHint(LastInputDevice.DeviceOf(_device))
+            : null;
+        _stepHint.Text = hint ?? "";
+        _stepHint.Visible = hint is not null;
+    }
 
     private void HideSleepHint() => _sleepHint.Visible = false;
 
@@ -403,6 +444,7 @@ public partial class Hud : CanvasLayer
         _talkHint.Text = DialogueText.TalkHint(device);
         _changeItemHint.Text = InputGlyphs.ChangeItemHint(device);
         _cycleRowHint.Text = InputGlyphs.CycleRowHint(device);
+        RefreshStepHint();
     }
 
     private void RefreshAll()
