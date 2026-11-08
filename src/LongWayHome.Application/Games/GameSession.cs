@@ -139,7 +139,7 @@ public sealed class GameSession
     /// Whether the axe and pickaxe have a target where the Player is: on the farm and on the forest path, whose grid
     /// holds its own ResourceNodes (#154). Elsewhere every tool has no target.
     /// </summary>
-    public bool HasNodeGrid => CurrentArea is AreaId.Farm or AreaId.ForestPath;
+    public bool HasNodeGrid => UseTarget.HasNodeGrid(CurrentArea);
 
     /// <summary>
     /// Raised after <see cref="EnterArea"/> moves the Player to another area. The Night's return to the farm does not

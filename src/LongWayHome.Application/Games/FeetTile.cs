@@ -9,8 +9,7 @@ namespace LongWayHome.Application.Games;
 /// </summary>
 public static class FeetTile
 {
-    public static GridPosition Nearest(int cellX, int cellY) =>
-        new(Math.Clamp(cellX, 0, FarmPlot.Width - 1), Math.Clamp(cellY, 0, FarmPlot.Height - 1));
+    public static GridPosition Nearest(int cellX, int cellY) => Nearest(AreaId.Farm, cellX, cellY);
 
     /// <summary>The tile of <paramref name="area"/>'s grid nearest the cell, clamped to that grid (#154).</summary>
     public static GridPosition Nearest(AreaId area, int cellX, int cellY)

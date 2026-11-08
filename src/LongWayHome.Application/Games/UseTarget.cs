@@ -11,19 +11,17 @@ namespace LongWayHome.Application.Games;
 /// </summary>
 public static class UseTarget
 {
+    /// <summary>
+    /// Whether the axe and pickaxe have a target in <paramref name="area"/>: the farm and the forest path, whose grids
+    /// hold their own ResourceNodes (#154). <see cref="GameSession.HasNodeGrid"/> reads this too, so the target and
+    /// the session's Use decision cannot drift apart.
+    /// </summary>
+    public static bool HasNodeGrid(AreaId area) => area is AreaId.Farm or AreaId.ForestPath;
+
     /// <summary>The target in <paramref name="area"/> for the cell in front, or null when there is none.</summary>
     public static GridPosition? InFront(AreaId area, int cellX, int cellY, HeldItem? held)
     {
-        if (area == AreaId.Farm)
-        {
-            return GridPosition.TryCreate(cellX, cellY, out var onPlot) ? onPlot : null;
-        }
-
-        if (area == AreaId.ForestPath && held?.Tool is ToolId.Axe or ToolId.Pickaxe)
-        {
-            return AreaGrid.TryCreate(area, cellX, cellY, out var onPath) ? onPath : null;
-        }
-
-        return null;
+        var hasTarget = area == AreaId.Farm || (HasNodeGrid(area) && held?.Tool is ToolId.Axe or ToolId.Pickaxe);
+        return hasTarget && AreaGrid.TryCreate(area, cellX, cellY, out var position) ? position : null;
     }
 }
