@@ -71,7 +71,7 @@ public class ForestPathNodesTests
             .Order()
             .ToList();
 
-        Assert.Equal(34, expected.Count);
+        Assert.Equal(ForestPathLayout.Trees().Count, expected.Count);
         Assert.Equal(expected, trees);
     }
 
@@ -103,7 +103,7 @@ public class ForestPathNodesTests
     {
         var spawns = ShippedForestSpawns();
 
-        Assert.Equal(42, spawns.Count);
+        Assert.Equal(ForestPathLayout.Trees().Count + 8, spawns.Count);
         Assert.All(spawns, spawn => Assert.Contains(spawn.Kind, new[] { NodeKind.Tree, NodeKind.Rock }));
         Assert.Equal(
             spawns.Select(spawn => spawn.Id).Order(StringComparer.Ordinal),
