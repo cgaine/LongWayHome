@@ -568,10 +568,11 @@ public sealed class JsonGameDataSource : IGameDataSource
                 errors.Add($"{NodesFileName}: {label} is on the same Tile ({spawn.X}, {spawn.Y}) as {other}");
             }
 
-            // BR-N5: stumps never grow back.
-            if (spawn.Kind == NodeKind.Stump && spawn.Respawns)
+            // BR-N5: stumps and debris never grow back.
+            if (spawn.Kind is NodeKind.Stump or NodeKind.Debris && spawn.Respawns)
             {
-                errors.Add($"{NodesFileName}: {label}.respawns must be false for a stump (BR-N5)");
+                var kindName = spawn.Kind == NodeKind.Stump ? "a stump" : "debris";
+                errors.Add($"{NodesFileName}: {label}.respawns must be false for {kindName} (BR-N5)");
             }
         }
     }

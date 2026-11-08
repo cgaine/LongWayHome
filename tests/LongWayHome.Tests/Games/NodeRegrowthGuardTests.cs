@@ -87,6 +87,31 @@ public class NodeRegrowthGuardTests
     }
 
     [Theory]
+    [InlineData(NodeKind.Tree, false)]
+    [InlineData(NodeKind.Stump, true)]
+    [InlineData(NodeKind.Debris, true)]
+    public void BR_N5_a_regrowth_whose_spawn_point_no_longer_grows_back_is_dropped(NodeKind kind, bool respawns)
+    {
+        // A save from an older build may hold a regrowth for a spawn point since retuned not to grow back.
+        var spawn = new NodeSpawn("a", AreaId.ForestPath, null, Spot, kind, AtStart: true, respawns);
+        var game = GameOn(Spring(4), [], [new NodeRegrowth(spawn.Id, Spring(3))]);
+
+        game.RegrowNodes([spawn], 2);
+
+        Assert.Empty(game.ResourceNodes);
+        Assert.Empty(game.NodeRegrowths);
+    }
+
+    [Theory]
+    [InlineData(NodeKind.Stump)]
+    [InlineData(NodeKind.Debris)]
+    public void BR_N5_a_stump_or_debris_never_respawns_even_when_told_to(NodeKind kind)
+    {
+        Assert.False(new ResourceNode("x", kind, AreaId.Farm, Spot, respawns: true).Respawns);
+        Assert.False(new ResourceNode("x", NodeKind.Tree, AreaId.Farm, Spot, respawns: false).Respawns);
+    }
+
+    [Theory]
     [InlineData(AreaId.Farm)]
     [InlineData(AreaId.ForestPath)]
     public void BR_N4_a_spawn_point_whose_tile_holds_another_node_keeps_waiting(AreaId area)

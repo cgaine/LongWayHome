@@ -956,7 +956,8 @@ public sealed class Game
     /// grows back once at least <paramref name="nights"/> Nights have passed since it was cleared and its spawn point
     /// is free. On the farm a spawn point is free when no Tile within 3 tiles of it (its own included) is tilled; off
     /// the farm only the wait applies. A grown node is fresh (0 swings) and its NodeRegrowth goes; a blocked one keeps
-    /// waiting. A NodeRegrowth whose spawn point is not in <paramref name="spawns"/> is dropped, as it can never grow.
+    /// waiting. A NodeRegrowth whose spawn point is not in <paramref name="spawns"/>, or no longer grows back (BR-N5), is
+    /// dropped, as it can never grow.
     /// </summary>
     public void RegrowNodes(IReadOnlyList<NodeSpawn> spawns, int nights)
     {
@@ -972,7 +973,10 @@ public sealed class Game
 
         _nodeRegrowths.RemoveAll(regrowth =>
         {
-            if (!spawnsById.TryGetValue(regrowth.SpawnId, out var spawn))
+            // A spawn point gone from the data, or one that no longer grows back (BR-N5), never will.
+            if (!spawnsById.TryGetValue(regrowth.SpawnId, out var spawn)
+                || !spawn.Respawns
+                || spawn.Kind is NodeKind.Stump or NodeKind.Debris)
             {
                 return true;
             }
