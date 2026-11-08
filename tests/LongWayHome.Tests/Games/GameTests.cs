@@ -103,6 +103,55 @@ public class GameTests
         Assert.Equal(["can_upgrade", "tool_axe"], game.PurchasedListings.Order(StringComparer.Ordinal));
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void BR_L5_RecordPurchase_of_a_null_or_blank_id_throws_and_records_nothing(string? listingId)
+    {
+        var game = CreateGame(CreatePlayer(), new FarmPlot());
+
+        Assert.ThrowsAny<ArgumentException>(() => game.RecordPurchase(listingId!));
+        Assert.Empty(game.PurchasedListings);
+    }
+
+    [Fact]
+    public void BR_L5_The_constructor_refuses_a_blank_purchased_listing_id()
+    {
+        Assert.Throws<ArgumentException>(() => new GameState(
+            Guid.NewGuid(),
+            new GameDate(1, Season.Spring, 1),
+            360,
+            Weather.Clear,
+            null,
+            Now,
+            Now,
+            CreatePlayer(),
+            new FarmPlot(),
+            purchasedListings: new HashSet<string> { "tool_axe", "" }));
+    }
+
+    [Fact]
+    public void BR_L5_The_constructor_copies_the_purchased_listings_it_is_given()
+    {
+        var given = new HashSet<string> { "tool_axe" };
+        var game = new GameState(
+            Guid.NewGuid(),
+            new GameDate(1, Season.Spring, 1),
+            360,
+            Weather.Clear,
+            null,
+            Now,
+            Now,
+            CreatePlayer(),
+            new FarmPlot(),
+            purchasedListings: given);
+
+        given.Add("tool_pickaxe");
+
+        Assert.Equal(["tool_axe"], game.PurchasedListings);
+    }
+
     [Fact]
     public void Game_session_rejects_a_null_game_or_data()
     {

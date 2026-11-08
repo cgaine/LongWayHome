@@ -231,6 +231,18 @@ public sealed class JsonSaveStoreTests : IDisposable
         Assert.Contains("tool_axe", offers);
     }
 
+    [Theory]
+    [InlineData("null entry")]
+    [InlineData("blank entry")]
+    public void BR_L5_A_save_whose_purchasedListings_hold_a_null_or_blank_id_is_refused_on_load(string how)
+    {
+        SaveThenEdit(document => document["purchasedListings"] = how == "null entry"
+            ? new JsonArray("tool_axe", null)
+            : new JsonArray("tool_axe", " "));
+
+        AssertUnreadable();
+    }
+
     // ---- #138: the Residents ----
 
     private static string DescribeResidents(LongWayHome.Domain.Games.Game game) =>

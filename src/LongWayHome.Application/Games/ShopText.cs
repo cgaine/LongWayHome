@@ -14,7 +14,8 @@ public static class ShopText
 
     /// <summary>
     /// "Emberroot seeds — 15g": the Crop type's name (its canonical label when it has no data row) and the listing's
-    /// price; "Watering can upgrade — 200g" for the Can upgrade. A seed listing with no Crop type throws.
+    /// price; "Watering can upgrade — 200g" for the Can upgrade; "Axe — 50g" for a tool. A seed listing with no Crop type, or
+    /// a tool listing with no tool, throws.
     /// </summary>
     public static string Row(ShopListing listing, GameData data)
     {
@@ -24,6 +25,14 @@ public static class ShopText
         if (listing.Kind == ShopItemKind.CanUpgrade)
         {
             return $"{CanUpgradeLabel} — {listing.Price.Value}g";
+        }
+
+        if (listing.Kind == ShopItemKind.Tool)
+        {
+            // canonical-values.md: the tool's display label, "Axe" or "Pickaxe".
+            return listing.ToolId is { } tool
+                ? $"{HeldItem.Of(tool).DisplayLabel} — {listing.Price.Value}g"
+                : throw new ArgumentException($"Shop listing '{listing.Id}' is a tool listing with no tool.", nameof(listing));
         }
 
         if (listing.CropTypeId is not { } cropTypeId)

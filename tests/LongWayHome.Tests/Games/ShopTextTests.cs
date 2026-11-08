@@ -121,6 +121,14 @@ public class ShopTextTests
     }
 
     [Fact]
+    public void Row_of_a_tool_listing_with_no_tool_throws()
+    {
+        var listing = new ShopListing("tool_nothing", ShopItemKind.Tool, null, new Gold(50), BuildingId.GeneralStore, 1, null, true);
+
+        Assert.Throws<ArgumentException>(() => ShopText.Row(listing, TestGames.Shipped));
+    }
+
+    [Fact]
     public void AC2_no_seeds_text_is_no_seeds_this_season()
     {
         Assert.Equal("No seeds this season", ShopText.NoSeeds);

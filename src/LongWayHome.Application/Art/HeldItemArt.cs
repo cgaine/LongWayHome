@@ -56,7 +56,7 @@ public static class HeldItemArt
     private static readonly Dictionary<CropTypeId, IReadOnlyList<CropPart>> PouchParts = Enum.GetValues<CropTypeId>()
         .ToDictionary(crop => crop, crop => (IReadOnlyList<CropPart>)BuildPouch(SeedColour(crop)));
 
-    /// <summary>The parts of the basic hoe, the basic watering can or a seed pouch in the crop's colour.</summary>
+    /// <summary>The parts of the basic hoe, the basic watering can, the axe, the pickaxe or a seed pouch in the crop's colour.</summary>
     /// <exception cref="ArgumentException">The item is neither a tool nor a seed, or an undefined tool or crop.</exception>
     public static IReadOnlyList<CropPart> PartsFor(HeldItem held)
     {
@@ -67,6 +67,8 @@ public static class HeldItemArt
             {
                 ToolId.Hoe => HoeParts,
                 ToolId.WateringCan => CanParts,
+                ToolId.Axe => AxeParts,
+                ToolId.Pickaxe => PickaxeParts,
                 _ => throw new ArgumentException($"No held-item art for tool {tool}.", nameof(held)),
             };
         }

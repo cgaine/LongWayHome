@@ -19,7 +19,7 @@ public static class SaveV1ToV2
     /// Slots of up to 99 (BR-K2). Capacity is 12, raised to 24 then 36 only when the Slots don't fit (BR-K1); what
     /// doesn't fit in 36 is discarded. <c>hotbarRow</c> is 0. Removes <c>player.tools</c> and
     /// <c>player.inventory</c>, and writes the default <c>residents</c> (#138) and
-    /// <c>openingDone: true</c> (#139, BR-I1). A document whose player, tools or inventory (or one of its stacks) isn't the expected shape is returned
+    /// <c>openingDone: true</c> (#139, BR-I1) and an empty <c>purchasedListings</c> (#145, BR-L5). A document whose player, tools or inventory (or one of its stacks) isn't the expected shape is returned
     /// unchanged, so loading it refuses it as before.
     /// </summary>
     public static JsonObject Migrate(JsonObject document)
@@ -92,6 +92,9 @@ public static class SaveV1ToV2
 
         // BR-I1 (#139): a Phase 1 Game is underway, so it never plays the Opening.
         document["openingDone"] = true;
+
+        // BR-L5 (#145): a Phase 1 Game has bought no once-per-game listing.
+        document["purchasedListings"] = new JsonArray();
         return document;
     }
 

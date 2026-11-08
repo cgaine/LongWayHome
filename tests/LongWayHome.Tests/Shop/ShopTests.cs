@@ -1208,4 +1208,59 @@ public class ShopTests
         Assert.Equal(9, game.Player.Backpack.Quantity(ItemRef.Seed(CropTypeId.Dusktuber)));
         Assert.Empty(game.PurchasedListings);
     }
+
+    [Fact]
+    public void BR_L5_VendorStage_of_a_null_game_throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => ShopService.VendorStage(null!, BuildingId.GeneralStore));
+    }
+
+    [Fact]
+    public void BR_L4_A_tool_listing_with_no_tool_is_never_offered_and_buying_it_is_NotOffered()
+    {
+        var data = TestGames.Shipped with
+        {
+            ShopListings =
+            [
+                .. TestGames.Shipped.ShopListings,
+                new ShopListing("tool_nothing", ShopItemKind.Tool, null, new Gold(10), BuildingId.GeneralStore, 1, null, true),
+            ],
+        };
+        var game = TestGames.WithGold(1000);
+        var before = ToolState(game);
+
+        Assert.DoesNotContain("tool_nothing", ShopService.Offers(game, data).Select(listing => listing.Id));
+        Assert.Equal(ActionResult.Rejected(Rejection.NotOffered), ShopService.Buy(game, data, "tool_nothing"));
+        Assert.Equal(before, ToolState(game));
+    }
+
+    [Fact]
+    public void BR_L5_A_once_per_game_seed_listing_is_recorded_and_then_no_longer_offered()
+    {
+        // The once-per-game rule is the listing's, not the kind's: a seed listing flagged once per game sells once.
+        var data = TestGames.Shipped with
+        {
+            ShopListings =
+            [
+                new ShopListing("seed_once", ShopItemKind.Seed, CropTypeId.Emberroot, new Gold(15), BuildingId.GeneralStore, 1, null, true),
+            ],
+        };
+        var game = TestGames.WithGold(100);
+
+        Assert.Equal(ActionResult.Ok, ShopService.Buy(game, data, "seed_once"));
+
+        Assert.Equal(["seed_once"], game.PurchasedListings);
+        Assert.Empty(ShopService.Offers(game, data));
+    }
+
+    [Fact]
+    public void BR_L4_A_rejected_tool_purchase_through_the_session_raises_no_change_events()
+    {
+        var session = new GameSession(TestGames.WithBackpack(TestGames.FullBackpack(), gold: 1000), TestGames.Shipped);
+        var events = RecordEvents(session);
+
+        Assert.Equal(ActionResult.Rejected(Rejection.BackpackFull), session.Buy(Axe));
+
+        Assert.Empty(events);
+    }
 }

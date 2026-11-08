@@ -42,15 +42,45 @@ public sealed class Game
         DroppedItems = _droppedItems.AsReadOnly();
         Residents = ValidResidents(residents ?? DefaultResidents());
         OpeningDone = openingDone;
+        _purchasedListings = ValidPurchasedListings(purchasedListings);
+        PurchasedListings = _purchasedListings;
     }
 
     public Guid Id { get; }
 
-    /// <summary>The ids of the once-per-game Shop listings bought (BR-L5).</summary>
-    public IReadOnlySet<string> PurchasedListings { get; } = new HashSet<string>(); // TODO(#145)
+    private readonly HashSet<string> _purchasedListings;
 
-    /// <summary>Records a once-per-game listing as bought (BR-L5); recording it again changes nothing.</summary>
-    public void RecordPurchase(string listingId) => throw new NotImplementedException(); // TODO(#145)
+    /// <summary>The ids of the once-per-game Shop listings bought (BR-L5).</summary>
+    public IReadOnlySet<string> PurchasedListings { get; }
+
+    /// <summary>
+    /// Records a once-per-game listing as bought (BR-L5); recording it again changes nothing. A null or blank id
+    /// throws.
+    /// </summary>
+    public void RecordPurchase(string listingId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(listingId);
+
+        // BR-L5: "bought" is remembered for the rest of the Game; a set, so a second record changes nothing.
+        _purchasedListings.Add(listingId);
+    }
+
+    /// <summary>A copy of the given ids (ordinal), refusing a null or blank one; none given is empty.</summary>
+    private static HashSet<string> ValidPurchasedListings(IReadOnlySet<string>? purchasedListings)
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var id in purchasedListings ?? new HashSet<string>())
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("A purchased listing id is never blank.", nameof(purchasedListings));
+            }
+
+            ids.Add(id);
+        }
+
+        return ids;
+    }
 
     /// <summary>
     /// Whether Maggie's Opening has finished (BR-I1). A new Game starts with it false; every Game saved before the

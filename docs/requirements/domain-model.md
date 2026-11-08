@@ -67,8 +67,8 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `PlantingStatus` (derived, never stored) | `growing`, `ripe` | Planting |
 | `DayEndReason` | `slept`, `passed_out` | Game (last Night) |
 | `ItemKind` | `seed`, `crop`, `tool`; *(planned, REQ-47)* `material`, `placeable` | InventoryStack, BackpackSlot |
-| `ToolId` | `hoe`, `watering_can`; *(planned, REQ-58)* `axe`, `pickaxe` | Player tools, ToolItem, Order |
-| `ShopItemKind` | `seed`, `can_upgrade` (Phase 1 only); *(planned, REQ-58, REQ-48)* `tool`, `backpack_upgrade`, `placeable`, `farmhouse_upgrade` | ShopListing |
+| `ToolId` | `hoe`, `watering_can`, `axe`, `pickaxe` | Player tools, ToolItem, Order |
+| `ShopItemKind` | `seed`, `can_upgrade` (Phase 1 only), `tool`; *(planned, REQ-58, REQ-48)* `backpack_upgrade`, `placeable`, `farmhouse_upgrade` | ShopListing |
 | `CropTypeId` | `emberroot`, `dusktuber`, `moonmelon`, `sunbell`, `starcorn` | CropType, Planting, InventoryStack, ShippedItem, ShopListing |
 | `GridPosition` | `{ x: 0–11, y: 0–8 }`; *(planned, REQ-16)* `{ x: 0–71, y: 0–35 }` on the farm, and within each Area's own grid | Tile, ResourceNode, DroppedItem, PlacedObject |
 | `GameDate` | `{ year: int ≥ 1, season: Season, day: 1–28 }` | Game |
@@ -80,7 +80,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `ItemRef` | `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
 | `NodeKind` | *(planned, REQ-44, REQ-49)* `tree`, `stump`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`, `debris` | ResourceNode, NodeSpawn |
 | `AreaId` | `farm`, `forest_path`, `town`, `lakeshore`, `across_river`, `mine` | ResourceNode, DroppedItem, NodeSpawn |
-| `BuildingId` | *(planned, REQ-45)* `general_store`, `carpenter`, `miras_house`, `blacksmith` | Building, BuildingStage |
+| `BuildingId` | `general_store`, `carpenter`, `miras_house`, `blacksmith` | ShopListing (vendor); *(planned, REQ-45)* Building, BuildingStage |
 | `OrderKind` | *(planned, REQ-48, REQ-57)* `plank`, `sealed_plank`, `tool_upgrade`, `rosk_pump` | Order |
 | `Provider` | *(planned, REQ-48, REQ-57)* `carpenter`, `blacksmith` | Order |
 | `MineLevelState` | *(planned, REQ-49)* `blocked`, `cleared`, `flooded`, `drained` | MineLevel |
@@ -233,9 +233,9 @@ NodeKind yields (tuning, Basic tier): tree 5 wood + 2 sap; rock 3 stone; rosk_de
 
 Phase 2 stages: general_store 1 (start) to 4; carpenter 0 (ruined at start) to 2; miras_house 0 to 1; blacksmith 0 to 2.
 
-#### ShopListing additions *(planned, REQ-58, REQ-48)*
+#### ShopListing additions
 
-`ShopListing` gains `vendor` (`general_store` or `carpenter`), `requiresStage` (int, the vendor Building's stage that offers it), `toolId` (ToolId?), `placeableId` (PlaceableId?), `backpackCapacity` (int?) and `oncePerGame` (bool). Phase 2 listings: in-season seeds (store, stage 1); axe 50 and pickaxe 75 (store, stage 1, once); backpack 24 (store, stage 2, once) and 36 (store, stage 3, once); chest (store stage 3, and carpenter stage 1); fence (carpenter stage 1); farmhouse upgrade (carpenter stage 2, once). The `can_upgrade` listing is removed (BR-L1).
+`ShopListing` gains `vendor` (`general_store` or `carpenter`), `requiresStage` (int, the vendor Building's stage that offers it), `toolId` (ToolId?) and `oncePerGame` (bool); *(planned, REQ-58, REQ-48)* `placeableId` (PlaceableId?) and `backpackCapacity` (int?). Until Buildings have stages (#124), the general store counts as stage 1 and every other Building as stage 0. Phase 2 listings: in-season seeds (store, stage 1); axe 50 and pickaxe 75 (store, stage 1, once); backpack 24 (store, stage 2, once) and 36 (store, stage 3, once); chest (store stage 3, and carpenter stage 1); fence (carpenter stage 1); farmhouse upgrade (carpenter stage 2, once). The `can_upgrade` listing is removed (BR-L1).
 
 #### OrderRecipe *(planned, REQ-48, REQ-57)*
 
@@ -342,13 +342,14 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 | `id` | ResidentId | Key. |
 | `present` | bool | `true` for maggie and clyde from the start; the others arrive by BR-R2 and BR-R3. Never goes back to `false`. |
 
-#### Game additions *(planned, REQ-49, REQ-48; `openingDone` built in #139)*
+#### Game additions *(planned, REQ-49, REQ-48; `openingDone` built in #139, `purchasedListings` built in #145)*
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
 | `openingDone` | bool | `false` in a new Game until Maggie's Opening finishes (BR-I1). |
-| `mineOpen` | bool | `true` from the purchase of the pickaxe (BR-M1). |
-| `farmhouseRestored` | bool | `true` the morning after the farmhouse upgrade is bought (BR-B5). |
+| `purchasedListings` | set of ShopListing ids | The `oncePerGame` listings bought, so each is offered only until bought (BR-L5). Empty in a new Game and in a migrated version 1 save. |
+| `mineOpen` | bool | *(planned, REQ-49)* `true` from the purchase of the pickaxe (BR-M1). |
+| `farmhouseRestored` | bool | *(planned, REQ-48)* `true` the morning after the farmhouse upgrade is bought (BR-B5). |
 
 The farm ShippingBin exists only once the general store is at stage 4 (BR-S3).
 
@@ -567,8 +568,8 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-L1: The Shop offers Seeds only for Crop types whose `season` is the current Season; in a Season with no such Crop types it offers no Seeds. The Can upgrade is offered until bought. (REQ-9, REQ-10) *(changed 2026-11-07, REQ-58: Maggie's store offers every in-season Seed from stage 1; the Can upgrade is no longer offered)*
 - BR-L2: A purchase happens only if the Player's gold is at least the price. It takes the price in gold and adds the item in the same step. (REQ-9)
 - BR-L3: Maggie buys Crops at the general store for their `sellPrice` and pays at once. Seeds, materials, tools and placeables can't be sold. *(planned, REQ-58)*
-- BR-L4: The axe and pickaxe are sold at Maggie's store from stage 1, once each per Game. Each joins the Backpack at Basic tier; a purchase that finds no free Slot is refused and costs nothing. *(planned, REQ-58)*
-- BR-L5: A listing is offered only when its vendor Building is at or above its `requiresStage`, and a `oncePerGame` listing only until bought. Buying a backpack upgrade sets the Backpack's capacity to that size and adds empty Slots. *(planned, REQ-58, REQ-47)*
+- BR-L4: The axe and pickaxe are sold at Maggie's store from stage 1, once each per Game. Each joins the Backpack at Basic tier; a purchase that finds no free Slot is refused and costs nothing.
+- BR-L5: A listing is offered only when its vendor Building is at or above its `requiresStage`, and a `oncePerGame` listing only until bought. Buying a backpack upgrade sets the Backpack's capacity to that size and adds empty Slots. *(backpack upgrade planned, REQ-47)*
 
 ### Backpack
 

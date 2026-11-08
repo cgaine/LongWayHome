@@ -95,4 +95,31 @@ public class ItemIconsShopTests
     {
         Assert.Null(ItemIcons.For(ItemRef.Tool(tool)));
     }
+
+    [Theory]
+    [InlineData(ToolId.Axe, "res://art/icons/tool_axe.svg")]
+    [InlineData(ToolId.Pickaxe, "res://art/icons/tool_pickaxe.svg")]
+    public void AC11_a_held_axe_or_pickaxe_has_its_tool_icon_on_the_hotbar(ToolId tool, string icon)
+    {
+        Assert.Equal(icon, ItemIcons.For(HeldItem.Of(tool)));
+    }
+
+    [Fact]
+    public void AC11_the_backpack_view_shows_a_bought_axe_with_its_icon()
+    {
+        var session = new GameSession(TestGames.WithGold(100), TestGames.Shipped);
+        Assert.Equal(LongWayHome.Domain.Games.ActionResult.Ok, session.Buy("tool_axe"));
+
+        var slot = Assert.Single(session.BackpackView().Slots, slot => slot.Item == ItemRef.Tool(ToolId.Axe));
+
+        Assert.Equal(("Axe", "res://art/icons/tool_axe.svg"), (slot.Label, slot.IconPath));
+    }
+
+    [Fact]
+    public void A_tool_listing_with_no_tool_has_no_icon()
+    {
+        var listing = new ShopListing("tool_nothing", ShopItemKind.Tool, null, new Gold(50), BuildingId.GeneralStore, 1, null, true);
+
+        Assert.Null(ItemIcons.For(listing));
+    }
 }

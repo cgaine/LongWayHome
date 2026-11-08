@@ -169,6 +169,7 @@ public sealed class JsonGameDataSource : IGameDataSource
 
         var listingIds = new HashSet<string>(StringComparer.Ordinal);
         var seededCropTypes = new HashSet<CropTypeId>();
+        var listedTools = new HashSet<ToolId>();
         var canUpgradeCount = 0;
 
         for (var index = 0; index < file.Listings.Count; index++)
@@ -200,10 +201,30 @@ public sealed class JsonGameDataSource : IGameDataSource
                 errors.Add($"{ShopFileName}: {label}.price must be above 0, was {listing.Price}");
             }
 
+            // BR-L5: only the general store and the carpenter sell; no listing needs a stage below 0.
+            if (listing.Vendor is not (BuildingId.GeneralStore or BuildingId.Carpenter))
+            {
+                errors.Add($"{ShopFileName}: {label}.vendor must be general_store or carpenter, was {Code(listing.Vendor)}");
+            }
+
+            if (listing.RequiresStage < 0)
+            {
+                errors.Add($"{ShopFileName}: {label}.requiresStage must be 0 or more, was {listing.RequiresStage}");
+            }
+
+            if (listing.Kind != ShopItemKind.Tool && listing.ToolId is { } toolId)
+            {
+                errors.Add($"{ShopFileName}: {label}.toolId must be null for a {Code(listing.Kind)} listing, was {Code(toolId)}");
+            }
+
             switch (listing.Kind)
             {
                 case ShopItemKind.Seed:
                     ValidateSeedListing(listing, label, cropsById, seededCropTypes, errors);
+                    break;
+
+                case ShopItemKind.Tool:
+                    ValidateToolListing(listing, label, listedTools, errors);
                     break;
 
                 case ShopItemKind.CanUpgrade:
@@ -219,6 +240,34 @@ public sealed class JsonGameDataSource : IGameDataSource
 
                     break;
             }
+        }
+    }
+
+    private static void ValidateToolListing(
+        ShopListingDto listing,
+        string label,
+        HashSet<ToolId> listedTools,
+        List<string> errors)
+    {
+        // BR-L4: the shop sells the axe and the pickaxe, each once per Game and listed once.
+        if (listing.ToolId is not ({ } toolId and (ToolId.Axe or ToolId.Pickaxe)))
+        {
+            var was = listing.ToolId is { } other ? Code(other) : "null";
+            errors.Add($"{ShopFileName}: {label}.toolId must be axe or pickaxe for a tool listing, was {was}");
+        }
+        else if (!listedTools.Add(toolId))
+        {
+            errors.Add($"{ShopFileName}: {label}.toolId {Code(toolId)} already has a tool listing");
+        }
+
+        if (listing.CropTypeId is { } cropTypeId)
+        {
+            errors.Add($"{ShopFileName}: {label}.cropTypeId must be null for a tool listing, was {Code(cropTypeId)}");
+        }
+
+        if (!listing.OncePerGame)
+        {
+            errors.Add($"{ShopFileName}: {label}.oncePerGame must be true for a tool listing (BR-L4)");
         }
     }
 
@@ -326,8 +375,7 @@ public sealed class JsonGameDataSource : IGameDataSource
         dto.Regrows);
 
     private static ShopListing ToShopListing(ShopListingDto dto) =>
-        // TODO(#145): parse vendor, requiresStage, toolId and oncePerGame.
-        new(dto.Id, dto.Kind, dto.CropTypeId, new Gold(dto.Price), BuildingId.GeneralStore, 0, null, false);
+        new(dto.Id, dto.Kind, dto.CropTypeId, new Gold(dto.Price), dto.Vendor, dto.RequiresStage, dto.ToolId, dto.OncePerGame);
 
     private static GameTuning ToGameTuning(TuningDto dto) => new()
     {

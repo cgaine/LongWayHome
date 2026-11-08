@@ -39,4 +39,10 @@ internal sealed record SaveFileDto
     /// #139 lacks it and loads as true, since that Game is already underway.
     /// </summary>
     public bool? OpeningDone { get; init; }
+
+    /// <summary>
+    /// The ids of the once-per-game Shop listings bought (BR-L5, #145), sorted ordinal. Always written; optional on
+    /// load: a version 2 file written before #145 lacks it and loads with none.
+    /// </summary>
+    public IReadOnlyList<string?>? PurchasedListings { get; init; }
 }
