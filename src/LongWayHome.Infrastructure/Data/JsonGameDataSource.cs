@@ -384,6 +384,10 @@ public sealed class JsonGameDataSource : IGameDataSource
         Check(tuning.WalkSpeedTilesPerSecond > 0, "walkSpeedTilesPerSecond", "above 0", tuning.WalkSpeedTilesPerSecond);
         Check(tuning.RunSpeedTilesPerSecond >= tuning.WalkSpeedTilesPerSecond, "runSpeedTilesPerSecond", $"at least walkSpeedTilesPerSecond ({tuning.WalkSpeedTilesPerSecond.ToString(CultureInfo.InvariantCulture)})", tuning.RunSpeedTilesPerSecond);
         ValidateSwingTuning(tuning, errors);
+        if (tuning.NodeRegrowthNights is { } regrowthNights)
+        {
+            Check(regrowthNights >= 1, "nodeRegrowthNights", "at least 1 (BR-N4)", regrowthNights);
+        }
 
         if (tuning.StartingSeeds is null)
         {
@@ -564,10 +568,11 @@ public sealed class JsonGameDataSource : IGameDataSource
                 errors.Add($"{NodesFileName}: {label} is on the same Tile ({spawn.X}, {spawn.Y}) as {other}");
             }
 
-            // BR-N5: stumps never grow back.
-            if (spawn.Kind == NodeKind.Stump && spawn.Respawns)
+            // BR-N5: stumps and debris never grow back.
+            if (spawn.Kind is NodeKind.Stump or NodeKind.Debris && spawn.Respawns)
             {
-                errors.Add($"{NodesFileName}: {label}.respawns must be false for a stump (BR-N5)");
+                var kindName = spawn.Kind == NodeKind.Stump ? "a stump" : "debris";
+                errors.Add($"{NodesFileName}: {label}.respawns must be false for {kindName} (BR-N5)");
             }
         }
     }
@@ -614,6 +619,7 @@ public sealed class JsonGameDataSource : IGameDataSource
                     .ToList()
                     .AsReadOnly())
             .AsReadOnly(),
+        NodeRegrowthNights = dto.NodeRegrowthNights ?? GameTuning.DefaultNodeRegrowthNights,
     };
 
     // The enum value whose canonical code is <paramref name="code"/>; validation has already refused unknown codes.

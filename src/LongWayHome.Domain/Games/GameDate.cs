@@ -8,6 +8,9 @@ public readonly record struct GameDate(int Year, Season Season, int Day)
     /// <summary>The number of Days in a Season (BR-G1).</summary>
     public const int DaysPerSeason = 28;
 
+    // BR-G1: spring, summer, fall, winter.
+    private const int SeasonsPerYear = 4;
+
     // BR-G1
     public int Year { get; } = Year >= 1
         ? Year
@@ -33,4 +36,13 @@ public readonly record struct GameDate(int Year, Season Season, int Day)
             ? new GameDate(Year + 1, Season.Spring, 1)
             : new GameDate(Year, Season + 1, 1);
     }
+
+    /// <summary>
+    /// Whole days from <paramref name="other"/> to this date, across Seasons and Years (BR-G1: 4 Seasons of 28 days a
+    /// Year); negative when <paramref name="other"/> is later.
+    /// </summary>
+    public int DaysSince(GameDate other) => DayNumber() - other.DayNumber();
+
+    // The days since Spring 1 of Year 1. Seasons are declared in calendar order, Spring = 0.
+    private int DayNumber() => ((((Year - 1) * SeasonsPerYear) + (int)Season) * DaysPerSeason) + (Day - 1);
 }

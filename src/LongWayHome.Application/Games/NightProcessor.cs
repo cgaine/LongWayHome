@@ -65,8 +65,12 @@ public static class NightProcessor
         game.ClearDroppedItems();
 
         // BR-N4: the node-regrowth slot. BR-N2: swings taken on a node not cleared are forgotten in the Night, so a
-        // save always holds 0 (BR-G5). Regrowth itself comes with the regrowth feature.
+        // save always holds 0 (BR-G5).
         game.ResetSwings();
+
+        // BR-N4: a cleared respawning node grows back once its wait is over and its spawn point is free. Before the
+        // date step, so the Night in progress counts as one of the Nights waited.
+        game.RegrowNodes(data.NodeSpawns, tuning.NodeRegrowthNights);
 
         // BR-G1: the date moves on one day. After growth, which never reads the Season, so a Planting keeps growing
         // across a season change (BR-T5).

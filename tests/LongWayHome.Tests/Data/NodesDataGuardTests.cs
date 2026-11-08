@@ -81,6 +81,24 @@ public class NodesDataGuardTests
         Assert.Equal([1, 2], spawns.Select(spawn => spawn.MineLevel));
     }
 
+    [Fact]
+    public void BR_N5_a_respawning_debris_spawn_point_fails_the_load()
+    {
+        // #153: debris never grows back, like a stump. The same spawn point with respawns false loads.
+        static string Debris(bool respawns) => Edit(OneSpawn, spawn =>
+        {
+            spawn["area"] = "mine";
+            spawn["mineLevel"] = 1;
+            spawn["kind"] = "debris";
+            spawn["respawns"] = respawns;
+        });
+        Assert.Single(Load(Debris(respawns: false)).NodeSpawns);
+
+        var error = Assert.Single(LoadErrors(Debris(respawns: true)));
+
+        Assert.Equal("nodes.json: farm-2-3.respawns must be false for debris (BR-N5)", error);
+    }
+
     private static string Read(string fileName) => File.ReadAllText(Path.Combine(Folder, fileName));
 
     private static GameData Load(string nodes) =>

@@ -33,4 +33,7 @@ internal sealed record TuningDto
     public IReadOnlyDictionary<string, int>? SwingsToClear { get; init; }
 
     public IReadOnlyDictionary<string, IReadOnlyList<MaterialStackDto>>? NodeYields { get; init; }
+
+    /// <summary>The Nights a cleared node waits (BR-N4). Optional: absent keeps <c>GameTuning</c>'s default of 2.</summary>
+    public int? NodeRegrowthNights { get; init; }
 }

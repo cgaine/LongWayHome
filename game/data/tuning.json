@@ -21,5 +21,6 @@
     "tree": [ { "material": "wood", "quantity": 5 }, { "material": "sap", "quantity": 2 } ],
     "rock": [ { "material": "stone", "quantity": 3 } ],
     "stump": [ { "material": "wood", "quantity": 4 } ]
-  }
+  },
+  "nodeRegrowthNights": 2
 }
