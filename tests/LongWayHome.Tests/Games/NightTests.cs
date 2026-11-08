@@ -510,6 +510,25 @@ public class NightTests
     }
 
     [Fact]
+    public void AC7_night_runs_regrowth_after_dropped_items_and_before_the_date_step()
+    {
+        // #153 AC7, BR-N4: the regrowth step sits in the node-regrowth slot, after the dropped-items clear and the swing
+        // reset, before the date step, so "Nights passed" counts the Night in progress. Source order, as above.
+        var source = File.ReadAllText(Path.Combine(
+            RepoRoot(), "src", "LongWayHome.Application", "Games", "NightProcessor.cs"));
+
+        var clear = source.IndexOf("game.ClearDroppedItems()", StringComparison.Ordinal);
+        var reset = source.IndexOf("game.ResetSwings()", StringComparison.Ordinal);
+        var regrow = source.IndexOf("game.RegrowNodes(data.NodeSpawns, tuning.NodeRegrowthNights)", StringComparison.Ordinal);
+        var date = source.IndexOf("game.AdvanceDate()", StringComparison.Ordinal);
+
+        Assert.True(regrow >= 0, "NightProcessor never calls game.RegrowNodes(data.NodeSpawns, tuning.NodeRegrowthNights)");
+        Assert.True(clear < regrow, "RegrowNodes must come after ClearDroppedItems");
+        Assert.True(reset < regrow, "RegrowNodes must come after ResetSwings");
+        Assert.True(regrow < date, "RegrowNodes must come before AdvanceDate");
+    }
+
+    [Fact]
     public void AC9_a_tree_with_2_swings_taken_has_0_after_the_night()
     {
         var game = NodeGames.WithEnergyAndNodes(

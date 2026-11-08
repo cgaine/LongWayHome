@@ -40,4 +40,7 @@ public sealed record GameTuning
     /// <summary>What clearing a node gives, per node kind (BR-N3).</summary>
     public IReadOnlyDictionary<NodeKind, IReadOnlyList<MaterialStack>> NodeYields { get; init; } =
         new Dictionary<NodeKind, IReadOnlyList<MaterialStack>>();
+
+    /// <summary>The Nights a cleared respawning node waits before it grows back (BR-N4).</summary>
+    public int NodeRegrowthNights { get; init; }
 }

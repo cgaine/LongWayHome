@@ -27,7 +27,8 @@ public sealed class Game
         IReadOnlyList<Resident>? residents = null,
         bool openingDone = true,
         IReadOnlySet<string>? purchasedListings = null,
-        IReadOnlyList<ResourceNode>? resourceNodes = null)
+        IReadOnlyList<ResourceNode>? resourceNodes = null,
+        IReadOnlyList<NodeRegrowth>? nodeRegrowths = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -48,7 +49,18 @@ public sealed class Game
         _purchasedListings = ValidPurchasedListings(purchasedListings);
         (_resourceNodes, _nodesByTile) = ValidResourceNodes(resourceNodes ?? []);
         ResourceNodes = _resourceNodes.AsReadOnly();
+        _nodeRegrowths = (nodeRegrowths ?? []).ToList();
+        NodeRegrowths = _nodeRegrowths.AsReadOnly();
     }
+
+    private readonly List<NodeRegrowth> _nodeRegrowths;
+
+    /// <summary>The cleared respawning spawn points waiting to grow back (BR-N4), at most one per spawn point.</summary>
+    public IReadOnlyList<NodeRegrowth> NodeRegrowths { get; }
+
+    /// <summary>The Night's regrowth step (BR-N4, BR-N5). Red stub for #153.</summary>
+    public void RegrowNodes(IReadOnlyList<NodeSpawn> spawns, int nights) =>
+        throw new NotImplementedException();
 
     public Guid Id { get; }
 

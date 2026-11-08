@@ -33,4 +33,7 @@ public readonly record struct GameDate(int Year, Season Season, int Day)
             ? new GameDate(Year + 1, Season.Spring, 1)
             : new GameDate(Year, Season + 1, 1);
     }
+
+    /// <summary>Whole days from <paramref name="other"/> to this date, across Seasons and Years. Red stub for #153.</summary>
+    public int DaysSince(GameDate other) => throw new NotImplementedException();
 }

@@ -40,4 +40,46 @@ public class GameDateTests
     {
         Assert.Equal(new GameDate(1, Season.Spring, 1), new GameDate(1, Season.Spring, 1));
     }
+
+    // ---- #153: DaysSince, the day difference BR-N4's wait counts in ----
+
+    [Theory]
+    [InlineData(1, Season.Spring, 3, 1, Season.Spring, 3, 0)]
+    [InlineData(1, Season.Spring, 4, 1, Season.Spring, 3, 1)]
+    [InlineData(1, Season.Spring, 28, 1, Season.Spring, 1, 27)]
+    [InlineData(1, Season.Summer, 1, 1, Season.Spring, 28, 1)]
+    [InlineData(1, Season.Fall, 5, 1, Season.Spring, 1, 60)]
+    [InlineData(2, Season.Spring, 1, 1, Season.Winter, 28, 1)]
+    [InlineData(2, Season.Spring, 1, 1, Season.Spring, 1, 112)]
+    [InlineData(3, Season.Summer, 2, 1, Season.Winter, 27, 143)]
+    public void BR_G1_days_since_counts_whole_days_across_seasons_and_years(
+        int year, Season season, int day, int otherYear, Season otherSeason, int otherDay, int expected)
+    {
+        var later = new GameDate(year, season, day);
+        var earlier = new GameDate(otherYear, otherSeason, otherDay);
+
+        Assert.Equal(expected, later.DaysSince(earlier));
+    }
+
+    [Theory]
+    [InlineData(1, Season.Spring, 3, 1, Season.Spring, 4, -1)]
+    [InlineData(1, Season.Winter, 28, 2, Season.Spring, 1, -1)]
+    [InlineData(1, Season.Spring, 1, 2, Season.Spring, 1, -112)]
+    public void BR_G1_days_since_a_later_date_is_negative(
+        int year, Season season, int day, int otherYear, Season otherSeason, int otherDay, int expected)
+    {
+        Assert.Equal(expected, new GameDate(year, season, day).DaysSince(new GameDate(otherYear, otherSeason, otherDay)));
+    }
+
+    [Fact]
+    public void BR_G1_days_since_agrees_with_stepping_next_a_whole_year_and_more()
+    {
+        var start = new GameDate(1, Season.Fall, 20);
+        var date = start;
+        for (var steps = 1; steps <= 130; steps++)
+        {
+            date = date.Next();
+            Assert.Equal(steps, date.DaysSince(start));
+        }
+    }
 }
