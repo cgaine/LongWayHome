@@ -6,7 +6,7 @@ using Godot;
 namespace LongWayHome.Game.Ui;
 
 /// <summary>
-/// The seed and crop icon textures (#95), shared by the <see cref="Hud"/> and the <see cref="ShopMenu"/>. Each path
+/// The seed, crop and material icon textures (#95, #152), shared by the <see cref="Hud"/> and the <see cref="ShopMenu"/>. Each path
 /// (from <see cref="LongWayHome.Application.Art.ItemIcons"/>) is loaded with <see cref="GD.Load{T}(string)"/> once
 /// and cached, so rebuilding a row never loads again. Also builds the fixed-size, mouse-ignoring icon node.
 /// </summary>

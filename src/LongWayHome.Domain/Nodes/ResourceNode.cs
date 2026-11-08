@@ -26,8 +26,8 @@ public sealed class ResourceNode
 
     public GridPosition Position { get; }
 
-    /// <summary>Always 0 until the chopping feature.</summary>
-    public int SwingsTaken { get; }
+    /// <summary>The swings taken on this node since the last Night (BR-N2); changes only through the Game.</summary>
+    public int SwingsTaken { get; internal set; }
 
     /// <summary>A node with no swings taken at the spawn point.</summary>
     public static ResourceNode FromSpawn(NodeSpawn spawn)

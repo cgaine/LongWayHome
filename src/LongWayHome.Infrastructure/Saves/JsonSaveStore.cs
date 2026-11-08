@@ -255,11 +255,7 @@ public sealed class JsonSaveStore : ISaveStore
                 Index = slot.Index,
                 Item = slot.Item is not { } item
                     ? null
-                    : new ItemRefDto
-                    {
-                        Kind = item.Kind,
-                        Id = item.Kind == ItemKind.Tool ? Code(item.ToolId!.Value) : Code(item.CropTypeId!.Value),
-                    },
+                    : ToItemRefDto(item),
                 Quantity = slot.Quantity,
                 ToolTier = slot.ToolTier,
             })
@@ -416,12 +412,40 @@ public sealed class JsonSaveStore : ISaveStore
         }
 
         var kind = Defined(item.Kind, field + ".item.kind");
-        var id = Required(item.Id, field + ".item.id");
-        var itemRef = kind == ItemKind.Tool
-            ? ItemRef.Tool(FromCode<ToolId>(id, field + ".item.id"))
-            : new ItemRef(kind, FromCode<CropTypeId>(id, field + ".item.id"), null);
-        return new BackpackSlot(dto.Index, itemRef, dto.Quantity, tier);
+        return new BackpackSlot(dto.Index, ToItemRef(item, kind, field + ".item"), dto.Quantity, tier);
     }
+
+    // A material carries its code in materialId and no id; every other kind carries its code in id and no materialId.
+    private static ItemRef ToItemRef(ItemRefDto item, ItemKind kind, string field)
+    {
+        if (kind == ItemKind.Material)
+        {
+            if (item.Id is not null)
+            {
+                throw new InvalidDataException($"{field}.id must be absent for a material, was '{item.Id}'.");
+            }
+
+            return ItemRef.Material(
+                FromCode<MaterialId>(Required(item.MaterialId, field + ".materialId"), field + ".materialId"));
+        }
+
+        if (item.MaterialId is not null)
+        {
+            throw new InvalidDataException($"{field}.materialId must be absent for a {Code(kind)}, was '{item.MaterialId}'.");
+        }
+
+        var id = Required(item.Id, field + ".id");
+        return kind == ItemKind.Tool
+            ? ItemRef.Tool(FromCode<ToolId>(id, field + ".id"))
+            : new ItemRef(kind, FromCode<CropTypeId>(id, field + ".id"), null);
+    }
+
+    private static ItemRefDto ToItemRefDto(ItemRef item) => item.Kind switch
+    {
+        ItemKind.Material => new ItemRefDto { Kind = item.Kind, MaterialId = Code(item.MaterialId!.Value) },
+        ItemKind.Tool => new ItemRefDto { Kind = item.Kind, Id = Code(item.ToolId!.Value) },
+        _ => new ItemRefDto { Kind = item.Kind, Id = Code(item.CropTypeId!.Value) },
+    };
 
     private static FarmPlot ToFarmPlot(FarmPlotDto dto)
     {

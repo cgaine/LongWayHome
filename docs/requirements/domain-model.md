@@ -41,8 +41,8 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Backpack** | What the Player carries in Phase 2: 12, 24 or 36 Slots. Replaces the unlimited Phase 1 Inventory. |
 | **Slot** | One place in the Backpack or a Chest, holding 1 to 99 of one item, or exactly one tool. |
 | **Hotbar row** | The 6-Slot row of the Backpack shown on screen. The Player cycles which row it is. |
-| **Material** | *(planned, REQ-44)* A gathered or made item used for rebuilds, orders and pumps: wood, sap, stone, Rosk ore, Groth ore, glimmercap, plank, sealed plank, Rosk pump. |
-| **Resource node** | *(planned, REQ-44)* A tree, stump, rock, ore deposit, glimmercap or debris pile the Player breaks with the axe or pickaxe for materials. |
+| **Material** | A gathered or made item used for rebuilds, orders and pumps: wood, sap, stone, Rosk ore, Groth ore, glimmercap, plank, sealed plank, Rosk pump. |
+| **Resource node** | A tree, stump, rock, ore deposit, glimmercap or debris pile the Player breaks with the axe or pickaxe for materials. |
 | **Spawn point** | *(planned, REQ-44)* A fixed place in an Area where a tree, rock, deposit or glimmercap grows back after it is cleared. |
 | **Area** | *(planned, REQ-49)* A part of the world the Player walks in: the farm (the meadow), the forest path, the town, the lakeshore, across the river, and the mine. |
 | **Building** | *(planned, REQ-45)* A town building the Player restores stage by stage: the general store, the carpenter, Mira's house and the blacksmith. |
@@ -75,7 +75,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `ClockMinutes` | integer, 360 (06:00) to 1560 (02:00 next morning) | Game |
 | `Gold` | integer ≥ 0 | Player, CropType, ShopListing, BuildingStage, Order |
 | `ToolTier` | `basic`, `rosk`, `groth` | ToolItem, Order |
-| `MaterialId` | *(planned, REQ-44)* `wood`, `sap`, `stone`, `rosk_ore`, `groth_ore`, `glimmercap`, `plank`, `sealed_plank`, `rosk_pump` | BackpackSlot, BuildingStage, Order |
+| `MaterialId` | `wood`, `sap`, `stone`, `rosk_ore`, `groth_ore`, `glimmercap`, `plank`, `sealed_plank`, `rosk_pump` | BackpackSlot, BuildingStage, Order |
 | `PlaceableId` | *(planned, REQ-48)* `fence`, `chest` | PlacedObject, BackpackSlot, ShopListing |
 | `ItemRef` | `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
 | `NodeKind` | `tree`, `stump`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`, `debris` | ResourceNode, NodeSpawn |
@@ -196,7 +196,7 @@ ShippedItem: `cropTypeId` (CropTypeId, FK -> CropType.id), `quantity` (int ≥ 1
 
 Loaded from data files like the crop table; read-only during play. Costs, yields and prices are tuning numbers from the Game Design Doc and may change without a rule change.
 
-#### MaterialType *(planned, REQ-44)*
+#### MaterialType
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
@@ -218,7 +218,7 @@ The fixed places where Resource nodes start and grow back. The same in every Gam
 | `atStart` | bool | Whether a node stands here in a new Game. On the farm, every spawn point inside the cleared 6 x 6 is `false`. |
 | `respawns` | bool | `true` for `tree`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`; `false` for `stump` and `debris` (BR-N5). |
 
-*(planned, REQ-44, REQ-49)* NodeKind yields (tuning, Basic tier): tree 5 wood + 2 sap; rock 3 stone; rosk_deposit Rosk ore; groth_deposit Groth ore (mine levels 3–5 only); glimmercap 1 glimmercap (picked by hand, no tool); stump wood (Groth axe); debris stone.
+*(planned, REQ-49)* NodeKind yields (tuning, Basic tier): tree 5 wood + 2 sap; rock 3 stone; rosk_deposit Rosk ore; groth_deposit Groth ore (mine levels 3–5 only); glimmercap 1 glimmercap (picked by hand, no tool); stump wood (Groth axe); debris stone.
 
 #### BuildingStage *(planned, REQ-45)*
 
@@ -289,7 +289,7 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 |-----------|------|-------|
 | `spawnId` | string | FK -> NodeSpawn.id. Key: at most one node per spawn point. |
 | `kind` | NodeKind | Copied from the spawn point. |
-| `swingsTaken` | int | 0 up to the swings needed at the tool's tier. Reset each Night. *(planned, REQ-44: always 0 until the axe and pickaxe swing)* |
+| `swingsTaken` | int | 0 up to the swings needed at the tool's tier. Reset each Night. |
 
 #### NodeRegrowth (child of Game, zero or more) *(planned, REQ-44)*
 
@@ -494,7 +494,7 @@ stateDiagram-v2
 | placed → ready | Game (Night) | BR-O2 |
 | ready → collected | Player | BR-O3 |
 
-### Resource node *(planned, REQ-44)*
+### Resource node *(planned, REQ-44: regrow)*
 
 ```mermaid
 stateDiagram-v2
@@ -582,12 +582,12 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 
 ### Resource nodes *(planned, REQ-44, REQ-16, REQ-49)*
 
-- BR-N1: The axe works on trees and stumps; the pickaxe on rocks, ore deposits and debris. Glimmercaps are picked by hand. A swing on any other node does nothing and costs nothing. *(planned, REQ-44, REQ-49)*
-- BR-N2: Each swing costs 2 energy (BR-P2). A node is cleared on the swing that reaches its tier's count: Basic 4, Rosk 3, Groth 2. Swings taken on a node not cleared are forgotten in the Night. *(planned, REQ-44, REQ-57)*
-- BR-N3: Clearing a node gives its yield (NodeSpawn yields, tier bonus by tuning) through BR-K3 and frees its Tile. *(planned, REQ-44)*
+- BR-N1: The axe works on trees and stumps; the pickaxe on rocks, ore deposits and debris. Glimmercaps are picked by hand. A swing on any other node does nothing and costs nothing. *(planned, REQ-49)*
+- BR-N2: Each swing costs 2 energy (BR-P2). A node is cleared on the swing that reaches its tier's count: Basic 4, Rosk 3, Groth 2. Swings taken on a node not cleared are forgotten in the Night. *(planned, REQ-57)*
+- BR-N3: Clearing a node gives its yield (NodeSpawn yields, tier bonus by tuning) through BR-K3 and frees its Tile.
 - BR-N4: In the Night, a respawning spawn point whose node was cleared at least 2 Nights before (tuning) grows its node back, unless its Tile is tilled, holds a Placed object, or is within 3 tiles of a tilled Tile. A blocked spawn point keeps waiting. *(planned, REQ-44)*
 - BR-N5: Stumps and debris never grow back. *(planned, REQ-16, REQ-49)*
-- BR-N6: A stump can be cleared only with a Groth axe. *(planned, REQ-16, REQ-57)*
+- BR-N6: A stump can be cleared only with a Groth axe. *(planned, REQ-57)*
 - BR-N7: A new Game places a node at every `atStart` spawn point. The farm's cleared 6 x 6 by the farmhouse has none.
 
 ### Placed objects *(planned, REQ-48)*

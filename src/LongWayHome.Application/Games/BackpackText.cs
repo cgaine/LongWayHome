@@ -13,7 +13,7 @@ public static class BackpackText
     public const string HotbarLabel = "Hotbar";
 
     /// <summary>
-    /// "Hoe", "Watering can", "Emberroot seeds × 12", "Emberroot × 7", or "" for an empty Slot. The HUD hotbar shows the
+    /// "Hoe", "Watering can", "Emberroot seeds × 12", "Emberroot × 7", "Wood × 5", or "" for an empty Slot. The HUD hotbar shows the
     /// same labels.
     /// </summary>
     public static string Label(BackpackSlot slot)
@@ -24,6 +24,7 @@ public static class BackpackText
             { Kind: ItemKind.Tool, ToolId: { } tool } => HeldItem.Of(tool).DisplayLabel,
             { Kind: ItemKind.Seed, CropTypeId: { } seed } => $"{HeldItem.SeedOf(seed).DisplayLabel} × {slot.Quantity}",
             { Kind: ItemKind.Crop, CropTypeId: { } crop } => $"{CropLabels.For(crop)} × {slot.Quantity}",
+            { Kind: ItemKind.Material, MaterialId: { } material } => $"{MaterialLabels.For(material)} × {slot.Quantity}",
             _ => "",
         };
     }

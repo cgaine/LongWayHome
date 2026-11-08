@@ -11,12 +11,18 @@ public static class HotbarText
     /// <summary>
     /// "&lt;Crop type&gt; × &lt;quantity&gt;" for a seed, named as <see cref="HeldItem.DisplayLabel"/> names it
     /// (<see cref="CropLabels"/>), so it is the full hotbar label without " seeds"; a tool's
-    /// <see cref="HeldItem.DisplayLabel"/> unchanged, ignoring <paramref name="quantity"/>.
+    /// <see cref="HeldItem.DisplayLabel"/> unchanged, ignoring <paramref name="quantity"/>. A material reads "Wood × 5", as
+    /// its full label does (#152).
     /// </summary>
     public static string Compact(HeldItem item, int quantity)
     {
         ArgumentNullException.ThrowIfNull(item);
-        return item.Seed is { } seed ? $"{CropLabels.For(seed)} × {quantity}" : item.DisplayLabel;
+        return item switch
+        {
+            { Seed: { } seed } => $"{CropLabels.For(seed)} × {quantity}",
+            { Material: { } material } => $"{MaterialLabels.For(material)} × {quantity}",
+            _ => item.DisplayLabel,
+        };
     }
 
     /// <summary>The hotbar row, 1-based, of the rows a Backpack of <paramref name="capacity"/> has: "Row 1/2".</summary>

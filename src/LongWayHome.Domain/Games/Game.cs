@@ -46,7 +46,8 @@ public sealed class Game
         Residents = ValidResidents(residents ?? DefaultResidents());
         OpeningDone = openingDone;
         _purchasedListings = ValidPurchasedListings(purchasedListings);
-        (ResourceNodes, _nodesByTile) = ValidResourceNodes(resourceNodes ?? []);
+        (_resourceNodes, _nodesByTile) = ValidResourceNodes(resourceNodes ?? []);
+        ResourceNodes = _resourceNodes.AsReadOnly();
     }
 
     public Guid Id { get; }
@@ -159,6 +160,8 @@ public sealed class Game
     /// <summary>The trees, stumps and rocks standing in the world: at most one per spawn point and one per Tile.</summary>
     public IReadOnlyList<ResourceNode> ResourceNodes { get; }
 
+    private readonly List<ResourceNode> _resourceNodes;
+
     private readonly Dictionary<(AreaId Area, GridPosition Position), ResourceNode> _nodesByTile;
 
     /// <summary>The node on <paramref name="position"/> in <paramref name="area"/>, or null.</summary>
@@ -166,7 +169,7 @@ public sealed class Game
         _nodesByTile.GetValueOrDefault((area, position));
 
     /// <summary>At most one node per spawn point and one per (area, Tile), or the list is refused.</summary>
-    private static (IReadOnlyList<ResourceNode> Nodes, Dictionary<(AreaId, GridPosition), ResourceNode> ByTile)
+    private static (List<ResourceNode> Nodes, Dictionary<(AreaId, GridPosition), ResourceNode> ByTile)
         ValidResourceNodes(IReadOnlyList<ResourceNode> resourceNodes)
     {
         var spawnIds = new HashSet<string>(StringComparer.Ordinal);
@@ -194,7 +197,7 @@ public sealed class Game
             }
         }
 
-        return (resourceNodes.ToList().AsReadOnly(), byTile);
+        return (resourceNodes.ToList(), byTile);
     }
 
     /// <summary>Whether <paramref name="id"/>'s Resident is present (BR-R1).</summary>
@@ -815,13 +818,29 @@ public sealed class Game
     /// Why a swing of <paramref name="tool"/> at <paramref name="tier"/> at the node on <paramref name="target"/> would
     /// be refused, or null: NothingToDo (BR-N1), then NeedsGrothAxe (BR-N6), then TooTired (BR-P2).
     /// </summary>
-    public Rejection? SwingRejection(AreaId area, GridPosition target, ToolId tool, ToolTier tier, int toolEnergyCost) =>
-        throw new NotImplementedException();
+    public Rejection? SwingRejection(AreaId area, GridPosition target, ToolId tool, ToolTier tier, int toolEnergyCost)
+    {
+        // BR-N1: the axe works on trees and stumps, the pickaxe on rocks, ore deposits and debris; nothing else swings.
+        if (NodeAt(area, target) is not { } node || !Works(tool, node.Kind))
+        {
+            return Rejection.NothingToDo;
+        }
+
+        // BR-N6: a stump can be cleared only with a Groth axe.
+        if (node.Kind == NodeKind.Stump && tier != ToolTier.Groth)
+        {
+            return Rejection.NeedsGrothAxe;
+        }
+
+        // BR-P2
+        return Player.Energy < toolEnergyCost ? Rejection.TooTired : null;
+    }
 
     /// <summary>
     /// Swings the axe or pickaxe at the node on <paramref name="target"/>: spends the energy (BR-P2) and counts the
     /// swing; on the tier's count (BR-N2) the node is removed and its yield gained at <paramref name="feet"/> (BR-N3,
-    /// BR-K3). A refused swing changes nothing.
+    /// BR-K3), one <see cref="GainResult"/> per yield stack in yield order. A refused swing changes nothing. Tuning
+    /// with no count of at least 1 for <paramref name="tier"/>, or a yield stack below 1, throws and changes nothing.
     /// </summary>
     public SwingResult Swing(
         AreaId area,
@@ -831,9 +850,64 @@ public sealed class Game
         int toolEnergyCost,
         IReadOnlyDictionary<ToolTier, int> swingsToClear,
         IReadOnlyDictionary<NodeKind, IReadOnlyList<MaterialStack>> nodeYields,
-        GridPosition feet) =>
-        throw new NotImplementedException();
+        GridPosition feet)
+    {
+        ArgumentNullException.ThrowIfNull(swingsToClear);
+        ArgumentNullException.ThrowIfNull(nodeYields);
+
+        // BR-N1, BR-N6, BR-P2: a refused swing changes nothing and costs nothing.
+        if (SwingRejection(area, target, tool, tier, toolEnergyCost) is { } rejection)
+        {
+            return new SwingResult(ActionResult.Rejected(rejection), false, []);
+        }
+
+        var node = NodeAt(area, target)!;
+
+        // Checked before anything changes, so bad tuning never leaves a half-done swing.
+        if (!swingsToClear.TryGetValue(tier, out var count) || count < 1)
+        {
+            throw new ArgumentException(
+                $"The tuning has no swing count of at least 1 for the {tier} tier.", nameof(swingsToClear));
+        }
+
+        var yields = nodeYields.GetValueOrDefault(node.Kind) ?? [];
+        if (yields.Any(stack => stack is null || stack.Quantity < 1))
+        {
+            throw new ArgumentException($"The {node.Kind} yield has a stack below 1.", nameof(nodeYields));
+        }
+
+        // BR-P2, BR-N2: each swing spends the energy and counts on the node.
+        Player.TrySpendEnergy(toolEnergyCost);
+        node.SwingsTaken++;
+        if (node.SwingsTaken < count)
+        {
+            return new SwingResult(ActionResult.Ok, false, []);
+        }
+
+        // BR-N3: the node is gone and its Tile free; the yield goes through BR-K3 (tier bonus 0 until #127).
+        _resourceNodes.Remove(node);
+        _nodesByTile.Remove((node.Area, node.Position));
+        var gained = yields
+            .Select(stack => Gain(ItemRef.Material(stack.Material), stack.Quantity, feet))
+            .ToList()
+            .AsReadOnly();
+        return new SwingResult(ActionResult.Ok, true, gained);
+    }
 
     /// <summary>The Night's node-regrowth slot (BR-N2): every node's SwingsTaken goes back to 0.</summary>
-    public void ResetSwings() => throw new NotImplementedException();
+    public void ResetSwings()
+    {
+        foreach (var node in _resourceNodes)
+        {
+            node.SwingsTaken = 0;
+        }
+    }
+
+    // BR-N1: which tool works on which node kind; glimmercaps are picked by hand.
+    private static bool Works(ToolId tool, NodeKind kind) => tool switch
+    {
+        ToolId.Axe => kind is NodeKind.Tree or NodeKind.Stump,
+        ToolId.Pickaxe => kind is NodeKind.Rock or NodeKind.RoskDeposit or NodeKind.GrothDeposit or NodeKind.Debris,
+        _ => false,
+    };
 }

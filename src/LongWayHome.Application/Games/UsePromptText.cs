@@ -25,6 +25,8 @@ public static class UsePromptText
             {
                 UseActionKind.Till => ("Till", true),
                 UseActionKind.Water => ("Water", true),
+                UseActionKind.Chop => ("Chop", true),
+                UseActionKind.Break => ("Break", true),
                 UseActionKind.Plant when held?.Seed is { } seed => ($"Plant {CropName(seed, cropTypes)}", true),
                 UseActionKind.Harvest when targetPlanting is not null =>
                     ($"Harvest {CropName(targetPlanting.CropTypeId, cropTypes)}", true),
@@ -37,6 +39,7 @@ public static class UsePromptText
             Rejection.AlreadyTilled => "Already tilled",
             Rejection.NodeInTheWay => "Something's in the way",
             Rejection.TooTired => "Too tired",
+            Rejection.NeedsGrothAxe => "Needs a Groth axe",
             Rejection.NotTilled => "Till the soil first",
             Rejection.TileOccupied => "Something is growing here",
             Rejection.NoSeed => "No seeds left",

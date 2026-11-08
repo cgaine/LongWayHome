@@ -64,6 +64,10 @@ public static class NightProcessor
         // save never holds one (BR-G5).
         game.ClearDroppedItems();
 
+        // BR-N4: the node-regrowth slot. BR-N2: swings taken on a node not cleared are forgotten in the Night, so a
+        // save always holds 0 (BR-G5). Regrowth itself comes with the regrowth feature.
+        game.ResetSwings();
+
         // BR-G1: the date moves on one day. After growth, which never reads the Season, so a Planting keeps growing
         // across a season change (BR-T5).
         game.AdvanceDate();
