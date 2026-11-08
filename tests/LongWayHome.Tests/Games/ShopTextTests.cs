@@ -133,4 +133,46 @@ public class ShopTextTests
     {
         Assert.Equal("No seeds this season", ShopText.NoSeeds);
     }
+
+    // ---- #146: the Sell section ----
+
+    [Theory]
+    [InlineData(495, "Sell all crops — 495g")]
+    [InlineData(0, "Sell all crops — 0g")]
+    public void AC9_sell_all_row_shows_the_total(int total, string expected)
+    {
+        Assert.Equal(expected, ShopText.SellAllRow(total));
+    }
+
+    [Fact]
+    public void AC9_sell_row_shows_name_quantity_and_total()
+    {
+        Assert.Equal("Emberroot × 12 — 420g", ShopText.SellRow("Emberroot", 12, 420));
+    }
+
+    [Fact]
+    public void AC9_after_sell_shows_what_the_sale_paid()
+    {
+        Assert.Equal("Sold for 420g", ShopText.AfterSell(420));
+    }
+
+    [Fact]
+    public void AC9_nothing_to_sell_text_is_no_crops_to_sell()
+    {
+        Assert.Equal("No crops to sell", ShopText.NothingToSell);
+    }
+
+    [Fact]
+    public void AC9_sell_header_is_sell()
+    {
+        Assert.Equal("Sell", ShopText.SellHeader);
+    }
+
+    [Theory]
+    [InlineData(Rejection.NothingToSell, "No crops to sell")]
+    [InlineData(Rejection.NotSellable, "Maggie can't buy that")]
+    public void AC9_sell_rejection_text(Rejection rejection, string expected)
+    {
+        Assert.Equal(expected, ShopText.Rejection(rejection));
+    }
 }

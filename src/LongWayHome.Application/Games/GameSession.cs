@@ -566,6 +566,18 @@ public sealed class GameSession
         return result;
     }
 
+    /// <summary>Whether Maggie buys Crops here: only in town (BR-L3). Stub (#146).</summary>
+    public bool CanSellToMaggie => throw new NotImplementedException();
+
+    /// <summary>The carried Crop types with a data row, ordered by CropTypeId, with quantity and payout. Stub (#146).</summary>
+    public IReadOnlyList<SellableCrop> SellableCrops() => throw new NotImplementedException();
+
+    /// <summary>Sells every carried Crop of one type to Maggie (BR-L3). Stub (#146).</summary>
+    public ActionResult SellToMaggie(CropTypeId cropTypeId) => throw new NotImplementedException();
+
+    /// <summary>Sells every carried Crop with a data row to Maggie (BR-L3). Stub (#146).</summary>
+    public ActionResult SellAllToMaggie() => throw new NotImplementedException();
+
     /// <summary>The HUD label for a held item: "Hoe", "Watering can", or "Emberroot seeds × 9".</summary>
     public string HeldLabel(HeldItem held)
     {

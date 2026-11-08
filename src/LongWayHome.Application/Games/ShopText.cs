@@ -52,6 +52,21 @@ public static class ShopText
     /// <summary>The message after a successful purchase: <see cref="SeedsDropped"/> when any dropped, else "".</summary>
     public static string AfterBuy(bool dropped) => dropped ? SeedsDropped : "";
 
+    /// <summary>The Sell section's header. Stub (#146): the real text is set by the implementation.</summary>
+    public const string SellHeader = "";
+
+    /// <summary>The line shown in the Sell section when no Crop can be sold. Stub (#146).</summary>
+    public const string NothingToSell = "";
+
+    /// <summary>"Sell all crops — 495g". Stub (#146).</summary>
+    public static string SellAllRow(int total) => throw new NotImplementedException();
+
+    /// <summary>"Emberroot × 12 — 420g". Stub (#146).</summary>
+    public static string SellRow(string name, int quantity, int total) => throw new NotImplementedException();
+
+    /// <summary>"Sold for 420g". Stub (#146).</summary>
+    public static string AfterSell(int total) => throw new NotImplementedException();
+
     /// <summary>"Gold 100".</summary>
     public static string Gold(int gold) => GoldText.For(gold);
 

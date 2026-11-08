@@ -22,4 +22,6 @@ public enum Rejection
     BackpackFull,
     AreaClosed,
     OpeningOver,
+    NothingToSell,
+    NotSellable,
 }

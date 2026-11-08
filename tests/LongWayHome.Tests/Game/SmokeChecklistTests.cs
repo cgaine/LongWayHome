@@ -223,6 +223,40 @@ public class SmokeChecklistTests
             $"The {pass} pass has no step talking to {resident}");
     }
 
+    /// <summary>#146 AC10: each pass sells crops at Maggie's counter in town and sees the gold rise at once.</summary>
+    [Theory]
+    [MemberData(nameof(Passes))]
+    public void AC10_pass_has_a_step_selling_crops_at_maggies_counter(string pass)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        Assert.True(
+            steps.Any(step =>
+                Regex.IsMatch(step, @"\bsell", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\bcrops?\b", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\bMaggie\b") &&
+                Regex.IsMatch(step, @"\bgold\b", RegexOptions.IgnoreCase)),
+            $"The {pass} pass has no step selling crops to Maggie with the gold rising");
+    }
+
+    /// <summary>#146 AC11: each pass checks the farm stall's shop has no Sell section.</summary>
+    [Theory]
+    [MemberData(nameof(Passes))]
+    public void AC11_pass_has_a_step_checking_the_farm_stall_has_no_sell_section(string pass)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        Assert.True(
+            steps.Any(step =>
+                Regex.IsMatch(step, @"\bfarm stall\b", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\bno\s+Sell\s+section\b", RegexOptions.IgnoreCase)),
+            $"The {pass} pass has no step checking the farm stall's shop shows no Sell section");
+    }
+
     [Fact]
     public void AC8_blueprint_testing_section_links_the_checklist()
     {

@@ -615,6 +615,22 @@ public sealed class Game
         return total;
     }
 
+    /// <summary>Sells every carried Crop of one type to Maggie for its sellPrice, paid at once (BR-L3). Stub (#146).</summary>
+    public ActionResult SellCrop(CropTypeId cropTypeId, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
+
+    /// <summary>Sells every carried Crop type with a data row to Maggie, as one step (BR-L3). Stub (#146).</summary>
+    public ActionResult SellAllCrops(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
+
+    /// <summary>What <see cref="SellCrop"/> would pay, changing nothing. Stub (#146).</summary>
+    public int SellPayout(CropTypeId cropTypeId, IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
+
+    /// <summary>What <see cref="SellAllCrops"/> would pay, changing nothing. Stub (#146).</summary>
+    public int SellAllPayout(IReadOnlyDictionary<CropTypeId, CropType> cropTypes) =>
+        throw new NotImplementedException();
+
     // BR-T3, BR-C1: the checks in order: tilled, empty, a Seed held, then its Crop type's Season.
     private Rejection? PlantRejection(GridPosition position, Season? season, bool hasSeed)
     {
