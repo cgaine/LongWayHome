@@ -2,12 +2,13 @@ using LongWayHome.Application.Data;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
+using LongWayHome.Domain.Nodes;
 using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Application.Games;
 
 /// <summary>
-/// Builds a new Game from the game data (BR-P6, BR-T1, BR-G1, BR-I1). Starting values come from the tuning; the
+/// Builds a new Game from the game data (BR-P6, BR-T1, BR-G1, BR-I1, BR-N7). Starting values come from the tuning; the
 /// Opening is not done yet.
 /// </summary>
 public static class NewGameFactory
@@ -32,6 +33,7 @@ public static class NewGameFactory
 
         // BR-G1: a new Game starts on Year 1, Spring 1. BR-T1: a fresh 72 x 36 plot of grass. BR-R1: Maggie and Clyde
         // are present from the start; Tom, June, Jesse and Mira are not. BR-I1: the Opening has not played yet.
+        // BR-N7: a node with no swings taken at every atStart spawn point.
         return new Game(
             Guid.NewGuid(),
             new GameDate(1, Season.Spring, 1),
@@ -43,6 +45,7 @@ public static class NewGameFactory
             player,
             new FarmPlot(),
             residents: Game.DefaultResidents(),
-            openingDone: false);
+            openingDone: false,
+            resourceNodes: data.NodeSpawns.Where(spawn => spawn.AtStart).Select(ResourceNode.FromSpawn).ToList());
     }
 }

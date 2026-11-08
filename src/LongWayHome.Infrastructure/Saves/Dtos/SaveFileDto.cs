@@ -45,4 +45,11 @@ internal sealed record SaveFileDto
     /// load: a version 2 file written before #145 lacks it and loads with none.
     /// </summary>
     public IReadOnlyList<string?>? PurchasedListings { get; init; }
+
+    /// <summary>
+    /// The ResourceNodes standing in the world (#151). Always written; optional on load: a version 1 file migrated
+    /// by SaveV1ToV2, or a version 2 file written before #151, lacks it and loads with a node at every atStart spawn
+    /// point outside the old plot's block (<c>FarmPlot.Phase1Block</c>).
+    /// </summary>
+    public IReadOnlyList<ResourceNodeDto?>? ResourceNodes { get; init; }
 }

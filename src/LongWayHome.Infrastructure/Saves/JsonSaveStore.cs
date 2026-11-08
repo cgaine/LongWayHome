@@ -6,8 +6,8 @@ using LongWayHome.Application.Saves;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
-using LongWayHome.Domain.Players;
 using LongWayHome.Domain.Nodes;
+using LongWayHome.Domain.Players;
 using LongWayHome.Domain.Residents;
 using LongWayHome.Domain.Shipping;
 using LongWayHome.Infrastructure.Data;
@@ -30,13 +30,28 @@ public sealed class JsonSaveStore : ISaveStore
     private const string BackupSuffix = ".bak";
     private const string TempSuffix = ".tmp";
 
+    /// <param name="folder">Where the slot files live.</param>
+    /// <param name="nodeSpawns">
+    /// The spawn points from <c>nodes.json</c>: a saved node is placed on its spawn point's Tile, a node whose spawn
+    /// point is gone is dropped, and a file from before #151 gets the atStart nodes outside the old plot's block.
+    /// </param>
     public JsonSaveStore(string folder, IReadOnlyList<NodeSpawn>? nodeSpawns = null)
     {
         ArgumentNullException.ThrowIfNull(folder);
         Folder = folder;
+        _spawnsById = (nodeSpawns ?? []).ToDictionary(spawn => spawn.Id, StringComparer.Ordinal);
+        _legacyNodeSpawns = (nodeSpawns ?? [])
+            .Where(spawn => spawn.AtStart && !(spawn.Area == AreaId.Farm && FarmPlot.Phase1Block.Contains(spawn.Position)))
+            .ToList()
+            .AsReadOnly();
     }
 
     public string Folder { get; }
+
+    private readonly Dictionary<string, NodeSpawn> _spawnsById;
+
+    /// <summary>The spawn points a file without <c>resourceNodes</c> gets a node at (AC8).</summary>
+    private readonly IReadOnlyList<NodeSpawn> _legacyNodeSpawns;
 
     public IReadOnlyList<SaveSlotInfo> List()
     {
@@ -133,7 +148,7 @@ public sealed class JsonSaveStore : ISaveStore
     private string SlotPath(int slot) => Path.Combine(Folder, $"slot-{slot}.json");
 
     /// <summary>Reads, migrates and rebuilds one file; false with a one-line reason when any step fails.</summary>
-    private static bool TryRead(string path, out Game game, out string failure)
+    private bool TryRead(string path, out Game game, out string failure)
     {
         game = null!;
         try
@@ -224,6 +239,9 @@ public sealed class JsonSaveStore : ISaveStore
             .ToList(),
         OpeningDone = game.OpeningDone,
         PurchasedListings = game.PurchasedListings.Order(StringComparer.Ordinal).ToList(),
+        ResourceNodes = game.ResourceNodes
+            .Select(node => new ResourceNodeDto { SpawnId = node.SpawnId, Kind = node.Kind, SwingsTaken = node.SwingsTaken })
+            .ToList(),
     };
 
     /// <summary>Every Slot is written, an empty one with a null item, quantity 0 and a null tier.</summary>
@@ -254,7 +272,7 @@ public sealed class JsonSaveStore : ISaveStore
     /// Rebuilds the Game through the domain constructors, whose checks throw <see cref="ArgumentException"/> on a
     /// value that breaks a rule. JSON nulls in place of required objects and undefined enum values are refused here.
     /// </summary>
-    private static Game ToGame(SaveFileDto dto)
+    private Game ToGame(SaveFileDto dto)
     {
         if (dto.Clock < 0)
         {
@@ -278,7 +296,42 @@ public sealed class JsonSaveStore : ISaveStore
             ToShippingBin(shippingBin),
             ToResidents(dto.Residents),
             openingDone: dto.OpeningDone ?? true, // BR-I1: a save from before #139 is past the Opening
-            purchasedListings: ToPurchasedListings(dto.PurchasedListings));
+            purchasedListings: ToPurchasedListings(dto.PurchasedListings),
+            resourceNodes: ToResourceNodes(dto.ResourceNodes));
+    }
+
+    /// <summary>
+    /// No <c>resourceNodes</c> (a version 1 file, or a version 2 file from before #151) is a node at every atStart
+    /// spawn point outside the old plot's block, so nothing lands on the Phase 1 crops (AC8). Otherwise each entry
+    /// is placed on its spawn point's Tile; one whose spawn point isn't in <c>nodes.json</c> is dropped (AC7). A null
+    /// entry or spawn id, an undefined kind or negative swings are refused; the Game constructor refuses a repeat.
+    /// </summary>
+    private IReadOnlyList<ResourceNode> ToResourceNodes(IReadOnlyList<ResourceNodeDto?>? nodes)
+    {
+        if (nodes is null)
+        {
+            return _legacyNodeSpawns.Select(ResourceNode.FromSpawn).ToList();
+        }
+
+        var restored = new List<ResourceNode>(nodes.Count);
+        foreach (var entry in nodes)
+        {
+            var node = Required(entry, "resourceNodes[]");
+            var spawnId = Required(node.SpawnId, "resourceNodes[].spawnId");
+            var kind = Defined(node.Kind, "resourceNodes[].kind");
+            if (node.SwingsTaken < 0)
+            {
+                throw new InvalidDataException(
+                    $"resourceNodes[].swingsTaken must be at least 0, was {node.SwingsTaken}.");
+            }
+
+            if (_spawnsById.TryGetValue(spawnId, out var spawn))
+            {
+                restored.Add(new ResourceNode(spawnId, kind, spawn.Area, spawn.Position, node.SwingsTaken));
+            }
+        }
+
+        return restored;
     }
 
     /// <summary>

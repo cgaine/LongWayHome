@@ -35,6 +35,7 @@ public static class UsePromptText
         string? reason = preview.Rejection switch
         {
             Rejection.AlreadyTilled => "Already tilled",
+            Rejection.NodeInTheWay => "Something's in the way",
             Rejection.TooTired => "Too tired",
             Rejection.NotTilled => "Till the soil first",
             Rejection.TileOccupied => "Something is growing here",

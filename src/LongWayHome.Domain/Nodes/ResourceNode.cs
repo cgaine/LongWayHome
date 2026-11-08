@@ -30,5 +30,9 @@ public sealed class ResourceNode
     public int SwingsTaken { get; }
 
     /// <summary>A node with no swings taken at the spawn point.</summary>
-    public static ResourceNode FromSpawn(NodeSpawn spawn) => throw new NotImplementedException();
+    public static ResourceNode FromSpawn(NodeSpawn spawn)
+    {
+        ArgumentNullException.ThrowIfNull(spawn);
+        return new ResourceNode(spawn.Id, spawn.Kind, spawn.Area, spawn.Position);
+    }
 }

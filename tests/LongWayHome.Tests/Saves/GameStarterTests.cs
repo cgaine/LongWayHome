@@ -24,6 +24,9 @@ public sealed class GameStarterTests : IDisposable
 
     private static int DayStart => TestGames.Shipped.Tuning.DayStartMinutes;
 
+    /// <summary>A Tile in a new Game's cleared 6 x 6 by the farmhouse, with no node on it (#151).</summary>
+    private static readonly GridPosition ClearedTile = new(35, 2);
+
     private GameSession StartNew(int slot, DateTimeOffset? at = null) =>
         GameStarter.StartNew(TestGames.Shipped, Store(), slot, new FixedRandom(99), new FixedTimeProvider(at ?? StartTime));
 
@@ -157,14 +160,14 @@ public sealed class GameStarterTests : IDisposable
     {
         var session = StartNew(1);
         session.AdvanceClock(100);
-        Assert.True(session.Till(new GridPosition(0, 0)).IsOk);
+        Assert.True(session.Till(ClearedTile).IsOk);
         Assert.True(session.Sleep().IsOk);
 
         var loaded = Load(1).Game;
 
         Assert.Equal(new GameDate(1, Season.Spring, 2), loaded.Date);
         Assert.Equal(DayStart, loaded.ClockMinutes);
-        Assert.Equal(TileState.Tilled, loaded.FarmPlot[new GridPosition(0, 0)].State);
+        Assert.Equal(TileState.Tilled, loaded.FarmPlot[ClearedTile].State);
         Assert.Equal(DayEndReason.Slept, loaded.LastDayEnd);
     }
 
@@ -173,13 +176,13 @@ public sealed class GameStarterTests : IDisposable
     {
         var session = StartNew(1);
         session.AdvanceClock(100);
-        Assert.True(session.Till(new GridPosition(0, 0)).IsOk);
+        Assert.True(session.Till(ClearedTile).IsOk);
 
         var loaded = Load(1).Game;
 
         Assert.Equal(new GameDate(1, Season.Spring, 1), loaded.Date);
         Assert.Equal(DayStart, loaded.ClockMinutes);
-        Assert.Equal(TileState.Grass, loaded.FarmPlot[new GridPosition(0, 0)].State);
+        Assert.Equal(TileState.Grass, loaded.FarmPlot[ClearedTile].State);
         Assert.Equal(Player.MaxEnergy, loaded.Player.Energy);
     }
 

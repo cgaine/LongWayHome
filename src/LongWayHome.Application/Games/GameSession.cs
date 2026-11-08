@@ -84,13 +84,14 @@ public sealed class GameSession
     /// <summary>Raised after items drop on the ground or are picked up (BR-K3, BR-K4).</summary>
     public event Action? DroppedItemsChanged;
 
-#pragma warning disable CS0067 // Red stub for #151: raised once the implementation lands.
-    /// <summary>Raised when the Game's ResourceNodes change, and on NightCompleted.</summary>
+    /// <summary>
+    /// Raised when the Game's ResourceNodes change, and on NightCompleted, just before it, so a node view also
+    /// redraws for the new Day's Season.
+    /// </summary>
     public event Action? NodesChanged;
-#pragma warning restore CS0067
 
     /// <summary>The Game's ResourceNodes, for the node views.</summary>
-    public IReadOnlyList<ResourceNode> ResourceNodes => [];
+    public IReadOnlyList<ResourceNode> ResourceNodes => Game.ResourceNodes;
 
     /// <summary>Whether the last successful purchase dropped anything at the farmer's feet.</summary>
     public bool LastBuyDropped { get; private set; }
@@ -762,6 +763,7 @@ public sealed class GameSession
 
         // Every Day starts at the farmhouse door.
         CurrentArea = AreaId.Farm;
+        NodesChanged?.Invoke();
         NightCompleted?.Invoke();
     }
 
