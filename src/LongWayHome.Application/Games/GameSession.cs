@@ -446,10 +446,10 @@ public sealed class GameSession
 
     /// <summary>
     /// Swings the axe or pickaxe at the farm node on <paramref name="position"/> at the tier the Backpack holds it
-    /// (BR-N1, BR-N2, BR-N6, BR-P2). Raises PlayerChanged on success, then NodeSwung when the node still stands, or,
-    /// when it is cleared, InventoryChanged,
-    /// NodesChanged, TileChanged for its Tile, and DroppedItemsChanged when part of the yield fit nowhere and dropped at
-    /// <paramref name="feet"/> (the node's Tile when null; BR-N3, BR-K3). A tool not in the Backpack is NothingToDo.
+    /// (BR-N1, BR-N2, BR-N6, BR-P2); a tool not held, or a tier with no swing count in the tuning, is NothingToDo.
+    /// Raises PlayerChanged on success, then NodeSwung when the node still stands, or, when it is cleared,
+    /// InventoryChanged, NodesChanged, TileChanged for its Tile, and DroppedItemsChanged when part of the yield fit
+    /// nowhere and dropped at <paramref name="feet"/> (the node's Tile when null; BR-N3, BR-K3).
     /// </summary>
     public ActionResult Swing(GridPosition position, ToolId tool, GridPosition? feet = null)
     {
@@ -458,7 +458,7 @@ public sealed class GameSession
             return ActionResult.Rejected(Rejection.NoTarget);
         }
 
-        if (Game.Player.Backpack.TierOf(tool) is not { } tier)
+        if (SwingTier(tool) is not { } tier)
         {
             return ActionResult.Rejected(Rejection.NothingToDo);
         }
@@ -496,9 +496,14 @@ public sealed class GameSession
 
     // BR-N1, BR-N6, BR-P2 for a farm swing at the tier the Backpack holds the tool; a tool not held is NothingToDo.
     private Rejection? SwingRejection(GridPosition position, ToolId tool) =>
-        Game.Player.Backpack.TierOf(tool) is { } tier
+        SwingTier(tool) is { } tier
             ? Game.SwingRejection(AreaId.Farm, position, tool, tier, Data.Tuning.ToolEnergyCost)
             : Rejection.NothingToDo;
+
+    // The tier the Backpack holds the tool at, or null when it isn't held or the tuning has no swing count for that
+    // tier (swingsToClear is optional in tuning.json): then there is no swing, rather than one the domain refuses.
+    private ToolTier? SwingTier(ToolId tool) =>
+        Game.Player.Backpack.TierOf(tool) is { } tier && Data.Tuning.SwingsToClear.ContainsKey(tier) ? tier : null;
 
     /// <summary>Waters a Tile (BR-T9, BR-W2, BR-P2). Raises TileChanged and PlayerChanged on success.</summary>
     public ActionResult Water(GridPosition position)
@@ -702,14 +707,20 @@ public sealed class GameSession
         return result;
     }
 
-    /// <summary>The HUD label for a held item: "Hoe", "Watering can", or "Emberroot seeds × 9".</summary>
+    /// <summary>
+    /// The HUD label for a held item: "Hoe", "Watering can", "Emberroot seeds × 9", or "Wood × 12" with the total held
+    /// across all Slots.
+    /// </summary>
     public string HeldLabel(HeldItem held)
     {
         ArgumentNullException.ThrowIfNull(held);
 
-        return held.Seed is { } seed
-            ? $"{held.DisplayLabel} × {Game.Player.Backpack.Quantity(ItemRef.Seed(seed))}"
-            : held.DisplayLabel;
+        return held switch
+        {
+            { Seed: { } seed } => $"{held.DisplayLabel} × {Game.Player.Backpack.Quantity(ItemRef.Seed(seed))}",
+            { Material: { } material } => $"{held.DisplayLabel} × {Game.Player.Backpack.Quantity(ItemRef.Material(material))}",
+            _ => held.DisplayLabel,
+        };
     }
 
     /// <summary>

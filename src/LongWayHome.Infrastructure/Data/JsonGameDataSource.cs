@@ -382,8 +382,8 @@ public sealed class JsonGameDataSource : IGameDataSource
         Check(tuning.RainChancePercent is >= 0 and <= 100, "rainChancePercent", "between 0 and 100", tuning.RainChancePercent);
         Check(tuning.SeasonLengthDays >= 1, "seasonLengthDays", "at least 1", tuning.SeasonLengthDays);
         Check(tuning.WalkSpeedTilesPerSecond > 0, "walkSpeedTilesPerSecond", "above 0", tuning.WalkSpeedTilesPerSecond);
-        ValidateSwingTuning(tuning, errors);
         Check(tuning.RunSpeedTilesPerSecond >= tuning.WalkSpeedTilesPerSecond, "runSpeedTilesPerSecond", $"at least walkSpeedTilesPerSecond ({tuning.WalkSpeedTilesPerSecond.ToString(CultureInfo.InvariantCulture)})", tuning.RunSpeedTilesPerSecond);
+        ValidateSwingTuning(tuning, errors);
 
         if (tuning.StartingSeeds is null)
         {

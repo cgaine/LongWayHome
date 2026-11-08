@@ -49,6 +49,9 @@ public partial class ResourceNodesView : Node3D
 
     private Tween? _shake;
 
+    /// <summary>The instance the running shake moves, so a new shake can put it back first.</summary>
+    private (MultiMesh Mesh, int Index, Transform3D Resting)? _shaking;
+
     public override void _Ready()
     {
         _session = GetNode<GameRoot>(GameRootPath).Session;
@@ -77,6 +80,7 @@ public partial class ResourceNodesView : Node3D
     {
         _shake?.Kill();
         _shake = null;
+        _shaking = null;
         _instances.Clear();
         foreach (var child in GetChildren())
         {
@@ -120,9 +124,16 @@ public partial class ResourceNodesView : Node3D
             return;
         }
 
-        // One shake at a time: a new swing restarts it from the node's resting transform, the one the build placed.
+        // One shake at a time: a new swing puts the node still shaking back where it stood, then restarts from the
+        // struck node's resting transform, the one the build placed.
         _shake?.Kill();
+        if (_shaking is { } last)
+        {
+            last.Mesh.SetInstanceTransform(last.Index, last.Resting);
+        }
+
         var (mesh, index, rest) = instance;
+        _shaking = instance;
         mesh.SetInstanceTransform(index, rest);
         _shake = CreateTween();
         _shake.TweenMethod(
@@ -134,7 +145,11 @@ public partial class ResourceNodesView : Node3D
             0f,
             1f,
             ShakeSeconds);
-        _shake.TweenCallback(Callable.From(() => mesh.SetInstanceTransform(index, rest)));
+        _shake.TweenCallback(Callable.From(() =>
+        {
+            mesh.SetInstanceTransform(index, rest);
+            _shaking = null;
+        }));
     }
 
     /// <summary>The nodes of <paramref name="kind"/> as props on their Tiles' centres, each turned a little differently.</summary>

@@ -198,6 +198,32 @@ public class SwingGuardTests
         Assert.Empty(swung);
     }
 
+    [Fact]
+    public void Session_with_no_swing_count_for_the_held_tier_offers_no_swing_and_does_nothing()
+    {
+        var data = TestGames.Shipped with
+        {
+            Tuning = TestGames.Shipped.Tuning with { SwingsToClear = new Dictionary<ToolTier, int>() },
+        };
+        var session = new GameSession(GameWith(NodeKind.Tree), data);
+        var before = State(session.Game);
+
+        Assert.Equal(new UsePreview(null, Rejection.NothingToDo), session.PreviewUse(Target, 2));
+        Assert.Equal(ActionResult.Rejected(Rejection.NothingToDo), session.Use(Target, 2, Feet));
+        Assert.Equal(ActionResult.Rejected(Rejection.NothingToDo), session.Swing(Target, ToolId.Axe, Feet));
+        Assert.Equal(before, State(session.Game));
+    }
+
+    [Fact]
+    public void The_held_label_of_a_material_shows_the_total_across_slots()
+    {
+        var session = TestGames.SessionWithBackpack(TestGames.RestoredBackpack(
+            new BackpackSlot(4, ItemRef.Material(MaterialId.Wood), 99, null),
+            new BackpackSlot(7, ItemRef.Material(MaterialId.Wood), 12, null)));
+
+        Assert.Equal("Wood × 111", session.HeldLabel(HeldItem.MaterialOf(MaterialId.Wood)));
+    }
+
     // ---- Labels and icons ----
 
     [Fact]
