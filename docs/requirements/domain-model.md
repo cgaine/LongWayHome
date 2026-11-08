@@ -70,7 +70,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `ToolId` | `hoe`, `watering_can`, `axe`, `pickaxe` | Player tools, ToolItem, Order |
 | `ShopItemKind` | `seed`, `can_upgrade` (Phase 1 only), `tool`; *(planned, REQ-58, REQ-48)* `backpack_upgrade`, `placeable`, `farmhouse_upgrade` | ShopListing |
 | `CropTypeId` | `emberroot`, `dusktuber`, `moonmelon`, `sunbell`, `starcorn` | CropType, Planting, InventoryStack, ShippedItem, ShopListing |
-| `GridPosition` | `{ x: 0–11, y: 0–8 }`; *(planned, REQ-16)* `{ x: 0–71, y: 0–35 }` on the farm, and within each Area's own grid | Tile, ResourceNode, DroppedItem, PlacedObject |
+| `GridPosition` | `{ x: 0–71, y: 0–35 }` on the farm (Phase 1: `{ x: 0–11, y: 0–8 }`); *(planned, REQ-16)* within each Area's own grid | Tile, ResourceNode, DroppedItem, PlacedObject |
 | `GameDate` | `{ year: int ≥ 1, season: Season, day: 1–28 }` | Game |
 | `ClockMinutes` | integer, 360 (06:00) to 1560 (02:00 next morning) | Game |
 | `Gold` | integer ≥ 0 | Player, CropType, ShopListing, BuildingStage, Order |
@@ -647,8 +647,8 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 | Game (with Player, WateringCan, InventoryStacks, FarmPlot, Tiles, Plantings, ShippingBin) | Kept in the save slot on the player's machine until the player deletes or overwrites that slot. Overwritten in place each Night. |
 | CropType, ShopListing | Reference data shipped with the game build, not part of a save. A save stores only `CropTypeId` values, so later builds can retune prices without breaking saves. |
 | Past Days | Not kept. Only the current state is saved; there is no history of earlier Days. |
-| Phase 2 Game state (Backpack, DroppedItems, ResourceNodes, NodeRegrowths, PlacedObjects, Buildings, Orders, MineLevels, Residents, Game flags) *(planned, REQ-45 to REQ-50)* | Part of the Game in its save slot, overwritten each Night like the rest. DroppedItems never outlive a Night (BR-K4), so a save never holds one. |
-| MaterialType, NodeSpawn, BuildingStage, OrderRecipe, ToolTierEffect *(planned)* | Reference data shipped with the build. A save stores only ids, positions and counts, so costs and yields can be retuned without breaking saves. |
+| Phase 2 Game state (ResourceNodes; *(planned, REQ-45 to REQ-50)* Backpack, DroppedItems, NodeRegrowths, PlacedObjects, Buildings, Orders, MineLevels, Residents, Game flags) | Part of the Game in its save slot, overwritten each Night like the rest. DroppedItems never outlive a Night (BR-K4), so a save never holds one. |
+| NodeSpawn; *(planned)* MaterialType, BuildingStage, OrderRecipe, ToolTierEffect | Reference data shipped with the build. A save stores only ids, positions and counts, so costs and yields can be retuned without breaking saves. |
 
 Each save file carries a save-format version (`saveVersion`, currently 2), so later phases (backpack slots, buildings) can migrate Phase 1 saves.
 
