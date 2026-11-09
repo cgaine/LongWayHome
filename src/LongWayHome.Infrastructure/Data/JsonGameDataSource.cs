@@ -530,9 +530,10 @@ public sealed class JsonGameDataSource : IGameDataSource
         }
 
         // BR-B1: the rows reach start + 1, start + 2, ... with no gap, the start being the new-Game stage.
+        var defaults = Game.DefaultBuildings();
         foreach (var (building, stages) in stagesByBuilding)
         {
-            var start = Game.DefaultBuildings()[(int)building].Stage;
+            var start = defaults[(int)building].Stage;
             var expected = Enumerable.Range(start + 1, stages.Count);
             if (!stages.SequenceEqual(expected))
             {
@@ -743,13 +744,14 @@ public sealed class JsonGameDataSource : IGameDataSource
         NodeRegrowthNights = dto.NodeRegrowthNights ?? GameTuning.DefaultNodeRegrowthNights,
     };
 
-    // The enum value whose canonical code is <paramref name="code"/>; validation has already refused unknown codes.
     private static BuildingStage ToBuildingStage(BuildingStageDto dto) => new(
         dto.BuildingId,
         dto.Stage,
         dto.CostItems.Select(item => new MaterialStack(item!.MaterialId, item.Quantity)).ToList().AsReadOnly(),
         new Gold(dto.CostGold),
         dto.Unlocks);
+
+    // The enum value whose canonical code is <paramref name="code"/>; validation has already refused unknown codes.
 
     private static TEnum ParseCode<TEnum>(string code)
         where TEnum : struct, Enum =>

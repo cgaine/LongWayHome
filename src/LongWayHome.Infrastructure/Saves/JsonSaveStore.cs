@@ -272,8 +272,8 @@ public sealed class JsonSaveStore : ISaveStore
     {
         Id = Code(building.Id),
         Stage = building.Stage,
+        // Building.Delivered already enumerates in MaterialId order.
         Delivered = building.Delivered
-            .OrderBy(pair => pair.Key)
             .Select(pair => new DeliveredItemDto { MaterialId = Code(pair.Key), Quantity = pair.Value })
             .ToList(),
         DeliveredGold = building.DeliveredGold,

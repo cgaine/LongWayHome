@@ -94,9 +94,8 @@ public partial class TownView : Node3D
         _signs.Clear();
         foreach (var point in InteractionPoint.FindAll(GetTree().Root, "sign"))
         {
-            // The point's RebuildSignPoint may not be ready yet, so its export is read here.
             if (RebuildSignPoint.Of(point) is not { } signPoint
-                || !BuildingCodes.TryParse(signPoint.Building, out var building)
+                || signPoint.BuildingId is not { } building
                 || _session!.RebuildSign(building) is not { } view)
             {
                 continue;

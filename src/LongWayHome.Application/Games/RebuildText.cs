@@ -11,11 +11,8 @@ public static class RebuildText
     /// <summary>An item line's button.</summary>
     public const string DeliverButton = "Deliver";
 
-    /// <summary>The gold line's button.</summary>
-    public const string DeliverGoldButton = "Deliver 100g";
-
-    /// <summary>The menu's close button.</summary>
-    public const string CloseButton = "Close";
+    /// <summary>The gold line's button: "Deliver 100g", from <see cref="GameSession.GoldPerDelivery"/>.</summary>
+    public static readonly string DeliverGoldButton = $"Deliver {GameSession.GoldPerDelivery}g";
 
     /// <summary>"Rebuild the general store — stage 2".</summary>
     /// <exception cref="ArgumentOutOfRangeException">An undefined Building.</exception>

@@ -18,16 +18,15 @@ public partial class RebuildSignPoint : Node
     /// An unknown code is reported once and the sign never opens.</summary>
     [Export] public string Building { get; set; } = "general_store";
 
-    /// <summary>The Building this sign rebuilds, or null when <see cref="Building"/> is not a known code.</summary>
-    public BuildingId? BuildingId { get; private set; }
+    /// <summary>
+    /// The Building this sign rebuilds, or null when <see cref="Building"/> is not a known code. Parsed from the export
+    /// on read, so it is right before this node is ready.
+    /// </summary>
+    public BuildingId? BuildingId => BuildingCodes.TryParse(Building, out var id) ? id : null;
 
     public override void _Ready()
     {
-        if (BuildingCodes.TryParse(Building, out var id))
-        {
-            BuildingId = id;
-        }
-        else
+        if (BuildingId is null)
         {
             GD.PushError($"{GetPath()}: Building \"{Building}\" is not a Building code.");
         }
