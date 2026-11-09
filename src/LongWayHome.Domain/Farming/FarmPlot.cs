@@ -27,9 +27,13 @@ public sealed class FarmPlot
     }
 
     /// <summary>Restores a Farm plot from exactly one Tile per grid position (BR-T1).</summary>
-    public FarmPlot(IEnumerable<Tile> tiles)
+    public FarmPlot(IEnumerable<Tile> tiles, IEnumerable<PlacedObject>? placedObjects = null)
     {
         ArgumentNullException.ThrowIfNull(tiles);
+        if (placedObjects is not null && placedObjects.Any())
+        {
+            throw new NotImplementedException();
+        }
 
         // BR-T1: every position of the plot exactly once. GridPosition already keeps each one inside the plot.
         _tiles = new Tile[Width * Height];
@@ -65,6 +69,12 @@ public sealed class FarmPlot
             ? _tiles[IndexOf(position.X, position.Y)]
             : throw new ArgumentOutOfRangeException(
                 nameof(position), position, $"The position is off the {Width} x {Height} Farm plot (BR-T1).");
+
+    /// <summary>The fences and chests on the plot, at most one per Tile (BR-F1).</summary>
+    public IReadOnlyList<PlacedObject> PlacedObjects => throw new NotImplementedException();
+
+    /// <summary>The Placed object on <paramref name="position"/>, or null.</summary>
+    public PlacedObject? PlacedAt(GridPosition position) => throw new NotImplementedException();
 
     private static int IndexOf(int x, int y) => (y * Width) + x;
 }

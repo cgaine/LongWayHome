@@ -433,6 +433,25 @@ public sealed class Game
     }
 
     /// <summary>
+    /// Places the fence or chest in Backpack Slot <paramref name="slotIndex"/> on a farm Tile (BR-F1): NoTarget off
+    /// the grid, AlreadyTilled, NodeInTheWay, TileOccupied (a Placed object or Planting), NothingToDo when the Slot
+    /// holds no placeable. Costs no energy.
+    /// </summary>
+    public ActionResult Place(GridPosition position, int slotIndex) => throw new NotImplementedException();
+
+    /// <summary>
+    /// Picks a fence, or an empty chest, back up into the Backpack (BR-F2): ChestNotEmpty, BackpackFull, or
+    /// NothingToDo where nothing is placed.
+    /// </summary>
+    public ActionResult PickUpPlaced(GridPosition position) => throw new NotImplementedException();
+
+    /// <summary>Moves a Backpack Slot's whole stack into the chest at <paramref name="chest"/> (BR-F2, BR-K2, BR-K6).</summary>
+    public ActionResult StoreInChest(GridPosition chest, int backpackSlot) => throw new NotImplementedException();
+
+    /// <summary>Moves a chest slot's whole stack into the Backpack (BR-F2, BR-K3).</summary>
+    public ActionResult TakeFromChest(GridPosition chest, int chestSlot) => throw new NotImplementedException();
+
+    /// <summary>
     /// Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then NodeInTheWay, then
     /// TooTired (BR-T2, BR-P2).
     /// </summary>

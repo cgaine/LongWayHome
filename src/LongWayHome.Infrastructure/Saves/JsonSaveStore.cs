@@ -504,6 +504,11 @@ public sealed class JsonSaveStore : ISaveStore
     // A material carries its code in materialId and no id; every other kind carries its code in id and no materialId.
     private static ItemRef ToItemRef(ItemRefDto item, ItemKind kind, string field)
     {
+        if (kind == ItemKind.Placeable)
+        {
+            throw new NotImplementedException();
+        }
+
         if (kind == ItemKind.Material)
         {
             if (item.Id is not null)
@@ -529,6 +534,7 @@ public sealed class JsonSaveStore : ISaveStore
     private static ItemRefDto ToItemRefDto(ItemRef item) => item.Kind switch
     {
         ItemKind.Material => new ItemRefDto { Kind = item.Kind, MaterialId = Code(item.MaterialId!.Value) },
+        ItemKind.Placeable => throw new NotImplementedException(),
         ItemKind.Tool => new ItemRefDto { Kind = item.Kind, Id = Code(item.ToolId!.Value) },
         _ => new ItemRefDto { Kind = item.Kind, Id = Code(item.CropTypeId!.Value) },
     };

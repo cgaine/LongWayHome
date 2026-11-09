@@ -9,4 +9,6 @@ public enum UseActionKind
     Water,
     Chop,
     Break,
+    Place,
+    PickUp,
 }

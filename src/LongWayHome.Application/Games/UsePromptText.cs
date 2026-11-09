@@ -1,6 +1,7 @@
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
+using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Application.Games;
 
@@ -9,13 +10,15 @@ public static class UsePromptText
 {
     /// <summary>
     /// The prompt text and whether it names an action (true) or a rejection reason (false), or null to show no
-    /// prompt. <paramref name="held"/> is null when the held hotbar slot is empty or holds a crop.
+    /// prompt. <paramref name="held"/> is null when the held hotbar slot is empty or holds a crop;
+    /// <paramref name="targetPlaceable"/> is the fence or chest on the target Tile, if any.
     /// </summary>
     public static (string Text, bool IsAction)? For(
         UsePreview preview,
         HeldItem? held,
         Planting? targetPlanting,
-        IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+        IReadOnlyDictionary<CropTypeId, CropType> cropTypes,
+        PlaceableId? targetPlaceable = null)
     {
         ArgumentNullException.ThrowIfNull(cropTypes);
 

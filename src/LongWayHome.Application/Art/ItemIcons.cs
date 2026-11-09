@@ -57,6 +57,10 @@ public static class ItemIcons
         _ => throw new ArgumentOutOfRangeException(nameof(material), material, "Unknown material."),
     };
 
+    /// <summary>"res://art/icons/placeable_&lt;code&gt;.svg": fence, chest.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">An undefined placeable.</exception>
+    public static string PlaceableIcon(PlaceableId placeable) => throw new NotImplementedException();
+
     /// <summary>"res://art/icons/tool_&lt;code&gt;.svg": axe, pickaxe.</summary>
     /// <exception cref="ArgumentOutOfRangeException">An undefined tool.</exception>
     public static string ToolIcon(GatherTool tool) => tool switch

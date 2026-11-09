@@ -84,6 +84,22 @@ public sealed class GameSession
     /// <summary>Raised after items drop on the ground or are picked up (BR-K3, BR-K4).</summary>
     public event Action? DroppedItemsChanged;
 
+    /// <summary>Raised when a fence or chest is placed or picked up, or a chest's contents change.</summary>
+    public event Action? PlacedObjectsChanged
+    {
+        add => throw new NotImplementedException();
+        remove => throw new NotImplementedException();
+    }
+
+    /// <summary>The chest on the farm Tile at <paramref name="position"/> with its 36 slots, or null when there is none.</summary>
+    public ChestView? ChestAt(GridPosition position) => throw new NotImplementedException();
+
+    /// <summary>Moves a Backpack Slot's stack into the chest at <paramref name="chest"/> (BR-F2, BR-K6).</summary>
+    public ActionResult StoreInChest(GridPosition chest, int backpackSlot) => throw new NotImplementedException();
+
+    /// <summary>Moves a chest slot's stack into the Backpack (BR-F2, BR-K3).</summary>
+    public ActionResult TakeFromChest(GridPosition chest, int chestSlot) => throw new NotImplementedException();
+
     /// <summary>
     /// Raised when the Game's ResourceNodes change, and on NightCompleted, just before it, so a node view also
     /// redraws for the new Day's Season.
