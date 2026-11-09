@@ -64,4 +64,10 @@ internal sealed record SaveFileDto
     /// Always written; optional on load: a version 2 file written before #154 lacks it and counts as <c>["farm"]</c>.
     /// </summary>
     public IReadOnlyList<string?>? NodeAreasPlaced { get; init; }
+
+    /// <summary>
+    /// One entry per Building in enum order (#163). Always written; optional on load: a file without it loads with the
+    /// new-Game Buildings.
+    /// </summary>
+    public IReadOnlyList<BuildingDto?>? Buildings { get; init; }
 }

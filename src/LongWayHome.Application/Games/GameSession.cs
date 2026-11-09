@@ -731,6 +731,32 @@ public sealed class GameSession
         return result;
     }
 
+    /// <summary>The gold one <see cref="DeliverGold"/> press delivers at most (#163).</summary>
+    public const int GoldPerDelivery = 100;
+
+    /// <summary>Raised after a successful delivery at a Rebuild sign (#163).</summary>
+#pragma warning disable CS0067 // #163 red stub: raised once Deliver is implemented.
+    public event Action? BuildingsChanged;
+#pragma warning restore CS0067
+
+    /// <summary>
+    /// What <paramref name="building"/>'s Rebuild sign shows: a line per cost item then the gold line, with delivered,
+    /// needed and held; the stage it builds to and its Unlocks text. Null when the Building has no next stage (BR-B4).
+    /// </summary>
+    public RebuildSignView? RebuildSign(BuildingId building) => throw new NotImplementedException();
+
+    /// <summary>
+    /// Delivers as many of <paramref name="material"/> as held, up to what is still needed (BR-B2). Town only; NotOffered
+    /// elsewhere. Raises PlayerChanged, InventoryChanged and BuildingsChanged on success.
+    /// </summary>
+    public DeliveryResult Deliver(BuildingId building, MaterialId material) => throw new NotImplementedException();
+
+    /// <summary>
+    /// Delivers <see cref="GoldPerDelivery"/> gold, or the remaining need or the gold held if less (BR-B2, BR-P5). Town
+    /// only; NotOffered elsewhere. Raises PlayerChanged, InventoryChanged and BuildingsChanged on success.
+    /// </summary>
+    public DeliveryResult DeliverGold(BuildingId building) => throw new NotImplementedException();
+
     /// <summary>
     /// The HUD label for a held item: "Hoe", "Watering can", "Emberroot seeds × 9", or "Wood × 12" with the total held
     /// across all Slots.

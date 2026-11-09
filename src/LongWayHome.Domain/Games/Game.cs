@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using LongWayHome.Domain.Buildings;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Nodes;
@@ -28,7 +29,8 @@ public sealed class Game
         bool openingDone = true,
         IReadOnlySet<string>? purchasedListings = null,
         IReadOnlyList<ResourceNode>? resourceNodes = null,
-        IReadOnlyList<NodeRegrowth>? nodeRegrowths = null)
+        IReadOnlyList<NodeRegrowth>? nodeRegrowths = null,
+        IReadOnlyList<Building>? buildings = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -51,7 +53,31 @@ public sealed class Game
         ResourceNodes = _resourceNodes.AsReadOnly();
         _nodeRegrowths = ValidNodeRegrowths(nodeRegrowths ?? [], _resourceNodes);
         NodeRegrowths = _nodeRegrowths.AsReadOnly();
+
+        // #163 red stub: not validated and no new-Game default yet.
+        Buildings = (buildings ?? []).ToList().AsReadOnly();
     }
+
+    /// <summary>One Building per <see cref="BuildingId"/>, in enum order.</summary>
+    public IReadOnlyList<Building> Buildings { get; }
+
+    /// <summary>The stage of <paramref name="id"/>'s Building.</summary>
+    public int BuildingStage(BuildingId id) => throw new NotImplementedException();
+
+    /// <summary>The new-Game Buildings: general_store 1, carpenter 0, miras_house 0, blacksmith 0, nothing delivered.</summary>
+    public static IReadOnlyList<Building> DefaultBuildings() => throw new NotImplementedException();
+
+    /// <summary>
+    /// Delivers up to <paramref name="quantity"/> of <paramref name="material"/> from the Backpack toward
+    /// <paramref name="building"/>'s next stage (BR-B2).
+    /// </summary>
+    public DeliveryResult Deliver(
+        BuildingId building, MaterialId material, int quantity, IReadOnlyList<Catalog.BuildingStage> stages) =>
+        throw new NotImplementedException();
+
+    /// <summary>Delivers up to <paramref name="gold"/> of the Player's gold toward the next stage (BR-B2, BR-P5).</summary>
+    public DeliveryResult DeliverGold(BuildingId building, int gold, IReadOnlyList<Catalog.BuildingStage> stages) =>
+        throw new NotImplementedException();
 
     public Guid Id { get; }
 
