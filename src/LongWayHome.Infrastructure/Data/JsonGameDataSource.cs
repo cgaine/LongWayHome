@@ -13,8 +13,8 @@ using LongWayHome.Infrastructure.Data.Dtos;
 namespace LongWayHome.Infrastructure.Data;
 
 /// <summary>
-/// Parses and validates <c>crops.json</c>, <c>shop.json</c>, <c>tuning.json</c>, <c>nodes.json</c> and
-/// <c>materials.json</c>.
+/// Parses and validates <c>crops.json</c>, <c>shop.json</c>, <c>tuning.json</c>, <c>nodes.json</c>,
+/// <c>materials.json</c> and <c>buildings.json</c>.
 /// Takes the file contents as strings, not paths: in an exported build <c>res://</c> files live inside the
 /// <c>.pck</c>, which <c>System.IO</c> can't open, so the Godot layer reads them with <c>Godot.FileAccess</c>.
 /// </summary>
@@ -37,6 +37,7 @@ public sealed class JsonGameDataSource : IGameDataSource
     private readonly string _tuningJson;
     private readonly string _nodesJson;
     private readonly string _materialsJson;
+    private readonly string _buildingsJson;
 
     /// <summary>The four files without <c>materials.json</c>: <see cref="GameData.MaterialTypes"/> loads empty.</summary>
     public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson, string nodesJson)
@@ -44,30 +45,35 @@ public sealed class JsonGameDataSource : IGameDataSource
     {
     }
 
-    /// <summary>All five data files, <c>materials.json</c> included (#152).</summary>
+    /// <summary>
+    /// The five files without <c>buildings.json</c> (#152): <see cref="GameData.BuildingStages"/> loads empty.
+    /// </summary>
     public JsonGameDataSource(string cropsJson, string shopJson, string tuningJson, string nodesJson, string materialsJson)
+        : this(cropsJson, shopJson, tuningJson, nodesJson, materialsJson, NoBuildings)
+    {
+    }
+
+    /// <summary>All six data files, <c>buildings.json</c> included (#163).</summary>
+    public JsonGameDataSource(
+        string cropsJson, string shopJson, string tuningJson, string nodesJson, string materialsJson, string buildingsJson)
     {
         ArgumentNullException.ThrowIfNull(cropsJson);
         ArgumentNullException.ThrowIfNull(shopJson);
         ArgumentNullException.ThrowIfNull(tuningJson);
         ArgumentNullException.ThrowIfNull(nodesJson);
         ArgumentNullException.ThrowIfNull(materialsJson);
+        ArgumentNullException.ThrowIfNull(buildingsJson);
         _cropsJson = cropsJson;
         _shopJson = shopJson;
         _tuningJson = tuningJson;
         _nodesJson = nodesJson;
         _materialsJson = materialsJson;
+        _buildingsJson = buildingsJson;
     }
 
-    /// <summary>All six data files, <c>buildings.json</c> included (#163).</summary>
-    public JsonGameDataSource(
-        string cropsJson, string shopJson, string tuningJson, string nodesJson, string materialsJson, string buildingsJson)
-        : this(cropsJson, shopJson, tuningJson, nodesJson, materialsJson)
-    {
-        throw new NotImplementedException();
-    }
+    private const string NoMaterials = """{ "materialTypes": [] }""";
 
-    private const string NoMaterials ="""{ "materialTypes": [] }""";
+    private const string NoBuildings = """{ "stages": [] }""";
 
     /// <summary>
     /// The serializer options for the data files: camelCase properties, enums as snake_case codes
@@ -84,6 +90,7 @@ public sealed class JsonGameDataSource : IGameDataSource
         var tuningFile = Parse<TuningDto>(_tuningJson, TuningFileName, errors);
         var nodesFile = Parse<NodesFileDto>(_nodesJson, NodesFileName, errors);
         var materialsFile = Parse<MaterialsFileDto>(_materialsJson, MaterialsFileName, errors);
+        var buildingsFile = Parse<BuildingsFileDto>(_buildingsJson, BuildingsFileName, errors);
 
         // Null when crops.json didn't parse: cross-file reference checks are then skipped.
         var cropsById = cropsFile is null ? null : ValidateCrops(cropsFile, errors);
@@ -107,6 +114,11 @@ public sealed class JsonGameDataSource : IGameDataSource
             ValidateMaterials(materialsFile, errors);
         }
 
+        if (buildingsFile is not null)
+        {
+            ValidateBuildings(buildingsFile, errors);
+        }
+
         if (errors.Count > 0)
         {
             throw new GameDataException(errors);
@@ -121,6 +133,7 @@ public sealed class JsonGameDataSource : IGameDataSource
             MaterialTypes = materialsFile!.MaterialTypes
                 .ToDictionary(dto => dto.Id, dto => new MaterialType(dto.Id, dto.Name, dto.MaxStack))
                 .AsReadOnly(),
+            BuildingStages = buildingsFile!.Stages.Select(dto => ToBuildingStage(dto!)).ToList().AsReadOnly(),
         };
     }
 
@@ -467,6 +480,104 @@ public sealed class JsonGameDataSource : IGameDataSource
         }
     }
 
+    // BR-B1: each Building's rows run one stage at a time from the stage after its new-Game stage, with known ids,
+    // quantities of at least 1 and gold of at least 0.
+    private static void ValidateBuildings(BuildingsFileDto file, List<string> errors)
+    {
+        if (file.Stages is null)
+        {
+            errors.Add($"{BuildingsFileName}: stages must be a list, was null");
+            return;
+        }
+
+        var stagesByBuilding = new Dictionary<BuildingId, SortedSet<int>>();
+        for (var index = 0; index < file.Stages.Count; index++)
+        {
+            var row = file.Stages[index];
+            if (row is null)
+            {
+                errors.Add($"{BuildingsFileName}: stages[{index}] must be an object, was null");
+                continue;
+            }
+
+            var label = $"stages[{index}] ({Code(row.BuildingId)} {row.Stage})";
+            if (!Enum.IsDefined(row.BuildingId))
+            {
+                errors.Add($"{BuildingsFileName}: {label}.buildingId is not a known Building");
+                continue;
+            }
+
+            if (row.Stage < 1)
+            {
+                errors.Add($"{BuildingsFileName}: {label}.stage must be at least 1, was {row.Stage}");
+            }
+            else if (!(stagesByBuilding.TryAdd(row.BuildingId, [row.Stage]) || stagesByBuilding[row.BuildingId].Add(row.Stage)))
+            {
+                errors.Add($"{BuildingsFileName}: {Code(row.BuildingId)} stage {row.Stage} has more than one row");
+            }
+
+            if (row.CostGold < 0)
+            {
+                errors.Add($"{BuildingsFileName}: {label}.costGold must be at least 0, was {row.CostGold}");
+            }
+
+            if (row.Unlocks is null)
+            {
+                errors.Add($"{BuildingsFileName}: {label}.unlocks must be text, was null");
+            }
+
+            ValidateCostItems(row, label, errors);
+        }
+
+        // BR-B1: the rows reach start + 1, start + 2, ... with no gap, the start being the new-Game stage.
+        foreach (var (building, stages) in stagesByBuilding)
+        {
+            var start = Game.DefaultBuildings()[(int)building].Stage;
+            var expected = Enumerable.Range(start + 1, stages.Count);
+            if (!stages.SequenceEqual(expected))
+            {
+                errors.Add(
+                    $"{BuildingsFileName}: {Code(building)} stages must run one at a time from {start + 1} (BR-B1), " +
+                    $"were {string.Join(", ", stages)}");
+            }
+        }
+    }
+
+    private static void ValidateCostItems(BuildingStageDto row, string label, List<string> errors)
+    {
+        if (row.CostItems is null)
+        {
+            errors.Add($"{BuildingsFileName}: {label}.costItems must be a list, was null");
+            return;
+        }
+
+        var materials = new HashSet<MaterialId>();
+        for (var index = 0; index < row.CostItems.Count; index++)
+        {
+            var item = row.CostItems[index];
+            if (item is null)
+            {
+                errors.Add($"{BuildingsFileName}: {label}.costItems[{index}] must be an object, was null");
+                continue;
+            }
+
+            if (!Enum.IsDefined(item.MaterialId))
+            {
+                errors.Add($"{BuildingsFileName}: {label}.costItems[{index}].materialId is not a known material");
+            }
+            else if (!materials.Add(item.MaterialId))
+            {
+                errors.Add($"{BuildingsFileName}: {label}.costItems lists {Code(item.MaterialId)} more than once");
+            }
+
+            if (item.Quantity < 1)
+            {
+                errors.Add(
+                    $"{BuildingsFileName}: {label}.costItems[{index}].quantity must be at least 1, was {item.Quantity}");
+            }
+        }
+    }
+
     // BR-N2, BR-N3: optional in the file; when present every tier has a count of at least 1 and every yield stack at
     // least 1 of a material, keyed by canonical codes.
     private static void ValidateSwingTuning(TuningDto tuning, List<string> errors)
@@ -633,6 +744,13 @@ public sealed class JsonGameDataSource : IGameDataSource
     };
 
     // The enum value whose canonical code is <paramref name="code"/>; validation has already refused unknown codes.
+    private static BuildingStage ToBuildingStage(BuildingStageDto dto) => new(
+        dto.BuildingId,
+        dto.Stage,
+        dto.CostItems.Select(item => new MaterialStack(item!.MaterialId, item.Quantity)).ToList().AsReadOnly(),
+        new Gold(dto.CostGold),
+        dto.Unlocks);
+
     private static TEnum ParseCode<TEnum>(string code)
         where TEnum : struct, Enum =>
         TryParseCode<TEnum>(code, out var value) ? value : throw new InvalidOperationException($"Unknown code '{code}'.");

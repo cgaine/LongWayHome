@@ -53,6 +53,18 @@ public class SwingGlueSourceTests
         var source = Code(ReadRepoFile("game", "scripts", "Core", "GameRoot.cs"));
 
         Assert.Contains("JsonGameDataSource.MaterialsFileName", source, StringComparison.Ordinal);
-        Assert.Matches(@"new\s+JsonGameDataSource\(\s*crops!?\s*,\s*shop!?\s*,\s*tuning!?\s*,\s*nodes!?\s*,\s*\w+!?\s*\)", source);
+        // #163 adds buildings.json as a sixth file after materials.json.
+        Assert.Matches(@"new\s+JsonGameDataSource\(\s*crops!?\s*,\s*shop!?\s*,\s*tuning!?\s*,\s*nodes!?\s*,\s*\w+!?\s*(,\s*\w+!?\s*)?\)", source);
+    }
+
+    [Fact]
+    public void Game_root_reads_buildings_json_and_passes_it_to_the_data_source()
+    {
+        var source = Code(ReadRepoFile("game", "scripts", "Core", "GameRoot.cs"));
+
+        Assert.Contains("JsonGameDataSource.BuildingsFileName", source, StringComparison.Ordinal);
+        Assert.Matches(
+            @"new\s+JsonGameDataSource\(\s*crops!?\s*,\s*shop!?\s*,\s*tuning!?\s*,\s*nodes!?\s*,\s*materials!?\s*,\s*buildings!?\s*\)",
+            source);
     }
 }

@@ -1,3 +1,35 @@
 {
-  "stages": []
+  "stages": [
+    {
+      "buildingId": "general_store",
+      "stage": 2,
+      "costItems": [
+        { "materialId": "wood", "quantity": 50 },
+        { "materialId": "stone", "quantity": 25 }
+      ],
+      "costGold": 300,
+      "unlocks": "The whole store reopens: the 24-slot backpack"
+    },
+    {
+      "buildingId": "general_store",
+      "stage": 3,
+      "costItems": [
+        { "materialId": "plank", "quantity": 40 },
+        { "materialId": "stone", "quantity": 60 }
+      ],
+      "costGold": 1200,
+      "unlocks": "A storeroom: the 36-slot backpack and chests"
+    },
+    {
+      "buildingId": "general_store",
+      "stage": 4,
+      "costItems": [
+        { "materialId": "plank", "quantity": 80 },
+        { "materialId": "stone", "quantity": 120 },
+        { "materialId": "rosk_ore", "quantity": 20 }
+      ],
+      "costGold": 3000,
+      "unlocks": "An expanded shop: a shipping bin for the farm"
+    }
+  ]
 }

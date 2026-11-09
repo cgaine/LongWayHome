@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://ui/Hud.tscn" id="2_hud"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://ui/BackpackMenu.tscn" id="9_backpackmenu"]
 [ext_resource type="Script" path="res://scripts/World/NightReturn.cs" id="10_nightreturn"]
 [ext_resource type="PackedScene" path="res://ui/DialogueBox.tscn" id="11_dialoguebox"]
+[ext_resource type="PackedScene" path="res://ui/RebuildMenu.tscn" id="12_rebuildmenu"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcess_rain"]
 emission_shape = 3
@@ -58,6 +59,8 @@ script = ExtResource("3_dayclock")
 [node name="PauseMenu" parent="." instance=ExtResource("4_pausemenu")]
 
 [node name="ShopMenu" parent="." instance=ExtResource("7_shopmenu")]
+
+[node name="RebuildMenu" parent="." instance=ExtResource("12_rebuildmenu")]
 
 [node name="BackpackMenu" parent="." instance=ExtResource("9_backpackmenu")]
 

@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using LongWayHome.Application.Games;
 using LongWayHome.Application.Ports;
 using LongWayHome.Application.Saves;
+using LongWayHome.Domain.Buildings;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
@@ -263,6 +264,19 @@ public sealed class JsonSaveStore : ISaveStore
             .Select(regrowth => new NodeRegrowthDto { SpawnId = regrowth.SpawnId, ClearedOn = ToDto(regrowth.ClearedOn) })
             .ToList(),
         NodeAreasPlaced = _nodeAreasPlaced,
+        Buildings = game.Buildings.Select(ToDto).ToList(),
+    };
+
+    /// <summary>A Building with its delivered items in MaterialId order.</summary>
+    private static BuildingDto ToDto(Building building) => new()
+    {
+        Id = Code(building.Id),
+        Stage = building.Stage,
+        Delivered = building.Delivered
+            .OrderBy(pair => pair.Key)
+            .Select(pair => new DeliveredItemDto { MaterialId = Code(pair.Key), Quantity = pair.Value })
+            .ToList(),
+        DeliveredGold = building.DeliveredGold,
     };
 
     /// <summary>Every Slot is written, an empty one with a null item, quantity 0 and a null tier.</summary>
@@ -316,7 +330,46 @@ public sealed class JsonSaveStore : ISaveStore
             openingDone: dto.OpeningDone ?? true, // BR-I1: a save from before #139 is past the Opening
             purchasedListings: ToPurchasedListings(dto.PurchasedListings),
             resourceNodes: ToResourceNodes(dto.ResourceNodes, dto.NodeAreasPlaced, plot),
-            nodeRegrowths: ToNodeRegrowths(dto.NodeRegrowths));
+            nodeRegrowths: ToNodeRegrowths(dto.NodeRegrowths),
+            buildings: ToBuildings(dto.Buildings));
+    }
+
+    /// <summary>
+    /// No <c>buildings</c> (a version 2 file from before #163) is the new-Game Buildings. Otherwise each entry must name
+    /// a known Building and its delivered items known materials, each at most once; the Building constructor refuses a
+    /// negative stage or gold or a quantity below 1, and the Game constructor a missing, repeated or out-of-order entry.
+    /// </summary>
+    private static List<Building>? ToBuildings(IReadOnlyList<BuildingDto?>? buildings)
+    {
+        if (buildings is null)
+        {
+            return null;
+        }
+
+        var restored = new List<Building>(buildings.Count);
+        foreach (var entry in buildings)
+        {
+            var building = Required(entry, "buildings[]");
+            var delivered = new Dictionary<MaterialId, int>();
+            foreach (var item in Required(building.Delivered, "buildings[].delivered"))
+            {
+                var line = Required(item, "buildings[].delivered[]");
+                var material = FromCode<MaterialId>(
+                    Required(line.MaterialId, "buildings[].delivered[].materialId"), "buildings[].delivered[].materialId");
+                if (!delivered.TryAdd(material, line.Quantity))
+                {
+                    throw new InvalidDataException($"buildings[].delivered lists '{line.MaterialId}' more than once.");
+                }
+            }
+
+            restored.Add(new Building(
+                FromCode<BuildingId>(Required(building.Id, "buildings[].id"), "buildings[].id"),
+                building.Stage,
+                delivered,
+                building.DeliveredGold));
+        }
+
+        return restored;
     }
 
     /// <summary>

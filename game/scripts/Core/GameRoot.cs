@@ -63,12 +63,13 @@ public partial class GameRoot : Node
         var tuning = ReadFile(JsonGameDataSource.TuningFileName, errors);
         var nodes = ReadFile(JsonGameDataSource.NodesFileName, errors);
         var materials = ReadFile(JsonGameDataSource.MaterialsFileName, errors);
+        var buildings = ReadFile(JsonGameDataSource.BuildingsFileName, errors);
 
         if (errors.Count == 0)
         {
             try
             {
-                Data = new JsonGameDataSource(crops!, shop!, tuning!, nodes!, materials!).Load();
+                Data = new JsonGameDataSource(crops!, shop!, tuning!, nodes!, materials!, buildings!).Load();
             }
             catch (GameDataException exception)
             {

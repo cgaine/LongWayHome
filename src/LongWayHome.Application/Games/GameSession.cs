@@ -735,27 +735,67 @@ public sealed class GameSession
     public const int GoldPerDelivery = 100;
 
     /// <summary>Raised after a successful delivery at a Rebuild sign (#163).</summary>
-#pragma warning disable CS0067 // #163 red stub: raised once Deliver is implemented.
     public event Action? BuildingsChanged;
-#pragma warning restore CS0067
 
     /// <summary>
     /// What <paramref name="building"/>'s Rebuild sign shows: a line per cost item then the gold line, with delivered,
     /// needed and held; the stage it builds to and its Unlocks text. Null when the Building has no next stage (BR-B4).
     /// </summary>
-    public RebuildSignView? RebuildSign(BuildingId building) => throw new NotImplementedException();
+    /// <exception cref="ArgumentOutOfRangeException">The value is not a <see cref="BuildingId"/> member.</exception>
+    public RebuildSignView? RebuildSign(BuildingId building)
+    {
+        var target = Game.BuildingOf(building);
+        if (target.NextStage(Data.BuildingStages) is not { } next)
+        {
+            return null;
+        }
+
+        var backpack = Game.Player.Backpack;
+        var lines = next.CostItems
+            .Select(cost => new RebuildLine(
+                cost.Material,
+                MaterialLabels.For(cost.Material),
+                target.DeliveredOf(cost.Material),
+                cost.Quantity,
+                backpack.Quantity(ItemRef.Material(cost.Material))))
+            .Append(new RebuildLine(null, GoldLabel, target.DeliveredGold, next.CostGold.Value, Game.Player.Gold.Value))
+            .ToList();
+        return new RebuildSignView(building, next.Stage, next.Unlocks, lines);
+    }
+
+    /// <summary>The gold line's label on a Rebuild sign.</summary>
+    public const string GoldLabel = "Gold";
 
     /// <summary>
     /// Delivers as many of <paramref name="material"/> as held, up to what is still needed (BR-B2). Town only; NotOffered
     /// elsewhere. Raises PlayerChanged, InventoryChanged and BuildingsChanged on success.
     /// </summary>
-    public DeliveryResult Deliver(BuildingId building, MaterialId material) => throw new NotImplementedException();
+    public DeliveryResult Deliver(BuildingId building, MaterialId material) =>
+        RaiseIfDelivered(CurrentArea == AreaId.Town
+            // BR-B2: the Game clamps to what is held and to what is still needed.
+            ? Game.Deliver(building, material, int.MaxValue, Data.BuildingStages)
+            : DeliveryResult.Rejected(Rejection.NotOffered));
 
     /// <summary>
     /// Delivers <see cref="GoldPerDelivery"/> gold, or the remaining need or the gold held if less (BR-B2, BR-P5). Town
     /// only; NotOffered elsewhere. Raises PlayerChanged, InventoryChanged and BuildingsChanged on success.
     /// </summary>
-    public DeliveryResult DeliverGold(BuildingId building) => throw new NotImplementedException();
+    public DeliveryResult DeliverGold(BuildingId building) =>
+        RaiseIfDelivered(CurrentArea == AreaId.Town
+            ? Game.DeliverGold(building, GoldPerDelivery, Data.BuildingStages)
+            : DeliveryResult.Rejected(Rejection.NotOffered));
+
+    private DeliveryResult RaiseIfDelivered(DeliveryResult result)
+    {
+        if (result.IsOk)
+        {
+            PlayerChanged?.Invoke();
+            InventoryChanged?.Invoke();
+            BuildingsChanged?.Invoke();
+        }
+
+        return result;
+    }
 
     /// <summary>
     /// The HUD label for a held item: "Hoe", "Watering can", "Emberroot seeds × 9", or "Wood × 12" with the total held

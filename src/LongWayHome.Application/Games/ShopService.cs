@@ -30,15 +30,13 @@ public static class ShopService
     }
 
     /// <summary>
-    /// The vendor Building's stage: 1 for the general store and 0 for every other Building, until #124 gives Buildings
-    /// their stages. The single place a vendor's stage is read.
+    /// The vendor Building's stage, read from the Game's Building (BR-L5). The single place a vendor's stage is read.
     /// </summary>
     public static int VendorStage(Game game, BuildingId vendor)
     {
         ArgumentNullException.ThrowIfNull(game);
 
-        // REQ-58: Maggie's store sells from stage 1 on day one; no other Building sells yet (#124 replaces this).
-        return vendor == BuildingId.GeneralStore ? 1 : 0;
+        return game.BuildingStage(vendor);
     }
 
     /// <summary>

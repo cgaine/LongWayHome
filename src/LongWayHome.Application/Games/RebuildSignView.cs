@@ -13,7 +13,7 @@ public sealed record RebuildLine(MaterialId? Material, string Label, int Deliver
     public bool IsGold => Material is null;
 
     /// <summary>Whether <see cref="Delivered"/> covers <see cref="Needed"/>.</summary>
-    public bool Complete => throw new NotImplementedException();
+    public bool Complete => Delivered >= Needed;
 }
 
 /// <summary>
@@ -23,14 +23,20 @@ public sealed record RebuildLine(MaterialId? Material, string Label, int Deliver
 public sealed record RebuildSignView(BuildingId Building, int Stage, string Unlocks, IReadOnlyList<RebuildLine> Lines)
 {
     /// <summary>Filled when every wood, plank and sealed_plank line is complete; filled when there is none.</summary>
-    public bool WoodPip => throw new NotImplementedException();
+    public bool WoodPip =>
+        KindComplete(material => material is MaterialId.Wood or MaterialId.Plank or MaterialId.SealedPlank);
 
     /// <summary>Filled when every stone and ore line is complete; filled when there is none.</summary>
-    public bool StonePip => throw new NotImplementedException();
+    public bool StonePip =>
+        KindComplete(material => material is MaterialId.Stone or MaterialId.RoskOre or MaterialId.GrothOre);
 
     /// <summary>Filled when the gold line is complete; filled when there is none.</summary>
-    public bool GoldPip => throw new NotImplementedException();
+    public bool GoldPip => Lines.Where(line => line.IsGold).All(line => line.Complete);
 
     /// <summary>Whether every line is complete.</summary>
-    public bool AllComplete => throw new NotImplementedException();
+    public bool AllComplete => Lines.All(line => line.Complete);
+
+    /// <summary>Whether every item line whose material is of the kind is complete; true when there is none.</summary>
+    private bool KindComplete(Func<MaterialId, bool> ofKind) =>
+        Lines.Where(line => line.Material is { } material && ofKind(material)).All(line => line.Complete);
 }

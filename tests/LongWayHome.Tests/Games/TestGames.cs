@@ -358,6 +358,8 @@ internal static class TestGames
             Read(JsonGameDataSource.CropsFileName),
             Read(JsonGameDataSource.ShopFileName),
             Read(JsonGameDataSource.TuningFileName),
-            Read(JsonGameDataSource.NodesFileName)).Load();
+            Read(JsonGameDataSource.NodesFileName),
+            Read(JsonGameDataSource.MaterialsFileName),
+            Read(JsonGameDataSource.BuildingsFileName)).Load();
     }
 }
