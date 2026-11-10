@@ -1,7 +1,9 @@
 #nullable enable
 
+using System.Collections.Generic;
 using Godot;
 using LongWayHome.Application.Games;
+using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Games;
 using LongWayHome.Game.Core;
 
@@ -9,16 +11,18 @@ namespace LongWayHome.Game.Ui;
 
 /// <summary>
 /// The fade between two Days, over everything else. On <see cref="GameSession.DayEnded"/> it shows a full-screen
-/// black panel with a centred "You slept." or "You passed out…", then fades it out over about a second. When that
-/// Night's save failed (<see cref="GameSession.SaveFailed"/>) a second line, "The game could not be saved.", shows
-/// under the message. Purely
-/// cosmetic: the Night has already run by the time the fade starts. Always processes, so pausing mid-fade cannot
-/// leave the black screen stuck over the pause menu. While showing it swallows <c>interact</c> and <c>use_tool</c>
-/// presses, so a press while waking in the door's range cannot sleep again (or refill, or use a tool). It is the last
-/// child of <c>AreaCommon.tscn</c>, which is the last child of every area scene, so its <c>_UnhandledInput</c> runs
-/// before those actions'. When the Night ended in another area (#136), that area's <c>NightReturn</c> changes to the
-/// farm and leaves the message on <see cref="GameRoot.PendingNight"/>: the farm's NightTransition shows it on start, so
-/// the Player still sees it as he wakes at the door. Holds no rules.
+/// black panel with a centred "You slept." or "You passed out…", then fades it out over about a second. Directly
+/// under the message it shows one line per Building the Night rebuilt (<see cref="GameSession.BuildingsRebuilt"/>,
+/// #165), such as "The general store has been rebuilt.". When that Night's save failed
+/// (<see cref="GameSession.SaveFailed"/>), "The game could not be saved." shows under those lines, or under the
+/// message when nothing was rebuilt. Purely cosmetic: the Night has already run by the time the fade starts. Always
+/// processes, so pausing mid-fade cannot leave the black screen stuck over the pause menu. While showing it swallows
+/// <c>interact</c> and <c>use_tool</c> presses, so a press while waking in the door's range cannot sleep again (or
+/// refill, or use a tool). It is the last child of <c>AreaCommon.tscn</c>, which is the last child of every area
+/// scene, so its <c>_UnhandledInput</c> runs before those actions'. When the Night ended in another area (#136), that
+/// area's <c>NightReturn</c> changes to the farm and leaves the message, its rebuilt ids and whether the save failed
+/// on <see cref="GameRoot.PendingNight"/>: the farm's NightTransition shows them on start, so the Player still sees
+/// them as he wakes at the door. Holds no rules.
 /// </summary>
 public partial class NightTransition : CanvasLayer
 {
@@ -39,6 +43,11 @@ public partial class NightTransition : CanvasLayer
 
     private Label _saveFailed = null!;
 
+    private Label _rebuilt = null!;
+
+    /// <summary>The save-failed line's top offset when no rebuilt line shows, as set in the scene.</summary>
+    private float _saveFailedTop;
+
     private Tween? _fade;
 
     public override void _Ready()
@@ -49,6 +58,10 @@ public partial class NightTransition : CanvasLayer
         _saveFailed = GetNode<Label>("Panel/SaveFailed");
         _saveFailed.Text = SaveFailedText;
         _saveFailed.Visible = false;
+        _saveFailedTop = _saveFailed.OffsetTop;
+        _rebuilt = GetNode<Label>("Panel/Rebuilt");
+        _rebuilt.Text = "";
+        _rebuilt.Visible = false;
         _panel.Visible = false;
 
         var root = GetNode<GameRoot>("/root/GameRoot");
@@ -57,6 +70,7 @@ public partial class NightTransition : CanvasLayer
         {
             _session.DayEnded += OnDayEnded;
             _session.SaveFailed += OnSaveFailed;
+            _session.BuildingsRebuilt += OnBuildingsRebuilt;
         }
 
         if (root.PendingNight is { } pending)
@@ -64,6 +78,10 @@ public partial class NightTransition : CanvasLayer
             root.PendingNight = null;
             OnDayEnded(pending.Reason);
             _saveFailed.Visible = pending.SaveFailed;
+            if (pending.Rebuilt.Count > 0)
+            {
+                OnBuildingsRebuilt(pending.Rebuilt);
+            }
         }
     }
 
@@ -73,6 +91,7 @@ public partial class NightTransition : CanvasLayer
         {
             _session.DayEnded -= OnDayEnded;
             _session.SaveFailed -= OnSaveFailed;
+            _session.BuildingsRebuilt -= OnBuildingsRebuilt;
         }
     }
 
@@ -93,8 +112,12 @@ public partial class NightTransition : CanvasLayer
         _fade?.Kill();
         _message.Text = MessageFor(reason);
 
-        // DayEnded comes before the Night, so its SaveFailed (if any) arrives after this and shows the line again.
+        // DayEnded comes before the Night, so its SaveFailed and BuildingsRebuilt (if any) arrive after this and show
+        // their lines again.
         _saveFailed.Visible = false;
+        _rebuilt.Visible = false;
+        _rebuilt.Text = "";
+        PlaceSaveFailed();
         _panel.Modulate = Colors.White;
         _panel.Visible = true;
 
@@ -106,4 +129,21 @@ public partial class NightTransition : CanvasLayer
 
     /// <summary>The Night this fade follows could not be saved (BR-G5): show the second line.</summary>
     private void OnSaveFailed(string reason) => _saveFailed.Visible = true;
+
+    /// <summary>The Night this fade follows rebuilt <paramref name="ids"/> (BR-B3): one line each under the message.</summary>
+    private void OnBuildingsRebuilt(IReadOnlyList<BuildingId> ids)
+    {
+        _rebuilt.Text = BuildingLabels.RebuiltText(ids);
+        _rebuilt.Visible = ids.Count > 0;
+        PlaceSaveFailed();
+    }
+
+    /// <summary>Puts the save-failed line directly under the rebuilt lines when they show, else where the scene has it.</summary>
+    private void PlaceSaveFailed()
+    {
+        var height = _saveFailed.OffsetBottom - _saveFailed.OffsetTop;
+        var top = _rebuilt.Visible ? _rebuilt.OffsetTop + _rebuilt.GetMinimumSize().Y : _saveFailedTop;
+        _saveFailed.OffsetTop = top;
+        _saveFailed.OffsetBottom = top + height;
+    }
 }

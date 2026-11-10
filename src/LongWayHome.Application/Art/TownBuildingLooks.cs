@@ -19,8 +19,15 @@ public static class TownBuildingLooks
     public const float StoreroomHeight = 2.3f;
 
     /// <summary>The store's look at <paramref name="stage"/>: 1–4; anything else throws ArgumentOutOfRangeException.</summary>
-    public static StoreStage Store(int stage) => throw new NotImplementedException();
+    public static StoreStage Store(int stage) => stage switch
+    {
+        1 => StoreStage.MaggiesCorner,
+        2 => StoreStage.Reopened,
+        3 => StoreStage.Storeroom,
+        4 => StoreStage.ExpandedShop,
+        _ => throw new ArgumentOutOfRangeException(nameof(stage), stage, "The general store's stages are 1 to 4."),
+    };
 
     /// <summary>Whether the store's look has the storeroom drum (Storeroom, ExpandedShop).</summary>
-    public static bool HasStoreroom(StoreStage stage) => throw new NotImplementedException();
+    public static bool HasStoreroom(StoreStage stage) => stage is StoreStage.Storeroom or StoreStage.ExpandedShop;
 }

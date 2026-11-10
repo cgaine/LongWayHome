@@ -850,9 +850,7 @@ public sealed class GameSession
     /// Raised after the Night (after SaveFailed, before NightCompleted) with the Buildings it rebuilt, only when it
     /// rebuilt at least one; BuildingsChanged is raised too (#165, BR-B3).
     /// </summary>
-#pragma warning disable CS0067 // Raised by #165's implementation.
     public event Action<IReadOnlyList<BuildingId>>? BuildingsRebuilt;
-#pragma warning restore CS0067
 
     /// <summary>
     /// What <paramref name="building"/>'s Rebuild sign shows: a line per cost item then the gold line, with delivered,
@@ -1054,11 +1052,18 @@ public sealed class GameSession
         DayEnded?.Invoke(reason);
 
         string? saveFailure = null;
-        NightProcessor.Run(Game, Data, reason, _random, game => saveFailure = Save(game));
+        var night = NightProcessor.Run(Game, Data, reason, _random, game => saveFailure = Save(game));
 
         if (saveFailure is not null)
         {
             SaveFailed?.Invoke(saveFailure);
+        }
+
+        // BR-B3: the wake-up names each Building the Night rebuilt; its sign now asks for the next stage.
+        if (night.Rebuilt.Count > 0)
+        {
+            BuildingsRebuilt?.Invoke(night.Rebuilt);
+            BuildingsChanged?.Invoke();
         }
 
         // Every Day starts at the farmhouse door.

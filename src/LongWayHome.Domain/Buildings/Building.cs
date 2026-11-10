@@ -50,7 +50,7 @@ public sealed class Building
     public BuildingId Id { get; }
 
     /// <summary>The Building's current stage (BR-B1).</summary>
-    public int Stage { get; }
+    public int Stage { get; private set; }
 
     /// <summary>The items delivered toward the next stage, by material in enum order (BR-B2).</summary>
     public IReadOnlyDictionary<MaterialId, int> Delivered { get; }
@@ -87,5 +87,10 @@ public sealed class Building
     internal void AddDeliveredGold(int gold) => DeliveredGold += gold;
 
     /// <summary>Raises the stage by one and clears the deliveries (BR-B3); Game only.</summary>
-    internal void Rebuild() => throw new NotImplementedException();
+    internal void Rebuild()
+    {
+        Stage++;
+        _delivered.Clear();
+        DeliveredGold = 0;
+    }
 }

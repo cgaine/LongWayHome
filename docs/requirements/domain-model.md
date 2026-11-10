@@ -412,7 +412,7 @@ stateDiagram-v2
 | active → night (Sleep) | Player, at the house door | BR-G3 |
 | active → night (Pass out) | Game, when the clock reaches 02:00 | BR-G3, BR-P4 |
 | night → active | Game | Night steps in order: BR-T4 growth → BR-S2 payout → BR-K4 dropped items removed → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
-| night → active (Phase 2) *(planned, REQ-45, REQ-48, REQ-50, REQ-57)* | Game | Night steps in order: BR-T4 growth → BR-S2 payout (once the bin exists, BR-S3) → BR-B3 rebuilds → BR-O2 orders ready → BR-R2, BR-R3 residents arrive → BR-K4 dropped items removed → BR-N4 regrowth → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
+| night → active (Phase 2) *(planned, REQ-45, REQ-48, REQ-50, REQ-57; the BR-B3 rebuilds slot built in #165)* | Game | Night steps in order: BR-T4 growth → BR-S2 payout (once the bin exists, BR-S3) → BR-B3 rebuilds → BR-O2 orders ready → BR-R2, BR-R3 residents arrive → BR-K4 dropped items removed → BR-N4 regrowth → BR-G1 date advance → BR-G4 weather → BR-T7 watering reset → BR-P3 energy → BR-G5 save |
 
 ### Tile
 
@@ -462,7 +462,7 @@ stateDiagram-v2
 | Transition | Actor | Rule |
 |------------|-------|------|
 | deliver | Player, at the Rebuild sign | BR-B2, BR-B4 |
-| rebuild *(planned, REQ-45)* | Game (Night) | BR-B3, BR-B5 |
+| rebuild | Game (Night) | BR-B3, BR-B5 *(BR-B5 unlocks planned, REQ-45)* |
 
 ### MineLevel *(planned, REQ-49)*
 
@@ -599,7 +599,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 
 - BR-B1: A Building rises one stage at a time, in order, to its last Phase 2 stage.
 - BR-B2: At a Building's Rebuild sign the Player can deliver any amount of the next stage's items and gold, up to what is still needed. A delivery takes the items from the Backpack and the gold at once, and can't be taken back.
-- BR-B3: In the Night after the next stage's full cost has been delivered, the Building's stage rises by one and its deliveries are cleared. *(planned, REQ-45)*
+- BR-B3: In the Night after the next stage's full cost has been delivered, the Building's stage rises by one and its deliveries are cleared.
 - BR-B4: A Rebuild sign appears only for a Building whose next stage exists and whose `requires` holds: the blacksmith's needs Mira present (BR-R3). The carpenter's and Mira's house's signs are there from the start. *(`requires` and the carpenter's, Mira's house's and blacksmith's signs planned, REQ-45, REQ-50: their stage rows and the blacksmith's `requires` come with #125 and #127)*
 - BR-B5: Stage unlocks: general store 2 the 24-slot backpack, 3 the 36-slot backpack and chests, 4 the farm Shipping Bin (BR-S3); carpenter 1 planks, sealed planks, fences and chests and the Hollis family, 2 the bridge (BR-A1) and the farmhouse upgrade; Mira's house 1 Mira's return (BR-R3); blacksmith 1 Rosk upgrades and Rosk pumps, 2 Groth upgrades. The farmhouse upgrade, once bought, sets `farmhouseRestored` the next morning and changes only the farmhouse's look. *(planned, REQ-45, REQ-48, REQ-57, REQ-58)*
 

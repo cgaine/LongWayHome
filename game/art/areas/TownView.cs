@@ -12,12 +12,16 @@ namespace LongWayHome.Game.Art;
 
 /// <summary>
 /// Ember Bay's scenery (#136, ART_DIRECTION §7.3), from <see cref="TownLayout"/>: the grass ground, the road from the
-/// north exit to the south exit, the round square, the general store at <see cref="StoreStage.MaggiesCorner"/>, the
-/// carpenter at <see cref="CarpenterStage.Empty"/> and the blacksmith at <see cref="BlacksmithStage.Empty"/> (meshes
-/// from <see cref="TownModels"/>), a few Twinbough trees as one <see cref="MultiMeshInstance3D"/> with trunk collision,
+/// north exit to the south exit, the round square, the general store at the look of its Building's stage
+/// (<see cref="TownBuildingLooks.Store"/>, #165; stage 1 with no session) with that look's lit windows, shown only
+/// while <see cref="NightGlow.At"/> of the clock is above 0 and glowing through <c>art_night</c>, the carpenter at
+/// <see cref="CarpenterStage.Empty"/> and the blacksmith at <see cref="BlacksmithStage.Empty"/> (meshes from
+/// <see cref="TownModels"/>), a few Twinbough trees as one <see cref="MultiMeshInstance3D"/> with trunk collision,
 /// the river down the east side and the broken bridge stub on it (scenery only: across the river stays closed). Each
-/// building's box collision and the river bank are in the scene. Built once on start, except the Rebuild sign in front
-/// of the store (#163), drawn at its <c>"sign"</c> point while the session has one and redrawn on
+/// building's box collision and the river bank are in the scene; the store's storeroom drum, at the looks that have
+/// one, gets its own cylinder collision, <c>StoreStoreroom</c>. Built once on start, since a rebuild only happens in
+/// the Night and the town is always entered fresh after one, except the night lights' visibility and the Rebuild sign
+/// in front of the store (#163), drawn at its <c>"sign"</c> point while the session has one and redrawn on
 /// <see cref="GameSession.BuildingsChanged"/>, its pips from <see cref="RebuildSignView"/>; holds no rules.
 /// </summary>
 public partial class TownView : Node3D
@@ -35,9 +39,13 @@ public partial class TownView : Node3D
 
     private GameSession? _session;
 
+    private MeshInstance3D? _storeNightLights;
+
     public override void _Ready()
     {
-        var season = GetNode<GameRoot>("/root/GameRoot").Session?.Game.Date.Season ?? Season.Spring;
+        _session = GetNode<GameRoot>("/root/GameRoot").Session;
+        var season = _session?.Game.Date.Season ?? Season.Spring;
+        var storeLook = TownBuildingLooks.Store(_session?.Game.BuildingOf(BuildingId.GeneralStore).Stage ?? 1);
         var trees = TownLayout.Trees();
 
         AddChild(AreaArt.Flat("Ground", -HalfWidth - 6f, RiverWestX, -HalfDepth - 3f, HalfDepth + 3f, 0f, "grass-lit"));
@@ -52,22 +60,29 @@ public partial class TownView : Node3D
         {
             var mesh = building.Kind switch
             {
-                TownBuildingKind.Store => TownModels.Store(StoreStage.MaggiesCorner),
+                TownBuildingKind.Store => TownModels.Store(storeLook),
                 TownBuildingKind.Carpenter => TownModels.Carpenter(CarpenterStage.Empty),
                 _ => TownModels.Blacksmith(BlacksmithStage.Empty),
             };
             AddChild(AreaArt.Model(building.Kind.ToString(), mesh, building.X, building.Z));
+            if (building.Kind == TownBuildingKind.Store)
+            {
+                AddStoreExtras(storeLook, building.X, building.Z);
+            }
         }
 
         AddChild(AreaArt.Many("Trees", NatureModels.Twinbough(TreeStage.Full, season), trees));
         AddChild(AreaArt.Trunks("TreeTrunks", trees, TrunkRadius));
 
-        _session = GetNode<GameRoot>("/root/GameRoot").Session;
         if (_session is not null)
         {
             _session.BuildingsChanged += RebuildSigns;
+            _session.ClockChanged += ShowStoreNightLights;
+            _session.NightCompleted += ShowStoreNightLights;
             RebuildSigns();
         }
+
+        ShowStoreNightLights();
     }
 
     public override void _ExitTree()
@@ -75,6 +90,53 @@ public partial class TownView : Node3D
         if (_session is not null)
         {
             _session.BuildingsChanged -= RebuildSigns;
+            _session.ClockChanged -= ShowStoreNightLights;
+            _session.NightCompleted -= ShowStoreNightLights;
+        }
+    }
+
+    /// <summary>
+    /// The store's night lights for <paramref name="look"/> (none when the look has no lit panes) and, at the looks with
+    /// the storeroom drum, its cylinder collision, both at the store's position.
+    /// </summary>
+    private void AddStoreExtras(StoreStage look, float x, float z)
+    {
+        var lights = TownModels.StoreNightLights(look);
+        if (lights.GetSurfaceCount() > 0)
+        {
+            _storeNightLights = AreaArt.Model("StoreNightLights", lights, x, z);
+            _storeNightLights.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+            _storeNightLights.Visible = false;
+            AddChild(_storeNightLights);
+        }
+
+        if (TownBuildingLooks.HasStoreroom(look))
+        {
+            var storeroom = new StaticBody3D
+            {
+                Name = "StoreStoreroom",
+                Position = new Vector3(x + TownBuildingLooks.StoreroomOffsetX, 0f, z + TownBuildingLooks.StoreroomOffsetZ),
+            };
+            storeroom.AddChild(new CollisionShape3D
+            {
+                Name = "CollisionShape3D",
+                Shape = new CylinderShape3D
+                {
+                    Radius = TownBuildingLooks.StoreroomRadius,
+                    Height = TownBuildingLooks.StoreroomHeight,
+                },
+                Position = new Vector3(0f, TownBuildingLooks.StoreroomHeight / 2f, 0f),
+            });
+            AddChild(storeroom);
+        }
+    }
+
+    /// <summary>The store's lit windows show only while the night glow is on (<see cref="NightGlow.At"/> above 0).</summary>
+    private void ShowStoreNightLights()
+    {
+        if (_storeNightLights is not null)
+        {
+            _storeNightLights.Visible = _session is not null && NightGlow.At(_session.Game.ClockMinutes) > 0;
         }
     }
 

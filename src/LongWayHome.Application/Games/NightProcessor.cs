@@ -60,6 +60,12 @@ public static class NightProcessor
         // BR-S2: the shipping payout, after growth and before the date step.
         game.PayOutShippingBin(data.CropTypes);
 
+        // BR-B3: the rebuilds, after the payout. Every Building whose next stage is fully delivered rises one stage
+        // and its deliveries clear, before the save so the saved Game holds the new stage (BR-G5).
+        var rebuilt = game.RebuildDue(data.BuildingStages);
+
+        // Phase 2 slots, in order: BR-O2 orders ready, then BR-R2, BR-R3 residents arrive.
+
         // BR-K4: every DroppedItem left on the ground is removed, after the payout and before the date step, so a
         // save never holds one (BR-G5).
         game.ClearDroppedItems();
@@ -95,6 +101,6 @@ public static class NightProcessor
         // BR-G5: the save is the Night's last step, so the saved Game is the next morning's.
         save(game);
 
-        return new NightResult([]);
+        return new NightResult(rebuilt);
     }
 }
