@@ -6,14 +6,15 @@ using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Application.Games;
 
-/// <summary>The Shop: what it offers today (BR-L1, BR-L4, BR-L5) and buying from it (BR-L2).</summary>
+/// <summary>The Shop: what it offers today (BR-L1, BR-L4, BR-L5) and buying from it (BR-L2, BR-K1, BR-K3).</summary>
 public static class ShopService
 {
     /// <summary>
     /// The listings offered today, in listing order within each kind: the in-season seeds (BR-L1), then the axe and
-    /// pickaxe while not in the Backpack (BR-L4), then the Can upgrade while the Watering can is not upgraded. A listing
-    /// is offered only when its vendor is at or above its <see cref="ShopListing.RequiresStage"/>, and a once-per-game
-    /// listing only until bought (BR-L5).
+    /// pickaxe while not in the Backpack (BR-L4), then the backpack upgrades above the Backpack's capacity (BR-K1),
+    /// then the placeables, then the Can upgrade while the Watering can is not upgraded. A listing is offered only when
+    /// its vendor is at or above its <see cref="ShopListing.RequiresStage"/>, and a once-per-game listing only until
+    /// bought (BR-L5).
     /// </summary>
     public static IReadOnlyList<ShopListing> Offers(Game game, GameData data)
     {
@@ -40,13 +41,14 @@ public static class ShopService
     }
 
     /// <summary>
-    /// Buys a quantity of an offered listing: takes the price and gains the seeds, or applies the Can upgrade, in one
-    /// step (BR-L2, BR-W4), or puts a tool in the lowest free Slot at Basic (BR-L4). Seeds that fit nowhere drop at
-    /// <paramref name="feet"/>, or at plot tile (0, 0) when it is null, so a seed purchase is never refused for room
-    /// (BR-K3). A quantity below 1, or other than 1 for the Can upgrade or a tool, throws; a listing not offered today
-    /// is NotOffered; less gold than the total is NotEnoughGold; a tool with no free Slot is BackpackFull. A
-    /// once-per-game listing bought is recorded (BR-L5). A rejection or an overflowing total changes nothing, and
-    /// buying costs no energy (BR-P2).
+    /// Buys a quantity of an offered listing: takes the price and gains the seeds or placeables, raises the Backpack's
+    /// capacity, or applies the Can upgrade, in one step (BR-L2, BR-L5, BR-K1, BR-W4), or puts a tool in the lowest
+    /// free Slot at Basic (BR-L4). Seeds and placeables that fit nowhere drop at <paramref name="feet"/>, or at plot
+    /// tile (0, 0) when it is null, so such a purchase is never refused for room (BR-K3); a backpack upgrade keeps the
+    /// existing Slots and hotbar row and adds empty Slots. A quantity below 1, or other than 1 for the Can upgrade, a
+    /// tool or a backpack upgrade, throws; a listing not offered today is NotOffered; less gold than the total is
+    /// NotEnoughGold; a tool with no free Slot is BackpackFull. A once-per-game listing bought is recorded (BR-L5). A
+    /// rejection or an overflowing total changes nothing, and buying costs no energy (BR-P2).
     /// </summary>
     public static ActionResult Buy(
         Game game, GameData data, string listingId, int quantity = 1, GridPosition? feet = null)
@@ -66,7 +68,11 @@ public static class ShopService
         {
             ShopItemKind.CanUpgrade => BuyCanUpgrade(game, data, offered, quantity),
             ShopItemKind.Tool => BuyTool(game, offered, offered.ToolId!.Value, quantity),
-            _ => BuySeeds(game, offered, offered.CropTypeId!.Value, quantity, feet ?? new GridPosition(0, 0)),
+            ShopItemKind.BackpackUpgrade => BuyBackpack(game, offered, offered.BackpackCapacity!.Value, quantity),
+            ShopItemKind.Placeable => BuyStack(
+                game, offered, ItemRef.Placeable(offered.PlaceableId!.Value), quantity, feet ?? new GridPosition(0, 0)),
+            _ => BuyStack(
+                game, offered, ItemRef.Seed(offered.CropTypeId!.Value), quantity, feet ?? new GridPosition(0, 0)),
         };
 
         // BR-L5: a once-per-game listing bought is never offered again.
@@ -78,24 +84,43 @@ public static class ShopService
         return result;
     }
 
-    private static ActionResult BuySeeds(
-        Game game, ShopListing offered, CropTypeId cropTypeId, int quantity, GridPosition feet)
+    /// <summary>Seeds or placeables: price × quantity, gained like any item, overflow dropped at the feet (BR-K3).</summary>
+    private static ActionResult BuyStack(
+        Game game, ShopListing offered, ItemRef item, int quantity, GridPosition feet)
     {
         var player = game.Player;
-
-        var seeds = ItemRef.Seed(cropTypeId);
 
         // The price is checked before anything changes, so an overflow leaves gold and Backpack as they were.
         var total = checked(offered.Price.Value * quantity);
 
-        // BR-L2, BR-P5: the gold is taken and the seeds gained in the same step, or nothing changes.
+        // BR-L2, BR-P5: the gold is taken and the items gained in the same step, or nothing changes.
         if (!player.TrySpendGold(total))
         {
             return ActionResult.Rejected(Rejection.NotEnoughGold);
         }
 
         // BR-K3: what fits goes in the Backpack and the rest drops at the feet; never refused for room.
-        game.Gain(seeds, quantity, feet);
+        game.Gain(item, quantity, feet);
+        return ActionResult.Ok;
+    }
+
+    private static ActionResult BuyBackpack(Game game, ShopListing offered, int capacity, int quantity)
+    {
+        // BR-L5: a backpack upgrade is bought once, never several at a time.
+        ArgumentOutOfRangeException.ThrowIfNotEqual(quantity, 1);
+
+        var player = game.Player;
+
+        // BR-L2, BR-P5: the gold is taken and the Backpack raised in the same step, or nothing changes. The listing is
+        // offered only above the current capacity (BR-K1), so the raise cannot fail once the gold is taken.
+        if (!player.TrySpendGold(offered.Price.Value))
+        {
+            return ActionResult.Rejected(Rejection.NotEnoughGold);
+        }
+
+        // BR-L5, BR-K1: the capacity becomes the listing's size; existing Slots and the hotbar row stay, the new Slots
+        // are empty. A full Backpack never stops it.
+        player.Backpack.RaiseCapacity(capacity);
         return ActionResult.Ok;
     }
 
@@ -147,12 +172,14 @@ public static class ShopService
         return ActionResult.Ok;
     }
 
-    /// <summary>Seeds, then tools, then the Can upgrade.</summary>
+    /// <summary>Seeds, then tools, then backpack upgrades, then placeables, then the Can upgrade.</summary>
     private static int KindOrder(ShopItemKind kind) => kind switch
     {
         ShopItemKind.Seed => 0,
         ShopItemKind.Tool => 1,
-        _ => 2,
+        ShopItemKind.BackpackUpgrade => 2,
+        ShopItemKind.Placeable => 3,
+        _ => 4,
     };
 
     private static bool IsOffered(ShopListing listing, Game game, GameData data) =>
@@ -173,6 +200,13 @@ public static class ShopService
 
         // BR-L4: a tool is offered while it isn't already in the Backpack.
         ShopItemKind.Tool => listing.ToolId is { } tool && game.Player.Backpack.TierOf(tool) is null,
+
+        // BR-K1: a backpack upgrade is offered while it would raise the capacity, so after 36 the 24 listing goes too.
+        ShopItemKind.BackpackUpgrade => listing.BackpackCapacity is { } capacity
+            && capacity > game.Player.Backpack.Capacity,
+
+        // BR-L5: a placeable is always offered once its vendor's stage is reached.
+        ShopItemKind.Placeable => listing.PlaceableId is not null,
         _ => false,
     };
 }

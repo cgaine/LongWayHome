@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scripts/Farm/FarmPlotView.cs" id="3_plotview"]
 [ext_resource type="Script" path="res://scripts/World/WaterRefill.cs" id="5_waterrefill"]
 [ext_resource type="Script" path="res://scripts/World/DoorSleep.cs" id="8_doorsleep"]
-[ext_resource type="Script" path="res://scripts/World/BinShip.cs" id="11_binship"]
+[ext_resource type="Script" path="res://scripts/World/ShippingBinGate.cs" id="11_bingate"]
 [ext_resource type="PackedScene" path="res://art/farm/Meadow.tscn" id="13_meadow"]
 [ext_resource type="Material" path="res://art/materials/palette.tres" id="14_palette"]
 [ext_resource type="PackedScene" path="res://art/farm/Farmhouse.tscn" id="16_farmhouse"]
@@ -38,13 +38,6 @@ albedo_color = Color(0.48, 0.32, 0.18, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape_house"]
 size = Vector3(6, 3, 4)
-
-[sub_resource type="BoxMesh" id="BoxMesh_bin"]
-material = SubResource("Mat_wood")
-size = Vector3(1.2, 0.8, 0.8)
-
-[sub_resource type="BoxShape3D" id="BoxShape_bin"]
-size = Vector3(1.2, 0.8, 0.8)
 
 [sub_resource type="StandardMaterial3D" id="Mat_stall"]
 albedo_color = Color(0.3, 0.45, 0.7, 1)
@@ -133,14 +126,8 @@ shape = SubResource("BoxShape_house")
 [node name="Farmhouse" parent="House" instance=ExtResource("16_farmhouse")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 0)
 
-[node name="ShippingBin" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.4, -6)
-
-[node name="Mesh" type="MeshInstance3D" parent="ShippingBin"]
-mesh = SubResource("BoxMesh_bin")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="ShippingBin"]
-shape = SubResource("BoxShape_bin")
+[node name="ShippingBinGate" type="Node3D" parent="."]
+script = ExtResource("11_bingate")
 
 [node name="ShopStall" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -9)
@@ -239,15 +226,6 @@ Range = 1.25
 
 [node name="DoorSleep" type="Node" parent="InteractionPoints/DoorPoint"]
 script = ExtResource("8_doorsleep")
-
-[node name="BinPoint" type="Node3D" parent="InteractionPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -6)
-script = ExtResource("2_point")
-PointId = "bin"
-Range = 1.7
-
-[node name="BinShip" type="Node" parent="InteractionPoints/BinPoint"]
-script = ExtResource("11_binship")
 
 [node name="ShopPoint" type="Node3D" parent="InteractionPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -9)

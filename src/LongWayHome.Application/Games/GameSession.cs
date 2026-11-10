@@ -748,7 +748,10 @@ public sealed class GameSession
         return result;
     }
 
-    /// <summary>Ships every Crop at the Shipping Bin (BR-S1). Raises InventoryChanged on success.</summary>
+    /// <summary>
+    /// Ships every Crop at the Shipping Bin (BR-S1); NotOffered before the farm has one (BR-S3). Raises
+    /// InventoryChanged on success.
+    /// </summary>
     public ActionResult ShipAll()
     {
         var result = Game.ShipAll();

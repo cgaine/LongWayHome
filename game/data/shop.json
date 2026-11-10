@@ -1,12 +1,15 @@
 {
   "listings": [
-    { "id": "seed_emberroot", "kind": "seed",        "cropTypeId": "emberroot", "toolId": null,      "price": 15,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
-    { "id": "seed_dusktuber", "kind": "seed",        "cropTypeId": "dusktuber", "toolId": null,      "price": 30,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
-    { "id": "seed_moonmelon", "kind": "seed",        "cropTypeId": "moonmelon", "toolId": null,      "price": 60,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
-    { "id": "seed_sunbell",   "kind": "seed",        "cropTypeId": "sunbell",   "toolId": null,      "price": 20,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
-    { "id": "seed_starcorn",  "kind": "seed",        "cropTypeId": "starcorn",  "toolId": null,      "price": 45,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
-    { "id": "tool_axe",       "kind": "tool",        "cropTypeId": null,        "toolId": "axe",     "price": 50,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": true },
-    { "id": "tool_pickaxe",   "kind": "tool",        "cropTypeId": null,        "toolId": "pickaxe", "price": 75,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": true },
-    { "id": "can_upgrade",    "kind": "can_upgrade", "cropTypeId": null,        "toolId": null,      "price": 200, "vendor": "general_store", "requiresStage": 1, "oncePerGame": true }
+    { "id": "seed_emberroot", "kind": "seed",             "cropTypeId": "emberroot", "toolId": null,      "placeableId": null,    "backpackCapacity": null, "price": 15,   "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "seed_dusktuber", "kind": "seed",             "cropTypeId": "dusktuber", "toolId": null,      "placeableId": null,    "backpackCapacity": null, "price": 30,   "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "seed_moonmelon", "kind": "seed",             "cropTypeId": "moonmelon", "toolId": null,      "placeableId": null,    "backpackCapacity": null, "price": 60,   "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "seed_sunbell",   "kind": "seed",             "cropTypeId": "sunbell",   "toolId": null,      "placeableId": null,    "backpackCapacity": null, "price": 20,   "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "seed_starcorn",  "kind": "seed",             "cropTypeId": "starcorn",  "toolId": null,      "placeableId": null,    "backpackCapacity": null, "price": 45,   "vendor": "general_store", "requiresStage": 1, "oncePerGame": false },
+    { "id": "tool_axe",       "kind": "tool",             "cropTypeId": null,        "toolId": "axe",     "placeableId": null,    "backpackCapacity": null, "price": 50,   "vendor": "general_store", "requiresStage": 1, "oncePerGame": true },
+    { "id": "tool_pickaxe",   "kind": "tool",             "cropTypeId": null,        "toolId": "pickaxe", "placeableId": null,    "backpackCapacity": null, "price": 75,   "vendor": "general_store", "requiresStage": 1, "oncePerGame": true },
+    { "id": "can_upgrade",    "kind": "can_upgrade",      "cropTypeId": null,        "toolId": null,      "placeableId": null,    "backpackCapacity": null, "price": 200,  "vendor": "general_store", "requiresStage": 1, "oncePerGame": true },
+    { "id": "backpack_24",    "kind": "backpack_upgrade", "cropTypeId": null,        "toolId": null,      "placeableId": null,    "backpackCapacity": 24,   "price": 400,  "vendor": "general_store", "requiresStage": 2, "oncePerGame": true },
+    { "id": "backpack_36",    "kind": "backpack_upgrade", "cropTypeId": null,        "toolId": null,      "placeableId": null,    "backpackCapacity": 36,   "price": 1000, "vendor": "general_store", "requiresStage": 3, "oncePerGame": true },
+    { "id": "chest_store",    "kind": "placeable",        "cropTypeId": null,        "toolId": null,      "placeableId": "chest", "backpackCapacity": null, "price": 100,  "vendor": "general_store", "requiresStage": 3, "oncePerGame": false }
   ]
 }

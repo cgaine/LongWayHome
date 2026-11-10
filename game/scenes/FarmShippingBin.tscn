@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="1_point"]
+[ext_resource type="Script" path="res://scripts/World/BinShip.cs" id="2_binship"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.48, 0.32, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bin"]
+material = SubResource("Mat_wood")
+size = Vector3(1.2, 0.8, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape_bin"]
+size = Vector3(1.2, 0.8, 0.8)
+
+[node name="FarmShippingBin" type="Node3D"]
+
+[node name="ShippingBin" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.4, -6)
+
+[node name="Mesh" type="MeshInstance3D" parent="ShippingBin"]
+mesh = SubResource("BoxMesh_bin")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ShippingBin"]
+shape = SubResource("BoxShape_bin")
+
+[node name="BinPoint" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -6)
+script = ExtResource("1_point")
+PointId = "bin"
+Range = 1.7
+
+[node name="BinShip" type="Node" parent="BinPoint"]
+script = ExtResource("2_binship")

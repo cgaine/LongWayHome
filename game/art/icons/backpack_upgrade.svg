@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Backpack upgrade</title>
+  <path d="M24 14 v-4 q0 -5 5 -5 h6 q5 0 5 5 v4" fill="none" stroke="#5A4458" stroke-width="3.5" stroke-linecap="round"/>
+  <rect x="12" y="14" width="40" height="44" rx="9" fill="#B8946C" stroke="#34405E" stroke-width="2"/>
+  <path d="M12 26 q0 -12 12 -12 h16 q12 0 12 12 v4 h-40 z" fill="#D9C39A" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="28" y="27" width="8" height="7" rx="1.5" fill="#5A4458" stroke="#34405E" stroke-width="1.6"/>
+  <rect x="18" y="38" width="28" height="14" rx="3" fill="#D9C39A" stroke="#34405E" stroke-width="2"/>
+  <path d="M22 44 h20" fill="none" stroke="#9A7E44" stroke-width="1.6" stroke-linecap="round"/>
+  <circle cx="50" cy="50" r="10" fill="#E9773A" stroke="#34405E" stroke-width="2"/>
+  <path d="M50 44 v12 M44 50 h12" fill="none" stroke="#FFF6E0" stroke-width="3" stroke-linecap="round"/>
+</svg>

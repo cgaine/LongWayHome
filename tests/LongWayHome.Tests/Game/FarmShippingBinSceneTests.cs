@@ -136,7 +136,8 @@ public class FarmShippingBinSceneTests
     {
         var source = Script("World", "ShippingBinGate.cs");
 
-        Assert.Contains($"\"{BinScenePath}\"", source);
+        // The raw file: Code() strips from "//" to the line's end, which cuts the "res://" literal (as ResidentScenesTests' raw read).
+        Assert.Contains($"\"{BinScenePath}\"", ReadRepoFile("game", "scripts", "World", "ShippingBinGate.cs"));
         Assert.Contains("HasShippingBin", source);
         Assert.Contains("Instantiate", source);
         Assert.Contains("_Ready", source);

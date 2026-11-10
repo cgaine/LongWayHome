@@ -278,6 +278,18 @@ public sealed class JsonGameDataSource : IGameDataSource
                 errors.Add($"{ShopFileName}: {label}.toolId must be null for a {Code(listing.Kind)} listing, was {Code(toolId)}");
             }
 
+            if (listing.Kind != ShopItemKind.Placeable && listing.PlaceableId is { } placeableId)
+            {
+                errors.Add($"{ShopFileName}: {label}.placeableId must be null for a {Code(listing.Kind)} listing, was {Code(placeableId)}");
+            }
+
+            if (listing.Kind != ShopItemKind.BackpackUpgrade && listing.BackpackCapacity is { } capacity)
+            {
+                errors.Add(string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"{ShopFileName}: {label}.backpackCapacity must be null for a {Code(listing.Kind)} listing, was {capacity}"));
+            }
+
             switch (listing.Kind)
             {
                 case ShopItemKind.Seed:
@@ -286,6 +298,14 @@ public sealed class JsonGameDataSource : IGameDataSource
 
                 case ShopItemKind.Tool:
                     ValidateToolListing(listing, label, listedTools, errors);
+                    break;
+
+                case ShopItemKind.BackpackUpgrade:
+                    ValidateBackpackUpgradeListing(listing, label, errors);
+                    break;
+
+                case ShopItemKind.Placeable:
+                    ValidatePlaceableListing(listing, label, errors);
                     break;
 
                 case ShopItemKind.CanUpgrade:
@@ -307,6 +327,39 @@ public sealed class JsonGameDataSource : IGameDataSource
 
                     break;
             }
+        }
+    }
+
+    private static void ValidateBackpackUpgradeListing(ShopListingDto listing, string label, List<string> errors)
+    {
+        // BR-K1, BR-L5: a backpack upgrade raises the Backpack to 24 or 36 Slots, once per Game.
+        if (listing.BackpackCapacity is not (24 or 36))
+        {
+            var was = listing.BackpackCapacity?.ToString(CultureInfo.InvariantCulture) ?? "null";
+            errors.Add($"{ShopFileName}: {label}.backpackCapacity must be 24 or 36 for a backpack_upgrade listing (BR-K1), was {was}");
+        }
+
+        if (listing.CropTypeId is { } cropTypeId)
+        {
+            errors.Add($"{ShopFileName}: {label}.cropTypeId must be null for a backpack_upgrade listing, was {Code(cropTypeId)}");
+        }
+
+        if (!listing.OncePerGame)
+        {
+            errors.Add($"{ShopFileName}: {label}.oncePerGame must be true for a backpack_upgrade listing (BR-L5)");
+        }
+    }
+
+    private static void ValidatePlaceableListing(ShopListingDto listing, string label, List<string> errors)
+    {
+        if (listing.PlaceableId is null)
+        {
+            errors.Add($"{ShopFileName}: {label}.placeableId is required for a placeable listing");
+        }
+
+        if (listing.CropTypeId is { } cropTypeId)
+        {
+            errors.Add($"{ShopFileName}: {label}.cropTypeId must be null for a placeable listing, was {Code(cropTypeId)}");
         }
     }
 
@@ -712,7 +765,8 @@ public sealed class JsonGameDataSource : IGameDataSource
         dto.Regrows);
 
     private static ShopListing ToShopListing(ShopListingDto dto) =>
-        new(dto.Id, dto.Kind, dto.CropTypeId, new Gold(dto.Price), dto.Vendor, dto.RequiresStage, dto.ToolId, dto.OncePerGame);
+        new(dto.Id, dto.Kind, dto.CropTypeId, new Gold(dto.Price), dto.Vendor, dto.RequiresStage, dto.ToolId, dto.OncePerGame,
+            dto.PlaceableId, dto.BackpackCapacity);
 
     private static GameTuning ToGameTuning(TuningDto dto) => new()
     {
