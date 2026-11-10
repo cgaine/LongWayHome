@@ -751,16 +751,26 @@ End of Day (Pass out) and the Night that follows:
 }
 ```
 
-Deliver to a Rebuild sign *(planned, REQ-45)*:
+Deliver to a Rebuild sign (one cost line per delivery; the amount is clamped to what is still needed and what is held, BR-B2):
 
 ```json
 {
   "action": "deliver",
   "buildingId": "general_store",
   "nextStage": 2,
-  "delivered": [ { "item": "wood", "quantity": 30 }, { "item": "stone", "quantity": 25 } ],
-  "gold": 300,
-  "result": { "stillNeeded": [ { "item": "wood", "quantity": 20 } ], "rebuildDue": false }
+  "item": "wood",
+  "quantity": 30,
+  "result": { "delivered": 30, "rejection": null, "deliveredSoFar": 30, "needed": 50 }
+}
+```
+
+```json
+{
+  "action": "deliver_gold",
+  "buildingId": "general_store",
+  "nextStage": 2,
+  "gold": 100,
+  "result": { "delivered": 0, "rejection": "already_delivered" }
 }
 ```
 

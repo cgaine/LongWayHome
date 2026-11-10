@@ -185,12 +185,12 @@ Stored with each tool's Backpack Slot and in tool-upgrade Orders.
 
 Stored in `ShopListing.vendor` (`general_store` or `carpenter`), and the key of each Game's Building and of its `buildings.json` stage rows. A vendor's stage is read from the Building.
 
-| Code Value | Display Label | Stages in Phase 2 *(planned, REQ-45)* | Starts at |
+| Code Value | Display Label | Stages in Phase 2 | Starts at |
 |------------|---------------|-------------------|-----------|
 | `general_store` | General store | 1–4 | 1 (Maggie's corner) |
-| `carpenter` | Carpenter | 0–2 | 0 |
-| `miras_house` | Mira's house | 0–1 | 0 |
-| `blacksmith` | Blacksmith | 0–2 | 0 |
+| `carpenter` | Carpenter | 0–2 *(planned, REQ-45, REQ-50)* | 0 |
+| `miras_house` | Mira's house | 0–1 *(planned, REQ-45, REQ-50)* | 0 |
+| `blacksmith` | Blacksmith | 0–2 *(planned, REQ-45, REQ-50)* | 0 |
 
 ---
 
