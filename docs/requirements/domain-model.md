@@ -45,9 +45,9 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Resource node** | A tree, stump, rock, ore deposit, glimmercap or debris pile the Player breaks with the axe or pickaxe for materials. |
 | **Spawn point** | A fixed place in an Area where a tree, rock, deposit or glimmercap grows back after it is cleared. |
 | **Area** | *(built for the four start areas in #136; across the river and the mine planned, REQ-48, REQ-49)* A part of the world the Player walks in: the farm (the meadow), the forest path, the town, the lakeshore, across the river, and the mine. |
-| **Building** | *(planned, REQ-45)* A town building the Player restores stage by stage: the general store, the carpenter, Mira's house and the blacksmith. |
-| **Stage** | *(planned, REQ-45)* One step of a Building's restoration. Each has a cost and unlocks goods, services or Residents. |
-| **Rebuild sign** | *(planned, REQ-45)* The sign in front of a Building where the Player delivers the next Stage's materials and gold. |
+| **Building** | A town building the Player restores stage by stage: the general store, the carpenter, Mira's house and the blacksmith. |
+| **Stage** | One step of a Building's restoration. Each has a cost and unlocks goods, services or Residents. |
+| **Rebuild sign** | The sign in front of a Building where the Player delivers the next Stage's materials and gold. |
 | **Order** | *(planned, REQ-48, REQ-57)* Work the Player leaves with Tom or Mira (planks, sealed planks, a tool upgrade, a pump), ready the next morning. |
 | **Tool tier** | How strong a tool is: Basic, Rosk or Groth in Phase 2. |
 | **Pump** | *(planned, REQ-49, REQ-57)* A Rosk pump forged by Mira; using one drains a flooded Mine level. |
@@ -80,7 +80,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `ItemRef` | `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
 | `NodeKind` | `tree`, `stump`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`, `debris` | ResourceNode, NodeSpawn |
 | `AreaId` | `farm`, `forest_path`, `town`, `lakeshore`, `across_river`, `mine` | ResourceNode, DroppedItem, NodeSpawn |
-| `BuildingId` | `general_store`, `carpenter`, `miras_house`, `blacksmith` | ShopListing (vendor); *(planned, REQ-45)* Building, BuildingStage |
+| `BuildingId` | `general_store`, `carpenter`, `miras_house`, `blacksmith` | ShopListing (vendor), Building, BuildingStage |
 | `OrderKind` | *(planned, REQ-48, REQ-57)* `plank`, `sealed_plank`, `tool_upgrade`, `rosk_pump` | Order |
 | `Provider` | *(planned, REQ-48, REQ-57)* `carpenter`, `blacksmith` | Order |
 | `MineLevelState` | *(planned, REQ-49)* `blocked`, `cleared`, `flooded`, `drained` | MineLevel |
@@ -220,22 +220,22 @@ The fixed places where Resource nodes start and grow back. The same in every Gam
 
 *(planned, REQ-49)* NodeKind yields (tuning, Basic tier): tree 5 wood + 2 sap; rock 3 stone; rosk_deposit Rosk ore; groth_deposit Groth ore (mine levels 3–5 only); glimmercap 1 glimmercap (picked by hand, no tool); stump wood (Groth axe); debris stone.
 
-#### BuildingStage *(planned, REQ-45)*
+#### BuildingStage
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
 | `buildingId` | BuildingId | FK -> Building. |
 | `stage` | int | The stage this cost reaches, 1 up to the Building's last Phase 2 stage. |
-| `costItems` | list of `{ item: MaterialId, quantity: int ≥ 1 }` | E.g. store stage 2: 50 wood, 25 stone. |
+| `costItems` | list of `{ item: MaterialId, quantity: int ≥ 1 }` | E.g. store stage 2: 50 wood, 25 stone. Written `{ materialId, quantity }` in `buildings.json`, each material at most once per row. |
 | `costGold` | Gold | E.g. store stage 2: 300. |
-| `requires` | condition? | Extra condition before its sign appears (BR-B4). Only blacksmith stage 1: Mira is present. |
-| `unlocks` | text and listing ids | What the stage opens (BR-B5). |
+| `requires` | condition? | Extra condition before its sign appears (BR-B4). Only blacksmith stage 1: Mira is present. *(planned, REQ-50: not in `buildings.json` yet; comes with #127)* |
+| `unlocks` | text and listing ids | What the stage opens (BR-B5). Built as display text, shown on the Rebuild menu; the listing ids come with the stage unlocks *(planned, REQ-45)*. |
 
 Phase 2 stages: general_store 1 (start) to 4; carpenter 0 (ruined at start) to 2; miras_house 0 to 1; blacksmith 0 to 2.
 
 #### ShopListing additions
 
-`ShopListing` gains `vendor` (`general_store` or `carpenter`), `requiresStage` (int, the vendor Building's stage that offers it), `toolId` (ToolId?) and `oncePerGame` (bool); *(planned, REQ-58, REQ-48)* `placeableId` (PlaceableId?) and `backpackCapacity` (int?). Until Buildings have stages (#124), the general store counts as stage 1 and every other Building as stage 0. Phase 2 listings: in-season seeds (store, stage 1); axe 50 and pickaxe 75 (store, stage 1, once); backpack 24 (store, stage 2, once) and 36 (store, stage 3, once); chest (store stage 3, and carpenter stage 1); fence (carpenter stage 1); farmhouse upgrade (carpenter stage 2, once). The `can_upgrade` listing is removed (BR-L1).
+`ShopListing` gains `vendor` (`general_store` or `carpenter`), `requiresStage` (int, the vendor Building's stage that offers it), `toolId` (ToolId?) and `oncePerGame` (bool); *(planned, REQ-58, REQ-48)* `placeableId` (PlaceableId?) and `backpackCapacity` (int?). The vendor Building's stage is read from the Building. Phase 2 listings: in-season seeds (store, stage 1); axe 50 and pickaxe 75 (store, stage 1, once); backpack 24 (store, stage 2, once) and 36 (store, stage 3, once); chest (store stage 3, and carpenter stage 1); fence (carpenter stage 1); farmhouse upgrade (carpenter stage 2, once). The `can_upgrade` listing is removed (BR-L1).
 
 #### OrderRecipe *(planned, REQ-48, REQ-57)*
 
@@ -306,13 +306,13 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 | `placeable` | PlaceableId | `fence` or `chest`. |
 | `slots` | list of ChestSlot | Chest only: exactly 36 slots, index 0–35, same shape as BackpackSlot, never a tool; a fence has none. Filled like the Backpack (BR-K3). |
 
-#### Building (child of Game, one per BuildingId) *(planned, REQ-45)*
+#### Building (child of Game, one per BuildingId)
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
 | `id` | BuildingId | Key. |
 | `stage` | int | Starts: general_store 1, carpenter 0, miras_house 0, blacksmith 0. |
-| `delivered` | list of `{ item: MaterialId, quantity }` plus `gold` | Delivered toward the next stage. Cleared when the stage is rebuilt. |
+| `delivered` | list of `{ item: MaterialId, quantity }` plus `gold` | Delivered toward the next stage, saved as `delivered` and `deliveredGold`. Cleared when the stage is rebuilt (BR-B3, planned). |
 | `rebuildDue` | bool | **Derived**: `true` when `delivered` covers the next stage's full cost. |
 
 #### Order (child of Game, zero or more) *(planned, REQ-48, REQ-57)*
@@ -449,7 +449,7 @@ stateDiagram-v2
 | growing → growing / ripe | Game (Night) | BR-T4, BR-T5 |
 | ripe → harvested | Player | BR-T6 |
 
-### Building *(planned, REQ-45)*
+### Building
 
 ```mermaid
 stateDiagram-v2
@@ -462,7 +462,7 @@ stateDiagram-v2
 | Transition | Actor | Rule |
 |------------|-------|------|
 | deliver | Player, at the Rebuild sign | BR-B2, BR-B4 |
-| rebuild | Game (Night) | BR-B3, BR-B5 |
+| rebuild *(planned, REQ-45)* | Game (Night) | BR-B3, BR-B5 |
 
 ### MineLevel *(planned, REQ-49)*
 
@@ -595,12 +595,12 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-F1: A fence or chest can be placed only on a farm Tile that is not tilled and has no node, Placed object or Planting. Placing moves it out of the Backpack.
 - BR-F2: A fence, or a chest with every Slot empty, can be picked back up into a free Slot. A chest's 36 Slots follow BR-K2, without tools.
 
-### Buildings *(planned, REQ-45)*
+### Buildings
 
-- BR-B1: A Building rises one stage at a time, in order, to its last Phase 2 stage. *(planned, REQ-45)*
-- BR-B2: At a Building's Rebuild sign the Player can deliver any amount of the next stage's items and gold, up to what is still needed. A delivery takes the items from the Backpack and the gold at once, and can't be taken back. *(planned, REQ-45)*
+- BR-B1: A Building rises one stage at a time, in order, to its last Phase 2 stage.
+- BR-B2: At a Building's Rebuild sign the Player can deliver any amount of the next stage's items and gold, up to what is still needed. A delivery takes the items from the Backpack and the gold at once, and can't be taken back.
 - BR-B3: In the Night after the next stage's full cost has been delivered, the Building's stage rises by one and its deliveries are cleared. *(planned, REQ-45)*
-- BR-B4: A Rebuild sign appears only for a Building whose next stage exists and whose `requires` holds: the blacksmith's needs Mira present (BR-R3). The carpenter's and Mira's house's signs are there from the start. *(planned, REQ-45, REQ-50)*
+- BR-B4: A Rebuild sign appears only for a Building whose next stage exists and whose `requires` holds: the blacksmith's needs Mira present (BR-R3). The carpenter's and Mira's house's signs are there from the start. *(`requires` and the carpenter's, Mira's house's and blacksmith's signs planned, REQ-45, REQ-50: their stage rows and the blacksmith's `requires` come with #125 and #127)*
 - BR-B5: Stage unlocks: general store 2 the 24-slot backpack, 3 the 36-slot backpack and chests, 4 the farm Shipping Bin (BR-S3); carpenter 1 planks, sealed planks, fences and chests and the Hollis family, 2 the bridge (BR-A1) and the farmhouse upgrade; Mira's house 1 Mira's return (BR-R3); blacksmith 1 Rosk upgrades and Rosk pumps, 2 Groth upgrades. The farmhouse upgrade, once bought, sets `farmhouseRestored` the next morning and changes only the farmhouse's look. *(planned, REQ-45, REQ-48, REQ-57, REQ-58)*
 
 ### Orders *(planned, REQ-48, REQ-57)*
@@ -647,7 +647,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 | Game (with Player, WateringCan, InventoryStacks, FarmPlot, Tiles, Plantings, ShippingBin) | Kept in the save slot on the player's machine until the player deletes or overwrites that slot. Overwritten in place each Night. |
 | CropType, ShopListing | Reference data shipped with the game build, not part of a save. A save stores only `CropTypeId` values, so later builds can retune prices without breaking saves. |
 | Past Days | Not kept. Only the current state is saved; there is no history of earlier Days. |
-| Phase 2 Game state (ResourceNodes, NodeRegrowths; *(planned, REQ-45 to REQ-50)* Backpack, DroppedItems, PlacedObjects, Buildings, Orders, MineLevels, Residents, Game flags) | Part of the Game in its save slot, overwritten each Night like the rest. DroppedItems never outlive a Night (BR-K4), so a save never holds one. |
+| Phase 2 Game state (ResourceNodes, NodeRegrowths, Buildings; *(planned, REQ-45 to REQ-50)* Backpack, DroppedItems, PlacedObjects, Orders, MineLevels, Residents, Game flags) | Part of the Game in its save slot, overwritten each Night like the rest. DroppedItems never outlive a Night (BR-K4), so a save never holds one. |
 | NodeSpawn, MaterialType; *(planned)* BuildingStage, OrderRecipe, ToolTierEffect | Reference data shipped with the build. A save stores only ids, positions and counts, so costs and yields can be retuned without breaking saves. |
 
 Each save file carries a save-format version (`saveVersion`, currently 2), so later phases (backpack slots, buildings) can migrate Phase 1 saves.

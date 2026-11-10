@@ -26,5 +26,7 @@ public enum Rejection
     NotSellable,
     NodeInTheWay,
     NeedsGrothAxe,
+    AlreadyDelivered,
+    NothingToDeliver,
     ChestNotEmpty,
 }

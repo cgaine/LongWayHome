@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/World/InteractionPoint.cs" id="5_point"]
 [ext_resource type="Script" path="res://scripts/World/WaterRefill.cs" id="6_waterrefill"]
 [ext_resource type="PackedScene" path="res://scenes/Resident.tscn" id="7_resident"]
+[ext_resource type="Script" path="res://scripts/World/RebuildSignPoint.cs" id="8_signpoint"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -264,6 +265,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.6, 0, -3.6)
 script = ExtResource("5_point")
 PointId = "shop"
 Range = 1.5
+
+[node name="StoreSign" type="Node3D" parent="InteractionPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, -1.5)
+script = ExtResource("5_point")
+PointId = "sign"
+Range = 1.5
+
+[node name="RebuildSignPoint" type="Node" parent="InteractionPoints/StoreSign"]
+script = ExtResource("8_signpoint")
+Building = "general_store"
 
 [node name="Maggie" parent="." instance=ExtResource("7_resident")]
 transform = Transform3D(0.5, 0, 0.866025, 0, 1, 0, -0.866025, 0, 0.5, -11.6, 0, -2)

@@ -39,6 +39,8 @@ namespace LongWayHome.Game.Ui;
 /// bank from one point's range into the next keeps it on), and a "&lt;interact glyph&gt; Sleep" hint in the same place
 /// while in range of the house door's, and a "&lt;interact glyph&gt; Ship crops" hint in the same place while in range
 /// of the shipping bin's, and a "&lt;interact glyph&gt; Shop" hint in the same place while in range of the shop's, and
+/// a "&lt;interact glyph&gt; Rebuild" hint in the same place while in range of a <c>"sign"</c> point whose
+/// <see cref="RebuildSignPoint"/> is up (#163, BR-B4), and
 /// a <see cref="DialogueText.TalkHint"/> ("[F] Talk") in the same place while in range of a present Resident's point
 /// (#138), standing in for the Refill hint there since the press talks, and an "&lt;interact glyph&gt; Open chest" hint in
 /// the same place while the Player's <see cref="ToolTargeting"/> tile holds a chest (<see cref="GameSession.ChestAt"/>,
@@ -63,6 +65,8 @@ public partial class Hud : CanvasLayer
     private const string BinPointId = "bin";
 
     private const string ShopPointId = "shop";
+
+    private const string SignPointId = "sign";
 
     private const int SlotFontSize = 20;
 
@@ -106,6 +110,9 @@ public partial class Hud : CanvasLayer
 
     private InteractionPoint? _shop;
 
+    /// <summary>The Rebuild signs' points in this area (#163).</summary>
+    private IReadOnlyList<InteractionPoint> _signPoints = [];
+
     /// <summary>The points of the present Residents in this area (#138), found by their <see cref="ResidentCodes"/>.</summary>
     private IReadOnlyList<InteractionPoint> _residentPoints = [];
 
@@ -148,6 +155,8 @@ public partial class Hud : CanvasLayer
     private Label _shipHint = null!;
 
     private Label _shopHint = null!;
+
+    private Label _rebuildHint = null!;
 
     private Label _talkHint = null!;
 
@@ -195,6 +204,7 @@ public partial class Hud : CanvasLayer
         _sleepHint = GetNode<Label>("SleepHint");
         _shipHint = GetNode<Label>("ShipHint");
         _shopHint = GetNode<Label>("ShopHint");
+        _rebuildHint = GetNode<Label>("RebuildHint");
         _talkHint = GetNode<Label>("TalkHint");
         _chestHint = GetNode<Label>("ChestHint");
         _stepHint = GetNode<Label>("StepHint");
@@ -288,6 +298,17 @@ public partial class Hud : CanvasLayer
             _shopHint.Visible = _shop.IsPlayerInRange;
         }
 
+        // #163: the Rebuild hint in range of a "sign" point whose sign is up (BR-B4).
+        _signPoints = InteractionPoint.FindAll(GetTree().Root, SignPointId);
+        foreach (var point in _signPoints)
+        {
+            point.PlayerEntered += RefreshRebuildHint;
+            point.PlayerExited += RefreshRebuildHint;
+        }
+
+        _session.BuildingsChanged += RefreshRebuildHint;
+        RefreshRebuildHint();
+
         // #138: the Talk hint over every present Resident's point (BR-R1); ResidentView names only those points.
         var residentCodes = Enum.GetValues<ResidentId>()
             .Where(_session.Game.IsPresent)
@@ -337,6 +358,7 @@ public partial class Hud : CanvasLayer
                              && !_sleepHint.Visible
                              && !_shipHint.Visible
                              && !_shopHint.Visible
+                             && !_rebuildHint.Visible
                              && !_talkHint.Visible;
     }
 
@@ -353,6 +375,13 @@ public partial class Hud : CanvasLayer
             _session.ClockChanged -= RefreshClock;
             _session.NightCompleted -= RefreshAll;
             _session.PlacedObjectsChanged -= MarkChestStale;
+            _session.BuildingsChanged -= RefreshRebuildHint;
+        }
+
+        foreach (var point in _signPoints.Where(IsInstanceValid))
+        {
+            point.PlayerEntered -= RefreshRebuildHint;
+            point.PlayerExited -= RefreshRebuildHint;
         }
 
         if (_selection is not null)
@@ -486,6 +515,11 @@ public partial class Hud : CanvasLayer
 
     private void HideShopHint() => _shopHint.Visible = false;
 
+    /// <summary>Shows the Rebuild hint while the Player is in range of a sign point whose sign is up (BR-B4).</summary>
+    private void RefreshRebuildHint() =>
+        _rebuildHint.Visible = _signPoints.Any(point =>
+            point.IsPlayerInRange && RebuildSignPoint.Of(point) is { } sign && sign.IsUp(_session));
+
     private void RefreshHints()
     {
         var glyph = LastInputDevice.GlyphFor("interact", _device);
@@ -494,6 +528,7 @@ public partial class Hud : CanvasLayer
         _shipHint.Text = $"{glyph} Ship crops";
         _shopHint.Text = $"{glyph} Shop";
         _chestHint.Text = $"{glyph} Open chest";
+        _rebuildHint.Text = $"{glyph} Rebuild";
         var device = LastInputDevice.DeviceOf(_device);
         _talkHint.Text = DialogueText.TalkHint(device);
         _changeItemHint.Text = InputGlyphs.ChangeItemHint(device);

@@ -96,6 +96,17 @@ public static class SaveV1ToV2
         // BR-L5 (#145): a Phase 1 Game has bought no once-per-game listing.
         document["purchasedListings"] = new JsonArray();
 
+        // BR-B1 (#163): a Phase 1 Game has the new-Game Buildings, nothing delivered.
+        document["buildings"] = new JsonArray(Game.DefaultBuildings()
+            .Select(building => (JsonNode)new JsonObject
+            {
+                ["id"] = BuildingCodes.Code(building.Id),
+                ["stage"] = building.Stage,
+                ["delivered"] = new JsonArray(),
+                ["deliveredGold"] = building.DeliveredGold,
+            })
+            .ToArray());
+
         // BR-T1 (#150): the 12 x 9 plot's Tiles move into the grown grid's Phase 1 block; the rest is grass.
         return Phase1PlotPlacement.Apply(document);
     }

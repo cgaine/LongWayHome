@@ -183,9 +183,9 @@ Stored with each tool's Backpack Slot and in tool-upgrade Orders.
 
 ## BuildingId
 
-Stored in `ShopListing.vendor` (`general_store` or `carpenter`); *(planned, REQ-45)* the Building key and its stages. Until #124, the general store counts as stage 1 and every other Building as stage 0.
+Stored in `ShopListing.vendor` (`general_store` or `carpenter`), and the key of each Game's Building and of its `buildings.json` stage rows. A vendor's stage is read from the Building.
 
-| Code Value | Display Label | Stages in Phase 2 *(planned, REQ-45)* | Starts at *(planned, REQ-45)* |
+| Code Value | Display Label | Stages in Phase 2 *(planned, REQ-45)* | Starts at |
 |------------|---------------|-------------------|-----------|
 | `general_store` | General store | 1–4 | 1 (Maggie's corner) |
 | `carpenter` | Carpenter | 0–2 | 0 |
