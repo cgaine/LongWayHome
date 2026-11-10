@@ -48,10 +48,10 @@ public class ShippingTests
     [Fact]
     public void AC10_Ship_all_moves_every_crop_from_every_slot_into_the_bin_and_empties_those_slots()
     {
-        var game = TestGames.WithBackpack(TestGames.BackpackWith(
+        var game = TestGames.WithStoreAt(TestGames.WithBackpack(TestGames.BackpackWith(
             (ItemRef.Crop(CropTypeId.Emberroot), 150),
             (ItemRef.Seed(CropTypeId.Emberroot), 10),
-            (ItemRef.Crop(CropTypeId.Dusktuber), 2)));
+            (ItemRef.Crop(CropTypeId.Dusktuber), 2))));
 
         var result = game.ShipAll();
 
@@ -76,9 +76,9 @@ public class ShippingTests
     {
         var bin = new ShippingBin();
         bin.Add(CropTypeId.Emberroot, 5);
-        var game = TestGames.WithBackpack(
+        var game = TestGames.WithStoreAt(TestGames.WithBackpack(
             TestGames.BackpackWith((ItemRef.Crop(CropTypeId.Emberroot), 120), (ItemRef.Crop(CropTypeId.Emberroot), 3)),
-            bin: bin);
+            bin: bin));
 
         var result = game.ShipAll();
 
@@ -90,7 +90,7 @@ public class ShippingTests
     [Fact]
     public void BR_K6_Shipping_with_only_seeds_and_tools_is_nothing_to_ship_and_keeps_them()
     {
-        var game = TestGames.WithBackpack(TestGames.StartingBackpack());
+        var game = TestGames.WithStoreAt(TestGames.WithBackpack(TestGames.StartingBackpack()));
         var before = TestGames.Describe(game.Player.Backpack);
 
         var result = game.ShipAll();
@@ -103,7 +103,7 @@ public class ShippingTests
     [Fact]
     public void AC1_ship_all_moves_every_crop_into_the_bin_and_leaves_the_seeds()
     {
-        var game = TestGames.WithEnergy(150, Basket());
+        var game = TestGames.WithStoreAt(TestGames.WithEnergy(150, Basket()));
 
         var result = game.ShipAll();
 
@@ -119,7 +119,7 @@ public class ShippingTests
     [Fact]
     public void AC2_ship_all_with_only_seeds_is_nothing_to_ship_and_changes_nothing()
     {
-        var game = TestGames.WithEnergy(150, SeedsOnly());
+        var game = TestGames.WithStoreAt(TestGames.WithEnergy(150, SeedsOnly()));
         var before = Stacks(game);
 
         var result = game.ShipAll();
@@ -132,7 +132,7 @@ public class ShippingTests
     [Fact]
     public void AC2_ship_all_with_an_empty_inventory_is_nothing_to_ship_and_keeps_the_bin()
     {
-        var game = TestGames.WithShippingBin(150, TestGames.ToolsOnly(), (CropTypeId.Emberroot, 3));
+        var game = TestGames.WithStoreAt(TestGames.WithShippingBin(150, TestGames.ToolsOnly(), (CropTypeId.Emberroot, 3)));
 
         var result = game.ShipAll();
 
@@ -146,11 +146,11 @@ public class ShippingTests
     {
         var inventory = TestGames.ToolsOnly();
         inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 3);
-        var game = TestGames.WithTiles(
+        var game = TestGames.WithStoreAt(TestGames.WithTiles(
             150,
             inventory,
             TestGames.TilledWith(Target, TestGames.Ripe(CropTypeId.Emberroot)),
-            TestGames.TilledWith(new GridPosition(7, 3), TestGames.Ripe(CropTypeId.Emberroot)));
+            TestGames.TilledWith(new GridPosition(7, 3), TestGames.Ripe(CropTypeId.Emberroot))));
         Assert.Equal(ActionResult.Ok, game.ShipAll());
 
         Assert.Equal(ActionResult.Ok, game.Harvest(Target, TestGames.Crop(CropTypeId.Emberroot)));
@@ -164,7 +164,7 @@ public class ShippingTests
     [Fact]
     public void AC4_ship_all_changes_neither_energy_nor_gold()
     {
-        var game = TestGames.WithEnergy(37, Basket());
+        var game = TestGames.WithStoreAt(TestGames.WithEnergy(37, Basket()));
 
         var result = game.ShipAll();
 
@@ -176,7 +176,7 @@ public class ShippingTests
     [Fact]
     public void AC9_session_ship_all_raises_inventory_changed_once_on_success()
     {
-        var session = new GameSession(TestGames.WithEnergy(150, Basket()), TestGames.Shipped);
+        var session = new GameSession(TestGames.WithStoreAt(TestGames.WithEnergy(150, Basket())), TestGames.Shipped);
         var events = RecordEvents(session);
 
         var result = session.ShipAll();
@@ -191,7 +191,7 @@ public class ShippingTests
     [Fact]
     public void AC9_session_ship_all_with_nothing_to_ship_raises_no_event()
     {
-        var session = new GameSession(TestGames.WithEnergy(150, SeedsOnly()), TestGames.Shipped);
+        var session = new GameSession(TestGames.WithStoreAt(TestGames.WithEnergy(150, SeedsOnly())), TestGames.Shipped);
         var events = RecordEvents(session);
 
         var result = session.ShipAll();
@@ -205,7 +205,7 @@ public class ShippingTests
     {
         var inventory = SeedsOnly();
         inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 4);
-        var game = TestGames.WithEnergy(150, inventory);
+        var game = TestGames.WithStoreAt(TestGames.WithEnergy(150, inventory));
 
         game.ShipAll();
 
@@ -305,7 +305,7 @@ public class ShippingTests
     [Fact]
     public void BR_P2_shipping_costs_no_energy_and_ships_even_at_zero_energy()
     {
-        var game = TestGames.WithEnergy(0, Basket());
+        var game = TestGames.WithStoreAt(TestGames.WithEnergy(0, Basket()));
 
         var result = game.ShipAll();
 
@@ -319,7 +319,7 @@ public class ShippingTests
     [Fact]
     public void BR_P7_after_ship_all_no_crop_stack_remains_and_every_stack_is_at_least_1()
     {
-        var game = TestGames.WithEnergy(150, Basket());
+        var game = TestGames.WithStoreAt(TestGames.WithEnergy(150, Basket()));
 
         game.ShipAll();
 
@@ -370,7 +370,7 @@ public class ShippingTests
     {
         var inventory = TestGames.ToolsOnly();
         inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 1);
-        var game = TestGames.WithShippingBin(150, inventory, (CropTypeId.Emberroot, int.MaxValue));
+        var game = TestGames.WithStoreAt(TestGames.WithShippingBin(150, inventory, (CropTypeId.Emberroot, int.MaxValue)));
 
         Assert.Throws<OverflowException>(() => game.ShipAll());
         Assert.Equal(1, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));
@@ -383,7 +383,7 @@ public class ShippingTests
         var inventory = TestGames.ToolsOnly();
         inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 3);
         inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 1);
-        var game = TestGames.WithShippingBin(150, inventory, (CropTypeId.Dusktuber, int.MaxValue));
+        var game = TestGames.WithStoreAt(TestGames.WithShippingBin(150, inventory, (CropTypeId.Dusktuber, int.MaxValue)));
 
         Assert.Throws<OverflowException>(() => game.ShipAll());
         Assert.Equal(3, game.Player.Backpack.Quantity(ItemRef.Crop(CropTypeId.Emberroot)));

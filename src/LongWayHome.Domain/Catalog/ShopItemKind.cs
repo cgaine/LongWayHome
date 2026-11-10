@@ -6,4 +6,6 @@ public enum ShopItemKind
     Seed,
     CanUpgrade,
     Tool,
+    BackpackUpgrade,
+    Placeable,
 }

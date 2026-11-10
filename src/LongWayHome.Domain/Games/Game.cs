@@ -938,6 +938,9 @@ public sealed class Game
         return FarmPlot[position].Harvest(cropType);
     }
 
+    /// <summary>Whether the farm Shipping Bin exists: the general store is at stage 4 or above (BR-S3).</summary>
+    public bool HasShippingBin => throw new NotImplementedException();
+
     /// <summary>
     /// Moves every Crop in every Backpack Slot into the Shipping Bin, merged per Crop type (BR-S1); NothingToShip when
     /// there is none. Costs no energy (BR-P2).

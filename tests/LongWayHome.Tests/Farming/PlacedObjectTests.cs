@@ -406,7 +406,7 @@ public class PlacedObjectTests
     [Fact]
     public void BR_S1_ship_all_ships_the_crops_and_leaves_the_placeables_in_the_backpack()
     {
-        var game = TestGames.WithBackpack(PlaceablesAndACrop());
+        var game = TestGames.WithStoreAt(TestGames.WithBackpack(PlaceablesAndACrop()));
 
         Assert.Equal(ActionResult.Ok, game.ShipAll());
 
@@ -418,7 +418,7 @@ public class PlacedObjectTests
     [Fact]
     public void AC8_with_only_placeables_carried_ship_all_is_nothing_to_ship()
     {
-        var game = TestGames.WithBackpack(TestGames.RestoredBackpack(new BackpackSlot(2, Fence, 3, null)));
+        var game = TestGames.WithStoreAt(TestGames.WithBackpack(TestGames.RestoredBackpack(new BackpackSlot(2, Fence, 3, null))));
 
         Assert.Equal(ActionResult.Rejected(Rejection.NothingToShip), game.ShipAll());
 

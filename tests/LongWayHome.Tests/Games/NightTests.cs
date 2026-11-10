@@ -324,7 +324,7 @@ public class NightTests
         var inventory = TestGames.ToolsOnly();
         inventory.Add(ItemRef.Crop(CropTypeId.Emberroot), 9);
         inventory.Add(ItemRef.Crop(CropTypeId.Dusktuber), 2);
-        var session = new GameSession(TestGames.WithEnergy(150, inventory), TestGames.Shipped);
+        var session = new GameSession(TestGames.WithStoreAt(TestGames.WithEnergy(150, inventory)), TestGames.Shipped);
         Assert.Equal(ActionResult.Ok, session.ShipAll());
 
         session.Sleep();

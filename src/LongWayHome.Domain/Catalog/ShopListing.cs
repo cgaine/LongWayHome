@@ -14,4 +14,6 @@ public sealed record ShopListing(
     BuildingId Vendor,
     int RequiresStage,
     ToolId? ToolId,
-    bool OncePerGame);
+    bool OncePerGame,
+    PlaceableId? PlaceableId = null,
+    int? BackpackCapacity = null);
