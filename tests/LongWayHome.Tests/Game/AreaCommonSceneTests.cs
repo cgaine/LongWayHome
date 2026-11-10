@@ -73,7 +73,8 @@ public class AreaCommonSceneTests
     public void Town_builds_its_buildings_from_town_models_with_a_body_round_each()
     {
         var view = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "game", "art", "areas", "TownView.cs"));
-        Assert.Contains("TownModels.Store(StoreStage.MaggiesCorner)", view);
+        // #165: the store follows its stage (TownStoreStageTests); the carpenter and blacksmith keep their starting looks.
+        Assert.Contains("TownModels.Store(", view);
         Assert.Contains("TownModels.Carpenter(CarpenterStage.Empty)", view);
         Assert.Contains("TownModels.Blacksmith(BlacksmithStage.Empty)", view);
 

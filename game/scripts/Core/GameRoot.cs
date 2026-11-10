@@ -6,6 +6,7 @@ using Godot;
 using LongWayHome.Application.Data;
 using LongWayHome.Application.Games;
 using LongWayHome.Application.Saves;
+using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Games;
 using LongWayHome.Infrastructure.Data;
 using LongWayHome.Infrastructure.Random;
@@ -153,5 +154,6 @@ public partial class GameRoot : Node
 
 /// <summary>The night message to show on the farm after a Night that ended in another area (#136).</summary>
 /// <param name="Reason">How the Day ended: "You slept." or "You passed out…".</param>
-/// <param name="SaveFailed">Whether that Night's save failed, so the second line shows too.</param>
-public sealed record PendingNightMessage(DayEndReason Reason, bool SaveFailed);
+/// <param name="SaveFailed">Whether that Night's save failed, so the save-failed line shows too.</param>
+/// <param name="Rebuilt">The Buildings that Night rebuilt (#165, BR-B3), one line each under the message.</param>
+public sealed record PendingNightMessage(DayEndReason Reason, bool SaveFailed, IReadOnlyList<BuildingId> Rebuilt);

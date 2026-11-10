@@ -1248,6 +1248,25 @@ public sealed class Game
     }
 
     /// <summary>
+    /// The Night's rebuild step (BR-B3): every Building whose next stage is fully delivered rises one stage and has its
+    /// deliveries cleared, in BuildingId order, at most once (BR-B1). Returns the ids rebuilt.
+    /// </summary>
+    public IReadOnlyList<BuildingId> RebuildDue(IReadOnlyList<BuildingStage> stages)
+    {
+        ArgumentNullException.ThrowIfNull(stages);
+
+        // Every Building is checked before any rises, so a Building is raised at most once per call (BR-B1), and
+        // Buildings is in BuildingId order.
+        var due = Buildings.Where(building => building.RebuildDue(stages)).ToList();
+        foreach (var building in due)
+        {
+            building.Rebuild();
+        }
+
+        return due.Select(building => building.Id).ToList().AsReadOnly();
+    }
+
+    /// <summary>
     /// The Night's regrowth step (BR-N4), run before the date step, so the Night in progress counts: a NodeRegrowth
     /// grows back once at least <paramref name="nights"/> Nights have passed since it was cleared and its spawn point
     /// is free. On the farm a spawn point is free when no Tile within 3 tiles of it (its own included) is tilled; off

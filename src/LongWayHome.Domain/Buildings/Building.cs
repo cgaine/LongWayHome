@@ -6,7 +6,8 @@ namespace LongWayHome.Domain.Buildings;
 
 /// <summary>
 /// A town Building (child of Game, one per <see cref="BuildingId"/>): its stage and what has been delivered toward the
-/// next stage (BR-B1, BR-B2). What has been delivered only grows, through the Game's deliveries; it is never refunded.
+/// next stage (BR-B1, BR-B2). What has been delivered only grows, through the Game's deliveries, and is never
+/// refunded; the Night's rebuild clears it as the stage rises (BR-B3).
 /// </summary>
 public sealed class Building
 {
@@ -50,7 +51,7 @@ public sealed class Building
     public BuildingId Id { get; }
 
     /// <summary>The Building's current stage (BR-B1).</summary>
-    public int Stage { get; }
+    public int Stage { get; private set; }
 
     /// <summary>The items delivered toward the next stage, by material in enum order (BR-B2).</summary>
     public IReadOnlyDictionary<MaterialId, int> Delivered { get; }
@@ -85,4 +86,12 @@ public sealed class Building
 
     /// <summary>Records <paramref name="gold"/> more gold delivered (BR-B2); Game only.</summary>
     internal void AddDeliveredGold(int gold) => DeliveredGold += gold;
+
+    /// <summary>Raises the stage by one and clears the deliveries (BR-B3); Game only.</summary>
+    internal void Rebuild()
+    {
+        Stage++;
+        _delivered.Clear();
+        DeliveredGold = 0;
+    }
 }
