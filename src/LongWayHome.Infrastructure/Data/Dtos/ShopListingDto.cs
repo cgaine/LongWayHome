@@ -23,6 +23,12 @@ internal sealed record ShopListingDto
     /// <summary>Nullable, so not required: set only for a tool listing.</summary>
     public ToolId? ToolId { get; init; }
 
+    /// <summary>Nullable, so not required: set only for a placeable listing.</summary>
+    public PlaceableId? PlaceableId { get; init; }
+
+    /// <summary>Nullable, so not required: set only for a backpack upgrade listing.</summary>
+    public int? BackpackCapacity { get; init; }
+
     /// <summary>Whether the listing sells only once per Game (BR-L5).</summary>
     public required bool OncePerGame { get; init; }
 }

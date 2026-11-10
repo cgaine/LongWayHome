@@ -1,5 +1,6 @@
 using LongWayHome.Application.Data;
 using LongWayHome.Application.Games;
+using LongWayHome.Domain.Buildings;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
@@ -85,6 +86,31 @@ internal static class TestGames
             plot.FarmPlot,
             bin);
     }
+
+    /// <summary>
+    /// The same Game with the general store at <paramref name="stage"/> (4 by default) and the other Buildings as they
+    /// were. BR-S3 (#166): the farm Shipping Bin exists only from store stage 4, so shipping tests start there.
+    /// </summary>
+    public static GameState WithStoreAt(GameState game, int stage = 4) =>
+        new(
+            game.Id,
+            game.Date,
+            game.ClockMinutes,
+            game.Weather,
+            game.LastDayEnd,
+            game.CreatedAt,
+            game.SavedAt,
+            game.Player,
+            game.FarmPlot,
+            game.ShippingBin,
+            game.Residents,
+            game.OpeningDone,
+            game.PurchasedListings,
+            game.ResourceNodes,
+            game.NodeRegrowths,
+            game.Buildings
+                .Select(building => building.Id == BuildingId.GeneralStore ? new Building(building.Id, stage) : building)
+                .ToList());
 
     /// <summary>
     /// The shipped data with no node spawn points (#151), for tests that need every Tile of a new Game's plot to be

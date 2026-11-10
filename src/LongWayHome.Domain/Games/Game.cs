@@ -938,12 +938,25 @@ public sealed class Game
         return FarmPlot[position].Harvest(cropType);
     }
 
+    /// <summary>Whether the farm Shipping Bin exists: the general store is at stage 4 or above (BR-S3).</summary>
+    public bool HasShippingBin => BuildingStage(BuildingId.GeneralStore) >= ShippingBinStoreStage;
+
+    /// <summary>The general store's stage from which the farm Shipping Bin exists (BR-S3, BR-B5).</summary>
+    public const int ShippingBinStoreStage = 4;
+
     /// <summary>
-    /// Moves every Crop in every Backpack Slot into the Shipping Bin, merged per Crop type (BR-S1); NothingToShip when
-    /// there is none. Costs no energy (BR-P2).
+    /// Moves every Crop in every Backpack Slot into the Shipping Bin, merged per Crop type (BR-S1). NotOffered while
+    /// the farm has no Shipping Bin (BR-S3), checked first; NothingToShip when there is no Crop. Either rejection
+    /// changes nothing. Costs no energy (BR-P2).
     /// </summary>
     public ActionResult ShipAll()
     {
+        // BR-S3: before store stage 4 there is no farm Shipping Bin to ship into.
+        if (!HasShippingBin)
+        {
+            return ActionResult.Rejected(Rejection.NotOffered);
+        }
+
         // BR-S1, BR-K6: only Crops ship, never seeds or tools; with none held nothing changes.
         var crops = Player.Backpack.Totals(ItemKind.Crop);
         if (crops.Count == 0)

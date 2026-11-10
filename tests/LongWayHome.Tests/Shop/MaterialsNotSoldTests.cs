@@ -63,7 +63,7 @@ public class MaterialsNotSoldTests
     [Fact]
     public void AC10_ship_all_ships_the_crops_and_leaves_the_materials_in_the_backpack()
     {
-        var game = TestGames.WithBackpack(WithMaterialsAndACrop());
+        var game = TestGames.WithStoreAt(TestGames.WithBackpack(WithMaterialsAndACrop()));
 
         Assert.Equal(ActionResult.Ok, game.ShipAll());
 
@@ -75,7 +75,7 @@ public class MaterialsNotSoldTests
     [Fact]
     public void AC10_with_only_materials_carried_ship_all_is_nothing_to_ship()
     {
-        var game = TestGames.WithBackpack(TestGames.RestoredBackpack(new BackpackSlot(2, Stone, 3, null)));
+        var game = TestGames.WithStoreAt(TestGames.WithBackpack(TestGames.RestoredBackpack(new BackpackSlot(2, Stone, 3, null))));
 
         Assert.Equal(ActionResult.Rejected(Rejection.NothingToShip), game.ShipAll());
 

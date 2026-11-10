@@ -68,7 +68,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `DayEndReason` | `slept`, `passed_out` | Game (last Night) |
 | `ItemKind` | `seed`, `crop`, `tool`, `material` (built in #152), `placeable` (built in #164) | InventoryStack, BackpackSlot |
 | `ToolId` | `hoe`, `watering_can`, `axe`, `pickaxe` | Player tools, ToolItem, Order |
-| `ShopItemKind` | `seed`, `can_upgrade` (Phase 1 only), `tool`; *(planned, REQ-58, REQ-48)* `backpack_upgrade`, `placeable`, `farmhouse_upgrade` | ShopListing |
+| `ShopItemKind` | `seed`, `can_upgrade` (Phase 1 only), `tool`, `backpack_upgrade`, `placeable`; *(planned, REQ-48)* `farmhouse_upgrade` | ShopListing |
 | `CropTypeId` | `emberroot`, `dusktuber`, `moonmelon`, `sunbell`, `starcorn` | CropType, Planting, InventoryStack, ShippedItem, ShopListing |
 | `GridPosition` | Within each Area's own grid: `{ x: 0–71, y: 0–35 }` on the farm (Phase 1: `{ x: 0–11, y: 0–8 }`), `{ x: 0–13, y: 0–39 }` on the forest path (built in #154); every other Area the farm's size until it has nodes of its own | Tile, ResourceNode, DroppedItem, PlacedObject |
 | `GameDate` | `{ year: int ≥ 1, season: Season, day: 1–28 }` | Game |
@@ -235,7 +235,7 @@ Phase 2 stages: general_store 1 (start) to 4; carpenter 0 (ruined at start) to 2
 
 #### ShopListing additions
 
-`ShopListing` gains `vendor` (`general_store` or `carpenter`), `requiresStage` (int, the vendor Building's stage that offers it), `toolId` (ToolId?) and `oncePerGame` (bool); *(planned, REQ-58, REQ-48)* `placeableId` (PlaceableId?) and `backpackCapacity` (int?). The vendor Building's stage is read from the Building. Phase 2 listings: in-season seeds (store, stage 1); axe 50 and pickaxe 75 (store, stage 1, once); backpack 24 (store, stage 2, once) and 36 (store, stage 3, once); chest (store stage 3, and carpenter stage 1); fence (carpenter stage 1); farmhouse upgrade (carpenter stage 2, once). The `can_upgrade` listing is removed (BR-L1).
+`ShopListing` gains `vendor` (`general_store` or `carpenter`), `requiresStage` (int, the vendor Building's stage that offers it), `toolId` (ToolId?) and `oncePerGame` (bool), `placeableId` (PlaceableId?) and `backpackCapacity` (int?). The vendor Building's stage is read from the Building. Phase 2 listings: in-season seeds (store, stage 1); axe 50 and pickaxe 75 (store, stage 1, once); backpack 24 (store, stage 2, once) and 36 (store, stage 3, once); chest (store stage 3, and carpenter stage 1); fence (carpenter stage 1); farmhouse upgrade (carpenter stage 2, once). The `can_upgrade` listing is removed (BR-L1).
 
 #### OrderRecipe *(planned, REQ-48, REQ-57)*
 
@@ -561,7 +561,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 
 - BR-S1: Shipping moves every Crop in the inventory into the Shipping Bin at once. Seeds cannot be shipped, and nothing can be taken back out. (REQ-8) *(changed 2026-11-07, REQ-58: applies once the Bin exists, BR-S3; only Crops ship, never materials, tools or placeables)*
 - BR-S2: During the Night, the Player's gold rises by the sum of quantity × `sellPrice` for every item in the Shipping Bin, and the Bin is emptied. (REQ-8)
-- BR-S3: The farm Shipping Bin exists only once the general store is at stage 4; before that, Crops are sold to Maggie (BR-L3). *(planned, REQ-58)*
+- BR-S3: The farm Shipping Bin exists only once the general store is at stage 4; before that, Crops are sold to Maggie (BR-L3).
 
 ### Shop
 
@@ -569,7 +569,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-L2: A purchase happens only if the Player's gold is at least the price. It takes the price in gold and adds the item in the same step. (REQ-9)
 - BR-L3: Maggie buys Crops at the general store for their `sellPrice` and pays at once. Seeds, materials, tools and placeables can't be sold.
 - BR-L4: The axe and pickaxe are sold at Maggie's store from stage 1, once each per Game. Each joins the Backpack at Basic tier; a purchase that finds no free Slot is refused and costs nothing.
-- BR-L5: A listing is offered only when its vendor Building is at or above its `requiresStage`, and a `oncePerGame` listing only until bought. Buying a backpack upgrade sets the Backpack's capacity to that size and adds empty Slots. *(backpack upgrade planned, REQ-47)*
+- BR-L5: A listing is offered only when its vendor Building is at or above its `requiresStage`, and a `oncePerGame` listing only until bought. Buying a backpack upgrade sets the Backpack's capacity to that size and adds empty Slots.
 
 ### Backpack
 
@@ -601,7 +601,7 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-B2: At a Building's Rebuild sign the Player can deliver any amount of the next stage's items and gold, up to what is still needed. A delivery takes the items from the Backpack and the gold at once, and can't be taken back.
 - BR-B3: In the Night after the next stage's full cost has been delivered, the Building's stage rises by one and its deliveries are cleared.
 - BR-B4: A Rebuild sign appears only for a Building whose next stage exists and whose `requires` holds: the blacksmith's needs Mira present (BR-R3). The carpenter's and Mira's house's signs are there from the start. *(`requires` and the carpenter's, Mira's house's and blacksmith's signs planned, REQ-45, REQ-50: their stage rows and the blacksmith's `requires` come with #125 and #127)*
-- BR-B5: Stage unlocks: general store 2 the 24-slot backpack, 3 the 36-slot backpack and chests, 4 the farm Shipping Bin (BR-S3); carpenter 1 planks, sealed planks, fences and chests and the Hollis family, 2 the bridge (BR-A1) and the farmhouse upgrade; Mira's house 1 Mira's return (BR-R3); blacksmith 1 Rosk upgrades and Rosk pumps, 2 Groth upgrades. The farmhouse upgrade, once bought, sets `farmhouseRestored` the next morning and changes only the farmhouse's look. *(planned, REQ-45, REQ-48, REQ-57, REQ-58)*
+- BR-B5: Stage unlocks: general store 2 the 24-slot backpack, 3 the 36-slot backpack and chests, 4 the farm Shipping Bin (BR-S3); carpenter 1 planks, sealed planks, fences and chests and the Hollis family, 2 the bridge (BR-A1) and the farmhouse upgrade; Mira's house 1 Mira's return (BR-R3); blacksmith 1 Rosk upgrades and Rosk pumps, 2 Groth upgrades. The farmhouse upgrade, once bought, sets `farmhouseRestored` the next morning and changes only the farmhouse's look. *(planned, REQ-45, REQ-48, REQ-57; the general store's unlocks built in #166)*
 
 ### Orders *(planned, REQ-48, REQ-57)*
 

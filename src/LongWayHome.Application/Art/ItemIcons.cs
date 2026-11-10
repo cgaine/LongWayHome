@@ -66,6 +66,9 @@ public static class ItemIcons
         _ => throw new ArgumentOutOfRangeException(nameof(placeable), placeable, "Unknown placeable."),
     };
 
+    /// <summary>"res://art/icons/backpack_upgrade.svg": the icon of a backpack upgrade listing (#166).</summary>
+    public const string BackpackUpgradeIcon = Folder + "backpack_upgrade.svg";
+
     /// <summary>"res://art/icons/tool_&lt;code&gt;.svg": axe, pickaxe.</summary>
     /// <exception cref="ArgumentOutOfRangeException">An undefined tool.</exception>
     public static string ToolIcon(GatherTool tool) => tool switch
@@ -107,8 +110,9 @@ public static class ItemIcons
     }
 
     /// <summary>
-    /// The seed icon for a Shop seed listing, the tool icon for the axe or pickaxe listing, or null for the Watering
-    /// can upgrade (which has no icon).
+    /// The seed icon for a Shop seed listing, the tool icon for the axe or pickaxe listing, the backpack upgrade icon
+    /// for a backpack upgrade, the placeable's icon for a placeable listing, or null for the Watering can upgrade
+    /// (which has no icon).
     /// </summary>
     public static string? For(ShopListing listing)
     {
@@ -117,6 +121,8 @@ public static class ItemIcons
         {
             { Kind: ShopItemKind.Seed, CropTypeId: { } crop } => SeedIcon(crop),
             { Kind: ShopItemKind.Tool, ToolId: { } tool } => GatherIcon(tool),
+            { Kind: ShopItemKind.BackpackUpgrade } => BackpackUpgradeIcon,
+            { Kind: ShopItemKind.Placeable, PlaceableId: { } placeable } => PlaceableIcon(placeable),
             _ => null,
         };
     }

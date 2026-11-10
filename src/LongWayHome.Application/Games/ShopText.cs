@@ -14,8 +14,9 @@ public static class ShopText
 
     /// <summary>
     /// "Emberroot seeds — 15g": the Crop type's name (its canonical label when it has no data row) and the listing's
-    /// price; "Watering can upgrade — 200g" for the Can upgrade; "Axe — 50g" for a tool. A seed listing with no Crop type, or
-    /// a tool listing with no tool, throws.
+    /// price; "Watering can upgrade — 200g" for the Can upgrade; "Axe — 50g" for a tool; "Backpack (24 slots) — 400g"
+    /// for a backpack upgrade; "Chest — 100g" for a placeable. A seed listing with no Crop type, a tool listing with no
+    /// tool, a backpack upgrade with no capacity or a placeable listing with no placeable throws.
     /// </summary>
     public static string Row(ShopListing listing, GameData data)
     {
@@ -35,6 +36,21 @@ public static class ShopText
                 : throw new ArgumentException($"Shop listing '{listing.Id}' is a tool listing with no tool.", nameof(listing));
         }
 
+        if (listing.Kind == ShopItemKind.BackpackUpgrade)
+        {
+            return listing.BackpackCapacity is { } capacity
+                ? $"Backpack ({capacity} slots) — {listing.Price.Value}g"
+                : throw new ArgumentException($"Shop listing '{listing.Id}' is a backpack upgrade with no capacity.", nameof(listing));
+        }
+
+        if (listing.Kind == ShopItemKind.Placeable)
+        {
+            // canonical-values.md: the placeable's display label, "Fence" or "Chest".
+            return listing.PlaceableId is { } placeable
+                ? $"{HeldItem.PlaceableLabel(placeable)} — {listing.Price.Value}g"
+                : throw new ArgumentException($"Shop listing '{listing.Id}' is a placeable listing with no placeable.", nameof(listing));
+        }
+
         if (listing.CropTypeId is not { } cropTypeId)
         {
             throw new ArgumentException($"Shop listing '{listing.Id}' is not a seed listing.", nameof(listing));
@@ -51,6 +67,19 @@ public static class ShopText
 
     /// <summary>The message after a successful purchase: <see cref="SeedsDropped"/> when any dropped, else "".</summary>
     public static string AfterBuy(bool dropped) => dropped ? SeedsDropped : "";
+
+    /// <summary>
+    /// The message after a successful purchase of <paramref name="listing"/>: "The chest dropped at your feet" for a
+    /// placeable that dropped (BR-K3, #166), else as <see cref="AfterBuy(bool)"/>.
+    /// </summary>
+    public static string AfterBuy(ShopListing listing, bool dropped)
+    {
+        ArgumentNullException.ThrowIfNull(listing);
+
+        return dropped && listing is { Kind: ShopItemKind.Placeable, PlaceableId: { } placeable }
+            ? $"The {HeldItem.PlaceableLabel(placeable).ToLowerInvariant()} dropped at your feet"
+            : AfterBuy(dropped);
+    }
 
     /// <summary>The Sell section's header, below the buy rows in town (BR-L3).</summary>
     public const string SellHeader = "Sell";

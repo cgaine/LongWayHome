@@ -17,14 +17,15 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="InteractionPoint"/> and the tree is not already paused, it pauses the tree (which stops the day clock,
 /// BR-G2) and shows a centred "Shop" panel: "Gold &lt;n&gt;", one button per listing in
 /// <see cref="GameSession.ShopOffers"/> labelled <see cref="ShopText.Row"/> (the seed rows, each with its
-/// <see cref="ItemIcons.SeedIcon"/>, then the axe and pickaxe with their tool icons, then the Watering can upgrade, with no
-/// icon, each while it is offered; a <see cref="ShopText.NoSeeds"/> line stands in for the seed rows when there are none),
+/// <see cref="ItemIcons.SeedIcon"/>, then the axe and pickaxe with their tool icons, then the backpack upgrades and the chest
+/// from store stages 2 and 3 (#166) with their icons, then the Watering can upgrade, with no icon, each while it is
+/// offered; a <see cref="ShopText.NoSeeds"/> line stands in for the seed rows when there are none),
 /// a Close button labelled <see cref="InputGlyphs.CloseLabel"/> ("[Esc] Close" / "(B) Close", following
 /// <see cref="LastInputDevice"/> while open), and a message line. The first button takes focus, so
 /// <c>ui_up</c>/<c>ui_down</c> move between rows and <c>ui_accept</c> presses one; when nothing has focus (e.g. a
 /// mouse click on empty panel space cleared it), a navigation or accept press gives the first button focus back
 /// through <see cref="MenuFocusRecovery"/> and is consumed, without touching the pause (BR-G2). Pressing a listing asks the session to buy one at the farmer's feet tile; a rejection shows
-/// <see cref="ShopText.Rejection"/>, a purchase shows <see cref="ShopText.AfterBuy"/> ("Some seeds dropped at your feet" when any dropped), and buying a once-per-game listing (a tool or the Watering can upgrade) rebuilds the rows so its row goes. The Close
+/// <see cref="ShopText.Rejection"/>, a purchase shows <see cref="ShopText.AfterBuy"/> ("Some seeds dropped at your feet", or "The chest dropped at your feet", when any dropped), and buying a once-per-game listing (a tool, a backpack upgrade or the Watering can upgrade) rebuilds the rows so its row goes. The Close
 /// button, or a press of <c>ui_cancel</c>, <c>interact</c> or <c>pause</c>, closes the panel and resumes the tree;
 /// those presses are handled in <c>_Input</c> while open, so the <see cref="PauseMenu"/> never also toggles. Opening is in <c>_UnhandledInput</c>, after <c>_Input</c>, so the
 /// press that opens the menu cannot also close it, and it sits before <see cref="NightTransition"/> in the Farm
@@ -235,7 +236,8 @@ public partial class ShopMenu : CanvasLayer
 
     private void Buy(ShopListing listing)
     {
-        // Seeds that fit nowhere drop at the farmer's feet tile (BR-K3); with no Player in the scene, the session's default.
+        // Seeds or a chest that fit nowhere drop at the farmer's feet tile (BR-K3); with no Player in the scene, the
+        // session's default. Chests are bought one at a time, like seeds.
         var feet = (GetTree().GetFirstNodeInGroup(PlayerController.Group) as PlayerController)?.Feet;
         var result = _session!.Buy(listing.Id, 1, feet);
         if (result.Rejection is { } rejection)
@@ -245,9 +247,10 @@ public partial class ShopMenu : CanvasLayer
         }
 
         RefreshGold();
-        _messageLabel.Text = ShopText.AfterBuy(_session.LastBuyDropped);
+        _messageLabel.Text = ShopText.AfterBuy(listing, _session.LastBuyDropped);
 
-        // BR-L5: a once-per-game listing (a tool or the Can upgrade) is offered only until bought, so its row goes.
+        // BR-L5: a once-per-game listing (a tool, a backpack upgrade or the Can upgrade) is offered only until bought,
+        // so its row goes; a bought 36-slot backpack also takes the 24-slot row (BR-K1).
         if (listing.OncePerGame)
         {
             RebuildItems();

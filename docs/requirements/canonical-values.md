@@ -97,8 +97,8 @@ Stored in `ShopListing.kind`.
 | `seed` | Seeds | Offered only in the Crop type's Season (BR-L1). |
 | `can_upgrade` | Watering can upgrade | Phase 1 only. Capacity 20 → 40; bought once per Game (BR-W4, retired in Phase 2). |
 | `tool` | Tool | Axe or pickaxe, once each. |
-| `backpack_upgrade` | Backpack upgrade | *(planned, REQ-58)* 24 slots (store stage 2), 36 slots (stage 3). |
-| `placeable` | Fence or chest | *(planned, REQ-48, REQ-58)* |
+| `backpack_upgrade` | Backpack upgrade | 24 slots (store stage 2), 36 slots (stage 3). |
+| `placeable` | Fence or chest | |
 | `farmhouse_upgrade` | Farmhouse upgrade | *(planned, REQ-48)* Carpenter stage 2, once; restores the farmhouse's look. |
 
 ---

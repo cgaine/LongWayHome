@@ -49,7 +49,8 @@ public class ShippedGameDataTests
             new("can_upgrade", ShopItemKind.CanUpgrade, null, new Gold(200), BuildingId.GeneralStore, 1, null, true),
         ];
 
-        Assert.Equal(expected, Data.ShopListings.Where(listing => listing.Kind != ShopItemKind.Tool));
+        // #166: the backpack upgrades and the chest are pinned by AC5_shipped_shop_lists_the_stage_2_and_3_unlocks.
+        Assert.Equal(expected, Data.ShopListings.Where(listing => listing.Kind is ShopItemKind.Seed or ShopItemKind.CanUpgrade));
         Assert.All(
             Data.ShopListings.Where(listing => listing.Kind == ShopItemKind.Seed),
             listing => Assert.Equal(Data.CropTypes[listing.CropTypeId!.Value].SeedCost, listing.Price));
@@ -65,6 +66,37 @@ public class ShippedGameDataTests
         ];
 
         Assert.Equal(expected, Data.ShopListings.Where(listing => listing.Kind == ShopItemKind.Tool));
+    }
+
+    [Fact]
+    public void AC5_shipped_shop_lists_the_stage_2_and_3_unlocks()
+    {
+        // #166: draft prices; every row carries placeableId and backpackCapacity, null where unused.
+        ShopListing[] expected =
+        [
+            new("backpack_24", ShopItemKind.BackpackUpgrade, null, new Gold(400), BuildingId.GeneralStore, 2, null, true, null, 24),
+            new("backpack_36", ShopItemKind.BackpackUpgrade, null, new Gold(1000), BuildingId.GeneralStore, 3, null, true, null, 36),
+            new("chest_store", ShopItemKind.Placeable, null, new Gold(100), BuildingId.GeneralStore, 3, null, false, PlaceableId.Chest, null),
+        ];
+
+        Assert.Equal(
+            expected,
+            Data.ShopListings.Where(listing => listing.Kind is ShopItemKind.BackpackUpgrade or ShopItemKind.Placeable));
+    }
+
+    [Fact]
+    public void AC5_every_shipped_shop_row_carries_placeableId_and_backpackCapacity()
+    {
+        var shop = System.Text.Json.Nodes.JsonNode.Parse(
+            File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", JsonGameDataSource.ShopFileName)))!;
+
+        Assert.All(
+            shop["listings"]!.AsArray(),
+            row =>
+            {
+                Assert.True(row!.AsObject().ContainsKey("placeableId"), $"{row["id"]} has no placeableId field");
+                Assert.True(row.AsObject().ContainsKey("backpackCapacity"), $"{row["id"]} has no backpackCapacity field");
+            });
     }
 
     [Fact]

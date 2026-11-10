@@ -38,7 +38,8 @@ namespace LongWayHome.Game.Ui;
 /// <see cref="InteractionPoint"/> (the pond, a river or a lake point; it counts enters and exits, so walking along a
 /// bank from one point's range into the next keeps it on), and a "&lt;interact glyph&gt; Sleep" hint in the same place
 /// while in range of the house door's, and a "&lt;interact glyph&gt; Ship crops" hint in the same place while in range
-/// of the shipping bin's, and a "&lt;interact glyph&gt; Shop" hint in the same place while in range of the shop's, and
+/// of the shipping bin's (found again on each <see cref="GameSession.NightCompleted"/>, since the bin appears the
+/// morning after the store's stage 4 rebuild, BR-S3), and a "&lt;interact glyph&gt; Shop" hint in the same place while in range of the shop's, and
 /// a "&lt;interact glyph&gt; Rebuild" hint in the same place while in range of a <c>"sign"</c> point whose
 /// <see cref="RebuildSignPoint"/> is up (#163, BR-B4), and
 /// a <see cref="DialogueText.TalkHint"/> ("[F] Talk") in the same place while in range of a present Resident's point
@@ -238,7 +239,7 @@ public partial class Hud : CanvasLayer
         _session.PlayerChanged += Refresh;
         _session.InventoryChanged += Refresh;
         _session.ClockChanged += RefreshClock;
-        _session.NightCompleted += RefreshAll;
+        _session.NightCompleted += OnNightCompleted;
         _session.PlacedObjectsChanged += MarkChestStale;
         if (_selection is not null)
         {
@@ -282,13 +283,7 @@ public partial class Hud : CanvasLayer
             RefreshSleepHint();
         }
 
-        _bin = InteractionPoint.Find(GetTree().Root, BinPointId);
-        if (_bin is not null)
-        {
-            _bin.PlayerEntered += ShowShipHint;
-            _bin.PlayerExited += HideShipHint;
-            _shipHint.Visible = _bin.IsPlayerInRange;
-        }
+        FindBinPoint();
 
         _shop = InteractionPoint.Find(GetTree().Root, ShopPointId);
         if (_shop is not null)
@@ -373,7 +368,7 @@ public partial class Hud : CanvasLayer
             _session.PlayerChanged -= Refresh;
             _session.InventoryChanged -= Refresh;
             _session.ClockChanged -= RefreshClock;
-            _session.NightCompleted -= RefreshAll;
+            _session.NightCompleted -= OnNightCompleted;
             _session.PlacedObjectsChanged -= MarkChestStale;
             _session.BuildingsChanged -= RefreshRebuildHint;
         }
@@ -414,11 +409,7 @@ public partial class Hud : CanvasLayer
             _door.PlayerExited -= HideSleepHint;
         }
 
-        if (_bin is not null && IsInstanceValid(_bin))
-        {
-            _bin.PlayerEntered -= ShowShipHint;
-            _bin.PlayerExited -= HideShipHint;
-        }
+        ReleaseBinPoint();
 
         if (_shop is not null && IsInstanceValid(_shop))
         {
@@ -534,6 +525,52 @@ public partial class Hud : CanvasLayer
         _changeItemHint.Text = InputGlyphs.ChangeItemHint(device);
         _cycleRowHint.Text = InputGlyphs.CycleRowHint(device);
         RefreshStepHint();
+    }
+
+    /// <summary>
+    /// The new Day: every label again, and the <c>bin</c> point found again, since the farm's <c>ShippingBinGate</c>
+    /// adds the bin the morning after the store's stage 4 rebuild (BR-S3, #166). The gate sits ahead of the Hud in
+    /// <c>Farm.tscn</c>, so it has added the bin by now; the deferred look covers a bin added later in this dispatch.
+    /// </summary>
+    private void OnNightCompleted()
+    {
+        RefreshAll();
+        FindBinPoint();
+        CallDeferred(MethodName.FindBinPoint);
+    }
+
+    /// <summary>
+    /// Finds the <c>bin</c> point (none before store stage 4) and listens to it for the ship hint, letting go of any
+    /// point found before. Finding the same point again changes nothing.
+    /// </summary>
+    private void FindBinPoint()
+    {
+        var bin = InteractionPoint.Find(GetTree().Root, BinPointId);
+        if (bin == _bin && (bin is null || IsInstanceValid(bin)))
+        {
+            return;
+        }
+
+        ReleaseBinPoint();
+        _bin = bin;
+        if (_bin is not null)
+        {
+            _bin.PlayerEntered += ShowShipHint;
+            _bin.PlayerExited += HideShipHint;
+        }
+
+        _shipHint.Visible = _bin?.IsPlayerInRange ?? false;
+    }
+
+    private void ReleaseBinPoint()
+    {
+        if (_bin is not null && IsInstanceValid(_bin))
+        {
+            _bin.PlayerEntered -= ShowShipHint;
+            _bin.PlayerExited -= HideShipHint;
+        }
+
+        _bin = null;
     }
 
     private void RefreshAll()
