@@ -41,28 +41,28 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 26
 text = "Chest"
 horizontal_alignment = 1
 
 [node name="ChestSlots" type="GridContainer" parent="Panel/Rows"]
 layout_mode = 2
 theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
+theme_override_constants/v_separation = 4
 columns = 6
 
 [node name="BackpackTitle" type="Label" parent="Panel/Rows"]
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 26
 text = "Backpack"
 horizontal_alignment = 1
 
 [node name="BackpackSlots" type="GridContainer" parent="Panel/Rows"]
 layout_mode = 2
 theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
+theme_override_constants/v_separation = 4
 columns = 6
 
 [node name="HintLabel" type="Label" parent="Panel/Rows"]

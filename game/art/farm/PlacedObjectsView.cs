@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
@@ -32,6 +33,9 @@ public partial class PlacedObjectsView : Node3D
 
     private GameSession? _session;
 
+    /// <summary>What the last build drew, so a chest's contents changing redraws nothing.</summary>
+    private List<(GridPosition Position, PlaceableId Placeable)>? _drawn;
+
     public override void _Ready()
     {
         _session = GetNode<GameRoot>(GameRootPath).Session;
@@ -53,9 +57,16 @@ public partial class PlacedObjectsView : Node3D
         }
     }
 
-    /// <summary>Frees the last build and draws the session's placed objects again.</summary>
+    /// <summary>Frees the last build and draws the session's placed objects again, unless none was placed or picked up.</summary>
     private void Rebuild()
     {
+        var current = _session!.Game.FarmPlot.PlacedObjects.Select(placed => (placed.Position, placed.Placeable)).ToList();
+        if (_drawn is not null && _drawn.SequenceEqual(current))
+        {
+            return;
+        }
+
+        _drawn = current;
         foreach (var child in GetChildren())
         {
             RemoveChild(child);

@@ -26,7 +26,7 @@ public sealed class Backpack
     /// <summary>A new Backpack of 12 empty Slots on hotbar row 0.</summary>
     public Backpack()
     {
-        _slots = Enumerable.Range(0, StartingCapacity).Select(EmptySlot).ToList();
+        _slots = Enumerable.Range(0, StartingCapacity).Select(SlotStore.EmptySlot).ToList();
         _store = new SlotStore(_slots);
         HotbarRow = 0;
     }
@@ -69,7 +69,7 @@ public sealed class Backpack
             }
 
             // BR-K2
-            ValidateSlot(slot);
+            SlotStore.ValidateSlot(slot);
             byIndex[slot.Index] = slot;
         }
 
@@ -142,9 +142,7 @@ public sealed class Backpack
         }
 
         // BR-K2: a Slot at 0 is empty.
-        _slots[slotIndex] = slot.Quantity == quantity
-            ? EmptySlot(slotIndex)
-            : slot with { Quantity = slot.Quantity - quantity };
+        _store.TakeFrom(slotIndex, quantity);
         return true;
     }
 
@@ -206,7 +204,7 @@ public sealed class Backpack
             throw new InvalidOperationException("A tool can't be removed from the Backpack (BR-K6).");
         }
 
-        RequireItem(item, quantity);
+        SlotStore.RequireItem(item, quantity);
 
         if (Quantity(item) < quantity)
         {
@@ -226,7 +224,7 @@ public sealed class Backpack
             left -= taken;
 
             // BR-K2: a Slot at 0 is empty.
-            _slots[index] = slot.Quantity == taken ? EmptySlot(index) : slot with { Quantity = slot.Quantity - taken };
+            _slots[index] = slot.Quantity == taken ? SlotStore.EmptySlot(index) : slot with { Quantity = slot.Quantity - taken };
         }
 
         return true;
@@ -287,7 +285,7 @@ public sealed class Backpack
 
             _slots[to] = target with { Quantity = target.Quantity + moved };
             _slots[from] = source.Quantity == moved
-                ? EmptySlot(from)
+                ? SlotStore.EmptySlot(from)
                 : source with { Quantity = source.Quantity - moved };
             return true;
         }
@@ -313,15 +311,9 @@ public sealed class Backpack
 
         for (var index = Capacity; index < capacity; index++)
         {
-            _slots.Add(EmptySlot(index));
+            _slots.Add(SlotStore.EmptySlot(index));
         }
     }
 
     private static bool IsCapacity(int capacity) => capacity is 12 or 24 or 36;
-
-    private static BackpackSlot EmptySlot(int index) => SlotStore.EmptySlot(index);
-
-    private static void RequireItem(ItemRef item, int quantity) => SlotStore.RequireItem(item, quantity);
-
-    private static void ValidateSlot(BackpackSlot slot) => SlotStore.ValidateSlot(slot);
 }

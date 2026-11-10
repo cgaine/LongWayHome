@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Linq;
 using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
@@ -46,6 +47,10 @@ public partial class ToolTargeting : Node3D
     private GameSession? _session;
 
     private Node3D _cursor = null!;
+
+    /// <summary>The ToolTargeting under the Player in <paramref name="tree"/>, or null when there is no Player yet.</summary>
+    public static ToolTargeting? OfPlayer(SceneTree tree) =>
+        tree.GetFirstNodeInGroup(PlayerController.Group)?.GetChildren().OfType<ToolTargeting>().FirstOrDefault();
 
     /// <summary>
     /// The tile in front of the Player in the current Area, or null when there is none: off the Area's grid, anywhere

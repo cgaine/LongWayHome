@@ -319,10 +319,7 @@ public partial class Hud : CanvasLayer
 
         if (_targeting is null || !IsInstanceValid(_targeting))
         {
-            _targeting = GetTree().GetFirstNodeInGroup(PlayerController.Group)?
-                .GetChildren()
-                .OfType<ToolTargeting>()
-                .FirstOrDefault();
+            _targeting = ToolTargeting.OfPlayer(GetTree());
         }
 
         // Only asks the session when the faced Tile or the placed objects change, so an unchanged frame reads nothing.

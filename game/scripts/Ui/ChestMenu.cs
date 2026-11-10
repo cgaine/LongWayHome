@@ -33,7 +33,7 @@ public partial class ChestMenu : CanvasLayer
 
     private const int SlotWidth = 132;
 
-    private const int SlotHeight = 44;
+    private const int SlotHeight = 40;
 
     private static readonly Color SlotBackground = new(0, 0, 0, 0.55f);
 
@@ -145,11 +145,7 @@ public partial class ChestMenu : CanvasLayer
             return;
         }
 
-        var targeting = GetTree().GetFirstNodeInGroup(PlayerController.Group)?
-            .GetChildren()
-            .OfType<ToolTargeting>()
-            .FirstOrDefault();
-        if (targeting?.Target is { } target && _session!.ChestAt(target) is not null)
+        if (ToolTargeting.OfPlayer(GetTree())?.Target is { } target && _session!.ChestAt(target) is not null)
         {
             Open(target);
             GetViewport().SetInputAsHandled();
