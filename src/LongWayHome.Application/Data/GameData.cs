@@ -16,4 +16,7 @@ public sealed record GameData(
     /// <summary>The material types from <c>materials.json</c>, keyed by id; never null.</summary>
     public IReadOnlyDictionary<MaterialId, MaterialType> MaterialTypes { get; init; } =
         new Dictionary<MaterialId, MaterialType>();
+
+    /// <summary>The Building stage rows from <c>buildings.json</c>; never null.</summary>
+    public IReadOnlyList<BuildingStage> BuildingStages { get; init; } = [];
 }

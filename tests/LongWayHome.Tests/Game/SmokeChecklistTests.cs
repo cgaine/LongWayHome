@@ -241,6 +241,25 @@ public class SmokeChecklistTests
             $"The {pass} pass has no step selling crops to Maggie with the gold rising");
     }
 
+    /// <summary>#163 AC10: each pass delivers wood, stone and gold at the general store's Rebuild sign.</summary>
+    [Theory]
+    [MemberData(nameof(Passes))]
+    public void AC10_pass_has_a_step_delivering_at_the_rebuild_sign(string pass)
+    {
+        var section = FindPass(ReadSections(ReadChecklist()), pass);
+        Assert.True(section is not null, $"{ChecklistPath} has no '## ' section for the {pass} pass");
+        var steps = ReadSteps(section.Value.Body);
+
+        Assert.True(
+            steps.Any(step =>
+                Regex.IsMatch(step, @"\bdeliver", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\bRebuild\b") &&
+                Regex.IsMatch(step, @"\bsign\b", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\bwood\b", RegexOptions.IgnoreCase) &&
+                Regex.IsMatch(step, @"\bgold\b", RegexOptions.IgnoreCase)),
+            $"The {pass} pass has no step delivering wood and gold at the Rebuild sign");
+    }
+
     /// <summary>#146 AC11: each pass checks the farm stall's shop has no Sell section.</summary>
     [Theory]
     [MemberData(nameof(Passes))]

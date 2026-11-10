@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using LongWayHome.Domain.Buildings;
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Nodes;
@@ -28,7 +29,8 @@ public sealed class Game
         bool openingDone = true,
         IReadOnlySet<string>? purchasedListings = null,
         IReadOnlyList<ResourceNode>? resourceNodes = null,
-        IReadOnlyList<NodeRegrowth>? nodeRegrowths = null)
+        IReadOnlyList<NodeRegrowth>? nodeRegrowths = null,
+        IReadOnlyList<Building>? buildings = null)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(farmPlot);
@@ -51,6 +53,126 @@ public sealed class Game
         ResourceNodes = _resourceNodes.AsReadOnly();
         _nodeRegrowths = ValidNodeRegrowths(nodeRegrowths ?? [], _resourceNodes);
         NodeRegrowths = _nodeRegrowths.AsReadOnly();
+
+        Buildings = ValidBuildings(buildings ?? DefaultBuildings());
+    }
+
+    /// <summary>One Building per <see cref="BuildingId"/>, in enum order.</summary>
+    public IReadOnlyList<Building> Buildings { get; }
+
+    /// <summary>The stage of <paramref name="id"/>'s Building.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not a <see cref="BuildingId"/> member.</exception>
+    public int BuildingStage(BuildingId id) => BuildingOf(id).Stage;
+
+    /// <summary>The new-Game Buildings: general_store 1, carpenter 0, miras_house 0, blacksmith 0, nothing delivered.</summary>
+    public static IReadOnlyList<Building> DefaultBuildings() =>
+        Enum.GetValues<BuildingId>()
+            .Select(id => new Building(id, stage: id == BuildingId.GeneralStore ? 1 : 0))
+            .ToList()
+            .AsReadOnly();
+
+    /// <summary>
+    /// Delivers up to <paramref name="quantity"/> of <paramref name="material"/> from the Backpack toward
+    /// <paramref name="building"/>'s next stage (BR-B2): clamped to what is still needed and to what the Backpack holds.
+    /// Refused NotOffered when the Building has no next stage in <paramref name="stages"/> or its cost has no such line
+    /// (BR-B4), AlreadyDelivered when that line is complete, and NothingToDeliver when none is held; a refusal changes
+    /// nothing. A quantity below 1 throws. Never touches tools (BR-K6), and costs no energy and no time.
+    /// </summary>
+    public DeliveryResult Deliver(
+        BuildingId building, MaterialId material, int quantity, IReadOnlyList<Catalog.BuildingStage> stages)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(quantity, 1);
+        var target = BuildingOf(building);
+
+        // BR-B4: only a Building whose next stage exists takes deliveries, and only of what that stage costs.
+        var cost = target.NextStage(stages)?.CostItems.FirstOrDefault(line => line.Material == material);
+        if (cost is null)
+        {
+            return DeliveryResult.Rejected(Rejection.NotOffered);
+        }
+
+        var needed = cost.Quantity - target.DeliveredOf(material);
+        if (needed <= 0)
+        {
+            return DeliveryResult.Rejected(Rejection.AlreadyDelivered);
+        }
+
+        // BR-B2: up to what is still needed, and only what the Backpack holds. Materials are never tools (BR-K6).
+        var item = ItemRef.Material(material);
+        var amount = Math.Min(quantity, Math.Min(needed, Player.Backpack.Quantity(item)));
+        if (amount == 0)
+        {
+            return DeliveryResult.Rejected(Rejection.NothingToDeliver);
+        }
+
+        // BR-B2: the items leave the Backpack in the same step the delivery is recorded.
+        Player.Backpack.Remove(item, amount);
+        target.AddDelivered(material, amount);
+        return DeliveryResult.Ok(amount);
+    }
+
+    /// <summary>
+    /// Delivers up to <paramref name="gold"/> of the Player's gold toward <paramref name="building"/>'s next stage
+    /// (BR-B2): clamped to what is still needed and to the gold held, so gold never goes below 0 (BR-P5). Refused
+    /// NotOffered with no next stage (BR-B4), AlreadyDelivered when the gold line is complete, and NothingToDeliver with
+    /// no gold held; a refusal changes nothing. An amount below 1 throws. Costs no energy and no time.
+    /// </summary>
+    public DeliveryResult DeliverGold(BuildingId building, int gold, IReadOnlyList<Catalog.BuildingStage> stages)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(gold, 1);
+        var target = BuildingOf(building);
+
+        var next = target.NextStage(stages);
+        if (next is null)
+        {
+            return DeliveryResult.Rejected(Rejection.NotOffered);
+        }
+
+        var needed = next.CostGold.Value - target.DeliveredGold;
+        if (needed <= 0)
+        {
+            return DeliveryResult.Rejected(Rejection.AlreadyDelivered);
+        }
+
+        // BR-B2, BR-P5: up to what is still needed and never more than the Player holds, taken only by TrySpendGold.
+        var amount = Math.Min(gold, Math.Min(needed, Player.Gold.Value));
+        if (amount == 0 || !Player.TrySpendGold(amount))
+        {
+            return DeliveryResult.Rejected(Rejection.NothingToDeliver);
+        }
+
+        target.AddDeliveredGold(amount);
+        return DeliveryResult.Ok(amount);
+    }
+
+    /// <summary><paramref name="id"/>'s Building.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not a <see cref="BuildingId"/> member.</exception>
+    public Building BuildingOf(BuildingId id) =>
+        Enum.IsDefined(id)
+            ? Buildings[(int)id]
+            : throw new ArgumentOutOfRangeException(nameof(id), id, "Not a Building.");
+
+    /// <summary>One Building per <see cref="BuildingId"/>, in enum order, or the list is refused.</summary>
+    private static IReadOnlyList<Building> ValidBuildings(IReadOnlyList<Building> buildings)
+    {
+        var ids = Enum.GetValues<BuildingId>();
+        if (buildings.Count != ids.Length)
+        {
+            throw new ArgumentException(
+                $"A Game has exactly one Building per BuildingId ({ids.Length}), not {buildings.Count}.",
+                nameof(buildings));
+        }
+
+        for (var i = 0; i < ids.Length; i++)
+        {
+            if (buildings[i] is null || buildings[i].Id != ids[i])
+            {
+                throw new ArgumentException(
+                    $"Building {i} must be {ids[i]}, one per BuildingId in enum order.", nameof(buildings));
+            }
+        }
+
+        return buildings.ToList().AsReadOnly();
     }
 
     public Guid Id { get; }
