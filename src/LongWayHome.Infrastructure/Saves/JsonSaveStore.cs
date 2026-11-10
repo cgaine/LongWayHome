@@ -244,6 +244,7 @@ public sealed class JsonSaveStore : ISaveStore
                         },
                 })
                 .ToList(),
+            PlacedObjects = game.FarmPlot.PlacedObjects.Select(ToDto).ToList(),
         },
         ShippingBin = new ShippingBinDto
         {
@@ -270,17 +271,15 @@ public sealed class JsonSaveStore : ISaveStore
     {
         Capacity = backpack.Capacity,
         HotbarRow = backpack.HotbarRow,
-        Slots = backpack.Slots
-            .Select(slot => new BackpackSlotDto
-            {
-                Index = slot.Index,
-                Item = slot.Item is not { } item
-                    ? null
-                    : ToItemRefDto(item),
-                Quantity = slot.Quantity,
-                ToolTier = slot.ToolTier,
-            })
-            .ToList(),
+        Slots = backpack.Slots.Select(ToDto).ToList(),
+    };
+
+    private static BackpackSlotDto ToDto(BackpackSlot slot) => new()
+    {
+        Index = slot.Index,
+        Item = slot.Item is not { } item ? null : ToItemRefDto(item),
+        Quantity = slot.Quantity,
+        ToolTier = slot.ToolTier,
     };
 
     private static GameDateDto ToDto(GameDate date) => new() { Year = date.Year, Season = date.Season, Day = date.Day };
@@ -358,7 +357,7 @@ public sealed class JsonSaveStore : ISaveStore
         if (nodes is null)
         {
             return _legacyNodeSpawns
-                .Where(spawn => spawn.Area != AreaId.Farm || farmPlot[spawn.Position].State == TileState.Grass)
+                .Where(spawn => spawn.Area != AreaId.Farm || IsFreeFarmTile(farmPlot, spawn.Position))
                 .Select(ResourceNode.FromSpawn)
                 .ToList();
         }
@@ -386,7 +385,7 @@ public sealed class JsonSaveStore : ISaveStore
         var occupied = restored.Select(node => (node.Area, node.Position)).ToHashSet();
         foreach (var spawn in _startSpawns.Where(spawn => !placed.Contains(spawn.Area)))
         {
-            var onFreeTile = spawn.Area != AreaId.Farm || farmPlot[spawn.Position].State == TileState.Grass;
+            var onFreeTile = spawn.Area != AreaId.Farm || IsFreeFarmTile(farmPlot, spawn.Position);
             if (onFreeTile && occupied.Add((spawn.Area, spawn.Position)))
             {
                 restored.Add(ResourceNode.FromSpawn(spawn));
@@ -395,6 +394,10 @@ public sealed class JsonSaveStore : ISaveStore
 
         return restored;
     }
+
+    // A farm Tile a starting node may land on: grass with no Placed object (BR-T2, BR-F1).
+    private static bool IsFreeFarmTile(FarmPlot farmPlot, GridPosition position) =>
+        farmPlot[position].State == TileState.Grass && farmPlot.PlacedAt(position) is null;
 
     /// <summary>
     /// No <c>nodeAreasPlaced</c> (a version 2 file from before #154) is the farm alone. Each entry must be an AreaId
@@ -476,7 +479,7 @@ public sealed class JsonSaveStore : ISaveStore
     private static Backpack ToBackpack(BackpackDto dto)
     {
         var slots = Required(dto.Slots, "player.backpack.slots")
-            .Select(slot => ToSlot(Required(slot, "player.backpack.slots[]")))
+            .Select(slot => ToSlot(Required(slot, "player.backpack.slots[]"), "player.backpack.slots"))
             .ToList();
         try
         {
@@ -488,9 +491,9 @@ public sealed class JsonSaveStore : ISaveStore
         }
     }
 
-    private static BackpackSlot ToSlot(BackpackSlotDto dto)
+    private static BackpackSlot ToSlot(BackpackSlotDto dto, string list)
     {
-        var field = $"player.backpack.slots[{dto.Index}]";
+        var field = $"{list}[{dto.Index}]";
         var tier = dto.ToolTier is { } toolTier ? Defined(toolTier, field + ".toolTier") : (ToolTier?)null;
         if (dto.Item is not { } item)
         {
@@ -501,12 +504,24 @@ public sealed class JsonSaveStore : ISaveStore
         return new BackpackSlot(dto.Index, ToItemRef(item, kind, field + ".item"), dto.Quantity, tier);
     }
 
-    // A material carries its code in materialId and no id; every other kind carries its code in id and no materialId.
+    // A material carries its code in materialId and a placeable in placeableId, with no id; every other kind carries
+    // its code in id, with no materialId or placeableId.
     private static ItemRef ToItemRef(ItemRefDto item, ItemKind kind, string field)
     {
+        if (kind != ItemKind.Placeable && item.PlaceableId is not null)
+        {
+            throw new InvalidDataException($"{field}.placeableId must be absent for a {Code(kind)}, was '{item.PlaceableId}'.");
+        }
+
         if (kind == ItemKind.Placeable)
         {
-            throw new NotImplementedException();
+            if (item.Id is not null || item.MaterialId is not null)
+            {
+                throw new InvalidDataException($"{field} must carry only a placeableId for a placeable.");
+            }
+
+            return ItemRef.Placeable(
+                FromCode<PlaceableId>(Required(item.PlaceableId, field + ".placeableId"), field + ".placeableId"));
         }
 
         if (kind == ItemKind.Material)
@@ -534,7 +549,7 @@ public sealed class JsonSaveStore : ISaveStore
     private static ItemRefDto ToItemRefDto(ItemRef item) => item.Kind switch
     {
         ItemKind.Material => new ItemRefDto { Kind = item.Kind, MaterialId = Code(item.MaterialId!.Value) },
-        ItemKind.Placeable => throw new NotImplementedException(),
+        ItemKind.Placeable => new ItemRefDto { Kind = item.Kind, PlaceableId = Code(item.PlaceableId!.Value) },
         ItemKind.Tool => new ItemRefDto { Kind = item.Kind, Id = Code(item.ToolId!.Value) },
         _ => new ItemRefDto { Kind = item.Kind, Id = Code(item.CropTypeId!.Value) },
     };
@@ -547,9 +562,47 @@ public sealed class JsonSaveStore : ISaveStore
                 $"farmPlot must be {FarmPlot.Width} x {FarmPlot.Height} (BR-T1), was {dto.Width} x {dto.Height}.");
         }
 
-        // BR-T1: the FarmPlot constructor refuses a missing or duplicated grid position.
-        return new FarmPlot(Required(dto.Tiles, "farmPlot.tiles").Select(ToTile));
+        // BR-T1: the FarmPlot constructor refuses a missing or duplicated grid position; BR-F1: it refuses a Placed
+        // object off the plot, on a tilled Tile or sharing one (the Game constructor refuses one on a node).
+        var tiles = Required(dto.Tiles, "farmPlot.tiles").Select(ToTile).ToList();
+        var placed = (dto.PlacedObjects ?? []).Select(ToPlacedObject).ToList();
+        return new FarmPlot(tiles, placed);
     }
+
+    /// <summary>
+    /// A fence has no slots (absent or empty); a chest has exactly 36, each like a Backpack Slot and never a tool
+    /// (BR-F2, BR-K6). The PlacedObject constructor refuses a bad set of slots.
+    /// </summary>
+    private static PlacedObject ToPlacedObject(PlacedObjectDto? dto)
+    {
+        const string field = "farmPlot.placedObjects[]";
+        var entry = Required(dto, field);
+        var position = Required(entry.Position, field + ".position");
+        var placeable = Defined(entry.Placeable, field + ".placeable");
+        if (placeable == PlaceableId.Chest && entry.Slots is null)
+        {
+            throw new InvalidDataException($"{field}.slots is missing for a chest; a chest has 36 slots (BR-F2).");
+        }
+
+        var slots = (entry.Slots ?? [])
+            .Select(slot => ToSlot(Required(slot, field + ".slots[]"), field + ".slots"))
+            .ToList();
+        try
+        {
+            return new PlacedObject(new GridPosition(position.X, position.Y), placeable, slots);
+        }
+        catch (ArgumentException exception)
+        {
+            throw new InvalidDataException($"{field} is invalid: {exception.Message}", exception);
+        }
+    }
+
+    private static PlacedObjectDto ToDto(PlacedObject placed) => new()
+    {
+        Position = new GridPositionDto { X = placed.Position.X, Y = placed.Position.Y },
+        Placeable = placed.Placeable,
+        Slots = placed.Placeable == PlaceableId.Chest ? placed.Slots.Select(ToDto).ToList() : null,
+    };
 
     private static Tile ToTile(TileDto? dto)
     {

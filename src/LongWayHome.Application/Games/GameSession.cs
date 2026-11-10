@@ -85,20 +85,76 @@ public sealed class GameSession
     public event Action? DroppedItemsChanged;
 
     /// <summary>Raised when a fence or chest is placed or picked up, or a chest's contents change.</summary>
-    public event Action? PlacedObjectsChanged
+    public event Action? PlacedObjectsChanged;
+
+    /// <summary>
+    /// The chest on the farm Tile at <paramref name="position"/> with its 36 slots, or null when there is none or the
+    /// Player is off the farm.
+    /// </summary>
+    public ChestView? ChestAt(GridPosition position) =>
+        IsOnFarmPlot && FarmPlot.Contains(position) && Game.FarmPlot.PlacedAt(position) is { Placeable: PlaceableId.Chest } chest
+            ? new ChestView(position, chest.Slots.Select(ViewSlot).ToList().AsReadOnly())
+            : null;
+
+    /// <summary>The fence or chest on the farm Tile at <paramref name="position"/>, or null (always off the farm).</summary>
+    public PlaceableId? PlacedAt(GridPosition? position) =>
+        IsOnFarmPlot && position is { } at && FarmPlot.Contains(at) ? Game.FarmPlot.PlacedAt(at)?.Placeable : null;
+
+    /// <summary>
+    /// Moves a Backpack Slot's stack into the chest at <paramref name="chest"/> (BR-F2, BR-K6); NoTarget off the farm.
+    /// Raises InventoryChanged and PlacedObjectsChanged on success.
+    /// </summary>
+    public ActionResult StoreInChest(GridPosition chest, int backpackSlot) =>
+        ChestMove(() => Game.StoreInChest(chest, backpackSlot));
+
+    /// <summary>
+    /// Moves a chest slot's stack into the Backpack (BR-F2, BR-K3); NoTarget off the farm. Raises InventoryChanged and
+    /// PlacedObjectsChanged on success.
+    /// </summary>
+    public ActionResult TakeFromChest(GridPosition chest, int chestSlot) =>
+        ChestMove(() => Game.TakeFromChest(chest, chestSlot));
+
+    /// <summary>
+    /// Places the fence or chest in Backpack Slot <paramref name="slotIndex"/> on a farm Tile (BR-F1); NoTarget off the
+    /// farm. Raises InventoryChanged, PlacedObjectsChanged and TileChanged on success.
+    /// </summary>
+    public ActionResult Place(GridPosition position, int slotIndex) =>
+        PlacedChange(position, () => Game.Place(position, slotIndex));
+
+    /// <summary>
+    /// Picks the fence or empty chest on a farm Tile back up (BR-F2); NoTarget off the farm. Raises InventoryChanged,
+    /// PlacedObjectsChanged and TileChanged on success.
+    /// </summary>
+    public ActionResult PickUpPlaced(GridPosition position) =>
+        PlacedChange(position, () => Game.PickUpPlaced(position));
+
+    private ActionResult ChestMove(Func<ActionResult> move)
     {
-        add => throw new NotImplementedException();
-        remove => throw new NotImplementedException();
+        if (!IsOnFarmPlot)
+        {
+            return ActionResult.Rejected(Rejection.NoTarget);
+        }
+
+        var result = move();
+        if (result.IsOk)
+        {
+            InventoryChanged?.Invoke();
+            PlacedObjectsChanged?.Invoke();
+        }
+
+        return result;
     }
 
-    /// <summary>The chest on the farm Tile at <paramref name="position"/> with its 36 slots, or null when there is none.</summary>
-    public ChestView? ChestAt(GridPosition position) => throw new NotImplementedException();
+    private ActionResult PlacedChange(GridPosition position, Func<ActionResult> change)
+    {
+        var result = ChestMove(change);
+        if (result.IsOk)
+        {
+            TileChanged?.Invoke(position);
+        }
 
-    /// <summary>Moves a Backpack Slot's stack into the chest at <paramref name="chest"/> (BR-F2, BR-K6).</summary>
-    public ActionResult StoreInChest(GridPosition chest, int backpackSlot) => throw new NotImplementedException();
-
-    /// <summary>Moves a chest slot's stack into the Backpack (BR-F2, BR-K3).</summary>
-    public ActionResult TakeFromChest(GridPosition chest, int chestSlot) => throw new NotImplementedException();
+        return result;
+    }
 
     /// <summary>
     /// Raised when the Game's ResourceNodes change, and on NightCompleted, just before it, so a node view also
@@ -287,18 +343,18 @@ public sealed class GameSession
     public BackpackView BackpackView()
     {
         var backpack = Game.Player.Backpack;
-        var slots = backpack.Slots
-            .Select(slot => new BackpackViewSlot(
-                slot.Index,
-                slot.Item,
-                slot.Quantity,
-                slot.ToolTier,
-                BackpackText.Label(slot),
-                slot.Item is { } item ? ItemIcons.For(item) : null))
-            .ToList()
-            .AsReadOnly();
+        var slots = backpack.Slots.Select(ViewSlot).ToList().AsReadOnly();
         return new BackpackView(slots, backpack.HotbarRow, backpack.Capacity);
     }
+
+    // A Backpack or chest Slot with its label and icon.
+    private static BackpackViewSlot ViewSlot(BackpackSlot slot) => new(
+        slot.Index,
+        slot.Item,
+        slot.Quantity,
+        slot.ToolTier,
+        BackpackText.Label(slot),
+        slot.Item is { } item ? ItemIcons.For(item) : null);
 
     /// <summary>
     /// The six slots of the current hotbar row (BR-K5), position 0–5, with <paramref name="heldPosition"/> selected.
@@ -350,6 +406,7 @@ public sealed class GameSession
             target,
             preview,
             position => PlantFromSlot(position, slot.Item!.Value.CropTypeId!.Value, slot.Index),
+            slot.Index,
             feet);
     }
 
@@ -370,7 +427,7 @@ public sealed class GameSession
     internal ActionResult Use(GridPosition? target, HeldItem held, GridPosition? feet = null)
     {
         var preview = PreviewUse(target, held);
-        return Perform(target, preview, position => Plant(position, held.Seed!.Value), feet);
+        return Perform(target, preview, position => Plant(position, held.Seed!.Value), PlaceableSlot(held), feet);
     }
 
     // The Use decision: harvest first (BR-T6), then the held item. With a slotIndex, a seed plants from that Slot only.
@@ -399,6 +456,28 @@ public sealed class GameSession
             return Game.HarvestRejection(position, cropType) is { } harvestRejection
                 ? Rejected(harvestRejection)
                 : new UsePreview(UseActionKind.Harvest, null);
+        }
+
+        // BR-F1: a held placeable is placed on a free, untilled Tile; the domain decides, so the preview and
+        // Game.Place cannot drift apart.
+        if (held?.Placeable is not null)
+        {
+            if ((slotIndex ?? PlaceableSlot(held)) is not { } placeIndex)
+            {
+                return Rejected(Rejection.NothingToDo);
+            }
+
+            return Game.PlaceRejection(position, placeIndex) is { } placeRejection
+                ? Rejected(placeRejection)
+                : new UsePreview(UseActionKind.Place, null);
+        }
+
+        // BR-F2: anything else held, even a tool, picks up a fence or an empty chest rather than working the Tile.
+        if (PlacedAt(position) is not null)
+        {
+            return Game.PickUpRejection(position) is { } pickUpRejection
+                ? Rejected(pickUpRejection)
+                : new UsePreview(UseActionKind.PickUp, null);
         }
 
         if (held?.Seed is { } seed)
@@ -446,11 +525,25 @@ public sealed class GameSession
             ? Rejected(rejection)
             : new UsePreview(tool == ToolId.Axe ? UseActionKind.Chop : UseActionKind.Break, null);
 
-    // Runs a previewed action; each Use overload says how it plants (from the held Slot, or the held seed type).
+    // The lowest Backpack Slot holding the held placeable, or null when the held item isn't one or none is carried.
+    private int? PlaceableSlot(HeldItem held) =>
+        held.Placeable is { } placeable
+        && Game.Player.Backpack.Slots.FirstOrDefault(slot => slot.Item == ItemRef.Placeable(placeable)) is { } slot
+            ? slot.Index
+            : null;
+
+    // Runs a previewed action; each Use overload says how it plants (from the held Slot, or the held seed type) and
+    // which Slot a placeable comes from.
     private ActionResult Perform(
-        GridPosition? target, UsePreview preview, Func<GridPosition, ActionResult> plant, GridPosition? feet) =>
+        GridPosition? target,
+        UsePreview preview,
+        Func<GridPosition, ActionResult> plant,
+        int? placeSlot,
+        GridPosition? feet) =>
         preview.Action switch
         {
+            UseActionKind.Place when placeSlot is { } slotIndex => Place(target!.Value, slotIndex),
+            UseActionKind.PickUp => PickUpPlaced(target!.Value),
             UseActionKind.Till => Till(target!.Value),
             UseActionKind.Water => Water(target!.Value),
             UseActionKind.Plant => plant(target!.Value),
@@ -827,6 +920,7 @@ public sealed class GameSession
         { Kind: ItemKind.Tool, ToolId: { } tool } => HeldItem.Of(tool),
         { Kind: ItemKind.Seed, CropTypeId: { } seed } => HeldItem.SeedOf(seed),
         { Kind: ItemKind.Material, MaterialId: { } material } => HeldItem.MaterialOf(material),
+        { Kind: ItemKind.Placeable, PlaceableId: { } placeable } => HeldItem.PlaceableOf(placeable),
         _ => null,
     };
 

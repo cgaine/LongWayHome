@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/Opening/OpeningSequence.cs" id="23_opening"]
 [ext_resource type="PackedScene" path="res://scenes/Resident.tscn" id="24_resident"]
 [ext_resource type="Script" path="res://art/farm/ResourceNodesView.cs" id="25_nodesview"]
+[ext_resource type="Script" path="res://art/farm/PlacedObjectsView.cs" id="26_placedview"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.38, 0.6, 0.86, 1)
@@ -119,6 +120,9 @@ script = ExtResource("17_droppeditems")
 
 [node name="ResourceNodesView" type="Node3D" parent="."]
 script = ExtResource("25_nodesview")
+
+[node name="PlacedObjectsView" type="Node3D" parent="."]
+script = ExtResource("26_placedview")
 
 [node name="House" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -9)

@@ -49,6 +49,14 @@ public sealed class Game
         _purchasedListings = ValidPurchasedListings(purchasedListings);
         (_resourceNodes, _nodesByTile) = ValidResourceNodes(resourceNodes ?? []);
         ResourceNodes = _resourceNodes.AsReadOnly();
+
+        // BR-F1: a Placed object never shares its Tile with a farm node.
+        if (farmPlot.PlacedObjects.FirstOrDefault(placed => NodeAt(AreaId.Farm, placed.Position) is not null) is { } blocked)
+        {
+            throw new ArgumentException(
+                $"The Placed object at {blocked.Position} shares its Tile with a Resource node (BR-F1).", nameof(resourceNodes));
+        }
+
         _nodeRegrowths = ValidNodeRegrowths(nodeRegrowths ?? [], _resourceNodes);
         NodeRegrowths = _nodeRegrowths.AsReadOnly();
     }
@@ -437,22 +445,155 @@ public sealed class Game
     /// the grid, AlreadyTilled, NodeInTheWay, TileOccupied (a Placed object or Planting), NothingToDo when the Slot
     /// holds no placeable. Costs no energy.
     /// </summary>
-    public ActionResult Place(GridPosition position, int slotIndex) => throw new NotImplementedException();
+    public ActionResult Place(GridPosition position, int slotIndex)
+    {
+        if (PlaceRejection(position, slotIndex) is { } rejection)
+        {
+            return ActionResult.Rejected(rejection);
+        }
+
+        // BR-F1: one placeable leaves the Slot; a chest starts with 36 empty slots. Free: no energy.
+        var placeable = Player.Backpack.Slots[slotIndex].Item!.Value.PlaceableId!.Value;
+        Player.Backpack.RemoveFrom(slotIndex, 1);
+        FarmPlot.Put(new PlacedObject(position, placeable));
+        return ActionResult.Ok;
+    }
+
+    /// <summary>
+    /// Why placing the Slot's item on <paramref name="position"/> would be refused, or null (BR-F1): NoTarget off the
+    /// farm grid, AlreadyTilled, NodeInTheWay, TileOccupied (a Placed object or Planting), then NothingToDo when the
+    /// Slot holds no placeable. A Slot index outside the Backpack throws.
+    /// </summary>
+    public Rejection? PlaceRejection(GridPosition position, int slotIndex)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(slotIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slotIndex, Player.Backpack.Capacity);
+
+        // BR-F1: only farm Tiles take Placed objects.
+        if (!FarmPlot.Contains(position))
+        {
+            return Rejection.NoTarget;
+        }
+
+        var tile = FarmPlot[position];
+        if (tile.State != TileState.Grass)
+        {
+            return Rejection.AlreadyTilled;
+        }
+
+        if (NodeAt(AreaId.Farm, position) is not null)
+        {
+            return Rejection.NodeInTheWay;
+        }
+
+        if (FarmPlot.PlacedAt(position) is not null || tile.Planting is not null)
+        {
+            return Rejection.TileOccupied;
+        }
+
+        return Player.Backpack.Slots[slotIndex].Item?.Kind == ItemKind.Placeable ? null : Rejection.NothingToDo;
+    }
 
     /// <summary>
     /// Picks a fence, or an empty chest, back up into the Backpack (BR-F2): ChestNotEmpty, BackpackFull, or
     /// NothingToDo where nothing is placed.
     /// </summary>
-    public ActionResult PickUpPlaced(GridPosition position) => throw new NotImplementedException();
+    public ActionResult PickUpPlaced(GridPosition position)
+    {
+        if (PickUpRejection(position) is { } rejection)
+        {
+            return ActionResult.Rejected(rejection);
+        }
 
-    /// <summary>Moves a Backpack Slot's whole stack into the chest at <paramref name="chest"/> (BR-F2, BR-K2, BR-K6).</summary>
-    public ActionResult StoreInChest(GridPosition chest, int backpackSlot) => throw new NotImplementedException();
-
-    /// <summary>Moves a chest slot's whole stack into the Backpack (BR-F2, BR-K3).</summary>
-    public ActionResult TakeFromChest(GridPosition chest, int chestSlot) => throw new NotImplementedException();
+        // BR-F2, BR-K3: onto a matching stack below 99, else the lowest free Slot; the Tile is freed.
+        var placed = FarmPlot.PlacedAt(position)!;
+        Player.Backpack.Add(ItemRef.Placeable(placed.Placeable), 1);
+        FarmPlot.Remove(placed);
+        return ActionResult.Ok;
+    }
 
     /// <summary>
-    /// Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then NodeInTheWay, then
+    /// Why picking up the Placed object on <paramref name="position"/> would be refused, or null (BR-F2): NothingToDo
+    /// where nothing is placed, ChestNotEmpty, then BackpackFull. It never drops at the feet.
+    /// </summary>
+    public Rejection? PickUpRejection(GridPosition position)
+    {
+        if (!FarmPlot.Contains(position) || FarmPlot.PlacedAt(position) is not { } placed)
+        {
+            return Rejection.NothingToDo;
+        }
+
+        if (!placed.IsEmpty)
+        {
+            return Rejection.ChestNotEmpty;
+        }
+
+        return Player.Backpack.CanFit(ItemRef.Placeable(placed.Placeable), 1) ? null : Rejection.BackpackFull;
+    }
+
+    /// <summary>
+    /// Moves a Backpack Slot's whole stack into the chest at <paramref name="chest"/> (BR-F2, BR-K2, BR-K6): onto chest
+    /// slots of the same item below 99, then the lowest free ones; what doesn't fit stays. NothingToDo where there is
+    /// no chest or the Slot is empty, NotOffered for a tool, BackpackFull when nothing fits. Free.
+    /// </summary>
+    public ActionResult StoreInChest(GridPosition chest, int backpackSlot)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(backpackSlot);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(backpackSlot, Player.Backpack.Capacity);
+
+        if (ChestOn(chest) is not { } placed || Player.Backpack.Slots[backpackSlot] is not { Item: { } item } slot)
+        {
+            return ActionResult.Rejected(Rejection.NothingToDo);
+        }
+
+        // BR-K6: a tool is never stored in a chest.
+        if (item.Kind == ItemKind.Tool)
+        {
+            return ActionResult.Rejected(Rejection.NotOffered);
+        }
+
+        var moved = slot.Quantity - placed.Store(item, slot.Quantity);
+        if (moved == 0)
+        {
+            return ActionResult.Rejected(Rejection.BackpackFull);
+        }
+
+        Player.Backpack.RemoveFrom(backpackSlot, moved);
+        return ActionResult.Ok;
+    }
+
+    /// <summary>
+    /// Moves a chest slot's whole stack into the Backpack (BR-F2, BR-K3); what doesn't fit stays in the chest.
+    /// NothingToDo where there is no chest or the slot is empty, BackpackFull when nothing fits. Free.
+    /// </summary>
+    public ActionResult TakeFromChest(GridPosition chest, int chestSlot)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(chestSlot);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(chestSlot, PlacedObject.ChestSlotCount);
+
+        if (ChestOn(chest) is not { } placed || placed.Slots[chestSlot] is not { Item: { } item } slot)
+        {
+            return ActionResult.Rejected(Rejection.NothingToDo);
+        }
+
+        var moved = slot.Quantity - Player.Backpack.Add(item, slot.Quantity);
+        if (moved == 0)
+        {
+            return ActionResult.Rejected(Rejection.BackpackFull);
+        }
+
+        placed.TakeFrom(chestSlot, moved);
+        return ActionResult.Ok;
+    }
+
+    // The chest on a farm Tile, or null.
+    private PlacedObject? ChestOn(GridPosition position) =>
+        FarmPlot.Contains(position) && FarmPlot.PlacedAt(position) is { Placeable: PlaceableId.Chest } chest
+            ? chest
+            : null;
+
+    /// <summary>
+    /// Why tilling a Tile would be refused, or null when it is allowed: AlreadyTilled, then NodeInTheWay, TileOccupied (a Placed object), then
     /// TooTired (BR-T2, BR-P2).
     /// </summary>
     public Rejection? TillRejection(GridPosition position, int toolEnergyCost)
@@ -469,12 +610,18 @@ public sealed class Game
             return Rejection.NodeInTheWay;
         }
 
+        // BR-T2: nor can a Tile with a Placed object on it.
+        if (FarmPlot.PlacedAt(position) is not null)
+        {
+            return Rejection.TileOccupied;
+        }
+
         // BR-P2
         return Player.Energy < toolEnergyCost ? Rejection.TooTired : null;
     }
 
     /// <summary>
-    /// Tills a Tile: AlreadyTilled, then NodeInTheWay, then TooTired, else tills and spends the energy (BR-T2, BR-P2). On a rain Day the
+    /// Tills a Tile: AlreadyTilled, then NodeInTheWay, TileOccupied, then TooTired, else tills and spends the energy (BR-T2, BR-P2). On a rain Day the
     /// new tilled Tile is watered at once (BR-T7).
     /// </summary>
     public ActionResult Till(GridPosition position, int toolEnergyCost)
@@ -501,6 +648,12 @@ public sealed class Game
     /// <summary>Why watering would be refused, or null: NotTilled, AlreadyWatered, CanEmpty, then TooTired (BR-T9, BR-W2, BR-P2).</summary>
     public Rejection? WaterRejection(GridPosition position, int toolEnergyCost)
     {
+        // #164: a watering can aimed at a fence or chest is refused for it, not for the grass under it.
+        if (FarmPlot.PlacedAt(position) is not null)
+        {
+            return Rejection.TileOccupied;
+        }
+
         // BR-T9
         var tile = FarmPlot[position];
         if (tile.State != TileState.Tilled)
@@ -1029,6 +1182,12 @@ public sealed class Game
         if (spawn.Area != AreaId.Farm)
         {
             return true;
+        }
+
+        // BR-N4: a Placed object on the spawn point's own Tile blocks it.
+        if (FarmPlot.PlacedAt(spawn.Position) is not null)
+        {
+            return false;
         }
 
         var (cx, cy) = (spawn.Position.X, spawn.Position.Y);

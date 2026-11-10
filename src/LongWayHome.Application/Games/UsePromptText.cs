@@ -30,6 +30,10 @@ public static class UsePromptText
                 UseActionKind.Water => ("Water", true),
                 UseActionKind.Chop => ("Chop", true),
                 UseActionKind.Break => ("Break", true),
+                UseActionKind.Place when held?.Placeable is { } placed =>
+                    ($"Place {HeldItem.PlaceableLabel(placed).ToLowerInvariant()}", true),
+                UseActionKind.PickUp when targetPlaceable is { } target =>
+                    ($"Pick up {HeldItem.PlaceableLabel(target).ToLowerInvariant()}", true),
                 UseActionKind.Plant when held?.Seed is { } seed => ($"Plant {CropName(seed, cropTypes)}", true),
                 UseActionKind.Harvest when targetPlanting is not null =>
                     ($"Harvest {CropName(targetPlanting.CropTypeId, cropTypes)}", true),
@@ -44,7 +48,9 @@ public static class UsePromptText
             Rejection.TooTired => "Too tired",
             Rejection.NeedsGrothAxe => "Needs a Groth axe",
             Rejection.NotTilled => "Till the soil first",
+            Rejection.TileOccupied when targetPlaceable is not null => "Something's in the way",
             Rejection.TileOccupied => "Something is growing here",
+            Rejection.ChestNotEmpty => "Empty the chest first",
             Rejection.NoSeed => "No seeds left",
             Rejection.NotRipe => "Not ready yet",
             Rejection.AlreadyWatered => "Already watered",

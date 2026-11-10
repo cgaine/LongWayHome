@@ -10,7 +10,7 @@ namespace LongWayHome.Domain.Players;
 public sealed class Backpack
 {
     /// <summary>The most of one item a Slot holds (BR-K2).</summary>
-    public const int MaxStack = 99;
+    public const int MaxStack = SlotStore.MaxStack;
 
     /// <summary>The capacity a Backpack starts at (BR-K1).</summary>
     public const int StartingCapacity = 12;
@@ -20,10 +20,14 @@ public sealed class Backpack
 
     private readonly List<BackpackSlot> _slots;
 
+    // BR-K2, BR-K3: the slot filling shared with a placed chest.
+    private readonly SlotStore _store;
+
     /// <summary>A new Backpack of 12 empty Slots on hotbar row 0.</summary>
     public Backpack()
     {
         _slots = Enumerable.Range(0, StartingCapacity).Select(EmptySlot).ToList();
+        _store = new SlotStore(_slots);
         HotbarRow = 0;
     }
 
@@ -76,6 +80,7 @@ public sealed class Backpack
         }
 
         _slots = byIndex.Select(slot => slot!).ToList();
+        _store = new SlotStore(_slots);
 
         // BR-K6: the hoe and the watering can never leave the Backpack, so each is held exactly once; BR-K2: no tool
         // is held twice.
@@ -147,48 +152,10 @@ public sealed class Backpack
     /// Adds a non-tool item: tops up Slots holding it below 99 in index order, then fills free Slots in index order
     /// (BR-K3). Returns the quantity that fitted nowhere. A quantity below 1 throws.
     /// </summary>
-    public int Add(ItemRef item, int quantity)
-    {
-        RequireItem(item, quantity);
-
-        var left = quantity;
-
-        // BR-K3: first onto Slots of the same item below 99, lowest index first.
-        for (var index = 0; index < _slots.Count && left > 0; index++)
-        {
-            var slot = _slots[index];
-            if (slot.Item == item && slot.Quantity < MaxStack)
-            {
-                var placed = Math.Min(MaxStack - slot.Quantity, left);
-                _slots[index] = slot with { Quantity = slot.Quantity + placed };
-                left -= placed;
-            }
-        }
-
-        // BR-K3, BR-K2: then into the lowest free Slots, at most 99 each.
-        for (var index = 0; index < _slots.Count && left > 0; index++)
-        {
-            if (_slots[index].Item is null)
-            {
-                var placed = Math.Min(MaxStack, left);
-                _slots[index] = new BackpackSlot(index, item, placed, null);
-                left -= placed;
-            }
-        }
-
-        return left;
-    }
+    public int Add(ItemRef item, int quantity) => _store.Add(item, quantity);
 
     /// <summary>Whether <see cref="Add"/> would place the whole quantity, changing nothing.</summary>
-    public bool CanFit(ItemRef item, int quantity)
-    {
-        RequireItem(item, quantity);
-
-        var room = _slots.Sum(slot => slot.Item is null
-            ? MaxStack
-            : slot.Item == item ? MaxStack - slot.Quantity : 0);
-        return room >= quantity;
-    }
+    public bool CanFit(ItemRef item, int quantity) => _store.CanFit(item, quantity);
 
     /// <summary>
     /// Puts a tool alone in the lowest free Slot; false and no change when there is none (BR-K2). A tool already held
@@ -352,55 +319,9 @@ public sealed class Backpack
 
     private static bool IsCapacity(int capacity) => capacity is 12 or 24 or 36;
 
-    private static BackpackSlot EmptySlot(int index) => new(index, null, 0, null);
+    private static BackpackSlot EmptySlot(int index) => SlotStore.EmptySlot(index);
 
-    private static void RequireItem(ItemRef item, int quantity)
-    {
-        if (item.Kind == ItemKind.Tool)
-        {
-            throw new ArgumentException("A tool goes in through AddTool, never as a stack (BR-K2).", nameof(item));
-        }
+    private static void RequireItem(ItemRef item, int quantity) => SlotStore.RequireItem(item, quantity);
 
-        if (!item.IsValid)
-        {
-            throw new ArgumentException($"The item's id doesn't match its kind {item.Kind}.", nameof(item));
-        }
-
-        ArgumentOutOfRangeException.ThrowIfLessThan(quantity, 1);
-    }
-
-    private static void ValidateSlot(BackpackSlot slot)
-    {
-        // BR-K2
-        if (slot.Item is not { } item)
-        {
-            if (slot.Quantity != 0 || slot.ToolTier is not null)
-            {
-                throw new ArgumentException($"Empty Slot {slot.Index} must have quantity 0 and no tier (BR-K2).");
-            }
-
-            return;
-        }
-
-        if (!item.IsValid)
-        {
-            throw new ArgumentException($"Slot {slot.Index} holds an item whose id doesn't match its kind {item.Kind}.");
-        }
-
-        if (item.Kind == ItemKind.Tool)
-        {
-            if (slot.Quantity != 1 || slot.ToolTier is null)
-            {
-                throw new ArgumentException($"Tool Slot {slot.Index} must have quantity 1 and a tier (BR-K2).");
-            }
-
-            return;
-        }
-
-        if (slot.Quantity is < 1 or > MaxStack || slot.ToolTier is not null)
-        {
-            throw new ArgumentException(
-                $"Slot {slot.Index} must hold 1 to {MaxStack} of its item and no tier (BR-K2).");
-        }
-    }
+    private static void ValidateSlot(BackpackSlot slot) => SlotStore.ValidateSlot(slot);
 }

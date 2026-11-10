@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Chest</title>
+  <rect x="6" y="28" width="52" height="28" rx="2" fill="#9C7E8C" stroke="#34405E" stroke-width="2"/>
+  <path d="M6 28 v-8 q0 -10 10 -10 h32 q10 0 10 10 v8 z" fill="#7E6474" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="6" y="26" width="52" height="6" fill="#E9773A" stroke="#34405E" stroke-width="2"/>
+  <rect x="27" y="29" width="10" height="12" rx="1.5" fill="#5A4458" stroke="#34405E" stroke-width="2"/>
+  <path d="M12 40 h12 M40 46 h12 M14 48 h8" fill="none" stroke="#6E5664" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

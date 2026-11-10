@@ -12,6 +12,11 @@ public sealed class FarmPlot
 
     private readonly Tile[] _tiles;
 
+    // BR-F1: at most one Placed object per Tile.
+    private readonly Dictionary<GridPosition, PlacedObject> _placedByTile = [];
+
+    private readonly List<PlacedObject> _placed = [];
+
     /// <summary>Creates a fresh Farm plot of 2592 grass, unwatered Tiles.</summary>
     public FarmPlot()
     {
@@ -26,14 +31,13 @@ public sealed class FarmPlot
         }
     }
 
-    /// <summary>Restores a Farm plot from exactly one Tile per grid position (BR-T1).</summary>
+    /// <summary>
+    /// Restores a Farm plot from exactly one Tile per grid position (BR-T1) and its Placed objects, none by default:
+    /// each inside the plot, on an untilled Tile, at most one per Tile (BR-F1).
+    /// </summary>
     public FarmPlot(IEnumerable<Tile> tiles, IEnumerable<PlacedObject>? placedObjects = null)
     {
         ArgumentNullException.ThrowIfNull(tiles);
-        if (placedObjects is not null && placedObjects.Any())
-        {
-            throw new NotImplementedException();
-        }
 
         // BR-T1: every position of the plot exactly once. GridPosition already keeps each one inside the plot.
         _tiles = new Tile[Width * Height];
@@ -55,6 +59,31 @@ public sealed class FarmPlot
         {
             throw new ArgumentException($"A Farm plot needs exactly {_tiles.Length} Tiles, got {count}.", nameof(tiles));
         }
+
+        foreach (var placed in placedObjects ?? [])
+        {
+            ArgumentNullException.ThrowIfNull(placed, nameof(placedObjects));
+            var position = placed.Position;
+
+            // BR-F1: on the plot, on an untilled Tile, one per Tile.
+            if (!Contains(position))
+            {
+                throw new ArgumentException($"A Placed object at {position} is off the Farm plot.", nameof(placedObjects));
+            }
+
+            if (this[position].State != TileState.Grass)
+            {
+                throw new ArgumentException(
+                    $"A Placed object at {position} is on a tilled Tile (BR-F1).", nameof(placedObjects));
+            }
+
+            if (_placedByTile.ContainsKey(position))
+            {
+                throw new ArgumentException($"More than one Placed object at {position} (BR-F1).", nameof(placedObjects));
+            }
+
+            Put(placed);
+        }
     }
 
     /// <summary>All Tiles in row-major order (Y then X).</summary>
@@ -65,16 +94,33 @@ public sealed class FarmPlot
     /// throws <see cref="ArgumentOutOfRangeException"/> (BR-T1).
     /// </summary>
     public Tile this[GridPosition position] =>
-        position.X < Width && position.Y < Height
+        Contains(position)
             ? _tiles[IndexOf(position.X, position.Y)]
             : throw new ArgumentOutOfRangeException(
                 nameof(position), position, $"The position is off the {Width} x {Height} Farm plot (BR-T1).");
 
     /// <summary>The fences and chests on the plot, at most one per Tile (BR-F1).</summary>
-    public IReadOnlyList<PlacedObject> PlacedObjects => throw new NotImplementedException();
+    public IReadOnlyList<PlacedObject> PlacedObjects => _placed.AsReadOnly();
 
     /// <summary>The Placed object on <paramref name="position"/>, or null.</summary>
-    public PlacedObject? PlacedAt(GridPosition position) => throw new NotImplementedException();
+    public PlacedObject? PlacedAt(GridPosition position) => _placedByTile.GetValueOrDefault(position);
+
+    /// <summary>Whether <paramref name="position"/> lies on the 72 x 36 plot rather than another Area's grid (#154).</summary>
+    public static bool Contains(GridPosition position) => position.X < Width && position.Y < Height;
+
+    /// <summary>Puts a Placed object on its Tile; the caller has checked the Tile is free (BR-F1).</summary>
+    internal void Put(PlacedObject placed)
+    {
+        _placedByTile.Add(placed.Position, placed);
+        _placed.Add(placed);
+    }
+
+    /// <summary>Takes the Placed object off its Tile (BR-F2).</summary>
+    internal void Remove(PlacedObject placed)
+    {
+        _placedByTile.Remove(placed.Position);
+        _placed.Remove(placed);
+    }
 
     private static int IndexOf(int x, int y) => (y * Width) + x;
 }

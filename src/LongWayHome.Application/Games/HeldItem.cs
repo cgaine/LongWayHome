@@ -18,7 +18,7 @@ public sealed record HeldItem(ToolId? Tool, CropTypeId? Seed, MaterialId? Materi
     /// The display label from canonical-values.md: "Hoe", "Watering can", "Axe", "Pickaxe", "&lt;Crop type&gt; seeds",
     /// or a material's label ("Wood", "Rosk ore", …).
     /// </summary>
-    public string DisplayLabel => Placeable is not null ? throw new NotImplementedException() : (Tool, Seed, Material) switch
+    public string DisplayLabel => Placeable is { } placeable ? PlaceableLabel(placeable) : (Tool, Seed, Material) switch
     {
         (ToolId.Hoe, null, null) => "Hoe",
         (ToolId.WateringCan, null, null) => "Watering can",
@@ -27,5 +27,14 @@ public sealed record HeldItem(ToolId? Tool, CropTypeId? Seed, MaterialId? Materi
         (null, { } seed, null) => $"{CropLabels.For(seed)} seeds",
         (null, null, { } material) => MaterialLabels.For(material),
         _ => throw new InvalidOperationException("A held item is exactly one tool, one seed type or one material."),
+    };
+
+    /// <summary>"Fence" or "Chest" (canonical-values.md).</summary>
+    /// <exception cref="ArgumentOutOfRangeException">An undefined placeable.</exception>
+    public static string PlaceableLabel(PlaceableId placeable) => placeable switch
+    {
+        PlaceableId.Fence => "Fence",
+        PlaceableId.Chest => "Chest",
+        _ => throw new ArgumentOutOfRangeException(nameof(placeable), placeable, "Unknown placeable."),
     };
 }

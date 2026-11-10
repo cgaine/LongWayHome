@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Players;
 using LongWayHome.Game.Core;
 using LongWayHome.Game.Player;
 
@@ -30,7 +31,7 @@ public partial class UsePrompt : Label
     private HeldItemSelection? _selection;
 
     /// <summary>What the prompt was last drawn from, or null to force a redraw.</summary>
-    private (UsePreview Preview, HeldItem? Held, CropTypeId? Crop, InputDeviceKind Device)? _last;
+    private (UsePreview Preview, HeldItem? Held, CropTypeId? Crop, PlaceableId? Placed, InputDeviceKind Device)? _last;
 
     public override void _Ready()
     {
@@ -65,17 +66,18 @@ public partial class UsePrompt : Label
         var held = _session!.HeldItemAt(_selection.Position);
         var preview = _session.PreviewUse(target, _selection.Position);
         var planting = _session.PlantingAt(target);
+        var placed = _session.PlacedAt(target);
 
         // Only redraw when what the prompt is drawn from changes, so an unchanged prompt costs no allocation per frame.
         var device = LastInputDevice.DeviceOf(_device);
-        var inputs = (preview, held, planting?.CropTypeId, device);
+        var inputs = (preview, held, planting?.CropTypeId, placed, device);
         if (_last == inputs)
         {
             return;
         }
 
         _last = inputs;
-        if (UsePromptText.For(preview, held, planting, _session.Data.CropTypes) is not { } prompt)
+        if (UsePromptText.For(preview, held, planting, _session.Data.CropTypes, placed) is not { } prompt)
         {
             Visible = false;
             return;

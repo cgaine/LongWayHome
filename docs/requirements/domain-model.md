@@ -53,7 +53,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | **Pump** | *(planned, REQ-49, REQ-57)* A Rosk pump forged by Mira; using one drains a flooded Mine level. |
 | **Mine level** | *(planned, REQ-49)* One floor of the old mine, 1 to 5 in Phase 2. Blocked by debris, or flooded. |
 | **Resident** | A townsperson living in Ember Bay: Maggie, Clyde, Tom, June, Jesse, Mira. |
-| **Placed object** | *(planned, REQ-48)* A fence or chest the Player has set down on the farm. |
+| **Placed object** | *(built in #164)* A fence or chest the Player has set down on the farm. |
 | **Water source** | Where the Watering can is refilled: the pond, the river or the lake. |
 | **Opening** | Maggie's guided start on Spring 1 of a new Game. |
 
@@ -66,7 +66,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `TileState` | `grass`, `tilled` | Tile |
 | `PlantingStatus` (derived, never stored) | `growing`, `ripe` | Planting |
 | `DayEndReason` | `slept`, `passed_out` | Game (last Night) |
-| `ItemKind` | `seed`, `crop`, `tool`; *(planned, REQ-47)* `material`, `placeable` | InventoryStack, BackpackSlot |
+| `ItemKind` | `seed`, `crop`, `tool`, `material` (built in #152), `placeable` (built in #164) | InventoryStack, BackpackSlot |
 | `ToolId` | `hoe`, `watering_can`, `axe`, `pickaxe` | Player tools, ToolItem, Order |
 | `ShopItemKind` | `seed`, `can_upgrade` (Phase 1 only), `tool`; *(planned, REQ-58, REQ-48)* `backpack_upgrade`, `placeable`, `farmhouse_upgrade` | ShopListing |
 | `CropTypeId` | `emberroot`, `dusktuber`, `moonmelon`, `sunbell`, `starcorn` | CropType, Planting, InventoryStack, ShippedItem, ShopListing |
@@ -76,7 +76,7 @@ Single-context model of the game's rules, derived from [product-definition.md](p
 | `Gold` | integer ≥ 0 | Player, CropType, ShopListing, BuildingStage, Order |
 | `ToolTier` | `basic`, `rosk`, `groth` | ToolItem, Order |
 | `MaterialId` | `wood`, `sap`, `stone`, `rosk_ore`, `groth_ore`, `glimmercap`, `plank`, `sealed_plank`, `rosk_pump` | BackpackSlot, BuildingStage, Order |
-| `PlaceableId` | *(planned, REQ-48)* `fence`, `chest` | PlacedObject, BackpackSlot, ShopListing |
+| `PlaceableId` | `fence`, `chest` (built in #164) | PlacedObject, BackpackSlot, ShopListing |
 | `ItemRef` | `{ kind: ItemKind, id: CropTypeId \| MaterialId \| ToolId \| PlaceableId }` | BackpackSlot, DroppedItem, ChestSlot |
 | `NodeKind` | `tree`, `stump`, `rock`, `rosk_deposit`, `groth_deposit`, `glimmercap`, `debris` | ResourceNode, NodeSpawn |
 | `AreaId` | `farm`, `forest_path`, `town`, `lakeshore`, `across_river`, `mine` | ResourceNode, DroppedItem, NodeSpawn |
@@ -298,13 +298,13 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 | `spawnId` | string | FK -> NodeSpawn.id. A respawning spawn point whose node was cleared. |
 | `clearedOn` | GameDate | When it was cleared. Grows back after 2 Nights (tuning), subject to BR-N4. |
 
-#### PlacedObject (child of FarmPlot, zero or more) *(planned, REQ-48)*
+#### PlacedObject (child of FarmPlot, zero or more) *(built in #164)*
 
 | Attribute | Type | Notes |
 |-----------|------|-------|
 | `position` | GridPosition | Key within the FarmPlot. One object per Tile. |
 | `placeable` | PlaceableId | `fence` or `chest`. |
-| `slots` | list of ChestSlot | Chest only: 36 slots, same shape as BackpackSlot. |
+| `slots` | list of ChestSlot | Chest only: exactly 36 slots, index 0–35, same shape as BackpackSlot, never a tool; a fence has none. Filled like the Backpack (BR-K3). |
 
 #### Building (child of Game, one per BuildingId) *(planned, REQ-45)*
 
@@ -590,10 +590,10 @@ Abbreviations: **G** Game, **P** Player, **W** WateringCan, **T** FarmPlot and T
 - BR-N6: A stump can be cleared only with a Groth axe. *(planned, REQ-57)*
 - BR-N7: A new Game places a node at every `atStart` spawn point. The farm's cleared 6 x 6 by the farmhouse has none.
 
-### Placed objects *(planned, REQ-48)*
+### Placed objects *(built in #164)*
 
-- BR-F1: A fence or chest can be placed only on a farm Tile that is not tilled and has no node, Placed object or Planting. Placing moves it out of the Backpack. *(planned, REQ-48)*
-- BR-F2: A fence, or a chest with every Slot empty, can be picked back up into a free Slot. A chest's 36 Slots follow BR-K2, without tools. *(planned, REQ-48)*
+- BR-F1: A fence or chest can be placed only on a farm Tile that is not tilled and has no node, Placed object or Planting. Placing moves it out of the Backpack.
+- BR-F2: A fence, or a chest with every Slot empty, can be picked back up into a free Slot. A chest's 36 Slots follow BR-K2, without tools.
 
 ### Buildings *(planned, REQ-45)*
 

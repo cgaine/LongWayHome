@@ -25,6 +25,8 @@ public static class BackpackText
             { Kind: ItemKind.Seed, CropTypeId: { } seed } => $"{HeldItem.SeedOf(seed).DisplayLabel} × {slot.Quantity}",
             { Kind: ItemKind.Crop, CropTypeId: { } crop } => $"{CropLabels.For(crop)} × {slot.Quantity}",
             { Kind: ItemKind.Material, MaterialId: { } material } => $"{MaterialLabels.For(material)} × {slot.Quantity}",
+            { Kind: ItemKind.Placeable, PlaceableId: { } placeable } =>
+                $"{HeldItem.PlaceableOf(placeable).DisplayLabel} × {slot.Quantity}",
             _ => "",
         };
     }
