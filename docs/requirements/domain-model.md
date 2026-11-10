@@ -312,7 +312,7 @@ BackpackSlot: `index` (int), `item` (ItemRef?, empty when the slot is free), `qu
 |-----------|------|-------|
 | `id` | BuildingId | Key. |
 | `stage` | int | Starts: general_store 1, carpenter 0, miras_house 0, blacksmith 0. |
-| `delivered` | list of `{ item: MaterialId, quantity }` plus `gold` | Delivered toward the next stage, saved as `delivered` and `deliveredGold`. Cleared when the stage is rebuilt (BR-B3, planned). |
+| `delivered` | list of `{ item: MaterialId, quantity }` plus `gold` | Delivered toward the next stage, saved as `delivered` and `deliveredGold`. Cleared when the stage is rebuilt (BR-B3). |
 | `rebuildDue` | bool | **Derived**: `true` when `delivered` covers the next stage's full cost. |
 
 #### Order (child of Game, zero or more) *(planned, REQ-48, REQ-57)*

@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using Godot;
 using LongWayHome.Application.Art;
@@ -45,7 +46,9 @@ public partial class TownView : Node3D
     {
         _session = GetNode<GameRoot>("/root/GameRoot").Session;
         var season = _session?.Game.Date.Season ?? Season.Spring;
-        var storeLook = TownBuildingLooks.Store(_session?.Game.BuildingOf(BuildingId.GeneralStore).Stage ?? 1);
+        // A hand-edited save can hold any non-negative stage; draw the nearest look rather than fail the town.
+        var storeStage = _session?.Game.BuildingStage(BuildingId.GeneralStore) ?? 1;
+        var storeLook = TownBuildingLooks.Store(Math.Clamp(storeStage, 1, 4));
         var trees = TownLayout.Trees();
 
         AddChild(AreaArt.Flat("Ground", -HalfWidth - 6f, RiverWestX, -HalfDepth - 3f, HalfDepth + 3f, 0f, "grass-lit"));

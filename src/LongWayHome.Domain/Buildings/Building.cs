@@ -6,7 +6,8 @@ namespace LongWayHome.Domain.Buildings;
 
 /// <summary>
 /// A town Building (child of Game, one per <see cref="BuildingId"/>): its stage and what has been delivered toward the
-/// next stage (BR-B1, BR-B2). What has been delivered only grows, through the Game's deliveries; it is never refunded.
+/// next stage (BR-B1, BR-B2). What has been delivered only grows, through the Game's deliveries, and is never
+/// refunded; the Night's rebuild clears it as the stage rises (BR-B3).
 /// </summary>
 public sealed class Building
 {
