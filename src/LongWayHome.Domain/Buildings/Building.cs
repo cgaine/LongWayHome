@@ -85,4 +85,7 @@ public sealed class Building
 
     /// <summary>Records <paramref name="gold"/> more gold delivered (BR-B2); Game only.</summary>
     internal void AddDeliveredGold(int gold) => DeliveredGold += gold;
+
+    /// <summary>Raises the stage by one and clears the deliveries (BR-B3); Game only.</summary>
+    internal void Rebuild() => throw new NotImplementedException();
 }

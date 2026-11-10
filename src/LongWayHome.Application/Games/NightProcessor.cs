@@ -15,21 +15,21 @@ public static class NightProcessor
     /// Runs the Night steps on a Game whose Day ended for the given reason, with a source that never rolls rain
     /// (<see cref="NeverRainSource"/>: always 99).
     /// </summary>
-    public static void Run(Game game, GameData data, DayEndReason reason) =>
+    public static NightResult Run(Game game, GameData data, DayEndReason reason) =>
         Run(game, data, reason, NeverRainSource.Instance);
 
     /// <summary>
     /// Runs the Night steps on a Game whose Day ended for the given reason, rolling the next Day's weather once from
     /// the random source (BR-G4). Saves nowhere.
     /// </summary>
-    public static void Run(Game game, GameData data, DayEndReason reason, IRandomSource random) =>
+    public static NightResult Run(Game game, GameData data, DayEndReason reason, IRandomSource random) =>
         Run(game, data, reason, random, static _ => { });
 
     /// <summary>
     /// As <see cref="Run(Game, GameData, DayEndReason, IRandomSource)"/>, then calls <paramref name="save"/> once as
     /// the very last step, after every other Night step (BR-G5).
     /// </summary>
-    public static void Run(Game game, GameData data, DayEndReason reason, IRandomSource random, Action<Game> save)
+    public static NightResult Run(Game game, GameData data, DayEndReason reason, IRandomSource random, Action<Game> save)
     {
         ArgumentNullException.ThrowIfNull(game);
         ArgumentNullException.ThrowIfNull(data);
@@ -94,5 +94,7 @@ public static class NightProcessor
 
         // BR-G5: the save is the Night's last step, so the saved Game is the next morning's.
         save(game);
+
+        return new NightResult([]);
     }
 }

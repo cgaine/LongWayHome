@@ -79,6 +79,19 @@ public sealed class BuildingSaveTests : IDisposable
     }
 
     [Fact]
+    public void AC7_A_save_written_after_the_rebuilding_Night_loads_with_the_store_at_stage_2_and_nothing_delivered()
+    {
+        // #165 AC7: what the Night saves after rebuilding the store (BR-B3, BR-G5).
+        Store().Save(1, RichWith(BuildingGames.All(storeStage: 2)));
+
+        var loaded = Store().Load(1);
+
+        Assert.Equal(
+            "GeneralStore:2:-:0,Carpenter:0:-:0,MirasHouse:0:-:0,Blacksmith:0:-:0",
+            BuildingGames.Describe(loaded.Buildings));
+    }
+
+    [Fact]
     public void AC9_A_save_written_after_deliveries_loads_with_the_same_stages_and_delivered_amounts()
     {
         Store().Save(1, RichWith(Delivered));
