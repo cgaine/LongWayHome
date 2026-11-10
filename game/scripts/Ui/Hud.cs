@@ -7,6 +7,7 @@ using Godot;
 using LongWayHome.Application.Art;
 using LongWayHome.Application.Games;
 using LongWayHome.Domain.Catalog;
+using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Players;
 using LongWayHome.Domain.Residents;
 using PlayerState = LongWayHome.Domain.Players.Player;
@@ -41,7 +42,9 @@ namespace LongWayHome.Game.Ui;
 /// a "&lt;interact glyph&gt; Rebuild" hint in the same place while in range of a <c>"sign"</c> point whose
 /// <see cref="RebuildSignPoint"/> is up (#163, BR-B4), and
 /// a <see cref="DialogueText.TalkHint"/> ("[F] Talk") in the same place while in range of a present Resident's point
-/// (#138), standing in for the Refill hint there since the press talks;
+/// (#138), standing in for the Refill hint there since the press talks, and an "&lt;interact glyph&gt; Open chest" hint in
+/// the same place while the Player's <see cref="ToolTargeting"/> tile holds a chest (<see cref="GameSession.ChestAt"/>,
+/// #164) and no other point hint shows, since a point in range takes the press;
 /// their glyph, and the change-item and next-row hints', follows <see cref="LastInputDevice"/>. Top right, the clock as
 /// <see cref="ClockText"/> ("6:00 am"), redrawn on <see cref="GameSession.ClockChanged"/>, with the Day's weather as
 /// <see cref="WeatherText"/> ("Clear", "Rain") under it and the date as <see cref="DateText"/> ("Spring 1, Year 1")
@@ -157,6 +160,18 @@ public partial class Hud : CanvasLayer
 
     private Label _talkHint = null!;
 
+    /// <summary>The "Open chest" hint (#164), shown while facing a chest with no point in range.</summary>
+    private Label _chestHint = null!;
+
+    private ToolTargeting? _targeting;
+
+    /// <summary>The Tile last checked for a chest, and whether it held one; re-checked when either changes.</summary>
+    private GridPosition? _chestTarget;
+
+    private bool _facingChest;
+
+    private bool _chestStale = true;
+
     /// <summary>The Opening's step hint (#139), shown only while it has one.</summary>
     private Label _stepHint = null!;
 
@@ -191,6 +206,7 @@ public partial class Hud : CanvasLayer
         _shopHint = GetNode<Label>("ShopHint");
         _rebuildHint = GetNode<Label>("RebuildHint");
         _talkHint = GetNode<Label>("TalkHint");
+        _chestHint = GetNode<Label>("ChestHint");
         _stepHint = GetNode<Label>("StepHint");
         _stepHint.Visible = false;
         _changeItemHint = GetNode<Label>("ChangeItemHint");
@@ -223,6 +239,7 @@ public partial class Hud : CanvasLayer
         _session.InventoryChanged += Refresh;
         _session.ClockChanged += RefreshClock;
         _session.NightCompleted += RefreshAll;
+        _session.PlacedObjectsChanged += MarkChestStale;
         if (_selection is not null)
         {
             _selection.SelectionChanged += Refresh;
@@ -314,6 +331,39 @@ public partial class Hud : CanvasLayer
         RefreshDate();
     }
 
+    public override void _Process(double delta)
+    {
+        if (_session is null)
+        {
+            return;
+        }
+
+        if (_targeting is null || !IsInstanceValid(_targeting))
+        {
+            _targeting = ToolTargeting.OfPlayer(GetTree());
+        }
+
+        // Only asks the session when the faced Tile or the placed objects change, so an unchanged frame reads nothing.
+        var target = _targeting?.Target;
+        if (_chestStale || target != _chestTarget)
+        {
+            _chestStale = false;
+            _chestTarget = target;
+            _facingChest = target is { } at && _session.ChestAt(at) is not null;
+        }
+
+        // A point in range takes the interact press, so its hint shows instead.
+        _chestHint.Visible = _facingChest
+                             && !_refillHint.Visible
+                             && !_sleepHint.Visible
+                             && !_shipHint.Visible
+                             && !_shopHint.Visible
+                             && !_rebuildHint.Visible
+                             && !_talkHint.Visible;
+    }
+
+    private void MarkChestStale() => _chestStale = true;
+
     public override void _ExitTree()
     {
         if (_session is not null)
@@ -324,6 +374,7 @@ public partial class Hud : CanvasLayer
             _session.InventoryChanged -= Refresh;
             _session.ClockChanged -= RefreshClock;
             _session.NightCompleted -= RefreshAll;
+            _session.PlacedObjectsChanged -= MarkChestStale;
             _session.BuildingsChanged -= RefreshRebuildHint;
         }
 
@@ -476,6 +527,7 @@ public partial class Hud : CanvasLayer
         _sleepHint.Text = $"{glyph} Sleep";
         _shipHint.Text = $"{glyph} Ship crops";
         _shopHint.Text = $"{glyph} Shop";
+        _chestHint.Text = $"{glyph} Open chest";
         _rebuildHint.Text = $"{glyph} Rebuild";
         var device = LastInputDevice.DeviceOf(_device);
         _talkHint.Text = DialogueText.TalkHint(device);

@@ -1,6 +1,7 @@
 using LongWayHome.Domain.Catalog;
 using LongWayHome.Domain.Farming;
 using LongWayHome.Domain.Games;
+using LongWayHome.Domain.Players;
 
 namespace LongWayHome.Application.Games;
 
@@ -9,13 +10,15 @@ public static class UsePromptText
 {
     /// <summary>
     /// The prompt text and whether it names an action (true) or a rejection reason (false), or null to show no
-    /// prompt. <paramref name="held"/> is null when the held hotbar slot is empty or holds a crop.
+    /// prompt. <paramref name="held"/> is null when the held hotbar slot is empty or holds a crop;
+    /// <paramref name="targetPlaceable"/> is the fence or chest on the target Tile, if any.
     /// </summary>
     public static (string Text, bool IsAction)? For(
         UsePreview preview,
         HeldItem? held,
         Planting? targetPlanting,
-        IReadOnlyDictionary<CropTypeId, CropType> cropTypes)
+        IReadOnlyDictionary<CropTypeId, CropType> cropTypes,
+        PlaceableId? targetPlaceable = null)
     {
         ArgumentNullException.ThrowIfNull(cropTypes);
 
@@ -27,6 +30,10 @@ public static class UsePromptText
                 UseActionKind.Water => ("Water", true),
                 UseActionKind.Chop => ("Chop", true),
                 UseActionKind.Break => ("Break", true),
+                UseActionKind.Place when held?.Placeable is { } placed =>
+                    ($"Place {HeldItem.PlaceableLabel(placed).ToLowerInvariant()}", true),
+                UseActionKind.PickUp when targetPlaceable is { } target =>
+                    ($"Pick up {HeldItem.PlaceableLabel(target).ToLowerInvariant()}", true),
                 UseActionKind.Plant when held?.Seed is { } seed => ($"Plant {CropName(seed, cropTypes)}", true),
                 UseActionKind.Harvest when targetPlanting is not null =>
                     ($"Harvest {CropName(targetPlanting.CropTypeId, cropTypes)}", true),
@@ -41,7 +48,9 @@ public static class UsePromptText
             Rejection.TooTired => "Too tired",
             Rejection.NeedsGrothAxe => "Needs a Groth axe",
             Rejection.NotTilled => "Till the soil first",
+            Rejection.TileOccupied when targetPlaceable is not null => "Something's in the way",
             Rejection.TileOccupied => "Something is growing here",
+            Rejection.ChestNotEmpty => "Empty the chest first",
             Rejection.NoSeed => "No seeds left",
             Rejection.NotRipe => "Not ready yet",
             Rejection.AlreadyWatered => "Already watered",

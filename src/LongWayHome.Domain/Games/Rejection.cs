@@ -28,4 +28,5 @@ public enum Rejection
     NeedsGrothAxe,
     AlreadyDelivered,
     NothingToDeliver,
+    ChestNotEmpty,
 }

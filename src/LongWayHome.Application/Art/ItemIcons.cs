@@ -57,6 +57,15 @@ public static class ItemIcons
         _ => throw new ArgumentOutOfRangeException(nameof(material), material, "Unknown material."),
     };
 
+    /// <summary>"res://art/icons/placeable_&lt;code&gt;.svg": fence, chest.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">An undefined placeable.</exception>
+    public static string PlaceableIcon(PlaceableId placeable) => placeable switch
+    {
+        PlaceableId.Fence => $"{Folder}placeable_fence.svg",
+        PlaceableId.Chest => $"{Folder}placeable_chest.svg",
+        _ => throw new ArgumentOutOfRangeException(nameof(placeable), placeable, "Unknown placeable."),
+    };
+
     /// <summary>"res://art/icons/tool_&lt;code&gt;.svg": axe, pickaxe.</summary>
     /// <exception cref="ArgumentOutOfRangeException">An undefined tool.</exception>
     public static string ToolIcon(GatherTool tool) => tool switch
@@ -91,6 +100,7 @@ public static class ItemIcons
         {
             { Seed: { } seed } => SeedIcon(seed),
             { Material: { } material } => MaterialIcon(material),
+            { Placeable: { } placeable } => PlaceableIcon(placeable),
             { Tool: { } tool } => GatherIcon(tool),
             _ => null,
         };
@@ -120,6 +130,7 @@ public static class ItemIcons
         { Kind: ItemKind.Crop, CropTypeId: { } crop } => CropIcon(crop),
         { Kind: ItemKind.Tool, ToolId: { } tool } => GatherIcon(tool),
         { Kind: ItemKind.Material, MaterialId: { } material } => MaterialIcon(material),
+        { Kind: ItemKind.Placeable, PlaceableId: { } placeable } => PlaceableIcon(placeable),
         _ => null,
     };
 

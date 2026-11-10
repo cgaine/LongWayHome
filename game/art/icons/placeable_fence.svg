@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Fence</title>
+  <rect x="4" y="22" width="56" height="8" rx="1.5" fill="#7E6474" stroke="#34405E" stroke-width="2"/>
+  <rect x="4" y="40" width="56" height="8" rx="1.5" fill="#7E6474" stroke="#34405E" stroke-width="2"/>
+  <path d="M12 8 l6 5 v45 h-12 v-45 z" fill="#9C7E8C" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M46 8 l6 5 v45 h-12 v-45 z" fill="#9C7E8C" stroke="#34405E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M10 20 v32 M44 20 v32" fill="none" stroke="#6E5664" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

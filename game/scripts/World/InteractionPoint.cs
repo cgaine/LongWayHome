@@ -56,6 +56,25 @@ public partial class InteractionPoint : Node3D
         return found;
     }
 
+    /// <summary>Whether the Player is in range of any point under <paramref name="node"/> (depth first, itself included).</summary>
+    public static bool AnyPlayerInRange(Node node)
+    {
+        if (node is InteractionPoint { IsPlayerInRange: true })
+        {
+            return true;
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            if (AnyPlayerInRange(child))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static void Collect(Node node, string[] pointIds, List<InteractionPoint> found)
     {
         if (node is InteractionPoint point && Array.IndexOf(pointIds, point.PointId) >= 0)
