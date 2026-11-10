@@ -48,10 +48,12 @@ public static class ShopService
     /// existing Slots and hotbar row and adds empty Slots. A quantity below 1, or other than 1 for the Can upgrade, a
     /// tool or a backpack upgrade, throws; a listing not offered today is NotOffered; less gold than the total is
     /// NotEnoughGold; a tool with no free Slot is BackpackFull. A once-per-game listing bought is recorded (BR-L5). A
-    /// rejection or an overflowing total changes nothing, and buying costs no energy (BR-P2).
+    /// rejection or an overflowing total changes nothing, and buying costs no energy (BR-P2). What drops lies in
+    /// <paramref name="area"/>, the Area the farmer is buying in (the farm by default).
     /// </summary>
     public static ActionResult Buy(
-        Game game, GameData data, string listingId, int quantity = 1, GridPosition? feet = null)
+        Game game, GameData data, string listingId, int quantity = 1, GridPosition? feet = null,
+        AreaId area = AreaId.Farm)
     {
         ArgumentNullException.ThrowIfNull(game);
         ArgumentNullException.ThrowIfNull(data);
@@ -70,9 +72,9 @@ public static class ShopService
             ShopItemKind.Tool => BuyTool(game, offered, offered.ToolId!.Value, quantity),
             ShopItemKind.BackpackUpgrade => BuyBackpack(game, offered, offered.BackpackCapacity!.Value, quantity),
             ShopItemKind.Placeable => BuyStack(
-                game, offered, ItemRef.Placeable(offered.PlaceableId!.Value), quantity, feet ?? new GridPosition(0, 0)),
+                game, offered, ItemRef.Placeable(offered.PlaceableId!.Value), quantity, feet ?? new GridPosition(0, 0), area),
             _ => BuyStack(
-                game, offered, ItemRef.Seed(offered.CropTypeId!.Value), quantity, feet ?? new GridPosition(0, 0)),
+                game, offered, ItemRef.Seed(offered.CropTypeId!.Value), quantity, feet ?? new GridPosition(0, 0), area),
         };
 
         // BR-L5: a once-per-game listing bought is never offered again.
@@ -86,7 +88,7 @@ public static class ShopService
 
     /// <summary>Seeds or placeables: price × quantity, gained like any item, overflow dropped at the feet (BR-K3).</summary>
     private static ActionResult BuyStack(
-        Game game, ShopListing offered, ItemRef item, int quantity, GridPosition feet)
+        Game game, ShopListing offered, ItemRef item, int quantity, GridPosition feet, AreaId area)
     {
         var player = game.Player;
 
@@ -100,7 +102,7 @@ public static class ShopService
         }
 
         // BR-K3: what fits goes in the Backpack and the rest drops at the feet; never refused for room.
-        game.Gain(item, quantity, feet);
+        game.Gain(item, quantity, feet, area);
         return ActionResult.Ok;
     }
 

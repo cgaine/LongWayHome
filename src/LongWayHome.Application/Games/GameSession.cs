@@ -767,14 +767,14 @@ public sealed class GameSession
     public IReadOnlyList<ShopListing> ShopOffers() => ShopService.Offers(Game, Data);
 
     /// <summary>
-    /// Buys a Shop listing (BR-L2) through <see cref="ShopService.Buy"/>; seeds that fit nowhere drop at
-    /// <paramref name="feet"/> (BR-K3). Raises PlayerChanged and InventoryChanged on success, DroppedItemsChanged when
+    /// Buys a Shop listing (BR-L2) through <see cref="ShopService.Buy"/>; seeds or placeables that fit nowhere drop at
+    /// <paramref name="feet"/> in <see cref="CurrentArea"/> (BR-K3). Raises PlayerChanged and InventoryChanged on success, DroppedItemsChanged when
     /// any dropped, and nothing on a rejection. A success sets <see cref="LastBuyDropped"/>.
     /// </summary>
     public ActionResult Buy(string listingId, int quantity = 1, GridPosition? feet = null)
     {
         var droppedBefore = Game.DroppedItems.Count;
-        var result = ShopService.Buy(Game, Data, listingId, quantity, feet);
+        var result = ShopService.Buy(Game, Data, listingId, quantity, feet, CurrentArea);
         if (result.IsOk)
         {
             // BR-K3: a gain only ever adds DroppedItems, so a changed count means something dropped.

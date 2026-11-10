@@ -169,6 +169,18 @@ public class ShopTests
     }
 
     [Fact]
+    public void BR_K3_Seeds_bought_in_town_that_do_not_fit_drop_in_town()
+    {
+        var session = new GameSession(TestGames.WithBackpack(RoomForNineEmberrootSeeds(), gold: 1000), TestGames.Shipped);
+        Assert.Equal(ActionResult.Ok, session.EnterArea(AreaId.Town));
+
+        var result = session.Buy("seed_emberroot", 10, Feet);
+
+        Assert.Equal(ActionResult.Ok, result);
+        Assert.Equal(AreaId.Town, Assert.Single(session.Game.DroppedItems).Area);
+    }
+
+    [Fact]
     public void BR_L2_full_backpack_purchase_is_not_refused()
     {
         var game = TestGames.WithBackpack(TestGames.FullBackpack(), gold: 100);
